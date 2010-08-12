@@ -32,35 +32,36 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public class Launcher {
-		
+
+	static {
+		/*
+		ClassLoader tcl = Thread.currentThread().getContextClassLoader();		
+		System.out.printf("[Launcher] Classloaders:\nSystem %s\nParent %s\nThis class %s\nTCL %s\n\n", ClassLoader.getSystemClassLoader(), tcl.getParent(), Launcher.class.getClassLoader(), tcl);
+		*/
+	}
+	
 	/**
 	 * Launch Red5 under it's own classloader
 	 */
 	public void launch() {
-		//dumpClassLoaderNames();
-		
-		System.out.println("Root: " + System.getProperty("red5.root"));
-		System.out.println("Deploy type: " + System.getProperty("red5.deployment.type"));
-		System.out.println("Logback selector: " + System.getProperty("logback.ContextSelector"));
-		
-		try {				
+		System.out.printf("Root: %s\nDeploy type: %s\nLogback selector: %s\n", System.getProperty("red5.root"), System.getProperty("red5.deployment.type"),
+				System.getProperty("logback.ContextSelector"));
+		try {
 			//install the slf4j bridge (mostly for JUL logging)
 			SLF4JBridgeHandler.install();
 			//we create the logger here so that it is instanced inside the expected 
 			//classloader
 			Logger log = Red5LoggerFactory.getLogger(Launcher.class);
-		    //version info banner
+			//version info banner
 			log.info("{} (http://code.google.com/p/red5/)", Red5.getVersion());
 			//pimp red5
 			System.out.printf("%s (http://code.google.com/p/red5/)\n", Red5.getVersion());
-			
 			//create red5 app context
-			FileSystemXmlApplicationContext ctx = new FileSystemXmlApplicationContext(new String[]{"classpath:/red5.xml"}, false);	
+			FileSystemXmlApplicationContext ctx = new FileSystemXmlApplicationContext(new String[] { "classpath:/red5.xml" }, false);
 			//set the current threads classloader as the loader for the factory/appctx
 			ctx.setClassLoader(Thread.currentThread().getContextClassLoader());
 			//refresh must be called before accessing the bean factory
 			ctx.refresh();
-			
 			/*
 			if (log.isTraceEnabled()) {
 				String[] names = ctx.getBeanDefinitionNames();
@@ -69,16 +70,9 @@ public class Launcher {
 				}
 			}
 			*/
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	    
-	/* * ///
-	private void dumpClassLoaderNames() {
-		ClassLoader tcl = Thread.currentThread().getContextClassLoader();		
-		System.out.printf("[Launcher] Classloaders:\nSystem %s\nParent %s\nThis class %s\nTCL %s\n\n", ClassLoader.getSystemClassLoader(), tcl.getParent(), Launcher.class.getClassLoader(), tcl);
-	}	
-	//* */
+	
 }

@@ -17,7 +17,7 @@
         http://jcp.org/aboutJava/communityprocess/final/jsr316/index.html
         https://glassfish.dev.java.net/downloads/ri/
         -->
-        <dependency org="javax" name="javaee-api" rev="5.1.1" />
+        <dependency org="javax" name="javaee-api" rev="5.1.2" />
         <!-- Spring --> 
         <dependency org="spring" name="spring-asm" rev="3.0.3" />
         <dependency org="spring" name="spring-beans" rev="3.0.3" />
@@ -26,12 +26,12 @@
         <dependency org="spring" name="spring-web" rev="3.0.3" />
         <dependency org="spring" name="spring-expression" rev="3.0.3" />
         <!-- Logging --> 
-        <dependency name="slf4j-api" rev="1.5.10" />
-        <dependency name="jcl-over-slf4j" rev="1.5.10" />
-        <dependency name="log4j-over-slf4j" rev="1.5.10" />
-        <dependency name="jul-to-slf4j" rev="1.5.10" />
-        <dependency name="logback-core" rev="0.9.18" />
-        <dependency name="logback-classic" rev="0.9.18" />
+        <dependency name="slf4j-api" rev="1.6.1" />
+        <dependency name="jcl-over-slf4j" rev="1.6.1" />
+        <dependency name="log4j-over-slf4j" rev="1.6.1" />
+        <dependency name="jul-to-slf4j" rev="1.6.1" />
+        <dependency name="logback-core" rev="0.9.24" />
+        <dependency name="logback-classic" rev="0.9.24" />
         <!-- General --> 
         <dependency org="commons" name="commons-beanutils" rev="1.8.2" />
         <dependency org="commons" name="commons-codec" rev="1.4" />
@@ -40,7 +40,7 @@
         <dependency org="commons" name="commons-lang" rev="2.4" />
         <dependency org="commons" name="commons-pool" rev="1.4" />
         <dependency name="quartz" rev="1.6.5" />
-		<dependency name="ehcache" rev="2.1.0"/>
+		<dependency name="ehcache" rev="2.2.0"/>
         <!-- XML -->
         <dependency name="xercesImpl" rev="2.9.1" />
         <dependency name="xmlrpc" rev="2.0.1" />
