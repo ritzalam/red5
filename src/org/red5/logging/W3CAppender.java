@@ -66,6 +66,7 @@ public class W3CAppender extends FileAppender<LoggingEvent> {
 	private static LinkedList<String> fieldList = new LinkedList<String>();
 	
 	public W3CAppender() {
+		setPrudent(true);
 	}
 
 	public void setEvents(String events) {
@@ -96,18 +97,14 @@ public class W3CAppender extends FileAppender<LoggingEvent> {
 
 	@Override
 	public synchronized void doAppend(LoggingEvent event) {
-		
 		//get the log message
 		String message = event.getFormattedMessage();
-		
 		//look for w3c prefix
 		if (!message.startsWith("W3C")) {
 			return;
 		}
-		
 		// http://logback.qos.ch/apidocs/ch/qos/logback/classic/spi/LoggingEvent.html
 		StringBuilder sbuf = new StringBuilder(128);
-
 		//see if header has been written
 		if (!headerWritten) {
 			//build the header
@@ -128,7 +125,6 @@ public class W3CAppender extends FileAppender<LoggingEvent> {
 			headerWritten = true;
 			sb = null;
 		}
-
 		//break the message into pieces
 		String[] arr = message.split(" ");
 		//create a map
@@ -142,7 +138,6 @@ public class W3CAppender extends FileAppender<LoggingEvent> {
 				elements.put(key, value);
 			}
 		}
-		
 		//Events					Categories
         //connect-pending			session
         //connect					session                     
@@ -162,7 +157,6 @@ public class W3CAppender extends FileAppender<LoggingEvent> {
         //vhost-stop                vhost                               
         //app-start                 application                         
         //app-stop                  application    
-		
 		//filter based on event type - asterik allows all events
 		if (!events.equals("*")) {
     		if (!eventsList.contains(elements.get("x-event"))) {
@@ -173,7 +167,6 @@ public class W3CAppender extends FileAppender<LoggingEvent> {
     			return;
     		}
 		}
-		
 		//x-category		event category		
 		//x-event			type of event
 		//date				date at which the event occurred
@@ -216,12 +209,10 @@ public class W3CAppender extends FileAppender<LoggingEvent> {
 		//x-service-name   	name of the service providing the connection    
 		//x-sc-qos-bytes	bytes transferred from server to client for quality of service	
 		//x-comment	      	comments		
-		
 		//we may need date and/or time
 		Calendar cal = GregorianCalendar.getInstance();
 		cal.clear();
 		cal.setTimeInMillis(event.getTimeStamp());
-		
 		//loop through the field names and grab the values from the map
 		//fields without a value get a tab character as a place holder if
 		//their value is not available to the server
@@ -259,12 +250,13 @@ public class W3CAppender extends FileAppender<LoggingEvent> {
 			//space padded
 			sbuf.append(' ');
 		}
-		
 		sbuf.append("\n");
-		//System.out.println(sbuf.toString());
-		
+		//System.out.println(sbuf.toString());		
 		try {
-			writerWrite(sbuf.toString(), true);
+			//switch out the message
+			event.setMessage(sbuf.toString());
+			//write it
+			writeOut(event);
 		} catch (IOException ioe) {
 			addStatus(new ErrorStatus("IO failure in appender", this, ioe));
 		}
