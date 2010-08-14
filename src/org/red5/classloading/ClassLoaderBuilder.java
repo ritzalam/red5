@@ -47,13 +47,13 @@ import java.util.regex.Pattern;
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public final class ClassLoaderBuilder {
-	
+
 	/*
 	 http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6500212
 	 http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6516909
 	 http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4976356
 	 */
-	
+
 	/**
 	 * Load the Servlet code from the WAR file and use the current classpath for
 	 * the libraries.
@@ -71,7 +71,7 @@ public final class ClassLoaderBuilder {
 	 * some time as the libraries need to be extracted from the WAR file.
 	 */
 	public static final int USE_WAR_LIB = 3;
-	
+
 	/**
 	 * Filters jar files
 	 */
@@ -86,8 +86,8 @@ public final class ClassLoaderBuilder {
 		public boolean accept(File dir, String name) {
 			return name.endsWith(".jar");
 		}
-	}	
-	
+	}
+
 	/**
 	 * Default build uses Red5 common lib without a parent classloader.
 	 * 
@@ -96,7 +96,7 @@ public final class ClassLoaderBuilder {
 	public static ClassLoader build() {
 		return ClassLoaderBuilder.build(null, USE_RED5_LIB, null);
 	}
-	
+
 	/**
 	 * Gets a class loader based on mode.
 	 * 
@@ -115,14 +115,14 @@ public final class ClassLoaderBuilder {
 	 */
 	@SuppressWarnings("unused")
 	public static ClassLoader build(File path, int mode, ClassLoader parent) {
-				
+
 		JarFileFilter jarFileFilter = new JarFileFilter();
-		
+
 		List<URL> urlList = new ArrayList<URL>(31);
-		
+
 		//the class loader to return
 		ClassLoader loader = null;
-		
+
 		//urls to load resources / classes from
 		URL[] urls = null;
 
@@ -138,29 +138,27 @@ public final class ClassLoaderBuilder {
 			//if home is null or equal to "current" directory
 			if (home == null || ".".equals(home)) {
 				//if home is still null look it up via this classes loader
-				String classLocation = ClassLoaderBuilder.class
-					.getProtectionDomain().getCodeSource().getLocation()
-					.toString();
+				String classLocation = ClassLoaderBuilder.class.getProtectionDomain().getCodeSource().getLocation().toString();
 				//System.out.printf("Classloader location: %s\n", classLocation);
 				//snip off anything beyond the last slash
 				home = classLocation.substring(0, classLocation.lastIndexOf('/'));
-			}			
-			
+			}
+
 			try {
 				//add red5.jar to the classpath
 				urlList.add(new File(home, "red5.jar").toURI().toURL());
 			} catch (MalformedURLException e1) {
 				e1.printStackTrace();
-			}			
-			
+			}
+
 			//get red5 lib system property, if not found build it	
 			String libPath = System.getProperty("red5.lib_root");
 			if (libPath == null) {
-    			//construct the lib path
-    			libPath = home + "/lib";
+				//construct the lib path
+				libPath = home + "/lib";
 			}
 			//System.out.printf("Library path: %s\n", libPath);	
-						
+
 			//grab the urls for all the jars in "lib"
 			File libDir = new File(libPath);
 			//if we are on osx with spaces in our path this may occur
@@ -175,10 +173,10 @@ public final class ClassLoaderBuilder {
 					e.printStackTrace();
 				}
 			}
-			
+
 			//look over the libraries and remove the old versions
 			scrubURLList(urlList);
-        
+
 			//get config dir
 			String conf = System.getProperty("red5.config_root");
 			if (conf == null) {
@@ -193,41 +191,56 @@ public final class ClassLoaderBuilder {
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			}
-			
+
 			//add the plugins 
-			
+
 			//get red5 lib system property, if not found build it	
 			String pluginsPath = System.getProperty("red5.plugins_root");
 			if (pluginsPath == null) {
-    			//construct the plugins path
+				//construct the plugins path
 				pluginsPath = home + "/plugins";
 				//update the property
 				System.setProperty("red5.plugins_root", pluginsPath);
 			}
-			
+			// create the directory if it doesnt exist
 			File pluginsDir = new File(pluginsPath);
 			//if we are on osx with spaces in our path this may occur
 			if (pluginsDir == null) {
 				pluginsDir = new File(home, "plugins");
 				//create the dir
 				pluginsDir.mkdirs();
-			}
+			}			
+			// add the plugin directory to the path so that configs
+			// will be resolved and not have to be copied to conf
+			try {
+				URL pluginsUrl = pluginsDir.toURI().toURL();
+				if (!urlList.contains(pluginsUrl)) {
+					urlList.add(pluginsUrl);
+				}
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			}	
 			//get all the plugin jars
 			File[] pluginsFiles = pluginsDir.listFiles(jarFileFilter);
 			//this can be null if the dir doesnt exist
 			if (pluginsFiles != null) {
-    			for (File plugin : pluginsFiles) {
-    				try {
-    					urlList.add(plugin.toURI().toURL());
-    				} catch (MalformedURLException e) {
-    					e.printStackTrace();
-    				}
-    			}
+				for (File plugin : pluginsFiles) {
+					try {
+						urlList.add(plugin.toURI().toURL());
+					} catch (MalformedURLException e) {
+						e.printStackTrace();
+					}
+				}
 			}
-			
+
 			//create the url array that the classloader wants
 			urls = urlList.toArray(new URL[0]);
-			
+			System.out.printf("Selected libraries: (%s items)\n", urls.length);
+			for (URL url : urls) {
+				System.out.println(url);
+			}		
+			System.out.println();
+			// instance a url classloader using the selected jars
 			if (parent == null) {
 				loader = new URLClassLoader(urls);
 			} else {
@@ -236,58 +249,52 @@ public final class ClassLoaderBuilder {
 
 		} else {
 			List<String> standardLibs = new ArrayList<String>(7);
-			
-    		try {
+
+			try {
 				urlList.add(path.toURI().toURL());
-				URL classesURL = new URL("jar:file:"
-						+ path.getAbsolutePath().replace(File.separatorChar, '/')
-						+ "!/WEB-INF/classes/");
+				URL classesURL = new URL("jar:file:" + path.getAbsolutePath().replace(File.separatorChar, '/') + "!/WEB-INF/classes/");
 				urlList.add(classesURL);
 			} catch (MalformedURLException e1) {
 				e1.printStackTrace();
-			}			
-			
-        	if (mode == USE_CLASSPATH_LIB) {
-        		String classPath = System.getProperty("java.class.path");
-        		StringTokenizer stClassPath = new StringTokenizer(classPath,
-        				File.pathSeparator);
-        		while (stClassPath.hasMoreTokens()) {
-        			String nextPath = stClassPath.nextToken();
-        			if (nextPath.toLowerCase().endsWith(".jar")) {
-        				standardLibs.add(nextPath.substring(nextPath
-        						.lastIndexOf(File.separatorChar) + 1));
-        			}
-        			try {
+			}
+
+			if (mode == USE_CLASSPATH_LIB) {
+				String classPath = System.getProperty("java.class.path");
+				StringTokenizer stClassPath = new StringTokenizer(classPath, File.pathSeparator);
+				while (stClassPath.hasMoreTokens()) {
+					String nextPath = stClassPath.nextToken();
+					if (nextPath.toLowerCase().endsWith(".jar")) {
+						standardLibs.add(nextPath.substring(nextPath.lastIndexOf(File.separatorChar) + 1));
+					}
+					try {
 						urlList.add(new File(nextPath).toURI().toURL());
 					} catch (MalformedURLException e) {
 						e.printStackTrace();
 					}
-        		}
-        	}
-        	if (mode == USE_WAR_LIB) {
-        		if (path.isDirectory()) {
-        			File libDir = new File(path, "WEB-INF/lib");
-        			//this should not be null but it can happen
-        			if (libDir != null && libDir.canRead()) {
-        				File[] libs = libDir.listFiles(jarFileFilter);
-        				//System.out.printf("Webapp lib count: %s\n", libs.length);
-        				for (File lib : libs) {
-        					try {
+				}
+			}
+			if (mode == USE_WAR_LIB) {
+				if (path.isDirectory()) {
+					File libDir = new File(path, "WEB-INF/lib");
+					//this should not be null but it can happen
+					if (libDir != null && libDir.canRead()) {
+						File[] libs = libDir.listFiles(jarFileFilter);
+						//System.out.printf("Webapp lib count: %s\n", libs.length);
+						for (File lib : libs) {
+							try {
 								urlList.add(lib.toURI().toURL());
 							} catch (MalformedURLException e) {
 								e.printStackTrace();
 							}
-        				}
-        			}
-        		} else {
-        			try {
+						}
+					}
+				} else {
+					try {
 						JarInputStream jarStream = new JarInputStream(new FileInputStream(path));
 						JarEntry entry = jarStream.getNextJarEntry();
 						while (entry != null) {
 							String entryName = entry.getName();
-							if (entryName.startsWith("WEB-INF/lib/")
-									&& entryName.endsWith(".jar")
-									&& !standardLibs.contains(entryName.substring(12))) {
+							if (entryName.startsWith("WEB-INF/lib/") && entryName.endsWith(".jar") && !standardLibs.contains(entryName.substring(12))) {
 								File tempJarFile = unpack(jarStream, entryName);
 								urlList.add(tempJarFile.toURI().toURL());
 							}
@@ -297,22 +304,22 @@ public final class ClassLoaderBuilder {
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
-        		}
-        	}
-        	
-        	urls = urlList.toArray(new URL[0]);
-        	loader = new ChildFirstClassLoader(urls, parent);	
-        	
+				}
+			}
+
+			urls = urlList.toArray(new URL[0]);
+			loader = new ChildFirstClassLoader(urls, parent);
+
 		}
-						
+
 		Thread.currentThread().setContextClassLoader(loader);
-						
+
 		//loop thru all the current urls
 		//System.out.printf("Classpath for %s:\n", loader);
 		//for (URL url : urls) {
-			//System.out.println(url.toExternalForm());
+		//System.out.println(url.toExternalForm());
 		//}
-		
+
 		return loader;
 	}
 
@@ -330,10 +337,8 @@ public final class ClassLoaderBuilder {
 	 * @throws IOException
 	 *             if the JAR file cannot be read or is incorrect.
 	 */
-	private static File unpack(JarInputStream jarStream, String entryName)
-			throws IOException {
-		String libName = entryName.substring(entryName.lastIndexOf('/') + 1,
-				entryName.length() - 4);
+	private static File unpack(JarInputStream jarStream, String entryName) throws IOException {
+		String libName = entryName.substring(entryName.lastIndexOf('/') + 1, entryName.length() - 4);
 		File tempJarFile = File.createTempFile("tmp_" + libName, ".jar");
 		tempJarFile.deleteOnExit();
 		FileOutputStream out = new FileOutputStream(tempJarFile);
@@ -361,6 +366,11 @@ public final class ClassLoaderBuilder {
 		String topName = null;
 		String checkName = null;
 		URL[] urls = list.toArray(new URL[0]);
+//		System.out.printf("Library list: (%s items)\n", urls.length);
+//		for (URL url : urls) {
+//			System.out.println(url);
+//		}		
+//		System.out.println();
 		for (URL top : urls) {
 			if (removalList.contains(top)) {
 				continue;
@@ -376,13 +386,12 @@ public final class ClassLoaderBuilder {
 				continue;
 			}
 			//skip version-less libraries
-			if (topName.endsWith("-")){
-			removalList.add(top);
+			if (topName.endsWith("-")) {
+				removalList.add(top);
 				continue;
 			}
-
-			//by default we will get rid of testing libraries and jetty ;)
-			if (topName.startsWith("jetty") || topName.startsWith("grobo") || topName.startsWith("junit") || topName.startsWith("ivy")) {
+			//by default we will get rid of testing libraries
+			if (topName.startsWith("grobo") || topName.startsWith("junit") || topName.startsWith("ivy")) {
 				removalList.add(top);
 				continue;
 			}
@@ -391,153 +400,153 @@ public final class ClassLoaderBuilder {
 			String prefix = topName.substring(0, topFirstDash != -1 ? topFirstDash : 3);
 			int topSecondDash = topName.indexOf('-', topFirstDash + 1);
 			for (URL check : list) {
-    			if (removalList.contains(check)) {
-    				continue;
-    			}    			
-    			checkName = parseUrl(check);
-    			//if its the same lib just continue with the next
-    			if (checkName.equals(topName)) {
-    				continue;
-    			}
-    			//if the last character is a dash then skip it
-    			if (checkName.endsWith("-")) {
-    				continue;
-    			}
-    			//check starts with to see if we should do version check
-    			if (!checkName.startsWith(prefix)) {
-    				continue;    				
-    			}    			
-    			//check for next dash
-    			if (topSecondDash > 0) {
-    				if (checkName.length() <= topSecondDash) {
-    					continue;
-    				}
-        			//check for second dash in check lib at same position
-    				if (checkName.charAt(topSecondDash) != '-') {
-    					continue;
-    				}
-    				//split the names
-    				String[] topSubs = topName.split("-");
-    				String[] checkSubs = checkName.split("-");
-    				//check lib type "spring-aop" vs "spring-orm"
-    				if (!topSubs[1].equals(checkSubs[1])) {
-    					continue;
-    				}
-    				//see if next entry is a number
-    				if (!Character.isDigit(topSubs[2].charAt(0)) && !Character.isDigit(checkSubs[2].charAt(0))) {
-    					//check next lib name section for a match
-        				if (!topSubs[2].equals(checkSubs[2])) {
-        					continue;
-        				}
-    				}
-    			}
-    			
-    			//do the version check
-    			
-    			//read from end to get version info
-    			String checkVers = checkName.substring(topSecondDash != -1 ? (topSecondDash + 1) : (topFirstDash + 1));
-    			    			
-    			if (checkVers.startsWith("-")) {
-    				continue;
-    			}
-    			
-    			//get top libs version info
-    			String topVers = topName.substring(topSecondDash != -1 ? (topSecondDash + 1) : (topFirstDash + 1));
-    			int topThirdDash = -1;
-    			String topThirdName = null;
-    			if (topVers.length() > 0 && !Character.isDigit(topVers.charAt(0))) {
-        			//check if third level lib name matches
-    				topThirdDash = topVers.indexOf('-');
-    				//no version most likely exists
-    				if (topThirdDash == -1) {
-    				    continue;
-    				}
-    				topThirdName = topVers.substring(0, topThirdDash);
-    				topVers = topVers.substring(topThirdDash + 1);
-    			}        			
-    			
-    			//if check version starts with a non-number skip it
-    			int checkThirdDash = -1;
-    			String checkThirdName = null;
-    			if (!Character.isDigit(checkVers.charAt(0))) {
-        			//check if third level lib name matches
-    				checkThirdDash = checkVers.indexOf('-');
-    				//no version most likely exists
-    				if (checkThirdDash == -1) {
-    				    continue;
-    				}
-    				checkThirdName = checkVers.substring(0, checkThirdDash);
-    				if (topThirdName == null || !topThirdName.equals(checkThirdName)) {
-    					continue;
-    				}
-    				checkVers = checkVers.substring(checkThirdDash + 1);
-    				//if not
-        			if (!Character.isDigit(checkVers.charAt(0))) {
-        				continue;
-        			}
-    			}	
-    			
-    			if (topThirdName != null && checkThirdName == null) {
-    				continue;
-    			}
-    			
-    			//check major
-    			String[] topVersion = punct.split(topVers);
-                //System.out.println("topVersion (" + topVers + "): " + topVersion[0] + " length: " + topVersion.length);
-                if (!topVersion[0].matches("[\\d].*")) {
-                	continue;
-                }
-    			
-    			//check 3rd part of version for letters
-    			if (topVersion.length > 2) {
-    				String v = topVersion[2].toLowerCase();
-    				if (v.length() > 1) {
-    					topVersion[2] = deleteAny(v, ALPHABET);
-    				} else {
-    					//if is a only a letter use its index as a version
-    					char ch = v.charAt(0);
-    					if (!Character.isDigit(ch)) {
-    						topVersion[2] = ALPHABET.indexOf(ch) + "";
-    					}
-    				}
-    			}
-    			
-                //System.out.println("AOB " + checkVers + " | " + topVersion[0] + " length: " + topVersion.length);
-    			int topVersionNumber = topVersion.length == 1 ? Integer.valueOf(topVersion[0]) : Integer.valueOf(topVersion[0] + topVersion[1] + (topVersion.length > 2 ? topVersion[2] : '0')).intValue();
-    			
-    			String[] checkVersion = punct.split(checkVers);
-                //System.out.println("checkVersion (" + checkVers + "): " + checkVersion[0] + " length: " + checkVersion.length);
+				if (removalList.contains(check)) {
+					continue;
+				}
+				checkName = parseUrl(check);
+				//if its the same lib just continue with the next
+				if (checkName.equals(topName)) {
+					continue;
+				}
+				//if the last character is a dash then skip it
+				if (checkName.endsWith("-")) {
+					continue;
+				}
+				//check starts with to see if we should do version check
+				if (!checkName.startsWith(prefix)) {
+					continue;
+				}
+				//check for next dash
+				if (topSecondDash > 0) {
+					if (checkName.length() <= topSecondDash) {
+						continue;
+					}
+					//check for second dash in check lib at same position
+					if (checkName.charAt(topSecondDash) != '-') {
+						continue;
+					}
+					//split the names
+					String[] topSubs = topName.split("-");
+					String[] checkSubs = checkName.split("-");
+					//check lib type "spring-aop" vs "spring-orm"
+					if (!topSubs[1].equals(checkSubs[1])) {
+						continue;
+					}
+					//see if next entry is a number
+					if (!Character.isDigit(topSubs[2].charAt(0)) && !Character.isDigit(checkSubs[2].charAt(0))) {
+						//check next lib name section for a match
+						if (!topSubs[2].equals(checkSubs[2])) {
+							continue;
+						}
+					}
+				}
+				//do the version check
 
-    			//check 3rd part of version for letters
-    			if (checkVersion.length > 2) {
-    				String v = checkVersion[2].toLowerCase();
-    				if (v.length() > 1) {
-    					checkVersion[2] = deleteAny(v, ALPHABET);
-    				} else {
-    					//if is a only a letter use its index as a version
-    					char ch = v.charAt(0);
-    					if (!Character.isDigit(ch)) {
-    						checkVersion[2] = ALPHABET.indexOf(ch) + "";
-    					}
-    				}
-    			}
-    			
-    			int checkVersionNumber = checkVersion.length == 1 ? Integer.valueOf(checkVersion[0]) : Integer.valueOf(checkVersion[0] + checkVersion[1] + (checkVersion.length > 2 ? checkVersion[2] : '0')).intValue();
-    			
-    			if (topVersionNumber >= checkVersionNumber) {
-    				//remove it
-    				removalList.add(check);
-    			} else {
-    				removalList.add(top);
-    				break;
-    			}
+				//read from end to get version info
+				String checkVers = checkName.substring(topSecondDash != -1 ? (topSecondDash + 1) : (topFirstDash + 1));
 
-    		}
+				if (checkVers.startsWith("-")) {
+					continue;
+				}
+
+				//get top libs version info
+				String topVers = topName.substring(topSecondDash != -1 ? (topSecondDash + 1) : (topFirstDash + 1));
+				int topThirdDash = -1;
+				String topThirdName = null;
+				if (topVers.length() > 0 && !Character.isDigit(topVers.charAt(0))) {
+					//check if third level lib name matches
+					topThirdDash = topVers.indexOf('-');
+					//no version most likely exists
+					if (topThirdDash == -1) {
+						continue;
+					}
+					topThirdName = topVers.substring(0, topThirdDash);
+					topVers = topVers.substring(topThirdDash + 1);
+				}
+
+				//if check version starts with a non-number skip it
+				int checkThirdDash = -1;
+				String checkThirdName = null;
+				if (!Character.isDigit(checkVers.charAt(0))) {
+					//check if third level lib name matches
+					checkThirdDash = checkVers.indexOf('-');
+					//no version most likely exists
+					if (checkThirdDash == -1) {
+						continue;
+					}
+					checkThirdName = checkVers.substring(0, checkThirdDash);
+					if (topThirdName == null || !topThirdName.equals(checkThirdName)) {
+						continue;
+					}
+					checkVers = checkVers.substring(checkThirdDash + 1);
+					//if not
+					if (!Character.isDigit(checkVers.charAt(0))) {
+						continue;
+					}
+				}
+
+				if (topThirdName != null && checkThirdName == null) {
+					continue;
+				}
+				//check major
+				String[] topVersion = punct.split(topVers);
+				//System.out.println("topVersion (" + topVers + "): " + topVersion[0] + " length: " + topVersion.length);
+				if (!topVersion[0].matches("[\\d].*")) {
+					continue;
+				}
+
+				//check 3rd part of version for letters
+				if (topVersion.length > 2) {
+					String v = topVersion[2].toLowerCase();
+					if (v.length() > 1) {
+						topVersion[2] = deleteAny(v, ALPHABET);
+					} else {
+						//if is a only a letter use its index as a version
+						char ch = v.charAt(0);
+						if (!Character.isDigit(ch)) {
+							topVersion[2] = ALPHABET.indexOf(ch) + "";
+						}
+					}
+				}
+				//System.out.println("AOB " + checkVers + " | " + topVersion[0] + " length: " + topVersion.length);
+				int topVersionNumber = topVersion.length == 1 ? Integer.valueOf(topVersion[0]) : Integer.valueOf(
+						topVersion[0] + topVersion[1] + (topVersion.length > 2 ? topVersion[2] : '0')).intValue();
+
+				String[] checkVersion = punct.split(checkVers);
+				//System.out.println("checkVersion (" + checkVers + "): " + checkVersion[0] + " length: " + checkVersion.length);
+
+				//check 3rd part of version for letters
+				if (checkVersion.length > 2) {
+					String v = checkVersion[2].toLowerCase();
+					if (v.length() > 1) {
+						checkVersion[2] = deleteAny(v, ALPHABET);
+					} else {
+						//if is a only a letter use its index as a version
+						char ch = v.charAt(0);
+						if (!Character.isDigit(ch)) {
+							checkVersion[2] = ALPHABET.indexOf(ch) + "";
+						}
+					}
+				}
+				int checkVersionNumber = checkVersion.length == 1 ? Integer.valueOf(checkVersion[0]) : Integer.valueOf(
+						checkVersion[0] + checkVersion[1] + (checkVersion.length > 2 ? checkVersion[2] : '0')).intValue();
+				if (topVersionNumber >= checkVersionNumber) {
+					//remove it
+					removalList.add(check);
+				} else {
+					removalList.add(top);
+					break;
+				}
+			}
 		}
 		//remove the old libs
+//		System.out.println("Removal list:");
+//		for (URL url : removalList) {
+//			System.out.println(url);
+//		}
 		list.removeAll(removalList);
 	}
-	
+
 	/**
 	 * Parses url and returns the jar filename stripped of the ending .jar
 	 * @param url
@@ -552,8 +561,8 @@ public final class ClassLoaderBuilder {
 		//strip .jar
 		libName = libName.substring(0, libName.length() - 4);
 		return libName;
-	}	
-	
+	}
+
 	private static String deleteAny(String str, String removalChars) {
 		StringBuilder sb = new StringBuilder(str);
 		//System.out.println("Before alpha delete: " + sb.toString());

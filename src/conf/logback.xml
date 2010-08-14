@@ -12,9 +12,6 @@
 	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
 		<File>log/red5.log</File>
 		<Append>false</Append>
-		<Encoding>UTF-8</Encoding>
-		<BufferedIO>false</BufferedIO>
-		<ImmediateFlush>true</ImmediateFlush>
 		<layout class="ch.qos.logback.classic.PatternLayout">
 			<Pattern>%d{ISO8601} [%thread] %-5level %logger{35} - %msg%n</Pattern>
 		</layout>
@@ -22,9 +19,6 @@
 	<appender name="ERRORFILE" class="ch.qos.logback.core.FileAppender">
 		<File>log/error.log</File>
 		<Append>false</Append>
-		<Encoding>UTF-8</Encoding>
-		<BufferedIO>false</BufferedIO>
-		<ImmediateFlush>true</ImmediateFlush>
     	<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
       		<level>WARN</level>
     	</filter>
@@ -52,15 +46,6 @@
 		<level value="WARN" />
 	</logger>
 	<logger name="org.red5.server.Client">
-		<level value="INFO" />
-	</logger>
-	<logger name="org.red5.server.jetty">
-		<level value="INFO" />
-	</logger>
-	<logger name="org.red5.server.Standalone">
-		<level value="INFO" />
-	</logger>
-	<logger name="org.red5.server.tomcat">
 		<level value="INFO" />
 	</logger>
 	<logger name="org.red5.server.api.stream.support">
@@ -161,6 +146,9 @@
 		<level value="WARN" />
 	</logger>
 	<!-- Apache catalina / tomcat -->
+    <logger name="org.red5.server.tomcat">
+        <level value="INFO" />
+    </logger>
     <logger name="org.apache.catalina">
         <level value="INFO" />
     </logger>
@@ -214,4 +202,14 @@
 	<logger name="ch.qos">
 		<level value="WARN" />
 	</logger>
+    <!-- Jetty -->
+    <logger name="org.red5.server.jetty">
+        <level value="DEBUG" />
+    </logger>
+    <logger name="org.mortbay">
+        <level value="DEBUG" />
+    </logger>
+    <logger name="org.eclipse.jetty">
+        <level value="DEBUG" />
+    </logger>
 </configuration>
