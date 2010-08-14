@@ -144,7 +144,6 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMXBe
 		//create a new mbean for this instance
 		oName = JMXFactory.createObjectName("type", "ContextLoader");
 		JMXAgent.registerMBean(this, this.getClass().getName(), ContextLoaderMXBean.class, oName);
-
 		//check to see if we should add a shutdown hook
 		if (useShutdownHook) {
 			//register a jvm shutdown hook
@@ -161,11 +160,9 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMXBe
 
 		// Load properties file
 		props.load(res.getInputStream());
-
 		// Pattern for arbitrary property substitution
 		Pattern patt = Pattern.compile("\\$\\{([^\\}]+)\\}");
 		Matcher matcher = null;
-
 		// Iterate thru properties keys and replace config attributes with
 		// system attributes
 		for (Object key : props.keySet()) {
@@ -208,10 +205,17 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMXBe
 			log.warn("Exception shutting down plugin registry", e);
 		}
 		if (contextMap != null) {
-    		//unload all the contexts in the map
-    		for (Map.Entry<String, ApplicationContext> entry : contextMap.entrySet()) {
-    			unloadContext(entry.getKey());
-    		}
+			try {
+        		//unload all the contexts in the map
+        		for (Map.Entry<String, ApplicationContext> entry : contextMap.entrySet()) {
+        			String contextName = entry.getKey();
+        			log.debug("Unloading context {} on uninit", contextName);
+        			unloadContext(contextName);
+        		}
+        		contextMap.clear();
+			} catch (Exception e) {
+				log.warn("Exception shutting down contexts", e);
+			}
 		}
 	}
 
@@ -297,12 +301,15 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMXBe
 				factory.destroyBean(name, ctx);
 			} catch (Exception e) {
 				log.warn("Context destroy failed for: {}", name, e);
+				ctx.destroy();
 			} finally {
 				if (factory.containsSingleton(name)) {
 					log.debug("Singleton still exists, trying another destroy method");
 					((DefaultListableBeanFactory) factory).destroySingleton(name);
 				}
 			}
+		} else {
+			log.debug("Context does not contain singleton: {}", name);
 		}
 		context = null;
 	}

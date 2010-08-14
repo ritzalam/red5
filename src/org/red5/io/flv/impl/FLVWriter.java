@@ -237,9 +237,11 @@ public class FLVWriter implements ITagWriter {
 		// Body Size
 		IOUtils.writeMediumInt(out, tag.getBodySize());
 		// Timestamp
-		IOUtils.writeMediumInt(out, tag.getTimestamp() + offset);
+		IOUtils.writeExtendedMediumInt(out, tag.getTimestamp() + offset);
 		// Reserved
-		out.putInt(0x00);
+		out.put((byte)0x00);
+		out.put((byte)0x00);
+		out.put((byte)0x00);
 		out.flip();
 		bytesWritten += channel.write(out.buf());
 		log.debug("Bytes written 1: {}", bytesWritten);

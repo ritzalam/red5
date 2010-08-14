@@ -39,6 +39,6 @@
     <bean id="pluginLauncher" class="org.red5.server.plugin.PluginLauncher" />
 	
 	<!-- Now we can load the JEE container / servlet engine -->
-  	<import resource="classpath:/container.xml"/>
+  	<import resource="classpath:/jee-container.xml"/>
 	
 </beans>
