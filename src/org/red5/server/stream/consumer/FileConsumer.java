@@ -563,7 +563,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	/**
 	 * Returns the amount of queued data items to be written at a time.
 	 * 
-	 * @return
+	 * @return sliceLength
 	 */
 	public int getSliceLength() {
 		return sliceLength;
