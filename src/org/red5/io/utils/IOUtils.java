@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 /**
  * Miscellaneous I/O utility methods
  * 
- * {@link http://www.cs.utsa.edu/~wagner/laws/Abytes.html}
+ * @see <a href="http://www.cs.utsa.edu/~wagner/laws/Abytes.html">Unsigned bytes in Java</a>
  */
 public class IOUtils {
 
