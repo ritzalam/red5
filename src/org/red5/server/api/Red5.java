@@ -30,7 +30,7 @@ import javax.management.openmbean.CompositeData;
  *  
  * The code below shows various uses. 
  * <br />
- * <pre>
+ * <pre> 
  * IConnection conn = Red5.getConnectionLocal();
  * Red5 r5 = new Red5(); 
  * IScope scope = r5.getScope();

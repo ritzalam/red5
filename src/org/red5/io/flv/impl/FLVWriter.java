@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.Map;
@@ -225,6 +226,11 @@ public class FLVWriter implements ITagWriter {
 		if (tag.getBodySize() == 0) {
 			log.debug("Empty tag skipped: {}", tag);
 			return false;
+		}
+		// ensure that the channel is still open
+		if (!channel.isOpen()) {
+			// throw an exception and let them know the cause
+			throw new IOException("FLV write channel has been closed and cannot be written to", new ClosedChannelException());
 		}
 		if (channel.size() < 9) {
 			throw new IOException("Refusing to write tag to file with size " + channel.size());

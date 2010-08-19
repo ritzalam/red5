@@ -21,6 +21,7 @@ package org.red5.server.stream.consumer;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -482,8 +483,15 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 					} else {
 						log.warn("Skipping message with negative timestamp.");
 					}
+				} catch (ClosedChannelException cce) {
+					// the channel we tried to write to is closed, we should not try again on that writer
+					log.error("The writer is no longer able to write to the file: {} writable: {}", file.getName(), file.canWrite());
 				} catch (IOException e) {
-					log.error("Error writing tag", e);
+					log.warn("Error writing tag", e);
+					if (e.getCause() instanceof ClosedChannelException) {
+						// the channel we tried to write to is closed, we should not try again on that writer
+						log.error("The writer is no longer able to write to the file: {} writable: {}", file.getName(), file.canWrite());
+					}
 				} finally {
 					if (data != null) {
 						data.clear();
