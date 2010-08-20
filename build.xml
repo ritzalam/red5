@@ -85,7 +85,10 @@
 	<target name="-java6.check">
 		<condition property="java6.installed" value="true">
 			<and>
-				<equals arg1="${java.target_version}" arg2="1.6"/>
+				<or> 
+                	<equals arg1="${java.target_version}" arg2="1.6"/>
+					<equals arg1="${java.target_version}" arg2="1.7"/>
+                </or>
 				<available property="java6.installed" classname="javax.script.Bindings"/>
 			</and>
 		</condition>
@@ -116,37 +119,18 @@
 		-->
 		<condition property="library.installed" value="true">
 			<and>
-				<or>
-					<and>
-						<available property="spring.installed" classpathref="project.classpath" classname="org.springframework.core.SpringVersion"/>
-						<available property="logging.installed" classpathref="project.classpath" classname="org.slf4j.Logger"/>
-						<available property="catalina.installed" classpathref="project.classpath" classname="org.apache.catalina.Server"/>
-						<available property="mina.installed" classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
-						<available property="minajmx.installed" classpathref="project.classpath" classname="org.apache.mina.integration.jmx.IoServiceManager"/>
-						<available property="acegi.installed" classpathref="project.classpath" classname="org.acegisecurity.SecurityConfig"/>
-						<equals arg1="${java.target_version}" arg2="1.6"/>
-					</and>
-					<and>
-						<available property="spring.installed" classpathref="project.classpath" classname="org.springframework.core.SpringVersion"/>
-						<available property="logging.installed" classpathref="project.classpath" classname="org.slf4j.Logger"/>
-						<available property="catalina.installed" classpathref="project.classpath" classname="org.apache.catalina.Server"/>
-						<available property="mina.installed" classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
-						<available property="minajmx.installed" classpathref="project.classpath" classname="org.apache.mina.integration.jmx.IoServiceManager"/>
-						<available property="acegi.installed" classpathref="project.classpath" classname="org.acegisecurity.SecurityConfig"/>
-						<available property="script.installed" classpathref="project.classpath" classname="com.sun.phobos.script.javascript.RhinoScriptEngine"/>
-						<available property="groovy.script.installed" classpathref="project.classpath" classname="com.sun.script.groovy.GroovyScriptEngine"/>
-						<available property="jython.script.installed" classpathref="project.classpath" classname="com.sun.script.jython.JythonScriptEngine"/>
-						<equals arg1="${java.target_version}" arg2="1.5"/>
-					</and>
-				</or>
-				<and>
-					<isset property="ivy.conf.name"/>
-					<!-- check for the test jars -->
-					<available property="junit.installed" classpathref="project.classpath" classname="org.junit.Test"/>
-					<available property="groboutils.installed" classpathref="project.classpath" classname="net.sourceforge.groboutils.junit.v1.TestRunnable"/>
-					<available property="spring-mock.installed" classpathref="project.classpath" classname="org.springframework.mock.web.MockServletConfig"/>
-					<equals arg1="ivy.conf.name" arg2="test"/>
-				</and>
+				<available property="spring.installed" classpathref="project.classpath" classname="org.springframework.core.SpringVersion"/>
+				<available property="logging.installed" classpathref="project.classpath" classname="org.slf4j.Logger"/>
+				<available property="catalina.installed" classpathref="project.classpath" classname="org.apache.catalina.Server"/>
+				<available property="mina.installed" classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
+				<available property="minajmx.installed" classpathref="project.classpath" classname="org.apache.mina.integration.jmx.IoServiceManager"/>
+				<available property="acegi.installed" classpathref="project.classpath" classname="org.acegisecurity.SecurityConfig"/>
+				<isset property="ivy.conf.name"/>
+				<!-- check for the test jars -->
+				<available property="junit.installed" classpathref="project.classpath" classname="org.junit.Test"/>
+				<available property="groboutils.installed" classpathref="project.classpath" classname="net.sourceforge.groboutils.junit.v1.TestRunnable"/>
+				<available property="spring-mock.installed" classpathref="project.classpath" classname="org.springframework.mock.web.MockServletConfig"/>
+				<equals arg1="ivy.conf.name" arg2="test"/>
 			</and>
 		</condition>
 	</target>
@@ -205,7 +189,7 @@
 	<target name="compile" depends="-library.check, -java6.check, prepare" description="Compiles the server">
 		<!-- token replacement filers -->
 		<property name="filter.file" value="${config.dir}/build_standalone.properties"/>
-		<condition property="java.target_version" value="1.5">
+		<condition property="java.target_version" value="1.6">
 			<not>
 				<isset property="java.target_version"/>
 			</not>
@@ -442,11 +426,6 @@
 		<!-- Determine the location of Sun's API docs -->
 		<condition property="javadoc.loc" value="javase/6">
 			<equals arg1="${java6.installed}" arg2="true"/>
-		</condition>
-		<condition property="javadoc.loc" value="j2se/1.5.0">
-			<not>
-				<equals arg1="${java6.installed}" arg2="true"/>
-			</not>
 		</condition>
 		<javadoc useexternalfile="true" failonerror="false" verbose="false" classpathref="full.classpath"
 			 destdir="${javadoc.dir}" author="true" version="true" use="true" splitindex="true"
