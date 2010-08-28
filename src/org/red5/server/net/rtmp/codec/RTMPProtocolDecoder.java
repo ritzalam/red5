@@ -465,8 +465,9 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 
 		if (headerSize != HEADER_NEW && lastHeader == null) {
 			log.error("Last header null not new, headerSize: {}, channelId {}", headerSize, channelId);
-			lastHeader = new Header();
-			lastHeader.setChannelId(channelId);
+			//this will trigger an error status, which in turn will disconnect the "offending" flash player
+			//preventing a memory leak and bringing the whole server to its knees
+			return null;
 		}
 
 		int timeValue;
