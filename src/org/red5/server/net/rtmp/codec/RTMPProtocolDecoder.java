@@ -956,12 +956,14 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	@SuppressWarnings("unchecked")
 	public Notify decodeStreamMetadata(IoBuffer in, RTMP rtmp) {
 		Input input;
-		//TODO handle AMF3
+		//we will make a pre-emptive copy of the incoming buffer here to
+		//prevent issues that seem to occur fairly often
+		IoBuffer copy = in.duplicate();
 		if (rtmp.getEncoding() == Encoding.AMF0) {
-			input = new org.red5.io.amf.Input(in);
+			input = new org.red5.io.amf.Input(copy);
 		} else {
 			org.red5.io.amf3.Input.RefStorage refStorage = new org.red5.io.amf3.Input.RefStorage();
-			input = new org.red5.io.amf3.Input(in, refStorage);
+			input = new org.red5.io.amf3.Input(copy, refStorage);
 		}
 		//get the first datatype
 		byte dataType = input.readDataType();
