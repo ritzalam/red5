@@ -27,6 +27,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -57,6 +61,7 @@ import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.ResetMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 /**
  * Consumer that pushes messages to file. Used when recording live streams.
@@ -67,6 +72,11 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	 */
 	private static final Logger log = LoggerFactory.getLogger(FileConsumer.class);
 
+	/**
+	 * Executor for all writer jobs
+	 */
+	private static ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(2, new CustomizableThreadFactory("FileConsumerExecutor-"));
+	
 	/**
 	 * Queue to hold data for delayed writing
 	 */
@@ -147,6 +157,11 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	 * Tracks the last timestamp written to prevent backwards time stamped data.
 	 */
 	private volatile int lastWrittenTs = -1;
+	
+	/**
+	 * Keeps track of the last spawned write worker.
+	 */
+	private volatile Future<?> writerFuture;
 
 	/**
 	 * Default ctor
@@ -215,6 +230,18 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 				// when we reach the threshold, sort the entire queue and spawn a worker
 				// to write a slice of the data
 				if (queueSize >= queueThreshold) {
+					Object writeResult = null;
+					// check for existing future
+					if (writerFuture != null) {
+						try {
+							//wait 1 second for a result from the last writer
+							writeResult = writerFuture.get(1000L, TimeUnit.MILLISECONDS);
+						} catch (Exception e) {
+							log.warn("Exception waiting for write result", e);
+							return;
+						}
+					}
+					log.debug("Write future result (expect null): {}", writeResult);
 					// get the slice
 					final QueuedData[] slice = new QueuedData[sliceLength];
 					log.trace("Slice length: {}", slice.length);
@@ -231,14 +258,12 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 						writeLock.unlock();
 					}
 					// spawn a writer
-					Thread worker = new Thread() {
+					writerFuture = scheduledExecutorService.submit(new Runnable() {
 						public void run() {
 							log.trace("Spawning queue writer thread");
 							doWrites(slice);
 						}
-					};
-					worker.setDaemon(true);
-					worker.start();
+					});
 				}
 
 			}
@@ -347,6 +372,15 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	private void uninit() {
 		log.debug("Uninit");
 		if (writer != null) {
+			if (writerFuture != null) {
+				try {
+					writerFuture.get();
+				} catch (Exception e) {
+					log.warn("Exception waiting for write result on uninit", e);
+				}
+				writerFuture.cancel(true);
+			}
+			writerFuture = null;
 			//write all the queued items
 			doWrites();
 			//close the writer
