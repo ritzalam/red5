@@ -196,7 +196,7 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMXBe
 	 * Un-loads or un-initializes the contexts; this is a shutdown method for this loader.
 	 */
 	public void uninit() {
-		log.debug("ContextLoader un-init");
+		log.info("ContextLoader un-init");
 		JMXAgent.unregisterMBean(oName);
 		//shutdown the plug-in launcher here
 		try {
@@ -217,6 +217,8 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMXBe
 				log.warn("Exception shutting down contexts", e);
 			}
 		}
+		//if theres no jee loader then exit
+		System.exit(0);
 	}
 
 	/**
