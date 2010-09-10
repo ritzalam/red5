@@ -3,18 +3,17 @@
 	<!-- Uncomment if you are using the logback plugin for eclipse
 	<consolePlugin/>
 	-->
-	<appender name="CONSOLE"
-		class="ch.qos.logback.core.ConsoleAppender">
-		<layout class="ch.qos.logback.classic.PatternLayout">
-			<Pattern>[%p] [%thread] %logger - %msg%n</Pattern>
-		</layout>
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>[%p] [%thread] %logger - %msg%n</pattern>
+		</encoder>		
 	</appender>
 	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
 		<File>log/red5.log</File>
 		<Append>false</Append>
-		<layout class="ch.qos.logback.classic.PatternLayout">
-			<Pattern>%d{ISO8601} [%thread] %-5level %logger{35} - %msg%n</Pattern>
-		</layout>
+		<encoder>
+			<pattern>%d{ISO8601} [%thread] %-5level %logger{35} - %msg%n</pattern>
+		</encoder>		
 	</appender>
 	<appender name="ERRORFILE" class="ch.qos.logback.core.FileAppender">
 		<File>log/error.log</File>
@@ -22,9 +21,9 @@
     	<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
       		<level>WARN</level>
     	</filter>
-		<layout class="ch.qos.logback.classic.PatternLayout">
-			<Pattern>%d{ISO8601} [%thread] %-5level %logger{35} - %msg%n</Pattern>
-		</layout>
+		<encoder>
+			<pattern>%d{ISO8601} [%thread] %-5level %logger{35} - %msg%n</pattern>
+		</encoder>		
 	</appender>
 	<root>
 		<level value="WARN" />
