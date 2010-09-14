@@ -29,10 +29,40 @@ init_env()
   process_status $? "cd $RED5_HOME"
 }
 
+setup_tomcat()
+{
+  # look for jar utility
+  for JAR in "${JAVA_HOME}/bin/jar" "${JAVA_HOME}/Home/bin/jar" "/usr/bin/jar" "/usr/local/bin/jar"
+  do
+    if [ -x "$JAR" ] then 
+	  break
+    fi
+  done
+  if [ ! -x "$JAR" ] then
+    echo "Unable to locate Jar utility. Please set JAVA_HOME environment variable."
+    exit
+  fi
+  # create the plugins directory
+  mkdir -p "$RED5_HOME/plugins"
+  cd "$RED5_HOME/plugins"
+  # get tomcat plugin
+  wget http://red5.googlecode.com/svn/repository/red5/tomcatplugin-1.0.jar
+  wget http://red5.googlecode.com/svn/repository/tomcat/catalina-6.0.26.jar
+  wget http://red5.googlecode.com/svn/repository/tomcat/jasper-6.0.26.jar
+  wget http://red5.googlecode.com/svn/repository/tomcat/jasper-jdt-6.0.26.jar
+  wget http://red5.googlecode.com/svn/repository/tomcat/jasper-el-6.0.26.jar
+  wget http://red5.googlecode.com/svn/repository/tomcat/tomcat-coyote-6.0.26.jar
+  wget http://red5.googlecode.com/svn/repository/tomcat/tomcat-juli-slf4j-1.5.0.jar
+  # replace default jee container file
+  exec "$JAR" xf tomcatplugin-1.0.jar jee-container.xml 
+  cp -f jee-container.xml "$RED5_HOME/conf"
+}
+
 red5_start()
 {
   echo -n `date` "Starting Red5"
   init_env "red5.sh"
+  setup_tomcat
   echo `date` "START to shutdown Red5" 1>log/stdout.log
 # red5.sh will read JAVA_OPTS; we increase the red5 jvm memory here
   export JAVA_OPTS="-Xms64M -Xmx256M"
