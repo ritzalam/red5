@@ -41,7 +41,7 @@ setup_tomcat()
   wget http://red5.googlecode.com/svn/repository/tomcat/jasper-jdt-6.0.26.jar
   wget http://red5.googlecode.com/svn/repository/tomcat/jasper-el-6.0.26.jar
   wget http://red5.googlecode.com/svn/repository/tomcat/tomcat-coyote-6.0.26.jar
-  wget http://red5.googlecode.com/svn/repository/tomcat/tomcat-juli-slf4j-1.5.0.jar
+  wget http://red5.googlecode.com/svn/repository/tomcat-juli-slf4j-1.5.0.jar
   # replace default jee container file
   exec "${JAVA_HOME}/bin/jar" xf tomcatplugin-1.0.jar jee-container.xml 
   cp -f jee-container.xml "$RED5_HOME/conf"
