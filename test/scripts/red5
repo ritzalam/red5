@@ -31,17 +31,6 @@ init_env()
 
 setup_tomcat()
 {
-  # look for jar utility
-  for JAR in "${JAVA_HOME}/bin/jar" "${JAVA_HOME}/Home/bin/jar" "/usr/bin/jar" "/usr/local/bin/jar"
-  do
-    if [ -x "$JAR" ] then 
-	  break
-    fi
-  done
-  if [ ! -x "$JAR" ] then
-    echo "Unable to locate Jar utility. Please set JAVA_HOME environment variable."
-    exit
-  fi
   # create the plugins directory
   mkdir -p "$RED5_HOME/plugins"
   cd "$RED5_HOME/plugins"
@@ -54,7 +43,7 @@ setup_tomcat()
   wget http://red5.googlecode.com/svn/repository/tomcat/tomcat-coyote-6.0.26.jar
   wget http://red5.googlecode.com/svn/repository/tomcat/tomcat-juli-slf4j-1.5.0.jar
   # replace default jee container file
-  exec "$JAR" xf tomcatplugin-1.0.jar jee-container.xml 
+  exec "${JAVA_HOME}/bin/jar" xf tomcatplugin-1.0.jar jee-container.xml 
   cp -f jee-container.xml "$RED5_HOME/conf"
 }
 
