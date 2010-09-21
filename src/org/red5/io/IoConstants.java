@@ -97,7 +97,7 @@ public interface IoConstants {
 	/**
 	 * Mask sound format (unsigned)
 	 */
-	public static final byte MASK_SOUND_FORMAT = 0xf0; 
+	public static final int MASK_SOUND_FORMAT = 0xf0; 
 
 	/**
 	 * Raw data format flag
@@ -147,7 +147,7 @@ public interface IoConstants {
 	/**
 	 * Video frametype flag
 	 */
-	public static final byte MASK_VIDEO_FRAMETYPE = 0xf0; 
+	public static final int MASK_VIDEO_FRAMETYPE = 0xf0; 
 
 	/**
 	 * Keyframe type flag
