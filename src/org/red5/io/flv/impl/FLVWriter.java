@@ -223,7 +223,8 @@ public class FLVWriter implements ITagWriter {
 			writeMetadataTag(0, -1, -1);
 		}
 		// skip tags with no data
-		if (tag.getBodySize() == 0) {
+		int bodySize = tag.getBodySize();
+		if (bodySize == 0) {
 			log.debug("Empty tag skipped: {}", tag);
 			return false;
 		}
@@ -236,12 +237,12 @@ public class FLVWriter implements ITagWriter {
 			throw new IOException("Refusing to write tag to file with size " + channel.size());
 		}
 		// create a buffer
-		IoBuffer out = IoBuffer.allocate(2048);
+		IoBuffer out = IoBuffer.allocate(bodySize + 11);
 		out.setAutoExpand(true);
 		// Data Type
 		out.put(tag.getDataType());
 		// Body Size
-		IOUtils.writeMediumInt(out, tag.getBodySize());
+		IOUtils.writeMediumInt(out, bodySize);
 		// Timestamp
 		IOUtils.writeExtendedMediumInt(out, tag.getTimestamp() + offset);
 		// Reserved
@@ -256,12 +257,12 @@ public class FLVWriter implements ITagWriter {
 		log.debug("Bytes written 2: {}", bytesWritten);
 		if (audioCodecId == -1 && tag.getDataType() == ITag.TYPE_AUDIO) {
 			bodyBuf.flip();
-			byte id = bodyBuf.get();
+			int id = bodyBuf.get() & 0xff; // must be unsigned
 			audioCodecId = (id & ITag.MASK_SOUND_FORMAT) >> 4;
 			log.debug("Audio codec id: {}", audioCodecId);
 		} else if (videoCodecId == -1 && tag.getDataType() == ITag.TYPE_VIDEO) {
 			bodyBuf.flip();
-			byte id = bodyBuf.get();
+			int id = bodyBuf.get() & 0xff; // must be unsigned
 			videoCodecId = id & ITag.MASK_VIDEO_CODEC;
 			log.debug("Video codec id: {}", videoCodecId);
 		}
