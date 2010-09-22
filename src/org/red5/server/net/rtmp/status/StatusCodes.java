@@ -107,9 +107,15 @@ public interface StatusCodes {
      * An attempt to record a stream failed
      */
 	public static final String NS_RECORD_FAILED = "NetStream.Record.Failed";
-    /**
-     * Data is playing behind the normal speed
-     */
+
+	/**
+	 * The buffer is empty (sent from server to client)
+	 */
+	public static final String NS_BUFFER_EMPTY = "NetStream.Buffer.Empty";
+	
+	/**
+	 * Data is playing behind the normal speed
+	 */
 	public static final String NS_PLAY_INSUFFICIENT_BW = "NetStream.Play.InsufficientBW";
     /**
      * Play was started

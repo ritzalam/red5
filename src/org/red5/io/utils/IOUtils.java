@@ -76,12 +76,16 @@ public class IOUtils {
 	 * @param value         Integer to write
 	 */
 	public static void writeExtendedMediumInt(IoBuffer out, int value) {
+		value = ((value & 0xff000000) >> 24) | (value << 8);
+		out.putInt(value);
+		/*
 		byte[] bytes = new byte[4];
 		bytes[0] = (byte) ((value >>> 16) & 0xff);
 		bytes[1] = (byte) ((value >>> 8) & 0xff);
 		bytes[2] = (byte) (value & 0xff); // least significant byte
 		bytes[3] = (byte) ((value >>> 24) & 0xff); // most significant byte	
 		out.put(bytes);
+		*/
 	}
 
 	/**
@@ -90,11 +94,7 @@ public class IOUtils {
 	 * @return                int value
 	 */
 	public static int readUnsignedMediumInt(IoBuffer in) {
-		int val = 0;
-		val += (in.get() & 0xff) * 256 * 256;
-		val += (in.get() & 0xff) * 256;
-		val += (in.get() & 0xff);
-		return val;
+		return ((in.get() & 0xff) << 16) + ((in.get() & 0xff) << 8) + ((in.get() & 0xff));
 	}
 
 	/**
@@ -103,31 +103,7 @@ public class IOUtils {
 	 * @return         int value
 	 */
 	public static int readMediumInt(IoBuffer in) {
-		IoBuffer buf = IoBuffer.allocate(4);
-		buf.put((byte) 0x00);
-		buf.put(in.get());
-		buf.put(in.get());
-		buf.put(in.get());
-		buf.flip();
-		return buf.getInt();
-	}
-
-	/**
-	 * Alternate method for reading medium int
-	 * @param in       Source
-	 * @return         int value
-	 */
-	public static int readMediumInt2(IoBuffer in) {
-		byte[] bytes = new byte[3];
-		in.get(bytes);
-		int val = 0;
-		val += bytes[0] * 256 * 256;
-		val += bytes[1] * 256;
-		val += bytes[2];
-		if (val < 0) {
-			val += 256;
-		}
-		return val;
+		return ((in.get() & 0x000000ff) << 16) + ((in.get() & 0x000000ff) << 8) + ((in.get() & 0x000000ff));
 	}
 
 	/**

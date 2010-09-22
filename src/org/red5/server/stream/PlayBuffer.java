@@ -103,10 +103,9 @@ public class PlayBuffer {
 	public boolean putMessage(RTMPMessage message) {
 		IRTMPEvent body = message.getBody();
 		if (!(body instanceof IStreamData)) {
-			throw new RuntimeException("expected IStreamData but got " + body);
+			throw new RuntimeException("Expected IStreamData but got " + body);
 		}
-
-		int size = ((IStreamData) body).getData().limit();
+		int size = ((IStreamData<?>) body).getData().limit();
 		if (messageSize + size > capacity) {
 			return false;
 		}
@@ -125,10 +124,9 @@ public class PlayBuffer {
 		if (message != null) {
 			IRTMPEvent body = message.getBody();
 			if (!(body instanceof IStreamData)) {
-				throw new RuntimeException("expected IStreamData but got " + body);
+				throw new RuntimeException("Expected IStreamData but got " + body);
 			}
-
-			messageSize -= ((IStreamData) body).getData().limit();
+			messageSize -= ((IStreamData<?>) body).getData().limit();
 		}
 		return message;
 	}

@@ -133,14 +133,17 @@
 	
 	<!-- Bandwidth control -->
 
-	<!-- Limits bandwidth (bytes per second) related with read and write operations on a per-session basis -->
+	<!-- Limits bandwidth (bytes per second) related with read and write operations on a per-session basis 
+		1. arg0 is the read setting and a value of 0 == unlimited
+		2. arg1 is the write setting and a value of 0 == unlimited
+	-->
+<!-- 
 	<bean id="bandwidthFilter" class="org.red5.server.net.filter.TrafficShapingFilter" scope="prototype">
-		<!-- Maximum read throughput (0 = Unlimited) -->
 		<constructor-arg index="0" value="0"/>
-		<!-- Maximum write throughput (0 = Unlimited) -->
 		<constructor-arg index="1" value="512000"/>
 	</bean>	
-
+-->
+ 
 	<!-- Scheduling service -->
 	<bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService"/>
 		 

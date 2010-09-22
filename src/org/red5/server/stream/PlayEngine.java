@@ -940,7 +940,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				//update the last message sent's timestamp
 				lastMessageTs = body.getTimestamp();
 				IoBuffer streamData = null;
-				if (body instanceof IStreamData && (streamData = ((IStreamData) body).getData()) != null) {
+				if (body instanceof IStreamData && (streamData = ((IStreamData<?>) body).getData()) != null) {
 					bytesSent.addAndGet(streamData.limit());
 				}
 			}
@@ -1516,8 +1516,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	private void releasePendingMessage() {
 		if (pendingMessage != null) {
 			IRTMPEvent body = pendingMessage.getBody();
-			if (body instanceof IStreamData && ((IStreamData) body).getData() != null) {
-				((IStreamData) body).getData().free();
+			if (body instanceof IStreamData && ((IStreamData<?>) body).getData() != null) {
+				((IStreamData<?>) body).getData().free();
 			}
 			pendingMessage.setBody(null);
 			pendingMessage = null;
@@ -1557,7 +1557,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 									IRTMPEvent body = rtmpMessage.getBody();
 									if (!receiveAudio && body instanceof AudioData) {
 										// The user doesn't want to get audio packets
-										((IStreamData) body).getData().free();
+										((IStreamData<?>) body).getData().free();
 										if (sendBlankAudio) {
 											// Send reset audio packet
 											sendBlankAudio = false;
@@ -1574,7 +1574,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 										}
 									} else if (!receiveVideo && body instanceof VideoData) {
 										// The user doesn't want to get video packets
-										((IStreamData) body).getData().free();
+										((IStreamData<?>) body).getData().free();
 										continue;
 									}
 
@@ -1583,7 +1583,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 									if (okayToSendMessage(body)) {
 										log.trace("ts: {}", rtmpMessage.getBody().getTimestamp());
 										sendMessage(rtmpMessage);
-										((IStreamData) body).getData().free();
+										((IStreamData<?>) body).getData().free();
 									} else {
 										pendingMessage = rtmpMessage;
 									}

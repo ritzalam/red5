@@ -72,8 +72,10 @@ public class Unknown extends BaseEvent {
 	public String toString() {
 		final IoBuffer buf = getData();
 		StringBuffer sb = new StringBuffer();
-		sb.append("Size: " + buf.remaining());
-		sb.append("Data:\n\n" + HexDump.formatHexDump(buf.getHexDump()));
+		sb.append("Size: ");
+		sb.append(buf.remaining());
+		sb.append(" Data:\n\n");
+		sb.append(HexDump.formatHexDump(buf.getHexDump()));
 		return sb.toString();
 	}
 

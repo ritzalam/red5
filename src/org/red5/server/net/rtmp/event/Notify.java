@@ -38,7 +38,7 @@ import org.red5.server.stream.IStreamData;
  * @author Red5 team
  * @author Tiago Daniel Jacobs (tiago@imdt.com.br)
  */
-public class Notify extends BaseEvent implements IStreamData, IStreamPacket {
+public class Notify extends BaseEvent implements IStreamData<Notify>, IStreamPacket {
 
 	private static final long serialVersionUID = -6085848257275156569L;
     
