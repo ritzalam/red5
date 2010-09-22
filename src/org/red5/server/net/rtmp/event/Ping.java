@@ -77,6 +77,16 @@ public class Ping extends BaseEvent {
     public static final short UNKNOWN_8 = 8;
 
     /**
+     * SWF verification ping 0x001a
+     */
+	public static final short PING_SWF_VERIFY = 26;
+
+    /**
+     * SWF verification pong 0x001b
+     */
+	public static final short PONG_SWF_VERIFY = 27;
+    
+    /**
      * Event type is undefined
      */
     public static final int UNDEFINED = -1;
@@ -258,7 +268,6 @@ public class Ping extends BaseEvent {
 		value2 = in.readInt();
 		value3 = in.readInt();
 		value4 = in.readInt();
-		// XXX do we need to restore "debug" ?
 	}
 
 	@Override
@@ -268,6 +277,5 @@ public class Ping extends BaseEvent {
 		out.writeInt(value2);
 		out.writeInt(value3);
 		out.writeInt(value4);
-		// XXX do we need to save "debug" ?
 	}
 }

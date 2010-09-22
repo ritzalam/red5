@@ -254,7 +254,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		}
 		//get the buffer only once per call
 		IoBuffer buf = null;
-		if (rtmpEvent instanceof IStreamData && (buf = ((IStreamData) rtmpEvent).getData()) != null) {
+		if (rtmpEvent instanceof IStreamData && (buf = ((IStreamData<?>) rtmpEvent).getData()) != null) {
 			bytesReceived += buf.limit();
 		}
 		if (rtmpEvent instanceof AudioData) {

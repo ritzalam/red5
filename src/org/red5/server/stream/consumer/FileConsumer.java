@@ -90,12 +90,12 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	/**
 	 * Write lock
 	 */
-	private Lock writeLock;
+	private volatile Lock writeLock;
 
 	/**
 	 * Read lock
 	 */
-	private Lock readLock;
+	private volatile Lock readLock;
 
 	/**
 	 * Scope
@@ -140,12 +140,17 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	/**
 	 * Number of queued items needed before writes are initiated
 	 */
-	private int queueThreshold = 33;
+	private int queueThreshold = 42;
 
+	/**
+	 * Percentage of the queue which is sliced for writing
+	 */
+	private int percentage = 25;
+	
 	/**
 	 * Size of the slice of queued data to write at a time
 	 */
-	private int sliceLength = (queueThreshold / 4); // default is 1/4
+	private int sliceLength = (queueThreshold / (100 / percentage));
 	
 	/**
 	 * Whether or not to use a queue for delaying file writes. The queue is useful
@@ -185,12 +190,15 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	 * @param message      Message to push
 	 * @throws IOException if message could not be written
 	 */
+	@SuppressWarnings("rawtypes")
 	public void pushMessage(IPipe pipe, IMessage message) throws IOException {
 		if (message instanceof RTMPMessage) {
 			final IRTMPEvent msg = ((RTMPMessage) message).getBody();
+			// get the type
+			byte dataType = msg.getDataType();
 			// get the timestamp
 			int timestamp = msg.getTimestamp();
-			log.debug("Timestamp: {}", timestamp);
+			log.debug("Data type: {} timestamp: {}", dataType, timestamp);
 			// if we're dealing with a FlexStreamSend IRTMPEvent, this avoids relative timestamp calculations
 			if (!(msg instanceof FlexStreamSend)) {
 				log.trace("Not FlexStreamSend type");
@@ -205,13 +213,17 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 				write(timestamp, msg);
 			} else {
 				QueuedData queued = null;
-				if (msg instanceof IStreamData) {
-					queued = new QueuedData(timestamp, msg.getDataType(), ((IStreamData) msg).getData()
-							.asReadOnlyBuffer());
+				if (msg instanceof IStreamData) {				
+					log.debug("Stream data, body saved. Data type: {} class type: {}", dataType, msg.getClass().getName());
+					try {
+						queued = new QueuedData(timestamp, dataType, ((IStreamData) msg).duplicate());
+					} catch (ClassNotFoundException e) {
+						log.warn("Exception queueing stream data", e);
+					}
 				} else {
 					//XXX what type of message are we saving that has no body data??
-					log.debug("Non-stream data, body not saved. Type: {}", msg.getClass().getName());
-					queued = new QueuedData(timestamp, msg.getDataType());
+					log.debug("Non-stream data, body not saved. Data type: {} class type: {}", dataType, msg.getClass().getName());
+					queued = new QueuedData(timestamp, dataType);
 				}
 				writeLock.lock();
 				try {
@@ -381,8 +393,10 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 				writerFuture.cancel(true);
 			}
 			writerFuture = null;
-			//write all the queued items
-			doWrites();
+			if (delayWrite) {
+    			//write all the queued items
+    			doWrites();
+			}
 			//close the writer
 			writer.close();
 			writer = null;
@@ -456,7 +470,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		//Search for "offset" in this class constructor
 		tag.setTimestamp(timestamp + offset);
 		// get data bytes
-		IoBuffer data = ((IStreamData) msg).getData();
+		IoBuffer data = ((IStreamData<?>) msg).getData();
 		if (data != null) {
 			tag.setBodySize(data.limit());
 			tag.setBody(data);
@@ -534,6 +548,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 				}
 				data = null;
 			}
+			queued.dispose();
 			queued = null;			
 		} else {
 			log.warn("Queued data was null");
@@ -550,7 +565,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		videoConfigurationTag.setDataType(decoderConfig.getDataType());
 		videoConfigurationTag.setTimestamp(0);
 		if (decoderConfig instanceof IStreamData) {
-			IoBuffer data = ((IStreamData) decoderConfig).getData().asReadOnlyBuffer();
+			IoBuffer data = ((IStreamData<?>) decoderConfig).getData().asReadOnlyBuffer();
 			videoConfigurationTag.setBodySize(data.limit());
 			videoConfigurationTag.setBody(data);
 		}
@@ -637,22 +652,20 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 
 		final byte dataType;
 
-		final IoBuffer data;
+		@SuppressWarnings("rawtypes")
+		final IStreamData streamData;
 
 		QueuedData(int timestamp, byte dataType) {
 			this.timestamp = timestamp;
 			this.dataType = dataType;
-			this.data = null;
+			this.streamData = null;
 		}
 
-		QueuedData(int timestamp, byte dataType, IoBuffer data) {
+		@SuppressWarnings("rawtypes")
+		QueuedData(int timestamp, byte dataType, IStreamData streamData) {
 			this.timestamp = timestamp;
 			this.dataType = dataType;
-			this.data = IoBuffer.allocate(data.limit());
-			byte[] copy = new byte[data.limit()];
-			data.get(copy);
-			this.data.put(copy);
-			this.data.flip();
+			this.streamData = streamData;
 		}
 
 		public int getTimestamp() {
@@ -664,7 +677,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		}
 
 		public IoBuffer getData() {
-			return data;
+			return streamData.getData().asReadOnlyBuffer();
 		}
 
 		@Override
@@ -704,6 +717,10 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 			return 0;
 		}
 
+		public void dispose() {
+			streamData.getData().free();
+		}
+		
 	}
 
 }

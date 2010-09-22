@@ -19,9 +19,13 @@ package org.red5.server.net.rtmp.event;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInput;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.IoConstants;
@@ -31,7 +35,7 @@ import org.red5.server.stream.IStreamData;
 /**
  * Video data event
  */
-public class VideoData extends BaseEvent implements IoConstants, IStreamData, IStreamPacket {
+public class VideoData extends BaseEvent implements IoConstants, IStreamData<VideoData>, IStreamPacket {
 
 	private static final long serialVersionUID = 5538859593815804830L;
     /**
@@ -177,4 +181,34 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData, IS
 			out.writeObject(null);
 		}
 	}
+	
+	/**
+     * Duplicate this message / event.
+     * 
+     * @return  duplicated event
+     */
+	public VideoData duplicate() throws IOException, ClassNotFoundException {
+		VideoData result = new VideoData();
+		// serialize
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ObjectOutputStream oos = new ObjectOutputStream(baos);		
+		writeExternal(oos);
+		oos.close();
+		// convert to byte array
+		byte[] buf = baos.toByteArray();
+		baos.close();
+		// create input streams
+		ByteArrayInputStream bais = new ByteArrayInputStream(buf);
+		ObjectInputStream ois = new ObjectInputStream(bais);
+		// deserialize
+		result.readExternal(ois);
+		ois.close();
+		bais.close();
+		// clone the header if there is one
+		if (header != null) {
+			result.setHeader(header.clone());
+		}
+		return result;
+	}	
+	
 }

@@ -19,12 +19,14 @@ package org.red5.server.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.IOException;
+
 import org.apache.mina.core.buffer.IoBuffer;
 
 /**
  * Stream data packet
  */
-public interface IStreamData {
+public interface IStreamData<T> {
 
 	/**
      * Getter for property 'data'.
@@ -32,5 +34,14 @@ public interface IStreamData {
      * @return Value for property 'data'.
      */
     public IoBuffer getData();
-
+    
+    /**
+     * Creates a byte accurate copy.
+     * 
+     * @return duplicate of the current data item
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+	public IStreamData<T> duplicate() throws IOException, ClassNotFoundException;
+	
 }

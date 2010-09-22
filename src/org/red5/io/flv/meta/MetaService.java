@@ -151,7 +151,6 @@ public class MetaService implements IMetaService {
 		injectedTag.setPreviousTagSize(0);
 		tag.setPreviousTagSize(injectedTag.getBodySize());
 
-		writer.writeHeader();
 		writer.writeTag(injectedTag);
 		writer.writeTag(tag);
 

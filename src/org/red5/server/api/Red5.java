@@ -157,7 +157,7 @@ public final class Red5 {
 	
 	/**
 	 * Returns the current version with revision number
-	 *
+	 * 
 	 * @return String version
 	 */
 	public static String getVersion() {

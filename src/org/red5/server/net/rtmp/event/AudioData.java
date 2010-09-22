@@ -19,15 +19,19 @@ package org.red5.server.net.rtmp.event;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInput;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.stream.IStreamPacket;
 import org.red5.server.stream.IStreamData;
 
-public class AudioData extends BaseEvent implements IStreamData, IStreamPacket {
+public class AudioData extends BaseEvent implements IStreamData<AudioData>, IStreamPacket {
 
 	private static final long serialVersionUID = -4102940670913999407L;
 
@@ -125,4 +129,34 @@ public class AudioData extends BaseEvent implements IStreamData, IStreamPacket {
 			out.writeObject(null);
 		}
 	}
+	
+	/**
+     * Duplicate this message / event.
+     * 
+     * @return  duplicated event
+     */
+	public AudioData duplicate() throws IOException, ClassNotFoundException {
+		AudioData result = new AudioData();
+		// serialize
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ObjectOutputStream oos = new ObjectOutputStream(baos);		
+		writeExternal(oos);
+		oos.close();
+		// convert to byte array
+		byte[] buf = baos.toByteArray();
+		baos.close();
+		// create input streams
+		ByteArrayInputStream bais = new ByteArrayInputStream(buf);
+		ObjectInputStream ois = new ObjectInputStream(bais);
+		// deserialize
+		result.readExternal(ois);
+		ois.close();
+		bais.close();
+		// clone the header if there is one
+		if (header != null) {
+			result.setHeader(header.clone());
+		}
+		return result;
+	}	
+	
 }

@@ -225,7 +225,6 @@ public class FLV implements IFLV {
 		}
 		file.createNewFile();
 		ITagWriter writer = new FLVWriter(new FileOutputStream(file), false);
-		writer.writeHeader();
 		return writer;
 	}
 

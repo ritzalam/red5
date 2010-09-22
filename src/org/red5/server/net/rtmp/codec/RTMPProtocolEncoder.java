@@ -320,6 +320,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
     			}
     		}
 		}
+		log.debug("Drop packet: {}", drop);
 		return drop;
 	}
 
