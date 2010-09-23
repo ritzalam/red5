@@ -848,7 +848,7 @@ public class HexDump {
 				to = from + chunk;
 			}
 			out.append(in.substring(from, to));
-			out.append("\n");
+			out.append('\n');
 			from = to;
 		}
 		return out.toString();

@@ -532,11 +532,12 @@ public class RemotingConnection implements IRemotingConnection {
 			super.register(conn);
 		}
 
+		/** {@inheritDoc} */
 		@Override
 		protected void unregister(IConnection conn) {
 			super.unregister(conn);
 		}
-
+		
 	}
 
 }

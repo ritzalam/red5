@@ -118,7 +118,7 @@ public class W3CAppender extends FileAppender<LoggingEvent> {
 				sb.append(field);
 				sb.append(' ');
 			}
-			sb.append("\n");
+			sb.append('\n');
 			//String header = sb.toString();
 			//System.out.print(header);
 			sbuf.append(sb.toString());
@@ -250,7 +250,7 @@ public class W3CAppender extends FileAppender<LoggingEvent> {
 			//space padded
 			sbuf.append(' ');
 		}
-		sbuf.append("\n");
+		sbuf.append('\n');
 		//System.out.println(sbuf.toString());		
 		try {
 			//switch out the message

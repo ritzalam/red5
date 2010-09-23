@@ -368,7 +368,7 @@ public class DSRemotingClient extends RemotingClient {
 			headerMap.put(Message.MESSAGING_VERSION, 1);
 			msg.setHeaders(headerMap);
 			msg.setOperation(Constants.CLIENT_PING_OPERATION);
-			msg.setBody((Object) new Object[]{});
+			msg.setBody(new Object[]{});
 			
 			Object response = client.invokeMethod("null", new Object[]{msg});
 			log.debug("Response: {}\n{}", response.getClass().getName(), response);
@@ -397,7 +397,7 @@ public class DSRemotingClient extends RemotingClient {
 			headerMap.put(Message.ENDPOINT_HEADER, "my-polling-amf");
 			msg.setHeaders(headerMap);
 			msg.setOperation(Constants.SUBSCRIBE_OPERATION);
-			msg.setBody((Object) new Object[]{});
+			msg.setBody(new Object[]{});
 			
 			response = client.invokeMethod("null", new Object[]{msg});
 
@@ -421,7 +421,7 @@ public class DSRemotingClient extends RemotingClient {
 				headerMap.put(Message.FLEX_CLIENT_ID_HEADER, client.getDataSourceId());
 				msg.setHeaders(headerMap);
 				msg.setOperation(Constants.POLL_OPERATION);
-				msg.setBody((Object) new Object[]{});
+				msg.setBody(new Object[]{});
 				
 				response = client.invokeMethod("null", new Object[]{msg});
 				if (response instanceof AcknowledgeMessage) {

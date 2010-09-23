@@ -32,37 +32,40 @@ import org.slf4j.LoggerFactory;
 /**
  * Controls stream bandwidth
  */
-public class StreamBandwidthController implements IFilter,
-		IPipeConnectionListener, Runnable {
+public class StreamBandwidthController implements IFilter, IPipeConnectionListener, Runnable {
 
-    /**
-     * Logger
-     */
-    private static final Logger log = LoggerFactory.getLogger(StreamBandwidthController.class);
-    /**
-     * Class name
-     */
+	/**
+	 * Logger
+	 */
+	private static final Logger log = LoggerFactory.getLogger(StreamBandwidthController.class);
+
+	/**
+	 * Class name
+	 */
 	public static final String KEY = StreamBandwidthController.class.getName();
-    /**
-     * Stream provider pipe
-     */
+
+	/**
+	 * Stream provider pipe
+	 */
 	private IPipe providerPipe;
-    /**
-     * Stream consumer pipe
-     */
+
+	/**
+	 * Stream consumer pipe
+	 */
 	private IPipe consumerPipe;
-    /**
-     * Daemon thread that pulls data from provider and pushes to consumer, using this controller
-     */
+
+	/**
+	 * Daemon thread that pulls data from provider and pushes to consumer, using this controller
+	 */
 	private Thread puller;
 
-    /**
-     * Start state
-     */
-    private boolean isStarted;
+	/**
+	 * Start state
+	 */
+	private volatile boolean isStarted;
 
 	/** {@inheritDoc} */
-    public void onPipeConnectionEvent(PipeConnectionEvent event) {
+	public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 			case PipeConnectionEvent.PROVIDER_CONNECT_PULL:
 				if (event.getProvider() != this && providerPipe == null) {
@@ -90,12 +93,11 @@ public class StreamBandwidthController implements IFilter,
 	}
 
 	/** {@inheritDoc} */
-    public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
-			OOBControlMessage oobCtrlMsg) {
+	public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
 	}
 
 	/** {@inheritDoc} */
-    public void run() {
+	public void run() {
 		while (isStarted && providerPipe != null && consumerPipe != null) {
 			try {
 				IMessage message = providerPipe.pullMessage();
@@ -104,32 +106,33 @@ public class StreamBandwidthController implements IFilter,
 				}
 				consumerPipe.pushMessage(message);
 			} catch (Exception e) {
+				log.warn("Exception in pull and push", e);
 				break;
 			}
 		}
 		isStarted = false;
 	}
 
-    /**
-     * Start pulling (streaming)
-     */
-    public void start() {
+	/**
+	 * Start pulling (streaming)
+	 */
+	public void start() {
 		startThread();
 	}
 
-    /**
-     * Stop pulling, close stream
-     */
-    public void close() {
+	/**
+	 * Stop pulling, close stream
+	 */
+	public void close() {
 		isStarted = false;
 	}
 
-    /**
-     * Start puller thread
-     */
-    private void startThread() {
+	/**
+	 * Start puller thread
+	 */
+	private void startThread() {
 		if (!isStarted && providerPipe != null && consumerPipe != null) {
-			puller = new Thread(this);
+			puller = new Thread(this, KEY);
 			puller.setDaemon(true);
 			isStarted = true;
 			puller.start();

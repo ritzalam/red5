@@ -404,11 +404,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 	/** {@inheritDoc} */
 	public boolean hasMoreItems() {
 		int nextItem = currentItemIndex + 1;
-		if (nextItem >= items.size() && !repeat) {
-			return false;
-		} else {
-			return true;
-		}
+		return (nextItem >= items.size() && !repeat);
 	}
 
 	/** {@inheritDoc} */

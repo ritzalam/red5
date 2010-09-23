@@ -126,7 +126,7 @@ public class DOM2Writer {
 					logger.debug("Unknown type: " + type);
 				}
 		}
-		if (type == Node.ELEMENT_NODE && hasChildren == true) {
+		if (type == Node.ELEMENT_NODE && hasChildren) {
 			out.print("</");
 			out.print(node.getNodeName());
 			out.print('>');

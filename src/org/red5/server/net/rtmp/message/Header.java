@@ -160,6 +160,14 @@ public class Header implements Constants, Cloneable, Externalizable {
 		this.timerDelta = 0;
 	}
 
+    @Override
+    public int hashCode() {
+    	int hash = dataType;
+    	hash = hash * 31 + channelId;
+    	hash = hash * 31 + streamId;
+    	return hash;
+    }	
+	
 	/** {@inheritDoc} */
 	@Override
 	public boolean equals(Object other) {

@@ -33,12 +33,12 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
  */
 public class Launcher {
 
+	/*
 	static {
-		/*
 		ClassLoader tcl = Thread.currentThread().getContextClassLoader();		
 		System.out.printf("[Launcher] Classloaders:\nSystem %s\nParent %s\nThis class %s\nTCL %s\n\n", ClassLoader.getSystemClassLoader(), tcl.getParent(), Launcher.class.getClassLoader(), tcl);
-		*/
 	}
+	*/
 	
 	/**
 	 * Launch Red5 under it's own classloader

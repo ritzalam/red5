@@ -185,9 +185,9 @@ public class AbstractMessage implements Message, Serializable {
 	public String toString() {
 		StringBuilder result = new StringBuilder();
 		result.append(getClass().getName());
-		result.append("(");
+		result.append('(');
 		addParameters(result);
-		result.append(")");
+		result.append(')');
 		return result.toString();
 	}
 

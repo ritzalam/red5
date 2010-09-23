@@ -142,7 +142,7 @@ public class HexCharset extends Charset {
 	}
 
 	public HexCharset(boolean caps, int measure) {
-		super((new StringBuilder()).append(caps ? "HEX" : "hex").append(":")
+		super((new StringBuilder()).append(caps ? "HEX" : "hex").append(':')
 				.append(measure).toString(), new String[] { "HEX" });
 		codes = caps ? codeHEX : codehex;
 		this.measure = Integer.valueOf(measure);
