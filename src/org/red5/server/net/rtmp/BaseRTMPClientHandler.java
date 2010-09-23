@@ -33,7 +33,6 @@ import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCall;
-import org.red5.server.api.service.IServiceCapableConnection;
 import org.red5.server.api.service.IServiceInvoker;
 import org.red5.server.api.so.IClientSharedObject;
 import org.red5.server.api.stream.IClientStream;
@@ -380,7 +379,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 		if (conn == null) {
 			log.info("Connection was null 2");
 		} else {
-			((IServiceCapableConnection) conn).invoke(method, params, callback);
+			conn.invoke(method, params, callback);
 		}
 	}
 

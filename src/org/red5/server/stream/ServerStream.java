@@ -249,11 +249,7 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	/** {@inheritDoc} */
 	public boolean hasMoreItems() {
 		int nextItem = currentItemIndex + 1;
-		if (nextItem >= items.size() && !isRepeat) {
-			return false;
-		} else {
-			return true;
-		}
+		return (nextItem >= items.size() && !isRepeat);
 	}
 
 	/** {@inheritDoc} */

@@ -61,8 +61,6 @@ import org.springframework.web.context.WebApplicationContext;
  */
 public class WarLoaderServlet extends ContextLoaderListener {
 
-	private final static long serialVersionUID = 41919712010L;
-
 	// Initialize Logging
 	public static Logger logger = Red5LoggerFactory.getLogger(WarLoaderServlet.class);
 

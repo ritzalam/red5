@@ -112,12 +112,10 @@ public final class WarDeployer {
 	@SuppressWarnings("cast")
 	public LoaderMXBean getLoader() {
 		MBeanServer mbs = JMXFactory.getMBeanServer();
-
 		ObjectName oName = JMXFactory.createObjectName("type", "TomcatLoader");
-
 		LoaderMXBean proxy = null;
 		if (mbs.isRegistered(oName)) {
-			proxy = (LoaderMXBean) JMX.newMXBeanProxy(mbs, oName, LoaderMXBean.class, true);
+			proxy = JMX.newMXBeanProxy(mbs, oName, LoaderMXBean.class, true);
 			log.debug("Loader was found");
 		} else {
 			log.warn("Loader not found");
@@ -198,8 +196,7 @@ public final class WarDeployer {
 					} else {
 						log.warn("Application destination is not a directory");
 					}
-					log.info("Application {} already installed, please un-install before attempting another install",
-							application);
+					log.info("Application {} already installed, please un-install before attempting another install", application);
 				} else {
 					log.debug("Unwaring and starting...");
 					//un-archive it to app dir

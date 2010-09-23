@@ -53,7 +53,7 @@ public class DefaultStreamFilenameGenerator implements IStreamFilenameGenerator 
 		if (result.length() == 0) {
 			return prefix;
 		} else {
-			result.insert(0, prefix).append("/");
+			result.insert(0, prefix).append('/');
 			return result.toString();
 		}
     }

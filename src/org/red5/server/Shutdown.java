@@ -95,13 +95,13 @@ public class Shutdown {
 			ObjectName contextLoaderObjectName = new ObjectName("org.red5.server:type=ContextLoader");
 			if (mbs.isRegistered(jettyObjectName)) {
 				System.out.println("Red5 Jetty loader was found");
-				proxy = (ShutdownMXBean) JMX.newMXBeanProxy(mbs, jettyObjectName, ShutdownMXBean.class, true);
+				proxy = JMX.newMXBeanProxy(mbs, jettyObjectName, ShutdownMXBean.class, true);
 			} else if (mbs.isRegistered(tomcatObjectName)) {
 				System.out.println("Red5 Tomcat loader was found");
-				proxy = (ShutdownMXBean) JMX.newMXBeanProxy(mbs, tomcatObjectName, ShutdownMXBean.class, true);
+				proxy = JMX.newMXBeanProxy(mbs, tomcatObjectName, ShutdownMXBean.class, true);
 			} else if (mbs.isRegistered(contextLoaderObjectName)) {
 				System.out.println("Red5 Context loader was found");	
-				proxy = (ShutdownMXBean) JMX.newMXBeanProxy(mbs, contextLoaderObjectName, ShutdownMXBean.class, true);
+				proxy = JMX.newMXBeanProxy(mbs, contextLoaderObjectName, ShutdownMXBean.class, true);
 			} else {
 				System.out.println("Red5 Loader was not found, is the server running?");
 			}

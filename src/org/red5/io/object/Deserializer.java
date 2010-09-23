@@ -115,7 +115,6 @@ public class Deserializer {
 				result = in.readCustom(target);
 				break;
 		}
-
         return (T) postProcessExtension(result, target);
 	}
 

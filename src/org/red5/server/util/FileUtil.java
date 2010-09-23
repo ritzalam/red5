@@ -530,7 +530,7 @@ public class FileUtil {
     	} else if (i < 1000) {
        		sb.append("00");
     	} else if (i < 10000) {
-       		sb.append("0");
+       		sb.append('0');
     	}    	
     	sb.append(i);
     	return sb.toString();

@@ -142,11 +142,11 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
                 		int downStream = filter.getMaxReadThroughput();
                 		int upStream = filter.getMaxWriteThroughput();
                 		if (downStream > 0) {
-                			ServerBW serverBW = new ServerBW((int) downStream / 8);
+                			ServerBW serverBW = new ServerBW(downStream / 8);
                 			getChannel(2).write(serverBW);
                 		}
                 		if (upStream > 0) {
-                			ClientBW clientBW = new ClientBW((int) upStream / 8, (byte) 0);
+                			ClientBW clientBW = new ClientBW(upStream / 8, (byte) 0);
                 			getChannel(2).write(clientBW);
             				// Update generation of BytesRead messages
             				// TODO: what are the correct values here?

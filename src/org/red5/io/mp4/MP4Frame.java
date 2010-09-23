@@ -150,10 +150,10 @@ public class MP4Frame implements Comparable<MP4Frame> {
 			ret = 1;
 		} else if (this.time < that.getTime()) {
 			ret = -1;
-		} else if (this.time == that.getTime() && this.offset > that.getOffset()) {
+		} else if (Double.doubleToLongBits(time) == Double.doubleToLongBits(that.getTime()) && this.offset > that.getOffset()) {
 			ret = 1;
-		} else if (this.time == that.getTime() && this.offset < that.getOffset()) {
-			ret = -1;			
+		} else if (Double.doubleToLongBits(time) == Double.doubleToLongBits(that.getTime()) && this.offset < that.getOffset()) {
+			ret = -1;
 		}
 		return ret;
 	}

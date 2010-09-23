@@ -174,6 +174,13 @@ public class Notify extends BaseEvent implements IStreamData<Notify>, IStreamPac
 		return sb.toString();
 	}
 
+    @Override
+    public int hashCode() {
+    	int hash = TYPE_NOTIFY;
+    	hash = hash * 31 + invokeId;
+    	return hash;
+    }    
+    
 	/** {@inheritDoc} */
     @Override
 	public boolean equals(Object obj) {

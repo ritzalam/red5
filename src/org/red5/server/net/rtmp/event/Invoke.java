@@ -62,14 +62,13 @@ public class Invoke extends Notify {
 		return (IPendingServiceCall) call;
 	}
 
-	/** {@inheritDoc} */
     @Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("Invoke: ").append(call);
-		return sb.toString();
-	}
-
+    public int hashCode() {
+    	int hash = TYPE_INVOKE;
+    	hash = hash * 31 + getInvokeId();
+    	return hash;
+    }
+    
 	/** {@inheritDoc} */
     @Override
 	public boolean equals(Object obj) {
@@ -80,6 +79,14 @@ public class Invoke extends Notify {
 			return false;
 		}
 		return super.equals(obj);
+	}   
+    
+	/** {@inheritDoc} */
+    @Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Invoke: ").append(call);
+		return sb.toString();
 	}
 
 }

@@ -137,7 +137,7 @@ public class FlexMessagingService {
 			if (((ClientDetailsException) error).includeStacktrace()) {
 				StringBuilder stack = new StringBuilder();
 				for (StackTraceElement element : error.getStackTrace()) {
-					stack.append(element.toString()).append("\n");
+					stack.append(element.toString()).append('\n');
 				}
 				result.faultDetail = stack.toString();
 			}

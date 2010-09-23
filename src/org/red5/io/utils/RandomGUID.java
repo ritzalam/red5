@@ -189,9 +189,9 @@ public class RandomGUID extends Object {
 			// the odds of guessing it at least as great as that
 			// of guessing the contents of the file!
 			sbValueBeforeMD5.append(s_id);
-			sbValueBeforeMD5.append(":");
+			sbValueBeforeMD5.append(':');
 			sbValueBeforeMD5.append(Long.toString(time));
-			sbValueBeforeMD5.append(":");
+			sbValueBeforeMD5.append(':');
 			sbValueBeforeMD5.append(Long.toString(rand));
 
 			valueBeforeMD5 = sbValueBeforeMD5.toString();
@@ -244,10 +244,10 @@ public class RandomGUID extends Object {
 	 */
 	public static String fromByteArray(byte[] ba) {
 		if ((ba != null) && (ba.length == 16)) {
-			StringBuffer result = new StringBuffer(36);
+			StringBuilder result = new StringBuilder(36);
 			for (int i = 0; i < 16; ++i) {
 				if ((i == 4) || (i == 6) || (i == 8) || (i == 10)) {
-					result.append("-");
+					result.append('-');
 				}
 				result.append(hexChars.charAt(((ba[i] & 0xF0) >>> 4)));
 				result.append(hexChars.charAt((ba[i] & 0xF)));
