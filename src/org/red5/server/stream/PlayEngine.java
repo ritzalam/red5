@@ -325,9 +325,10 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		IScope thisScope = subscriberStream.getScope();
 		final String itemName = item.getName();
 		//check for input and type
-		IProviderService.INPUT_TYPE sourceType = providerService.lookupProviderInput(thisScope, itemName);
+		IProviderService.INPUT_TYPE sourceType = providerService.lookupProviderInput(thisScope, itemName, type);
 
 		boolean isPublishedStream = sourceType == IProviderService.INPUT_TYPE.LIVE;
+		boolean isPublishedStreamWait = sourceType == IProviderService.INPUT_TYPE.LIVE_WAIT;
 		boolean isFileStream = sourceType == IProviderService.INPUT_TYPE.VOD;
 
 		boolean sendNotifications = true;
@@ -340,9 +341,9 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 					playDecision = 0;
 				} else if (isFileStream) {
 					playDecision = 1;
-				} else {
+				} else if( isPublishedStreamWait ){
 					playDecision = 2;
-				}
+				}				
 				break;
 
 			case -1:

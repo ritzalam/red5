@@ -47,7 +47,7 @@ public class ProviderService implements IProviderService {
 	private static final Logger log = Red5LoggerFactory.getLogger(ProviderService.class);
 
 	/** {@inheritDoc} */
-	public INPUT_TYPE lookupProviderInput(IScope scope, String name) {
+	public INPUT_TYPE lookupProviderInput(IScope scope, String name, int type) {
 		INPUT_TYPE result = INPUT_TYPE.NOT_FOUND;
 		if (scope.getBasicScope(IBroadcastScope.TYPE, name) != null) {
 			//we have live input
@@ -59,6 +59,9 @@ public class ProviderService implements IProviderService {
 			try {
 				file = getStreamFile(scope, name);
 				if (file == null) {
+					if(type == -2) {
+						result = INPUT_TYPE.LIVE_WAIT;
+					}
 					log.debug("Requested stream: {} does not appear to be of VOD type", name);
 				}
 			} catch (IOException e) {
