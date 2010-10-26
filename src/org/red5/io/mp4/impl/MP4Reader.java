@@ -91,16 +91,13 @@ public class MP4Reader implements IoConstants, ITagReader {
 	public final static byte[] AUDIO_CONFIG_FRAME_AAC_LC = new byte[] { (byte) 0x12, (byte) 0x10 };
 
 	/** Audio config sbr */
-	public final static byte[] AUDIO_CONFIG_FRAME_SBR = new byte[] { (byte) 0x13, (byte) 0x90, (byte) 0x56,
-			(byte) 0xe5, (byte) 0xa5, (byte) 0x48, (byte) 0x00 };
+	public final static byte[] AUDIO_CONFIG_FRAME_SBR = new byte[] { (byte) 0x13, (byte) 0x90, (byte) 0x56, (byte) 0xe5, (byte) 0xa5, (byte) 0x48, (byte) 0x00 };
 
 	/** Video packet prefix for the decoder frame */
-	public final static byte[] PREFIX_VIDEO_CONFIG_FRAME = new byte[] { (byte) 0x17, (byte) 0x00, (byte) 0x00,
-			(byte) 0x00, (byte) 0x00 };
+	public final static byte[] PREFIX_VIDEO_CONFIG_FRAME = new byte[] { (byte) 0x17, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00 };
 
 	/** Video packet prefix for key frames*/
-	public final static byte[] PREFIX_VIDEO_KEYFRAME = new byte[] { (byte) 0x17, (byte) 0x01, (byte) 0, (byte) 0,
-			(byte) 0 };
+	public final static byte[] PREFIX_VIDEO_KEYFRAME = new byte[] { (byte) 0x17, (byte) 0x01, (byte) 0, (byte) 0, (byte) 0 };
 
 	/** Video packet prefix for standard frames (interframe)*/
 	public final static byte[] PREFIX_VIDEO_FRAME = new byte[] { (byte) 0x27, (byte) 0x01, (byte) 0, (byte) 0, (byte) 0 };
@@ -291,11 +288,12 @@ public class MP4Reader implements IoConstants, ITagReader {
 						}
 						*/
 
-						//two tracks or bust
-						int i = 0;
-						while (i < 2) {
+						//we would like to have two tracks, but it shouldn't be a requirement
+						int loops = 0;
+						int tracks = 0;
+						do {
 
-							MP4Atom trak = moov.lookup(MP4Atom.typeToInt("trak"), i);
+							MP4Atom trak = moov.lookup(MP4Atom.typeToInt("trak"), loops);
 							if (trak != null) {
 								log.debug("Track atom found");
 								log.debug("trak children: {}", trak.getChildren());
@@ -352,7 +350,7 @@ public class MP4Reader implements IoConstants, ITagReader {
 												log.debug("Audio time scale: {}", audioTimeScale);
 											}
 										}
-										i++;
+										tracks++;
 									}
 
 									MP4Atom minf = mdia.lookup(MP4Atom.typeToInt("minf"), 0);
@@ -416,15 +414,12 @@ public class MP4Reader implements IoConstants, ITagReader {
 															Vector<MP4Descriptor> children = descriptor.getChildren();
 															for (int e = 0; e < children.size(); e++) {
 																MP4Descriptor descr = children.get(e);
-																log.debug("{}", ToStringBuilder
-																		.reflectionToString(descr));
+																log.debug("{}", ToStringBuilder.reflectionToString(descr));
 																if (descr.getChildren().size() > 0) {
-																	Vector<MP4Descriptor> children2 = descr
-																			.getChildren();
+																	Vector<MP4Descriptor> children2 = descr.getChildren();
 																	for (int e2 = 0; e2 < children2.size(); e2++) {
 																		MP4Descriptor descr2 = children2.get(e2);
-																		log.debug("{}", ToStringBuilder
-																				.reflectionToString(descr2));
+																		log.debug("{}", ToStringBuilder.reflectionToString(descr2));
 																		if (descr2.getType() == MP4Descriptor.MP4DecSpecificInfoDescriptorTag) {
 																			//we only want the MP4DecSpecificInfoDescriptorTag
 																			audioDecoderBytes = descr2.getDSID();
@@ -463,8 +458,7 @@ public class MP4Reader implements IoConstants, ITagReader {
 													audioSamplesToChunks = stsc.getRecords();
 													log.debug("Record count: {}", audioSamplesToChunks.size());
 													MP4Atom.Record rec = audioSamplesToChunks.firstElement();
-													log.debug("Record data: Description index={} Samples per chunk={}",
-															rec.getSampleDescriptionIndex(), rec.getSamplesPerChunk());
+													log.debug("Record data: Description index={} Samples per chunk={}", rec.getSampleDescriptionIndex(), rec.getSamplesPerChunk());
 												}
 												//stsz - has Samples
 												MP4Atom stsz = stbl.lookup(MP4Atom.typeToInt("stsz"), 0);
@@ -487,12 +481,10 @@ public class MP4Reader implements IoConstants, ITagReader {
 												MP4Atom stts = stbl.lookup(MP4Atom.typeToInt("stts"), 0);
 												if (stts != null) {
 													log.debug("Time to sample atom found");
-													Vector<MP4Atom.TimeSampleRecord> records = stts
-															.getTimeToSamplesRecords();
+													Vector<MP4Atom.TimeSampleRecord> records = stts.getTimeToSamplesRecords();
 													log.debug("Record count: {}", records.size());
 													MP4Atom.TimeSampleRecord rec = records.firstElement();
-													log.debug("Record data: Consecutive samples={} Duration={}", rec
-															.getConsecutiveSamples(), rec.getSampleDuration());
+													log.debug("Record data: Consecutive samples={} Duration={}", rec.getConsecutiveSamples(), rec.getSampleDuration());
 													//if we have 1 record then all samples have the same duration
 													if (records.size() > 1) {
 														//TODO: handle audio samples with varying durations
@@ -534,8 +526,7 @@ public class MP4Reader implements IoConstants, ITagReader {
 												MP4Atom stsd = stbl.lookup(MP4Atom.typeToInt("stsd"), 0);
 												if (stsd != null) {
 													log.debug("Sample description atom found");
-													log.debug("Sample description (video) stsd children: {}", stsd
-															.getChildren());
+													log.debug("Sample description (video) stsd children: {}", stsd.getChildren());
 													MP4Atom avc1 = stsd.lookup(MP4Atom.typeToInt("avc1"), 0);
 													if (avc1 != null) {
 														log.debug("AVC1 children: {}", avc1.getChildren());
@@ -551,8 +542,7 @@ public class MP4Reader implements IoConstants, ITagReader {
 															log.debug("AVC Profile: {}", avcProfile);
 															log.debug("AVCC size: {}", codecChild.getSize());
 															videoDecoderBytes = codecChild.getVideoConfigBytes();
-															log.debug("Video config bytes: {}", ToStringBuilder
-																	.reflectionToString(videoDecoderBytes));
+															log.debug("Video config bytes: {}", ToStringBuilder.reflectionToString(videoDecoderBytes));
 														} else {
 															//quicktime and ipods use a pixel aspect atom
 															//since we have no avcC check for this and avcC may
@@ -567,10 +557,8 @@ public class MP4Reader implements IoConstants, ITagReader {
 																	avcProfile = codecChild.getAvcProfile();
 																	log.debug("AVC Profile: {}", avcProfile);
 																	log.debug("AVCC size: {}", codecChild.getSize());
-																	videoDecoderBytes = codecChild
-																			.getVideoConfigBytes();
-																	log.debug("Video config bytes: {}", ToStringBuilder
-																			.reflectionToString(videoDecoderBytes));
+																	videoDecoderBytes = codecChild.getVideoConfigBytes();
+																	log.debug("Video config bytes: {}", ToStringBuilder.reflectionToString(videoDecoderBytes));
 																}
 															}
 														}
@@ -582,41 +570,26 @@ public class MP4Reader implements IoConstants, ITagReader {
 															//set the video codec here - may be avc1 or mp4v
 															setVideoCodecId(MP4Atom.intToType(mp4v.getType()));
 															//look for esds 
-															MP4Atom codecChild = mp4v.lookup(MP4Atom.typeToInt("esds"),
-																	0);
+															MP4Atom codecChild = mp4v.lookup(MP4Atom.typeToInt("esds"), 0);
 															if (codecChild != null) {
 																//look for descriptors
-																MP4Descriptor descriptor = codecChild
-																		.getEsd_descriptor();
-																log.debug("{}", ToStringBuilder
-																		.reflectionToString(descriptor));
+																MP4Descriptor descriptor = codecChild.getEsd_descriptor();
+																log.debug("{}", ToStringBuilder.reflectionToString(descriptor));
 																if (descriptor != null) {
-																	Vector<MP4Descriptor> children = descriptor
-																			.getChildren();
+																	Vector<MP4Descriptor> children = descriptor.getChildren();
 																	for (int e = 0; e < children.size(); e++) {
 																		MP4Descriptor descr = children.get(e);
-																		log.debug("{}", ToStringBuilder
-																				.reflectionToString(descr));
+																		log.debug("{}", ToStringBuilder.reflectionToString(descr));
 																		if (descr.getChildren().size() > 0) {
-																			Vector<MP4Descriptor> children2 = descr
-																					.getChildren();
+																			Vector<MP4Descriptor> children2 = descr.getChildren();
 																			for (int e2 = 0; e2 < children2.size(); e2++) {
-																				MP4Descriptor descr2 = children2
-																						.get(e2);
-																				log.debug("{}", ToStringBuilder
-																						.reflectionToString(descr2));
+																				MP4Descriptor descr2 = children2.get(e2);
+																				log.debug("{}", ToStringBuilder.reflectionToString(descr2));
 																				if (descr2.getType() == MP4Descriptor.MP4DecSpecificInfoDescriptorTag) {
 																					//we only want the MP4DecSpecificInfoDescriptorTag												    
-																					videoDecoderBytes = new byte[descr2
-																							.getDSID().length - 8];
-																					System.arraycopy(descr2.getDSID(),
-																							8, videoDecoderBytes, 0,
-																							videoDecoderBytes.length);
-																					log
-																							.debug(
-																									"Video config bytes: {}",
-																									ToStringBuilder
-																											.reflectionToString(videoDecoderBytes));
+																					videoDecoderBytes = new byte[descr2.getDSID().length - 8];
+																					System.arraycopy(descr2.getDSID(), 8, videoDecoderBytes, 0, videoDecoderBytes.length);
+																					log.debug("Video config bytes: {}", ToStringBuilder.reflectionToString(videoDecoderBytes));
 																					//we want to break out of top level for loop
 																					e = 99;
 																					break;
@@ -638,8 +611,7 @@ public class MP4Reader implements IoConstants, ITagReader {
 													videoSamplesToChunks = stsc.getRecords();
 													log.debug("Record count: {}", videoSamplesToChunks.size());
 													MP4Atom.Record rec = videoSamplesToChunks.firstElement();
-													log.debug("Record data: Description index={} Samples per chunk={}",
-															rec.getSampleDescriptionIndex(), rec.getSamplesPerChunk());
+													log.debug("Record data: Description index={} Samples per chunk={}", rec.getSampleDescriptionIndex(), rec.getSamplesPerChunk());
 												}
 												//stsz - has Samples
 												MP4Atom stsz = stbl.lookup(MP4Atom.typeToInt("stsz"), 0);
@@ -673,12 +645,10 @@ public class MP4Reader implements IoConstants, ITagReader {
 												MP4Atom stts = stbl.lookup(MP4Atom.typeToInt("stts"), 0);
 												if (stts != null) {
 													log.debug("Time to sample atom found");
-													Vector<MP4Atom.TimeSampleRecord> records = stts
-															.getTimeToSamplesRecords();
+													Vector<MP4Atom.TimeSampleRecord> records = stts.getTimeToSamplesRecords();
 													log.debug("Record count: {}", records.size());
 													MP4Atom.TimeSampleRecord rec = records.firstElement();
-													log.debug("Record data: Consecutive samples={} Duration={}", rec
-															.getConsecutiveSamples(), rec.getSampleDuration());
+													log.debug("Record data: Consecutive samples={} Duration={}", rec.getConsecutiveSamples(), rec.getSampleDuration());
 													//if we have 1 record then all samples have the same duration
 													if (records.size() > 1) {
 														//TODO: handle video samples with varying durations
@@ -693,7 +663,9 @@ public class MP4Reader implements IoConstants, ITagReader {
 
 								}
 							}
-						}
+							loops++;
+						} while (loops < 3);
+						log.trace("Busted out of track loop with {} tracks after {} loops", tracks, loops);
 						//calculate FPS
 						fps = (videoSampleCount * timeScale) / (double) duration;
 						log.debug("FPS calc: ({} * {}) / {}", new Object[] { videoSampleCount, timeScale, duration });
@@ -1160,91 +1132,97 @@ public class MP4Reader implements IoConstants, ITagReader {
 		samplePosMap = new HashMap<Integer, Long>();
 		// tag == sample
 		int sample = 1;
+		// position
 		Long pos = null;
-		for (int i = 0; i < videoSamplesToChunks.size(); i++) {
-			MP4Atom.Record record = videoSamplesToChunks.get(i);
-			int firstChunk = record.getFirstChunk();
-			int lastChunk = videoChunkOffsets.size();
-			if (i < videoSamplesToChunks.size() - 1) {
-				MP4Atom.Record nextRecord = videoSamplesToChunks.get(i + 1);
-				lastChunk = nextRecord.getFirstChunk() - 1;
-			}
-			for (int chunk = firstChunk; chunk <= lastChunk; chunk++) {
-				int sampleCount = record.getSamplesPerChunk();
-				pos = videoChunkOffsets.elementAt(chunk - 1);
-				while (sampleCount > 0) {
-					//log.debug("Position: {}", pos);
-					samplePosMap.put(sample, pos);
-					//calculate ts
-					double ts = (videoSampleDuration * (sample - 1)) / videoTimeScale;
-					//check to see if the sample is a keyframe
-					boolean keyframe = false;
-					//some files appear not to have sync samples
-					if (syncSamples != null) {
-						keyframe = syncSamples.contains(sample);
-						if (seekPoints == null) {
-							seekPoints = new LinkedList<Integer>();
+		// if audio-only, skip this
+		if (videoSamplesToChunks != null) {
+			for (int i = 0; i < videoSamplesToChunks.size(); i++) {
+				MP4Atom.Record record = videoSamplesToChunks.get(i);
+				int firstChunk = record.getFirstChunk();
+				int lastChunk = videoChunkOffsets.size();
+				if (i < videoSamplesToChunks.size() - 1) {
+					MP4Atom.Record nextRecord = videoSamplesToChunks.get(i + 1);
+					lastChunk = nextRecord.getFirstChunk() - 1;
+				}
+				for (int chunk = firstChunk; chunk <= lastChunk; chunk++) {
+					int sampleCount = record.getSamplesPerChunk();
+					pos = videoChunkOffsets.elementAt(chunk - 1);
+					while (sampleCount > 0) {
+						//log.debug("Position: {}", pos);
+						samplePosMap.put(sample, pos);
+						//calculate ts
+						double ts = (videoSampleDuration * (sample - 1)) / videoTimeScale;
+						//check to see if the sample is a keyframe
+						boolean keyframe = false;
+						//some files appear not to have sync samples
+						if (syncSamples != null) {
+							keyframe = syncSamples.contains(sample);
+							if (seekPoints == null) {
+								seekPoints = new LinkedList<Integer>();
+							}
+							int keyframeTs = (int) Math.round(ts * 1000.0);
+							seekPoints.add(keyframeTs);
+							timePosMap.put(keyframeTs, pos);
 						}
-						int keyframeTs = (int) Math.round(ts * 1000.0);
-						seekPoints.add(keyframeTs);
-						timePosMap.put(keyframeTs, pos);
+						//size of the sample
+						int size = (videoSamples.get(sample - 1)).intValue();
+
+						//create a frame
+						MP4Frame frame = new MP4Frame();
+						frame.setKeyFrame(keyframe);
+						frame.setOffset(pos);
+						frame.setSize(size);
+						frame.setTime(ts);
+						frame.setType(TYPE_VIDEO);
+						frames.add(frame);
+
+						//log.debug("Sample #{} {}", sample, frame);
+
+						//inc and dec stuff
+						pos += size;
+						sampleCount--;
+						sample++;
 					}
-					//size of the sample
-					int size = (videoSamples.get(sample - 1)).intValue();
-
-					//create a frame
-					MP4Frame frame = new MP4Frame();
-					frame.setKeyFrame(keyframe);
-					frame.setOffset(pos);
-					frame.setSize(size);
-					frame.setTime(ts);
-					frame.setType(TYPE_VIDEO);
-					frames.add(frame);
-
-					//log.debug("Sample #{} {}", sample, frame);
-
-					//inc and dec stuff
-					pos += size;
-					sampleCount--;
-					sample++;
 				}
 			}
+			log.debug("Sample position map (video): {}", samplePosMap);
 		}
 
-		log.debug("Sample position map (video): {}", samplePosMap);
+		// if video-only, skip this
+		if (audioSamplesToChunks != null) {
+			//add the audio frames / samples / chunks		
+			sample = 1;
+			for (int i = 0; i < audioSamplesToChunks.size(); i++) {
+				MP4Atom.Record record = audioSamplesToChunks.get(i);
+				int firstChunk = record.getFirstChunk();
+				int lastChunk = audioChunkOffsets.size();
+				if (i < audioSamplesToChunks.size() - 1) {
+					MP4Atom.Record nextRecord = audioSamplesToChunks.get(i + 1);
+					lastChunk = nextRecord.getFirstChunk() - 1;
+				}
+				for (int chunk = firstChunk; chunk <= lastChunk; chunk++) {
+					int sampleCount = record.getSamplesPerChunk();
+					pos = audioChunkOffsets.elementAt(chunk - 1);
+					while (sampleCount > 0) {
+						//calculate ts
+						double ts = (audioSampleDuration * (sample - 1)) / audioTimeScale;
+						//sample size
+						int size = (audioSamples.get(sample - 1)).intValue();
+						//create a frame
+						MP4Frame frame = new MP4Frame();
+						frame.setOffset(pos);
+						frame.setSize(size);
+						frame.setTime(ts);
+						frame.setType(TYPE_AUDIO);
+						frames.add(frame);
 
-		//add the audio frames / samples / chunks		
-		sample = 1;
-		for (int i = 0; i < audioSamplesToChunks.size(); i++) {
-			MP4Atom.Record record = audioSamplesToChunks.get(i);
-			int firstChunk = record.getFirstChunk();
-			int lastChunk = audioChunkOffsets.size();
-			if (i < audioSamplesToChunks.size() - 1) {
-				MP4Atom.Record nextRecord = audioSamplesToChunks.get(i + 1);
-				lastChunk = nextRecord.getFirstChunk() - 1;
-			}
-			for (int chunk = firstChunk; chunk <= lastChunk; chunk++) {
-				int sampleCount = record.getSamplesPerChunk();
-				pos = audioChunkOffsets.elementAt(chunk - 1);
-				while (sampleCount > 0) {
-					//calculate ts
-					double ts = (audioSampleDuration * (sample - 1)) / audioTimeScale;
-					//sample size
-					int size = (audioSamples.get(sample - 1)).intValue();
-					//create a frame
-					MP4Frame frame = new MP4Frame();
-					frame.setOffset(pos);
-					frame.setSize(size);
-					frame.setTime(ts);
-					frame.setType(TYPE_AUDIO);
-					frames.add(frame);
+						//log.debug("Sample #{} {}", sample, frame);
 
-					//log.debug("Sample #{} {}", sample, frame);
-
-					//inc and dec stuff
-					pos += size;
-					sampleCount--;
-					sample++;
+						//inc and dec stuff
+						pos += size;
+						sampleCount--;
+						sample++;
+					}
 				}
 			}
 		}
@@ -1256,15 +1234,19 @@ public class MP4Reader implements IoConstants, ITagReader {
 		//log.debug("Frames: {}", frames);
 
 		//release some memory, since we're done with the vectors
-		audioChunkOffsets.clear();
-		audioChunkOffsets = null;
-		audioSamplesToChunks.clear();
-		audioSamplesToChunks = null;
+		if (audioSamplesToChunks != null) {
+			audioChunkOffsets.clear();
+			audioChunkOffsets = null;
+			audioSamplesToChunks.clear();
+			audioSamplesToChunks = null;
+		}
 
-		videoChunkOffsets.clear();
-		videoChunkOffsets = null;
-		videoSamplesToChunks.clear();
-		videoSamplesToChunks = null;
+		if (videoSamplesToChunks != null) {
+			videoChunkOffsets.clear();
+			videoChunkOffsets = null;
+			videoSamplesToChunks.clear();
+			videoSamplesToChunks = null;
+		}
 
 		syncSamples.clear();
 		syncSamples = null;
