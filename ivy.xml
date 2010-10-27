@@ -44,9 +44,9 @@
         <dependency name="xercesImpl" rev="2.9.1" />
         <dependency name="xmlrpc" rev="2.0.1" />
         <!-- Mina --> 
-        <dependency org="mina" name="mina-core" rev="2.0.0" />
-        <dependency org="mina" name="mina-integration-beans" rev="2.0.0" />
-        <dependency org="mina" name="mina-integration-jmx" rev="2.0.0" />   
+        <dependency org="mina" name="mina-core" rev="2.0.1" />
+        <dependency org="mina" name="mina-integration-beans" rev="2.0.1" />
+        <dependency org="mina" name="mina-integration-jmx" rev="2.0.1" />   
         <!-- Scripting -->
         <dependency org="asm" name="asm" rev="3.1" />
         <dependency org="asm" name="asm-commons" rev="3.1" />
