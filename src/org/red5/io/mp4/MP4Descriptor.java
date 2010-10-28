@@ -72,8 +72,7 @@ public class MP4Descriptor {
 		this.size = size;
 	}
 
-	public static MP4Descriptor createDescriptor(MP4DataStream bitstream)
-			throws IOException {
+	public static MP4Descriptor createDescriptor(MP4DataStream bitstream) throws IOException {
 		int tag = (int) bitstream.readBytes(1);
 		int readed = 1;
 		int size = 0;
@@ -109,7 +108,7 @@ public class MP4Descriptor {
 	 * @param bitstream
 	 *            the input bitstream
 	 */
-	@SuppressWarnings("unused")	
+	@SuppressWarnings("unused")
 	public void createES_Descriptor(MP4DataStream bitstream) throws IOException {
 		int ES_ID = (int) bitstream.readBytes(2);
 		int flags = (int) bitstream.readBytes(1);
@@ -144,8 +143,7 @@ public class MP4Descriptor {
 	 *            the input bitstream
 	 */
 	@SuppressWarnings("unused")
-	public void createDecoderConfigDescriptor(MP4DataStream bitstream)
-			throws IOException {
+	public void createDecoderConfigDescriptor(MP4DataStream bitstream) throws IOException {
 		int objectTypeIndication = (int) bitstream.readBytes(1);
 		int value = (int) bitstream.readBytes(1);
 		boolean upstream = (value & (1 << 1)) > 0;
@@ -173,15 +171,14 @@ public class MP4Descriptor {
 	public byte[] getDSID() {
 		return dsid;
 	}
-	
+
 	/**
 	 * Loads the MP4DecSpecificInfoDescriptor from the input bitstream.
 	 * 
 	 * @param bitstream
 	 *            the input bitstream
 	 */
-	public void createDecSpecificInfoDescriptor(MP4DataStream bitstream)
-			throws IOException {
+	public void createDecSpecificInfoDescriptor(MP4DataStream bitstream) throws IOException {
 		decSpecificDataOffset = bitstream.getOffset();
 		dsid = new byte[size];
 		for (int b = 0; b < size; b++) {
