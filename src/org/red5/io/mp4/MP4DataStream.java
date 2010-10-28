@@ -47,7 +47,6 @@ public final class MP4DataStream {
 	 *            the MPEG4 input stream.
 	 */
 	public MP4DataStream(FileInputStream is) {
-		super();
 		this.is = is;
 	}
 

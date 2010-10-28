@@ -44,6 +44,7 @@ import org.red5.io.IoConstants;
 import org.red5.io.amf.Output;
 import org.red5.io.flv.impl.Tag;
 import org.red5.io.mp4.MP4Atom;
+import org.red5.io.mp4.MP4Atom.CompositionTimeSampleRecord;
 import org.red5.io.mp4.MP4DataStream;
 import org.red5.io.mp4.MP4Descriptor;
 import org.red5.io.mp4.MP4Frame;
@@ -96,11 +97,11 @@ public class MP4Reader implements IoConstants, ITagReader {
 	/** Video packet prefix for the decoder frame */
 	public final static byte[] PREFIX_VIDEO_CONFIG_FRAME = new byte[] { (byte) 0x17, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00 };
 
-	/** Video packet prefix for key frames*/
-	public final static byte[] PREFIX_VIDEO_KEYFRAME = new byte[] { (byte) 0x17, (byte) 0x01, (byte) 0, (byte) 0, (byte) 0 };
+	/** Video packet prefix for key frames */
+	public final static byte[] PREFIX_VIDEO_KEYFRAME = new byte[] { (byte) 0x17, (byte) 0x01 };
 
-	/** Video packet prefix for standard frames (interframe)*/
-	public final static byte[] PREFIX_VIDEO_FRAME = new byte[] { (byte) 0x27, (byte) 0x01, (byte) 0, (byte) 0, (byte) 0 };
+	/** Video packet prefix for standard frames (interframe) */
+	public final static byte[] PREFIX_VIDEO_FRAME = new byte[] { (byte) 0x27, (byte) 0x01 };
 
 	/**
 	 * File
@@ -206,6 +207,9 @@ public class MP4Reader implements IoConstants, ITagReader {
 	private long audioCount;
 
 	private long videoCount;
+
+	// composition time to sample entries
+	private Vector<MP4Atom.CompositionTimeSampleRecord> compositionTimes;
 
 	/**
 	 * Container for metadata and any other tags that should
@@ -656,6 +660,19 @@ public class MP4Reader implements IoConstants, ITagReader {
 													}
 													videoSampleDuration = rec.getSampleDuration();
 												}
+												//ctts - (composition) time to sample
+												MP4Atom ctts = stbl.lookup(MP4Atom.typeToInt("ctts"), 0);
+												if (ctts != null) {
+													log.debug("Composition time to sample atom found");
+													//vector full of integers
+													compositionTimes = ctts.getCompositionTimeToSamplesRecords();
+													log.debug("Record count: {}", compositionTimes.size());
+													if (log.isTraceEnabled()) {
+														for (MP4Atom.CompositionTimeSampleRecord rec : compositionTimes) {
+															log.trace("Record data: Consecutive samples={} Offset={}", rec.getConsecutiveSamples(), rec.getSampleOffset());
+														}
+													}
+												}
 											}
 										}
 
@@ -1044,8 +1061,7 @@ public class MP4Reader implements IoConstants, ITagReader {
 	}
 
 	/**
-	 * Packages media data for return to providers.
-	 *
+	 * Packages media data for return to providers
 	 */
 	public synchronized ITag readTag() {
 		//log.debug("Read tag");
@@ -1089,12 +1105,18 @@ public class MP4Reader implements IoConstants, ITagReader {
 					//log.debug("Writing interframe prefix");
 					data.put(PREFIX_VIDEO_FRAME);
 				}
-
+				// match the sample with its ctts / mdhd adjustment time
+				int timeOffset = frame.getTimeOffset();
+				timeOffset = (timeOffset >> 8) | ((timeOffset & 0x000000ff) << 24);
+				data.put((byte) ((timeOffset >>> 16) & 0xff));
+				data.put((byte) ((timeOffset >>> 8) & 0xff));
+				data.put((byte) (timeOffset & 0xff));
+				// track video frame count
 				videoCount++;
 			} else {
 				//log.debug("Writing audio prefix");
 				data.put(PREFIX_AUDIO_FRAME);
-
+				// track audio frame count
 				audioCount++;
 			}
 			//do we need to add the mdat offset to the sample position?
@@ -1136,6 +1158,12 @@ public class MP4Reader implements IoConstants, ITagReader {
 		Long pos = null;
 		// if audio-only, skip this
 		if (videoSamplesToChunks != null) {
+			// handle composite times
+			int compositeIndex = 0;
+			CompositionTimeSampleRecord compositeTimeEntry = null;
+			if (compositionTimes != null && !compositionTimes.isEmpty()) {
+				compositeTimeEntry = compositionTimes.remove(0);
+			}
 			for (int i = 0; i < videoSamplesToChunks.size(); i++) {
 				MP4Atom.Record record = videoSamplesToChunks.get(i);
 				int firstChunk = record.getFirstChunk();
@@ -1174,6 +1202,25 @@ public class MP4Reader implements IoConstants, ITagReader {
 						frame.setSize(size);
 						frame.setTime(ts);
 						frame.setType(TYPE_VIDEO);
+						//set time offset value from composition records
+						if (compositeTimeEntry != null) {
+							// how many samples have this offset
+							int consecutiveSamples = compositeTimeEntry.getConsecutiveSamples();
+							frame.setTimeOffset(compositeTimeEntry.getSampleOffset());
+							// increment our count
+							compositeIndex++;
+							if (compositeIndex - consecutiveSamples == 0) {
+								// ensure there are still times available
+								if (!compositionTimes.isEmpty()) {
+									// get the next one
+									compositeTimeEntry = compositionTimes.remove(0);
+								}
+								// reset
+								compositeIndex = 0;
+							}
+						}
+
+						// add the frame
 						frames.add(frame);
 
 						//log.debug("Sample #{} {}", sample, frame);

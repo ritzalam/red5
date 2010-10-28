@@ -34,6 +34,9 @@ public class MP4Frame implements Comparable<MP4Frame> {
 
 	private double time;
 
+	//this value originates from the ctts atom
+	private int timeOffset;
+	
 	private boolean keyFrame;
 
 	/**
@@ -89,6 +92,20 @@ public class MP4Frame implements Comparable<MP4Frame> {
 	}
 
 	/**
+	 * @return the timeOffset
+	 */
+	public int getTimeOffset() {
+		return timeOffset;
+	}
+
+	/**
+	 * @param timeOffset the timeOffset to set
+	 */
+	public void setTimeOffset(int timeOffset) {
+		this.timeOffset = timeOffset;
+	}
+
+	/**
 	 * Returns whether or not this chunk represents a key frame.
 	 * 
 	 * @return true if a key frame
@@ -132,6 +149,8 @@ public class MP4Frame implements Comparable<MP4Frame> {
 		sb.append(type);
 		sb.append(", time=");
 		sb.append(time);
+		sb.append(", timeOffset=");
+		sb.append(timeOffset);		
 		sb.append(", size=");
 		sb.append(size);
 		sb.append(", offset=");
