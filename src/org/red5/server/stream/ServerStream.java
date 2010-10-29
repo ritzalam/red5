@@ -1,9 +1,9 @@
 package org.red5.server.stream;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -70,8 +70,7 @@ import org.slf4j.LoggerFactory;
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
  */
-public class ServerStream extends AbstractStream implements IServerStream, IFilter, IPushableConsumer,
-		IPipeConnectionListener {
+public class ServerStream extends AbstractStream implements IServerStream, IFilter, IPushableConsumer, IPipeConnectionListener {
 	/**
 	 * Logger
 	 */
@@ -249,7 +248,11 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	/** {@inheritDoc} */
 	public boolean hasMoreItems() {
 		int nextItem = currentItemIndex + 1;
-		return (nextItem >= items.size() && !isRepeat);
+		if (nextItem >= items.size() && !isRepeat) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 
 	/** {@inheritDoc} */
@@ -310,12 +313,10 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	}
 
 	/** {@inheritDoc} */
-	public void saveAs(String name, boolean isAppend) throws IOException, ResourceNotFoundException,
-			ResourceExistException {
+	public void saveAs(String name, boolean isAppend) throws IOException, ResourceNotFoundException, ResourceExistException {
 		try {
 			IScope scope = getScope();
-			IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils.getScopeService(scope,
-					IStreamFilenameGenerator.class, DefaultStreamFilenameGenerator.class);
+			IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.class, DefaultStreamFilenameGenerator.class);
 
 			String filename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
 			// Get file for that filename
@@ -429,8 +430,7 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 			throw new IllegalStateException("A published name is needed to start");
 		}
 		// publish this server-side stream
-		IProviderService providerService = (IProviderService) getScope().getContext().getBean(
-				IProviderService.BEAN_NAME);
+		IProviderService providerService = (IProviderService) getScope().getContext().getBean(IProviderService.BEAN_NAME);
 		providerService.registerBroadcastStream(getScope(), publishedName, this);
 		Map<String, Object> recordParamMap = new HashMap<String, Object>();
 		recordPipe = new InMemoryPushPushPipe();
@@ -522,8 +522,7 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 			case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
-				if (event.getProvider() == this
-						&& (event.getParamMap() == null || !event.getParamMap().containsKey("record"))) {
+				if (event.getProvider() == this && (event.getParamMap() == null || !event.getParamMap().containsKey("record"))) {
 					this.msgOut = (IMessageOutput) event.getSource();
 				}
 				break;
@@ -552,8 +551,7 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 		// Assume this is not live stream
 		boolean isLive = false;
 		// Get provider service from Spring bean factory
-		IProviderService providerService = (IProviderService) getScope().getContext().getBean(
-				IProviderService.BEAN_NAME);
+		IProviderService providerService = (IProviderService) getScope().getContext().getBean(IProviderService.BEAN_NAME);
 		msgIn = providerService.getVODProviderInput(getScope(), item.getName());
 		if (msgIn == null) {
 			msgIn = providerService.getLiveProviderInput(getScope(), item.getName(), true);

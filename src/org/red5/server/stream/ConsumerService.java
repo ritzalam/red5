@@ -1,9 +1,9 @@
 package org.red5.server.stream;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -43,8 +43,7 @@ public class ConsumerService implements IConsumerService {
 		// now we use OutputStream as a channel wrapper.
 		OutputStream o = conn.createOutputStream(stream.getStreamId());
 		IPipe pipe = new InMemoryPushPushPipe();
-		pipe.subscribe(new ConnectionConsumer(conn, o.getVideo().getId(), o
-				.getAudio().getId(), o.getData().getId()), null);
+		pipe.subscribe(new ConnectionConsumer(conn, o.getVideo().getId(), o.getAudio().getId(), o.getData().getId()), null);
 		return pipe;
 	}
 

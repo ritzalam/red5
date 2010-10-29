@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  *
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free Software
@@ -35,6 +35,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *            type of class
  */
 public class ClientList<E> extends AbstractList<E> {
+
+	private static final long serialVersionUID = -3127064371410565215L;
 
 	private CopyOnWriteArrayList<WeakReference<E>> items = new CopyOnWriteArrayList<WeakReference<E>>();
 

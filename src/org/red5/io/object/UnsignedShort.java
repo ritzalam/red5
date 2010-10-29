@@ -3,7 +3,7 @@ package org.red5.io.object;
 import java.util.Arrays;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  *
  * Copyright (c) 2006-2008 by respective authors (see below). All rights reserved.
  *

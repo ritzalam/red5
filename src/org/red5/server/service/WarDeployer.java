@@ -16,9 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -115,7 +115,7 @@ public final class WarDeployer {
 		ObjectName oName = JMXFactory.createObjectName("type", "TomcatLoader");
 		LoaderMXBean proxy = null;
 		if (mbs.isRegistered(oName)) {
-			proxy = JMX.newMXBeanProxy(mbs, oName, LoaderMXBean.class, true);
+			proxy = (LoaderMXBean) JMX.newMXBeanProxy(mbs, oName, LoaderMXBean.class, true);
 			log.debug("Loader was found");
 		} else {
 			log.warn("Loader not found");
@@ -196,7 +196,8 @@ public final class WarDeployer {
 					} else {
 						log.warn("Application destination is not a directory");
 					}
-					log.info("Application {} already installed, please un-install before attempting another install", application);
+					log.info("Application {} already installed, please un-install before attempting another install",
+							application);
 				} else {
 					log.debug("Unwaring and starting...");
 					//un-archive it to app dir

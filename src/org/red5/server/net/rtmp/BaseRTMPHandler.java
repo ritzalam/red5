@@ -1,9 +1,9 @@
 package org.red5.server.net.rtmp;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  *
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free Software
@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.session.IoSession;
 import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.scheduling.ISchedulingService;
@@ -104,8 +105,9 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 	}
 
 	/** {@inheritDoc} */
-	public void messageReceived(RTMPConnection conn, ProtocolState state, Object in) throws Exception {
-
+	public void messageReceived(Object in, IoSession session) throws Exception {
+		RTMPConnection conn = (RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
+		RTMP state = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
 		IRTMPEvent message = null;
 		try {
 
@@ -135,11 +137,9 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 
 				case TYPE_INVOKE:
 				case TYPE_FLEX_MESSAGE:
-					onInvoke(conn, channel, header, (Invoke) message, (RTMP) state);
+					onInvoke(conn, channel, header, (Invoke) message, state);
 					IPendingServiceCall call = ((Invoke) message).getCall();
-					if (message.getHeader().getStreamId() != 0 
-							&& call.getServiceName() == null
-							&& StreamAction.PUBLISH.equals(call.getServiceMethodName())) {
+					if (message.getHeader().getStreamId() != 0 && call.getServiceName() == null && StreamAction.PUBLISH.equals(call.getServiceMethodName())) {
 						if (stream != null) {
 							// Only dispatch if stream really was created
 							((IEventDispatcher) stream).dispatchEvent(message);
@@ -152,7 +152,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 						// Stream metadata
 						((IEventDispatcher) stream).dispatchEvent(message);
 					} else {
-						onInvoke(conn, channel, header, (Notify) message, (RTMP) state);
+						onInvoke(conn, channel, header, (Notify) message, state);
 					}
 					break;
 
@@ -169,17 +169,15 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 				case TYPE_BYTES_READ:
 					onStreamBytesRead(conn, channel, header, (BytesRead) message);
 					break;
-
+				case TYPE_AGGREGATE:
+					log.debug("Aggregate type data - header timer: {} size: {}", header.getTimer(), header.getSize());
 				case TYPE_AUDIO_DATA:
 				case TYPE_VIDEO_DATA:
 					//mark the event as from a live source
 					//log.trace("Marking message as originating from a Live source");
 					message.setSourceType(Constants.SOURCE_TYPE_LIVE);
-
-					// NOTE: If we respond to "publish" with
-					// "NetStream.Publish.BadName",
-					// the client sends a few stream packets before stopping. We
-					// need to ignore them.
+					// NOTE: If we respond to "publish" with "NetStream.Publish.BadName",
+					// the client sends a few stream packets before stopping. We need to ignore them.
 					if (stream != null) {
 						((IEventDispatcher) stream).dispatchEvent(message);
 					}
@@ -187,6 +185,12 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 				case TYPE_FLEX_SHARED_OBJECT:
 				case TYPE_SHARED_OBJECT:
 					onSharedObject(conn, channel, header, (SharedObjectMessage) message);
+					break;
+				case Constants.TYPE_CLIENT_BANDWIDTH: //onBWDone
+					log.debug("Client bandwidth: {}", message);
+					break;
+				case Constants.TYPE_SERVER_BANDWIDTH:
+					log.debug("Server bandwidth: {}", message);
 					break;
 				default:
 					log.debug("Unknown type: {}", header.getDataType());
@@ -197,6 +201,8 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 		} catch (RuntimeException e) {
 			log.error("Exception", e);
 		}
+		// XXX this may be causing 'missing' data if previous methods are not making copies
+		// before buffering etc..
 		if (message != null) {
 			message.release();
 		}
@@ -345,7 +351,6 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 	 * @param object
 	 *            Shared object event context
 	 */
-	protected abstract void onSharedObject(RTMPConnection conn, Channel channel, Header source,
-			SharedObjectMessage object);
+	protected abstract void onSharedObject(RTMPConnection conn, Channel channel, Header source, SharedObjectMessage object);
 
 }

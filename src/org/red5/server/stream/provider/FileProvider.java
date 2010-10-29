@@ -1,9 +1,9 @@
 package org.red5.server.stream.provider;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -58,8 +58,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Pullable provider for files
  */
-public class FileProvider implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListener,
-		IStreamTypeAwareProvider {
+public class FileProvider implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListener, IStreamTypeAwareProvider {
 	/**
 	 * Logger
 	 */
@@ -224,8 +223,7 @@ public class FileProvider implements IPassive, ISeekableProvider, IPullableProvi
 	 * Initializes file provider. Creates streamable file factory and service, seeks to start position
 	 */
 	private void init() throws IOException {
-		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils.getScopeService(scope,
-				IStreamableFileFactory.class, StreamableFileFactory.class);
+		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils.getScopeService(scope, IStreamableFileFactory.class, StreamableFileFactory.class);
 		IStreamableFileService service = factory.getService(file);
 		if (service == null) {
 			log.error("No service found for {}", file.getAbsolutePath());

@@ -1,9 +1,9 @@
 package org.red5.server.net.rtmp.codec;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -19,16 +19,13 @@ package org.red5.server.net.rtmp.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.message.Packet;
-import org.springframework.core.style.ToStringCreator;
 
 /**
  * RTMP is the RTMP protocol state representation.
@@ -103,6 +100,11 @@ public class RTMP extends ProtocolState {
 	 * Debug flag.
 	 */
 	private boolean debug;
+
+	/**
+	 * Encryption flag.
+	 */
+	private boolean encrypted = false;
 
 	/**
 	 * Last read channel.
@@ -211,11 +213,6 @@ public class RTMP extends ProtocolState {
 	private Encoding encoding = Encoding.AMF0;
 
 	/**
-	 * Handshake as sent to the client.
-	 */
-	private byte[] handshake;
-
-	/**
 	 * Creates RTMP object with initial mode.
 	 *
 	 * @param mode            Initial mode
@@ -249,6 +246,20 @@ public class RTMP extends ProtocolState {
 	 */
 	public void setDebug(boolean debug) {
 		this.debug = debug;
+	}
+
+	/**
+	 * @return the encrypted
+	 */
+	public boolean isEncrypted() {
+		return encrypted;
+	}
+
+	/**
+	 * @param encrypted the encrypted to set
+	 */
+	public void setEncrypted(boolean encrypted) {
+		this.encrypted = encrypted;
 	}
 
 	/**
@@ -456,49 +467,6 @@ public class RTMP extends ProtocolState {
 		this.encoding = encoding;
 	}
 
-	/**
-	 * Store the handshake sent to the client.
-	 * 
-	 * @param data    Handshake data
-	 * @param start where handshake data starts in data
-	 * @param length  Length of handshake to store
-	 */
-	public void setHandshake(IoBuffer data, int start, int length) {
-		handshake = new byte[length];
-		int old = data.position();
-		data.position(start);
-		data.get(handshake);
-		data.position(old);
-	}
-
-	/**
-	 * Check if the handshake reply received from a client contains valid data.
-	 * 
-	 * @param data data
-	 * @param start where handshake data starts in data
-	 * @param length length
-	 * @return true on success; false otherwise
-	 */
-	public boolean validateHandshakeReply(IoBuffer data, int start, int length) {
-		if (handshake == null || length != handshake.length) {
-			return false;
-		}
-
-		byte[] reply = new byte[length];
-		int old = data.position();
-		data.position(start);
-		data.get(reply);
-		data.position(old);
-
-		return Arrays.equals(reply, handshake);
-	}
-
-	@Override
-	public String toString() {
-		ToStringCreator tsc = new ToStringCreator(this);
-		return tsc.toString();
-	}
-
 	public void setLastFullTimestampWritten(int channelId, int timer) {
 		writeTimestamps.put(channelId, timer);
 	}
@@ -522,4 +490,16 @@ public class RTMP extends ProtocolState {
 	void setLastTimestampMapping(int channelId, LiveTimestampMapping mapping) {
 		liveTimestamps.put(channelId, mapping);
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "RTMP [state=" + state + ", client-mode=" + mode + ", debug=" + debug + ", encrypted=" + encrypted + ", lastReadChannel=" + lastReadChannel + ", lastWriteChannel="
+				+ lastWriteChannel + ", readHeaders=" + readHeaders + ", writeHeaders=" + writeHeaders + ", readPacketHeaders=" + readPacketHeaders + ", readPackets="
+				+ readPackets + ", writePackets=" + writePackets + ", writeTimestamps=" + writeTimestamps + ", liveTimestamps=" + liveTimestamps + ", readChunkSize="
+				+ readChunkSize + ", writeChunkSize=" + writeChunkSize + ", encoding=" + encoding + "]";
+	}
+
 }

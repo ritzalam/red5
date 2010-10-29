@@ -1,9 +1,9 @@
 package org.red5.server.stream.consumer;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -92,17 +92,15 @@ public class ConnectionConsumer implements IPushableConsumer, IPipeConnectionLis
 	 */
 	private boolean chunkSizeSent;
 
-
-    /**
-     * Create rtmp connection consumer for given connection and channels
-     * @param conn                 RTMP connection
-     * @param videoChannel         Video channel
-     * @param audioChannel         Audio channel
-     * @param dataChannel          Data channel
-     */
-    public ConnectionConsumer(RTMPConnection conn, int videoChannel,
-    		int audioChannel, int dataChannel) {
-		log.debug("Channel ids - video: {} audio: {} data: {}", new Object[]{videoChannel, audioChannel, dataChannel});
+	/**
+	 * Create rtmp connection consumer for given connection and channels
+	 * @param conn                 RTMP connection
+	 * @param videoChannel         Video channel
+	 * @param audioChannel         Audio channel
+	 * @param dataChannel          Data channel
+	 */
+	public ConnectionConsumer(RTMPConnection conn, int videoChannel, int audioChannel, int dataChannel) {
+		log.debug("Channel ids - video: {} audio: {} data: {}", new Object[] { videoChannel, audioChannel, dataChannel });
 		this.conn = conn;
 		this.video = conn.getChannel(videoChannel);
 		this.audio = conn.getChannel(audioChannel);
@@ -122,17 +120,17 @@ public class ConnectionConsumer implements IPushableConsumer, IPipeConnectionLis
 			if (!chunkSizeSent) {
 				sendChunkSize();
 			}
-			
+			// cast to rtmp message
 			RTMPMessage rtmpMsg = (RTMPMessage) message;
 			IRTMPEvent msg = rtmpMsg.getBody();
-			
+			// get timestamp
 			int eventTime = msg.getTimestamp();
 			log.debug("Message timestamp: {}", eventTime);		
 			if (eventTime < 0) {
 				log.debug("Message has negative timestamp: {}", eventTime);
 				return;
 			}
-						
+			// get the data type
 			byte dataType = msg.getDataType();
 			log.trace("Data type: {}", dataType);
 
@@ -142,6 +140,10 @@ public class ConnectionConsumer implements IPushableConsumer, IPipeConnectionLis
 			//data buffer
 			IoBuffer buf = null;
 			switch (dataType) {
+				case Constants.TYPE_AGGREGATE:
+					log.trace("Aggregate data");
+					data.write(msg);
+					break;
 				case Constants.TYPE_AUDIO_DATA:
 					log.trace("Audio data");
 					buf = ((AudioData) msg).getData();
@@ -205,8 +207,7 @@ public class ConnectionConsumer implements IPushableConsumer, IPipeConnectionLis
 			log.debug("Unhandled push message: {}", message);
 			if (log.isTraceEnabled()) {
 				Class<? extends IMessage> clazz = message.getClass();
-				log.trace("Class info - name: {} declaring: {} enclosing: {}", 
-						new Object[]{clazz.getName(), clazz.getDeclaringClass(), clazz.getEnclosingClass()});
+				log.trace("Class info - name: {} declaring: {} enclosing: {}", new Object[] { clazz.getName(), clazz.getDeclaringClass(), clazz.getEnclosingClass() });
 			}
 		}
 	}
@@ -227,31 +228,31 @@ public class ConnectionConsumer implements IPushableConsumer, IPipeConnectionLis
 	/** {@inheritDoc} */
     public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
 		if ("ConnectionConsumer".equals(oobCtrlMsg.getTarget())) {
-    		String serviceName = oobCtrlMsg.getServiceName();
-    		log.trace("Service name: {}", serviceName);
-    		if ("pendingCount".equals(serviceName)) {
-    			oobCtrlMsg.setResult(conn.getPendingMessages());
-    		} else if ("pendingVideoCount".equals(serviceName)) {
-    			IClientStream stream = conn.getStreamByChannelId(video.getId());
-    			if (stream != null) {
-    				oobCtrlMsg.setResult(conn.getPendingVideoMessages(stream.getStreamId()));
-    			} else {
-    				oobCtrlMsg.setResult(0L);
-    			}
-    		} else if ("writeDelta".equals(serviceName)) {
-    			//TODO: Revisit the max stream value later
-    			long maxStream = 120 * 1024;
-    			// Return the current delta between sent bytes and bytes the client
-    			// reported to have received, and the interval the client should use
-    			// for generating BytesRead messages (half of the allowed bandwidth).
-    			oobCtrlMsg.setResult(new Long[]{conn.getWrittenBytes() - conn.getClientBytesRead(), maxStream / 2});
-    		} else if ("chunkSize".equals(serviceName)) {
-    			int newSize = (Integer) oobCtrlMsg.getServiceParamMap().get("chunkSize");
-    			if (newSize != chunkSize) {
-    				chunkSize = newSize;
-    				sendChunkSize();
-    			}
-    		}
+			String serviceName = oobCtrlMsg.getServiceName();
+			log.trace("Service name: {}", serviceName);
+			if ("pendingCount".equals(serviceName)) {
+				oobCtrlMsg.setResult(conn.getPendingMessages());
+			} else if ("pendingVideoCount".equals(serviceName)) {
+				IClientStream stream = conn.getStreamByChannelId(video.getId());
+				if (stream != null) {
+					oobCtrlMsg.setResult(conn.getPendingVideoMessages(stream.getStreamId()));
+				} else {
+					oobCtrlMsg.setResult(0L);
+				}
+			} else if ("writeDelta".equals(serviceName)) {
+				//TODO: Revisit the max stream value later
+				long maxStream = 120 * 1024;
+				// Return the current delta between sent bytes and bytes the client
+				// reported to have received, and the interval the client should use
+				// for generating BytesRead messages (half of the allowed bandwidth).
+				oobCtrlMsg.setResult(new Long[] { conn.getWrittenBytes() - conn.getClientBytesRead(), maxStream / 2 });
+			} else if ("chunkSize".equals(serviceName)) {
+				int newSize = (Integer) oobCtrlMsg.getServiceParamMap().get("chunkSize");
+				if (newSize != chunkSize) {
+					chunkSize = newSize;
+					sendChunkSize();
+				}
+			}
 		}
 	}
 

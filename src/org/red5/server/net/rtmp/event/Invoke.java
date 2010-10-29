@@ -1,9 +1,9 @@
 package org.red5.server.net.rtmp.event;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -62,13 +62,14 @@ public class Invoke extends Notify {
 		return (IPendingServiceCall) call;
 	}
 
+	/** {@inheritDoc} */
     @Override
-    public int hashCode() {
-    	int hash = TYPE_INVOKE;
-    	hash = hash * 31 + getInvokeId();
-    	return hash;
-    }
-    
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Invoke: ").append(call);
+		return sb.toString();
+	}
+
 	/** {@inheritDoc} */
     @Override
 	public boolean equals(Object obj) {
@@ -79,14 +80,6 @@ public class Invoke extends Notify {
 			return false;
 		}
 		return super.equals(obj);
-	}   
-    
-	/** {@inheritDoc} */
-    @Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("Invoke: ").append(call);
-		return sb.toString();
 	}
 
 }

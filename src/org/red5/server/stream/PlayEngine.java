@@ -1,9 +1,9 @@
 package org.red5.server.stream;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  *
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free Software
@@ -54,6 +54,7 @@ import org.red5.server.messaging.IProvider;
 import org.red5.server.messaging.IPushableConsumer;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
+import org.red5.server.net.rtmp.event.Aggregate;
 import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Notify;
@@ -230,9 +231,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		//Required for play engine
 		private IProviderService providerService;
 
-		public Builder(ISubscriberStream subscriberStream, ISchedulingService schedulingService,
-				IConsumerService consumerService, IProviderService providerService) {
-
+		public Builder(ISubscriberStream subscriberStream, ISchedulingService schedulingService, IConsumerService consumerService, IProviderService providerService) {
 			this.subscriberStream = subscriberStream;
 			this.schedulingService = schedulingService;
 			this.consumerService = consumerService;
@@ -296,8 +295,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 * @throws IllegalStateException         Stream is in stopped state
 	 * @throws IOException Stream had IO exception
 	 */
-	public synchronized void play(IPlayItem item, boolean withReset) throws StreamNotFoundException,
-			IllegalStateException, IOException {
+	public synchronized void play(IPlayItem item, boolean withReset) throws StreamNotFoundException, IllegalStateException, IOException {
 		// Can't play if state is not stopped
 		switch (subscriberStream.getState()) {
 			case STOPPED:
@@ -487,8 +485,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		streamOffset = 0;
 		streamStartTS = -1;
 		//get the stream so that we can grab any metadata and decoder configs
-		IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn)
-				.getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
+		IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn).getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
 		//prevent an NPE when a play list is created and then immediately flushed
 		if (stream != null) {
 			Notify metaData = stream.getMetaData();
@@ -854,8 +851,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				final long buffer = subscriberStream.getClientBufferDuration();
 				// Expected amount of data present in client buffer
 				final long buffered = lastMessageTs - delta;
-				log.trace("okayToSendMessage: timestamp {} delta {} buffered {} buffer {}", new Object[] {
-						lastMessageTs, delta, buffered, buffer });
+				log.trace("okayToSendMessage: timestamp {} delta {} buffered {} buffer {}", new Object[] { lastMessageTs, delta, buffered, buffer });
 				//Fix for SN-122, this sends double the size of the client buffer
 				if (buffer > 0 && buffered > (buffer * 2)) {
 					// Client is likely to have enough data in the buffer
@@ -896,8 +892,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		if (pullMode && pullAndPushFuture == null) {
 			synchronized (this) {
 				// client buffer is at least 100ms
-				pullAndPushFuture = subscriberStream.getExecutor().scheduleWithFixedDelay(new PullAndPushRunnable(), 0,
-						10, TimeUnit.MILLISECONDS);
+				pullAndPushFuture = subscriberStream.getExecutor().scheduleWithFixedDelay(new PullAndPushRunnable(), 0, 10, TimeUnit.MILLISECONDS);
 			}
 		}
 	}
@@ -959,6 +954,11 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		IRTMPEvent event;
 		IoBuffer dataReference;
 		switch (messageIn.getBody().getDataType()) {
+			case Constants.TYPE_AGGREGATE:
+				dataReference = ((Aggregate) messageIn.getBody()).getData();
+				event = new Aggregate(dataReference);
+				event.setTimestamp(messageIn.getBody().getTimestamp());
+				break;
 			case Constants.TYPE_AUDIO_DATA:
 				dataReference = ((AudioData) messageIn.getBody()).getData();
 				event = new AudioData(dataReference);
@@ -981,8 +981,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		//get the current timestamp from the message
 		int ts = messageOut.getBody().getTimestamp();
 		if (log.isTraceEnabled()) {
-			log.trace("sendMessage: streamStartTS={}, length={}, streamOffset={}, timestamp={}", new Object[] {
-					streamStartTS, currentItem.getLength(), streamOffset, ts });
+			log.trace("sendMessage: streamStartTS={}, length={}, streamOffset={}, timestamp={}", new Object[] { streamStartTS, currentItem.getLength(), streamOffset, ts });
 		}
 		//relative timestamp adjustment for live streams
 		if (playDecision == 0 && streamStartTS > 0) {
@@ -992,8 +991,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			//we changed the timestamp to update var
 			ts = relativeTs;
 			if (log.isTraceEnabled()) {
-				log.trace("sendMessage (updated): streamStartTS={}, length={}, streamOffset={}, timestamp={}",
-						new Object[] { streamStartTS, currentItem.getLength(), streamOffset, ts });
+				log.trace("sendMessage (updated): streamStartTS={}, length={}, streamOffset={}, timestamp={}", new Object[] { streamStartTS, currentItem.getLength(), streamOffset,
+						ts });
 			}
 		}
 		if (streamStartTS == -1) {
@@ -1330,8 +1329,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				if (body instanceof VideoData) {
 					IVideoStreamCodec videoCodec = null;
 					if (msgIn instanceof IBroadcastScope) {
-						IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn)
-								.getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
+						IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn).getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
 						if (stream != null && stream.getCodecInfo() != null) {
 							videoCodec = stream.getCodecInfo().getVideoCodec();
 						}
@@ -1368,10 +1366,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 							// reset number of sequential pending frames if 1 or 0 are pending.
 							numSequentialPendingVideoFrames = 0;
 						}
-						if (pendingVideos > maxPendingVideoFramesThreshold
-								|| numSequentialPendingVideoFrames > maxSequentialPendingVideoFrames) {
-							log.debug("Pending: {} Threshold: {} Sequential: {}", new Object[] { pendingVideos,
-									maxPendingVideoFramesThreshold, numSequentialPendingVideoFrames });
+						if (pendingVideos > maxPendingVideoFramesThreshold || numSequentialPendingVideoFrames > maxSequentialPendingVideoFrames) {
+							log.debug("Pending: {} Threshold: {} Sequential: {}", new Object[] { pendingVideos, maxPendingVideoFramesThreshold, numSequentialPendingVideoFrames });
 							// We drop because the client has insufficient bandwidth.
 							long now = System.currentTimeMillis();
 							if (bufferCheckInterval > 0 && now >= nextCheckBufferUnderrun) {
@@ -1382,9 +1378,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 							videoFrameDropper.dropPacket(rtmpMessage);
 							return;
 						}
-
-						//does nothing
-						//videoFrameDropper.sendPacket(rtmpMessage);
 					}
 				} else if (body instanceof AudioData) {
 					if (!receiveAudio && sendBlankAudio) {
@@ -1403,8 +1396,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				}
 				sendMessage(rtmpMessage);
 			} else {
-				throw new RuntimeException(String.format("Expected IStreamData but got %s (type %s)", body.getClass(),
-						body.getDataType()));
+				throw new RuntimeException(String.format("Expected IStreamData but got %s (type %s)", body.getClass(), body.getDataType()));
 			}
 		} else if (message instanceof ResetMessage) {
 			sendReset();

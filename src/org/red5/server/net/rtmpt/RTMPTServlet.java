@@ -1,9 +1,9 @@
 package org.red5.server.net.rtmpt;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -31,7 +31,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.session.DummySession;
+import org.apache.mina.core.session.IoSession;
 import org.red5.logging.Red5LoggerFactory;
+import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.IRTMPConnManager;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.codec.RTMP;
@@ -370,9 +373,12 @@ public class RTMPTServlet extends HttpServlet {
 		}
 
 		// Execute the received RTMP messages
+		IoSession session = new DummySession();
+		session.setAttribute(RTMPConnection.RTMP_CONNECTION_KEY, connection);
+		session.setAttribute(ProtocolState.SESSION_KEY, connection.getState());
 		for (Object message : messages) {
 			try {
-				handler.messageReceived(connection, connection.getState(), message);
+				handler.messageReceived(message, session);
 			} catch (Exception e) {
 				log.error("Could not process message.", e);
 			}
@@ -428,11 +434,8 @@ public class RTMPTServlet extends HttpServlet {
 	 */
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
 		//log.debug("Request - method: {} content type: {} path: {}", new Object[]{req.getMethod(), req.getContentType(), req.getServletPath()});
-
-		if (!REQUEST_METHOD.equals(req.getMethod()) || req.getContentLength() == 0
-				|| !CONTENT_TYPE.equals(req.getContentType())) {
+		if (!REQUEST_METHOD.equals(req.getMethod()) || req.getContentLength() == 0 || !CONTENT_TYPE.equals(req.getContentType())) {
 			// Bad request - return simple error page
 			handleBadRequest("Bad request, only RTMPT supported.", resp);
 			return;
@@ -441,7 +444,7 @@ public class RTMPTServlet extends HttpServlet {
 		//get the path
 		String path = req.getServletPath();
 
-		// XXX Paul: since the only current difference in the type of request
+		// Since the only current difference in the type of request
 		// that we are interested in is the 'second' character, we can double
 		// the speed of this entry point by using a switch on the second
 		// character.
@@ -462,7 +465,6 @@ public class RTMPTServlet extends HttpServlet {
 			case 'f': // HTTPIdent request (ident and ident2)
 				//if HTTPIdent is requested send back some Red5 info
 				//http://livedocs.adobe.com/flashmediaserver/3.0/docs/help.html?content=08_xmlref_011.html
-
 				String ident = "<fcs><Company>Red5</Company><Team>Red5 Server</Team></fcs>";
 				resp.setStatus(HttpServletResponse.SC_OK);
 				resp.setHeader("Connection", "Keep-Alive");
@@ -471,7 +473,6 @@ public class RTMPTServlet extends HttpServlet {
 				resp.setContentLength(ident.length());
 				resp.getWriter().write(ident);
 				resp.flushBuffer();
-
 				break;
 			default:
 				handleBadRequest(String.format("RTMPT command %s is not supported.", path), resp);
@@ -486,18 +487,19 @@ public class RTMPTServlet extends HttpServlet {
 		ServletContext ctx = getServletContext();
 		appCtx = WebApplicationContextUtils.getWebApplicationContext(ctx);
 		if (appCtx == null) {
-			appCtx = (WebApplicationContext) ctx
-					.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+			appCtx = (WebApplicationContext) ctx.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
 		}
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public void destroy() {
-		// Cleanup connections
-		Collection<RTMPConnection> conns = rtmpConnManager.removeConnections();
-		for (RTMPConnection conn : conns) {
-			conn.close();
+		if (rtmpConnManager != null) {
+			// Cleanup connections
+			Collection<RTMPConnection> conns = rtmpConnManager.removeConnections();
+			for (RTMPConnection conn : conns) {
+				conn.close();
+			}
 		}
 		super.destroy();
 	}

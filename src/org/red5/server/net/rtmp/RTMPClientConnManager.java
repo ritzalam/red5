@@ -1,9 +1,9 @@
 package org.red5.server.net.rtmp;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -20,6 +20,8 @@ package org.red5.server.net.rtmp;
  */
 
 import java.util.Collection;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,46 +30,77 @@ public class RTMPClientConnManager implements IRTMPConnManager {
 	
 	private static final Logger log = LoggerFactory.getLogger(RTMPClientConnManager.class);
 	
-	protected RTMPConnection rtmpConn;
+	private static AtomicInteger connectionIdGenerator = new AtomicInteger(0);
 
-	public synchronized RTMPConnection getConnection() {
-		log.debug("Returning first map entry");
-		return rtmpConn;
+	private static final RTMPClientConnManager instance = new RTMPClientConnManager();
+
+	protected static CopyOnWriteArraySet<RTMPConnection> rtmpConnections = new CopyOnWriteArraySet<RTMPConnection>();
+	
+	private RTMPClientConnManager() {
+	}
+	
+	public static RTMPClientConnManager getInstance() {
+		return instance;
 	}
 
-	public synchronized RTMPConnection getConnection(int clientId) {
+	/**
+	 * Returns a connection matching the given client id.
+	 * 
+	 * @param clientId
+	 * @return connection
+	 */
+	public RTMPConnection getConnection(int clientId) {
 		log.debug("Returning map entry for client id: {}", clientId);
-		if (clientId == 0) {
-			return rtmpConn;
-		} else {
-			return null;
-		}
-	}
-
-	public synchronized RTMPConnection removeConnection(int clientId) {
 		RTMPConnection connReturn = null;
-		if (clientId == 0) {
-			connReturn = rtmpConn;
-			rtmpConn = null;
+		for (RTMPConnection conn : rtmpConnections) {
+			if (conn.getId() == clientId) {
+				connReturn = conn;
+				break;
+			}
 		}
 		return connReturn;
 	}
 
-	public synchronized Collection<RTMPConnection> removeConnections() {
-		rtmpConn = null;
+	/**
+	 * Removes a connection matching the client id specified. If found, the connection
+	 * will be returned.
+	 * 
+	 * @param clientId
+	 * @return connection
+	 */
+	public RTMPConnection removeConnection(int clientId) {
+		RTMPConnection connReturn = null;
+		for (RTMPConnection conn : rtmpConnections) {
+			if (conn.getId() == clientId) {
+				connReturn = conn;
+				break;
+			}
+		}
+		if (connReturn != null) {
+			rtmpConnections.remove(connReturn);
+		}
+		return connReturn;
+	}
+
+	/**
+	 * Removes all the connections from the set.
+	 */
+	public Collection<RTMPConnection> removeConnections() {
+		rtmpConnections.clear();
 		return null;
 	}
 
-	public synchronized RTMPConnection createConnection(Class<?> connCls) {
+	public RTMPConnection createConnection(Class<?> connCls) {
 		log.debug("Creating connection, class: {}", connCls.getName());
 		if (!RTMPConnection.class.isAssignableFrom(connCls)) {
 			throw new IllegalArgumentException("Class was not assignable");
 		}
 		try {
 			RTMPConnection conn = (RTMPConnection) connCls.newInstance();
-			conn.setId(0);
+			// the id may become confused with the Object/String client id
+			conn.setId(connectionIdGenerator.getAndIncrement());
 			log.debug("Connection id set {}", conn.getId());
-			rtmpConn = conn;
+			rtmpConnections.add(conn);
 			log.debug("Connection added to the map");
 			return conn;
 		} catch (Exception e) {

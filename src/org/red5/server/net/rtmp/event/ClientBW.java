@@ -1,9 +1,9 @@
 package org.red5.server.net.rtmp.event;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -36,7 +36,10 @@ public class ClientBW extends BaseEvent {
 	private int bandwidth;
 
 	/**
-	 * XXX : what is this?
+	 * Enforcement level of the bandwidth value based on three values.
+	TYPE_DYNAMIC 2
+	TYPE_HARD 0
+	TYPE_SOFT 1
 	 */
 	private byte value2;
 
