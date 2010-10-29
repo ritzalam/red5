@@ -1,9 +1,9 @@
 package org.red5.server.stream.filter;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -102,7 +102,7 @@ public class StreamBandwidthController implements IFilter, IPipeConnectionListen
 			try {
 				IMessage message = providerPipe.pullMessage();
 				if (log.isDebugEnabled()) {
-					log.debug("got message: " + message);
+					log.debug("got message: {}", message);
 				}
 				consumerPipe.pushMessage(message);
 			} catch (Exception e) {

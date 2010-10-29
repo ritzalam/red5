@@ -1,7 +1,7 @@
 package org.red5.server.messaging;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
  * Copyright ? 2006 by respective authors (see below). All rights reserved.
  * 

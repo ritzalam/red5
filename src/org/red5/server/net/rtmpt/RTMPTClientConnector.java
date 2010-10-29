@@ -1,9 +1,9 @@
 package org.red5.server.net.rtmpt;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -31,7 +31,11 @@ import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.session.DummySession;
+import org.apache.mina.core.session.IoSession;
+import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.RTMPClientConnManager;
+import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
 import org.slf4j.Logger;
@@ -43,13 +47,11 @@ import org.slf4j.LoggerFactory;
  * @author Anton Lebedevich (mabrek@gmail.com)
  */
 class RTMPTClientConnector extends Thread {
-	private static final Logger log = LoggerFactory
-			.getLogger(RTMPTClientConnector.class);
+	private static final Logger log = LoggerFactory.getLogger(RTMPTClientConnector.class);
 
 	private static final String CONTENT_TYPE = "application/x-fcs";
 
-	private static final ByteArrayRequestEntity ZERO_REQUEST_ENTITY = new ByteArrayRequestEntity(
-			new byte[] { 0 }, CONTENT_TYPE);
+	private static final ByteArrayRequestEntity ZERO_REQUEST_ENTITY = new ByteArrayRequestEntity(new byte[] { 0 }, CONTENT_TYPE);
 
 	/**
 	 * Size to split messages queue by, borrowed from
@@ -79,14 +81,11 @@ class RTMPTClientConnector extends Thread {
 		HttpClientParams params = new HttpClientParams();
 		params.setVersion(HttpVersion.HTTP_1_1);
 		httpClient.setParams(params);
-
-		// establish a connection within x seconds - this will prevent hung
-		// sockets
-		httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(
-				connectionTimeout);
+		// establish a connection within x seconds - this will prevent hung sockets
+		httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(connectionTimeout);
 
 		this.client = client;
-		this.connManager = client.getConnManager();
+		this.connManager = RTMPClientConnManager.getInstance();
 	}
 
 	public void run() {
@@ -98,8 +97,7 @@ class RTMPTClientConnector extends Thread {
 				PostMethod post;
 				if (toSend != null && toSend.limit() > 0) {
 					post = makePost("send");
-					post.setRequestEntity(new InputStreamRequestEntity(toSend
-							.asInputStream(), CONTENT_TYPE));
+					post.setRequestEntity(new InputStreamRequestEntity(toSend.asInputStream(), CONTENT_TYPE));
 				} else {
 					post = makePost("idle");
 					post.setRequestEntity(ZERO_REQUEST_ENTITY);
@@ -127,10 +125,12 @@ class RTMPTClientConnector extends Thread {
 					continue;
 				}
 
+				IoSession session = new DummySession();
+				session.setAttribute(RTMPConnection.RTMP_CONNECTION_KEY, connection);
+				session.setAttribute(ProtocolState.SESSION_KEY, connection.getState());
 				for (Object message : messages) {
 					try {
-						client.messageReceived(connection, connection
-								.getState(), message);
+						client.messageReceived(message, session);
 					} catch (Exception e) {
 						log.error("Could not process message.", e);
 					}
@@ -158,12 +158,10 @@ class RTMPTClientConnector extends Thread {
 		checkResponseCode(openPost);
 
 		String response = openPost.getResponseBodyAsString();
-		clientId = Integer.parseInt(response
-				.substring(0, response.length() - 1));
+		clientId = Integer.parseInt(response.substring(0, response.length() - 1));
 		log.debug("Got client id {}", clientId);
 
-		RTMPTClientConnection connection = (RTMPTClientConnection) connManager
-				.createConnection(RTMPTClientConnection.class);
+		RTMPTClientConnection connection = (RTMPTClientConnection) connManager.createConnection(RTMPTClientConnection.class);
 
 		RTMP state = new RTMP(RTMP.MODE_CLIENT);
 		connection.setState(state);
@@ -198,8 +196,7 @@ class RTMPTClientConnector extends Thread {
 
 	private String makeUrl(String command) {
 		// use message count from connection
-		return new StringBuilder().append('/').append(command).append('/')
-				.append(clientId).append('/').append(messageCount++).toString();
+		return new StringBuilder().append('/').append(command).append('/').append(clientId).append('/').append(messageCount++).toString();
 	}
 
 	private void setCommonHeaders(PostMethod post) {
@@ -211,13 +208,9 @@ class RTMPTClientConnector extends Thread {
 		if (method.getStatusCode() != HttpStatus.SC_OK) {
 			try {
 				String body = method.getResponseBodyAsString();
-				throw new RuntimeException("Bad HTTP status returned, line: "
-						+ method.getStatusLine() + "; body: " + body);
+				throw new RuntimeException("Bad HTTP status returned, line: " + method.getStatusLine() + "; body: " + body);
 			} catch (IOException e) {
-				throw new RuntimeException("Bad HTTP status returned, line: "
-						+ method.getStatusLine()
-						+ "; in addition IOException occured on reading body",
-						e);
+				throw new RuntimeException("Bad HTTP status returned, line: " + method.getStatusLine() + "; in addition IOException occured on reading body", e);
 			}
 		}
 	}

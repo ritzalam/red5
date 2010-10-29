@@ -1,9 +1,9 @@
 package org.red5.server;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  *
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free Software
@@ -27,10 +27,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IClient;
@@ -493,5 +493,45 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	public long getClientBytesRead() {
 		return 0;
 	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		if (host != null) {
+			result = prime * result + host.hashCode();
+		}
+		if (remoteAddress != null) {
+			result = prime * result + remoteAddress.hashCode();
+		}
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		BaseConnection other = (BaseConnection) obj;
+		if (host != null && !host.equals(other.getHost())) {
+			return false;
+		}
+		if (remoteAddress != null && !remoteAddress.equals(other.getRemoteAddress())) {
+			return false;
+		}
+		return true;
+	}	
 	
 }

@@ -1,9 +1,9 @@
 package org.red5.server.net.rtmp.codec;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -30,6 +30,7 @@ import org.red5.io.object.Deserializer;
 import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.RTMPConnection;
+import org.red5.server.net.rtmp.message.Constants;
 
 /**
  * RTMP protocol decoder.
@@ -40,31 +41,29 @@ public class RTMPMinaProtocolDecoder extends ProtocolDecoderAdapter {
 	
 	/** {@inheritDoc} */
     public void decode(IoSession session, IoBuffer in, ProtocolDecoderOutput out) throws ProtocolCodecException {
-
+    	//get our state
 		final ProtocolState state = (ProtocolState) session.getAttribute(ProtocolState.SESSION_KEY);
-
+		//get the connection from the session
 		RTMPConnection conn = (RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		conn.getWriteLock().lock();
 		try {
 			// Set thread local here so we have the connection during decoding of packets
 			Red5.setConnectionLocal(conn);
-	
+			//create a buffer and store it on the session
 			IoBuffer buf = (IoBuffer) session.getAttribute("buffer");
 			if (buf == null) {
-				buf = IoBuffer.allocate(2048);
+				buf = IoBuffer.allocate(Constants.HANDSHAKE_SIZE);
 				buf.setAutoExpand(true);
 				session.setAttribute("buffer", buf);
 			}
 			buf.put(in);
 			buf.flip();
-	
+			//construct any objects from the decoded bugger
 			List<?> objects = decoder.decodeBuffer(state, buf);
-			if (objects == null || objects.isEmpty()) {
-				return;
-			}
-	
-			for (Object object : objects) {
-				out.write(object);
+			if (objects != null) {
+				for (Object object : objects) {
+					out.write(object);
+				}
 			}
 		} finally {
 			conn.getWriteLock().unlock();

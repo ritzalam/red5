@@ -1,9 +1,9 @@
 package org.red5.server.net.rtmp;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -72,8 +72,7 @@ import org.slf4j.LoggerFactory;
  * (AMF0/AMF3), connection state (is alive, last ping time and ping result) and
  * session.
  */
-public abstract class RTMPConnection extends BaseConnection implements IStreamCapableConnection,
-		IServiceCapableConnection {
+public abstract class RTMPConnection extends BaseConnection implements IStreamCapableConnection, IServiceCapableConnection {
 
 	private static Logger log = LoggerFactory.getLogger(RTMPConnection.class);
 
@@ -90,6 +89,16 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * Marker byte for encrypted RTMP data.
 	 */
 	public static final byte RTMP_ENCRYPTED = (byte) 0x06;
+
+	/**
+	 * Cipher for RTMPE input
+	 */
+	public static final String RTMPE_CIPHER_IN = "rtmpe.cipher.in";
+
+	/**
+	 * Cipher for RTMPE output
+	 */
+	public static final String RTMPE_CIPHER_OUT = "rtmpe.cipher.out";
 
 	/**
 	 * Connection channels
@@ -453,8 +462,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		 * Picking up the SingleItemSubscriberStream defined as a Spring
 		 * prototype in red5-common.xml
 		 */
-		SingleItemSubscriberStream siss = (SingleItemSubscriberStream) scope.getContext()
-				.getBean("singleItemSubscriberStream");
+		SingleItemSubscriberStream siss = (SingleItemSubscriberStream) scope.getContext().getBean("singleItemSubscriberStream");
 		Integer buffer = streamBuffers.get(streamId - 1);
 		if (buffer != null) {
 			siss.setClientBufferDuration(buffer);
@@ -489,8 +497,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		 * Picking up the PlaylistSubscriberStream defined as a Spring
 		 * prototype in red5-common.xml
 		 */
-		PlaylistSubscriberStream pss = (PlaylistSubscriberStream) scope.getContext()
-				.getBean("playlistSubscriberStream");
+		PlaylistSubscriberStream pss = (PlaylistSubscriberStream) scope.getContext().getBean("playlistSubscriberStream");
 		Integer buffer = streamBuffers.get(streamId - 1);
 		if (buffer != null) {
 			pss.setClientBufferDuration(buffer);
@@ -598,8 +605,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 			getWriteLock().unlock();
 		}
 		Red5.setConnectionLocal(this);
-		IStreamService streamService = (IStreamService) getScopeService(scope, IStreamService.class,
-				StreamService.class);
+		IStreamService streamService = (IStreamService) getScopeService(scope, IStreamService.class, StreamService.class);
 		if (streamService != null) {
 			for (Map.Entry<Integer, IClientStream> entry : streams.entrySet()) {
 				IClientStream stream = entry.getValue();
@@ -690,8 +696,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	public void receivedBytesRead(int bytes) {
 		getWriteLock().lock();
 		try {
-			log.debug("Client received {} bytes, written {} bytes, {} messages pending", new Object[] { bytes,
-					getWrittenBytes(), getPendingMessages() });
+			log.debug("Client received {} bytes, written {} bytes, {} messages pending", new Object[] { bytes, getWrittenBytes(), getPendingMessages() });
 			clientBytesRead = bytes;
 		} finally {
 			getWriteLock().unlock();
@@ -859,7 +864,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	/**
 	 * Increases number of read messages by one. Updates number of bytes read.
 	 */
-	protected void messageReceived() {
+	public void messageReceived() {
 		readMessages.incrementAndGet();
 		// Trigger generation of BytesRead messages
 		updateBytesRead();
@@ -871,7 +876,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * @param message
 	 *            Message to mark
 	 */
-	protected void messageSent(Packet message) {
+	public void messageSent(Packet message) {
 		if (message.getMessage() instanceof VideoData) {
 			int streamId = message.getHeader().getStreamId();
 			AtomicInteger pending = pendingVideos.get(streamId);
@@ -900,8 +905,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	/** {@inheritDoc} */
 	public void ping() {
 		long newPingTime = System.currentTimeMillis();
-		log.debug("Pinging client with id {} at {}, last ping sent at {}", new Object[] { getId(), newPingTime,
-				lastPingSent.get() });
+		log.debug("Pinging client with id {} at {}, last ping sent at {}", new Object[] { getId(), newPingTime, lastPingSent.get() });
 		if (lastPingSent.get() == 0) {
 			lastPongReceived.set(newPingTime);
 		}
@@ -919,11 +923,10 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * @param pong
 	 *            Ping object
 	 */
-	protected void pingReceived(Ping pong) {
+	public void pingReceived(Ping pong) {
 		long now = System.currentTimeMillis();
 		long previousReceived = (int) (lastPingSent.get() & 0xffffffff);
-		log.debug("Pong from client id {} at {} with value {}, previous received at {}", new Object[] { getId(), now,
-				pong.getValue2(), previousReceived });
+		log.debug("Pong from client id {} at {} with value {}, previous received at {}", new Object[] { getId(), now, pong.getValue2(), previousReceived });
 		if (pong.getValue2() == previousReceived) {
 			lastPingTime.set((int) (now & 0xffffffff) - pong.getValue2());
 		}
@@ -992,8 +995,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	/** {@inheritDoc} */
 	@Override
 	public String toString() {
-		Object[] args = new Object[] { getClass().getSimpleName(), getRemoteAddress(), getRemotePort(), getHost(),
-				getReadBytes(), getWrittenBytes() };
+		Object[] args = new Object[] { getClass().getSimpleName(), getRemoteAddress(), getRemotePort(), getHost(), getReadBytes(), getWrittenBytes() };
 		return String.format("%1$s from %2$s : %3$s to %4$s (in: %5$s out %6$s )", args);
 	}
 
@@ -1053,6 +1055,50 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 			getWriteLock().unlock();
 		}
 	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + clientId;
+		if (host != null) {
+			result = result + host.hashCode();
+		}
+		if (remoteAddress != null) {
+			result = result + remoteAddress.hashCode();
+		}
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		RTMPConnection other = (RTMPConnection) obj;
+		if (clientId != other.clientId) {
+			return false;
+		}
+		if (host != null && !host.equals(other.getHost())) {
+			return false;
+		}
+		if (remoteAddress != null && !remoteAddress.equals(other.getRemoteAddress())) {
+			return false;
+		}
+		return true;
+	}
 
 	/**
 	 * Quartz job that keeps connection alive and disconnects if client is dead.
@@ -1077,9 +1123,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 			}
 			// Client didn't send response to ping command 
 			// and didn't sent data for too long, disconnect
-			if (lastPongReceived.get() > 0 && (lastPingSent.get() - lastPongReceived.get() > maxInactivity)
-					&& !(System.currentTimeMillis() - lastBytesReadTime < maxInactivity)) {
-
+			if (lastPongReceived.get() > 0 && (lastPingSent.get() - lastPongReceived.get() > maxInactivity) && !(System.currentTimeMillis() - lastBytesReadTime < maxInactivity)) {
 				getWriteLock().lock();
 				try {
 					log.debug("Keep alive job name {}", keepAliveJobName);
@@ -1094,13 +1138,11 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 				} finally {
 					getWriteLock().unlock();
 				}
-				log.warn("Closing {}, with id {}, due to too much inactivity ({}ms), last ping sent {}ms ago",
-						new Object[] { RTMPConnection.this, getId(), (lastPingSent.get() - lastPongReceived.get()),
-								(System.currentTimeMillis() - lastPingSent.get()) });
+				log.warn("Closing {}, with id {}, due to too much inactivity ({}ms), last ping sent {}ms ago", new Object[] { RTMPConnection.this, getId(),
+						(lastPingSent.get() - lastPongReceived.get()), (System.currentTimeMillis() - lastPingSent.get()) });
 				// Add the following line to (hopefully) deal with a very common support request
 				// on the Red5 list
-				log
-						.warn("This often happens if YOUR Red5 application generated an exception on start-up. Check earlier in the log for that exception first!");
+				log.warn("This often happens if YOUR Red5 application generated an exception on start-up. Check earlier in the log for that exception first!");
 				onInactive();
 				return;
 			}

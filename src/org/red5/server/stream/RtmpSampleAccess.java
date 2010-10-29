@@ -1,9 +1,9 @@
 package org.red5.server.stream;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -40,7 +40,7 @@ public class RtmpSampleAccess implements IRtmpSampleAccess {
 	 * @param permission
 	 */
 	public void setAudioAllowed(boolean permission) {
-		logger.debug("setAudioAllowed = "+permission);
+		logger.debug("setAudioAllowed: {}", permission);
 		audioAllowed = permission;
 	}
 	
@@ -49,19 +49,19 @@ public class RtmpSampleAccess implements IRtmpSampleAccess {
 	 * @param permission
 	 */
 	public void setVideoAllowed(boolean permission) {
-		logger.debug("setVideoAllowed = "+permission);
+		logger.debug("setVideoAllowed: {}", permission);
 		videoAllowed = permission;
 	}
 	
 	/** {@inheritDoc} */
 	public boolean isAudioAllowed(IScope scope) {
-		logger.debug("isAudioAllowed = "+audioAllowed);
+		logger.debug("isAudioAllowed: {}", audioAllowed);
 		return audioAllowed;
 	}
 
 	/** {@inheritDoc} */
 	public boolean isVideoAllowed(IScope scope) {
-		logger.debug("isVideoAllowed = "+videoAllowed);
+		logger.debug("isVideoAllowed: {}", videoAllowed);
 		return videoAllowed;
 	}
 

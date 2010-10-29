@@ -1,9 +1,9 @@
 package org.red5.server.service;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -83,7 +83,7 @@ public final class Installer {
 		ObjectName oName = JMXFactory.createObjectName("type", "TomcatLoader");
 		LoaderMXBean proxy = null;
 		if (mbs.isRegistered(oName)) {
-			proxy = JMX.newMXBeanProxy(mbs, oName, LoaderMXBean.class, true);
+			proxy = (LoaderMXBean) JMX.newMXBeanProxy(mbs, oName, LoaderMXBean.class, true);
 			log.debug("Loader was found");
 		} else {
 			log.warn("Loader not found");
@@ -180,8 +180,7 @@ public final class Installer {
 				log.warn("Application destination is not a directory");
 			}
 
-			ServiceUtils.invokeOnConnection(conn, "onAlert",
-					new Object[] { String.format("Application %s already installed, please un-install before attempting another install", application) });
+			ServiceUtils.invokeOnConnection(conn, "onAlert", new Object[]{String.format("Application %s already installed, please un-install before attempting another install", application)});			
 		} else {
 			//use the system temp directory for moving files around
 			String srcDir = System.getProperty("java.io.tmpdir");
@@ -284,15 +283,14 @@ public final class Installer {
 					//just copy the war to the webapps dir
 					try {
 						FileUtil.moveFile(srcDir + '/' + applicationWarName, webappsDir + '/' + application + ".war");
-						ServiceUtils.invokeOnConnection(conn, "onAlert",
-								new Object[] { String.format("Application %s will not be available until container is restarted", application) });
+						ServiceUtils.invokeOnConnection(conn, "onAlert", new Object[]{String.format("Application %s will not be available until container is restarted", application)});			
 					} catch (IOException e) {
 					}
 				}
 			}
 
-			ServiceUtils.invokeOnConnection(conn, "onAlert", new Object[] { String.format("Application %s was %s", application, (result ? "installed" : "not installed")) });
-
+			ServiceUtils.invokeOnConnection(conn, "onAlert", new Object[]{String.format("Application %s was %s", application, (result ? "installed" : "not installed"))});
+		
 		}
 		appDir = null;
 
@@ -306,7 +304,7 @@ public final class Installer {
 	 * @return true if uninstalled; else false
 	 */
 	public boolean uninstall(String applicationName) {
-		ServiceUtils.invokeOnConnection(Red5.getConnectionLocal(), "onAlert", new Object[] { "Uninstall function not available" });
+		ServiceUtils.invokeOnConnection(Red5.getConnectionLocal(), "onAlert", new Object[]{"Uninstall function not available"});
 
 		return false;
 	}

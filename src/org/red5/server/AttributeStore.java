@@ -1,9 +1,9 @@
 package org.red5.server;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -108,9 +108,9 @@ public class AttributeStore implements ICastingAttributeStore {
      * @return the attribute value or null if the attribute doesn't exist
      */
     public Object getAttribute(String name) {
-    	if (name == null)
+    	if (name == null) {
     		return null;
-    	
+    	}
         return attributes.get(name);
     }
 
@@ -123,9 +123,9 @@ public class AttributeStore implements ICastingAttributeStore {
      * @return the attribute value
      */
     public Object getAttribute(String name, Object defaultValue) {
-    	if (name == null)
+    	if (name == null) {
     		return null;
-    	
+    	}
     	if (defaultValue == null) {
     		throw new NullPointerException("the default value may not be null");
     	}
@@ -145,9 +145,9 @@ public class AttributeStore implements ICastingAttributeStore {
      * @return true if the attribute exists otherwise false
      */
     public boolean hasAttribute(String name) {
-    	if (name == null)
+    	if (name == null) {
     		return false;
-    	
+    	}
         return attributes.containsKey(name);
     }
 

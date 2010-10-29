@@ -1,9 +1,9 @@
 package org.red5.server.net.rtmpt;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -22,8 +22,10 @@ package org.red5.server.net.rtmpt;
 import java.util.Arrays;
 
 import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.session.IoSession;
 import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
+import org.red5.server.net.rtmp.InboundHandshake;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPHandler;
 import org.red5.server.net.rtmp.RTMPHandshake;
@@ -80,7 +82,7 @@ public class RTMPTHandler extends RTMPHandler {
 	 * @param state       Protocol state
 	 * @param in          Byte buffer with input raw data
 	 */
-	private void rawBufferRecieved(RTMPConnection conn, ProtocolState state, IoBuffer in) {
+	private void rawBufferRecieved(RTMPTConnection conn, ProtocolState state, IoBuffer in) {
 		final RTMP rtmp = (RTMP) state;
 
 		if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
@@ -94,7 +96,7 @@ public class RTMPTHandler extends RTMPHandler {
 		if (in.get(4) == 0) {
 			log.debug("Using old style handshake");
 			out = IoBuffer.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
-			out.put((byte) 0x03);
+			out.put((byte) RTMPConnection.RTMP_NON_ENCRYPTED);
 			// set server uptime in seconds
 			out.putInt((int) Red5.getUpTime() / 1000);
 			out.put(RTMPHandshake.HANDSHAKE_PAD_BYTES).put(in).flip();
@@ -106,26 +108,23 @@ public class RTMPTHandler extends RTMPHandler {
 				//fill pad bytes
 				Arrays.fill(RTMPHandshake.HANDSHAKE_PAD_BYTES, (byte) 0x00);
 			}
-			RTMPHandshake shake = new RTMPHandshake();
-			out = shake.generateResponse(in);
+			RTMPHandshake shake = new InboundHandshake();
+			out = shake.doHandshake(in);
 		}
-
-		// Skip first 8 bytes when comparing the handshake, they seem to
-		// be changed when connecting from a Mac client.
-		rtmp.setHandshake(out, 9, Constants.HANDSHAKE_SIZE - 8);
-
 		conn.rawWrite(out);
 	}
 
 	/** {@inheritDoc} */
 	@Override
-	public void messageReceived(RTMPConnection conn, ProtocolState state, Object in) throws Exception {
+	public void messageReceived(Object in, IoSession session) throws Exception {
 		if (in instanceof IoBuffer) {
+			RTMPTConnection conn = (RTMPTConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
+			RTMP state = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
 			rawBufferRecieved(conn, state, (IoBuffer) in);
 			((IoBuffer) in).free();
 			in = null;
 		} else {
-			super.messageReceived(conn, state, in);
+			super.messageReceived(in, session);
 		}
 	}
 }

@@ -1,9 +1,9 @@
 package org.red5.server.net.rtmp.codec;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  *
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free Software
@@ -28,8 +28,8 @@ import org.red5.io.object.Output;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.BufferUtils;
 import org.red5.server.api.IConnection;
-import org.red5.server.api.Red5;
 import org.red5.server.api.IConnection.Encoding;
+import org.red5.server.api.Red5;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.stream.IClientStream;
@@ -38,6 +38,7 @@ import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPUtils;
 import org.red5.server.net.rtmp.codec.RTMP.LiveTimestampMapping;
+import org.red5.server.net.rtmp.event.Aggregate;
 import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.ChunkSize;
@@ -219,108 +220,106 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	protected boolean dropMessage(RTMP rtmp, int channelId, IRTMPEvent message) {
 		//whether or not the packet will be dropped
 		boolean drop = false;
+		// we only drop in server mode
+		if (rtmp.getMode() == RTMP.MODE_SERVER) {
+			//whether or not the packet is video data
+			boolean isVideo = false;
+			//we only drop audio or video data
+			if ((isVideo = message instanceof VideoData) || message instanceof AudioData) {
+				//determine working type
+				boolean isLive = message.getSourceType() == Constants.SOURCE_TYPE_LIVE;
+				log.trace("Connection type: {}", (isLive ? "Live" : "VOD"));
 
-		//whether or not the packet is video data
-		boolean isVideo = false;
-		
-		//we only drop audio or video data
-		if ((isVideo = message instanceof VideoData) || message instanceof AudioData) {
-    		
-    		//determine working type
-    		boolean isLive = message.getSourceType() == Constants.SOURCE_TYPE_LIVE;
-    		log.trace("Connection type: {}", (isLive ? "Live" : "VOD"));
-    		
-    		long timestamp = (message.getTimestamp() & 0xFFFFFFFFL);
-    		LiveTimestampMapping mapping = rtmp.getLastTimestampMapping(channelId);
-    
-    		// just get the current time ONCE per packet
-    		long now = System.currentTimeMillis();
-    		if (mapping == null || timestamp < mapping.getLastStreamTime()) {
-    			log.debug("Resetting clock time ({}) to stream time ({})", now, timestamp);
-    			// either first time through, or time stamps were reset
-    			mapping = new LiveTimestampMapping(now, timestamp);
-    			rtmp.setLastTimestampMapping(channelId, mapping);
-    		}
-    		mapping.setLastStreamTime(timestamp);
-    
-    		long clockTimeOfMessage = mapping.getClockStartTime() + timestamp - mapping.getStreamStartTime();
-    		
-    		//determine tardiness / how late it is
-    		long tardiness = clockTimeOfMessage - now;
-    		
-    		//TDJ: EXPERIMENTAL dropping for LIVE packets in future (default false)
-    		if(isLive && dropLiveFuture) {
-    			tardiness = Math.abs(tardiness);
-    		}
-    		
-    		//subtract the ping time / latency from the tardiness value
-    		IConnection conn = Red5.getConnectionLocal();
-    		if (conn != null) {
-        		log.debug("Last ping time for connection: {}", conn.getLastPingTime());
-        		tardiness -= conn.getLastPingTime();
-        		//subtract the buffer time
-    			RTMPConnection rtmpConn = (RTMPConnection) conn;
-    			int streamId = rtmpConn.getStreamIdForChannel(channelId);
-    			IClientStream stream = rtmpConn.getStreamById(streamId);
-    			if (stream != null) {
-        			int clientBufferDuration = stream.getClientBufferDuration();
-        			if (clientBufferDuration > 0) {
-        				//two times the buffer duration seems to work best with vod
-        				if (!isLive) {
-        					tardiness -= clientBufferDuration * 2;
-        				} else {
-        					tardiness -= clientBufferDuration;
-        				}
-        			}
-        			log.debug("Client buffer duration: {}", clientBufferDuration);
-    			}
-    		} else {
-    			log.debug("Connection is null");
-    		}
-    		
-    		//TODO: how should we differ handling based on live or vod?
-    		    		
-    		//TODO: if we are VOD do we "pause" the provider when we are consistently late?
-    		
-    		log.debug("Packet timestamp: {}; tardiness: {}; now: {}; message clock time: {}, dropLiveFuture{}", new Object[] { timestamp,
-    				tardiness, now, clockTimeOfMessage, dropLiveFuture });
-    
-    		//anything coming in less than the base will be allowed to pass, it will not be
-    		//dropped or manipulated
-    		if (tardiness < baseTolerance) {
-    			//frame is below lowest bounds, let it go
-    			
-    		} else if (tardiness > highestTolerance) {
-    			//frame is really late, drop it no matter what type
-    			log.debug("Dropping late message: {}", message);
-    			//if we're working with video, indicate that we will need a key frame to proceed
-    			if (isVideo) {
-    				mapping.setKeyFrameNeeded(true);
-    			}
-    			//drop it
-    			drop = true;
-    		} else {
-    			if (isVideo) {
-        			VideoData video = (VideoData) message;
-        			if (video.getFrameType() == FrameType.KEYFRAME) {
-        				//if its a key frame the inter and disposible checks can be skipped
-        				log.debug("Resuming stream with key frame; message: {}", message);
-        				mapping.setKeyFrameNeeded(false);
-        			} else if (tardiness >= baseTolerance && tardiness < midTolerance) {
-        				//drop disposible frames
-        				if (video.getFrameType() == FrameType.DISPOSABLE_INTERFRAME) {
-        	    			log.debug("Dropping disposible frame; message: {}", message);        					
-        					drop = true;
-        				}
-        			} else if (tardiness >= midTolerance && tardiness <= highestTolerance) {
-        				//drop inter-frames and disposible frames
-    	    			log.debug("Dropping disposible or inter frame; message: {}", message);        					
-        				drop = true;
-        			}
-    			}
-    		}
+				long timestamp = (message.getTimestamp() & 0xFFFFFFFFL);
+				LiveTimestampMapping mapping = rtmp.getLastTimestampMapping(channelId);
+				// just get the current time ONCE per packet
+				long now = System.currentTimeMillis();
+				if (mapping == null || timestamp < mapping.getLastStreamTime()) {
+					log.debug("Resetting clock time ({}) to stream time ({})", now, timestamp);
+					// either first time through, or time stamps were reset
+					mapping = new LiveTimestampMapping(now, timestamp);
+					rtmp.setLastTimestampMapping(channelId, mapping);
+				}
+				mapping.setLastStreamTime(timestamp);
+
+				long clockTimeOfMessage = mapping.getClockStartTime() + timestamp - mapping.getStreamStartTime();
+
+				//determine tardiness / how late it is
+				long tardiness = clockTimeOfMessage - now;
+				//TDJ: EXPERIMENTAL dropping for LIVE packets in future (default false)
+				if (isLive && dropLiveFuture) {
+					tardiness = Math.abs(tardiness);
+				}
+				//subtract the ping time / latency from the tardiness value
+				IConnection conn = Red5.getConnectionLocal();
+				log.debug("Connection: {}", conn);
+				if (conn != null) {
+					log.debug("Last ping time for connection: {}", conn.getLastPingTime());
+					tardiness -= conn.getLastPingTime();
+					//subtract the buffer time
+					RTMPConnection rtmpConn = (RTMPConnection) conn;
+					int streamId = rtmpConn.getStreamIdForChannel(channelId);
+					IClientStream stream = rtmpConn.getStreamById(streamId);
+					if (stream != null) {
+						int clientBufferDuration = stream.getClientBufferDuration();
+						if (clientBufferDuration > 0) {
+							//two times the buffer duration seems to work best with vod
+							if (!isLive) {
+								tardiness -= clientBufferDuration * 2;
+							} else {
+								tardiness -= clientBufferDuration;
+							}
+						}
+						log.debug("Client buffer duration: {}", clientBufferDuration);
+					}
+				} else {
+					log.debug("Connection is null");
+				}
+
+				//TODO: how should we differ handling based on live or vod?
+
+				//TODO: if we are VOD do we "pause" the provider when we are consistently late?
+
+				log.debug("Packet timestamp: {}; tardiness: {}; now: {}; message clock time: {}, dropLiveFuture: {}", new Object[] { timestamp, tardiness, now, clockTimeOfMessage,
+						dropLiveFuture });
+
+				//anything coming in less than the base will be allowed to pass, it will not be
+				//dropped or manipulated
+				if (tardiness < baseTolerance) {
+					//frame is below lowest bounds, let it go
+
+				} else if (tardiness > highestTolerance) {
+					//frame is really late, drop it no matter what type
+					log.debug("Dropping late message: {}", message);
+					//if we're working with video, indicate that we will need a key frame to proceed
+					if (isVideo) {
+						mapping.setKeyFrameNeeded(true);
+					}
+					//drop it
+					drop = true;
+				} else {
+					if (isVideo) {
+						VideoData video = (VideoData) message;
+						if (video.getFrameType() == FrameType.KEYFRAME) {
+							//if its a key frame the inter and disposible checks can be skipped
+							log.debug("Resuming stream with key frame; message: {}", message);
+							mapping.setKeyFrameNeeded(false);
+						} else if (tardiness >= baseTolerance && tardiness < midTolerance) {
+							//drop disposable frames
+							if (video.getFrameType() == FrameType.DISPOSABLE_INTERFRAME) {
+								log.debug("Dropping disposible frame; message: {}", message);
+								drop = true;
+							}
+						} else if (tardiness >= midTolerance && tardiness <= highestTolerance) {
+							//drop inter-frames and disposable frames
+							log.debug("Dropping disposible or inter frame; message: {}", message);
+							drop = true;
+						}
+					}
+				}
+			}
+			log.debug("Drop data: {}", drop);
 		}
-		log.debug("Drop packet: {}", drop);
 		return drop;
 	}
 
@@ -489,17 +488,17 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 								int seekTime = Integer.valueOf(status.getDescription().split(" ")[1]);
 								log.trace("Seek to time: {}", seekTime);
 								//audio and video channels
-								int[] channels = new int[]{5, 6}; 
-	            				//if its a seek notification, reset the "mapping" for audio (5) and video (6)
+								int[] channels = new int[] { 5, 6 };
+								//if its a seek notification, reset the "mapping" for audio (5) and video (6)
 								for (int channelId : channels) {
-    	            	    		LiveTimestampMapping mapping = rtmp.getLastTimestampMapping(channelId);	    
-    	            	    		if (mapping != null) {
-    	            		    		long timestamp = mapping.getClockStartTime() + (seekTime & 0xFFFFFFFFL);
-    	            		    		log.trace("Setting last stream time to: {}", timestamp);
-    	            		    		mapping.setLastStreamTime(timestamp);
-    	            	    		} else {
-    	            	    			log.debug("No ts mapping for channel id: {}", channelId);
-    	            	    		}								
+									LiveTimestampMapping mapping = rtmp.getLastTimestampMapping(channelId);
+									if (mapping != null) {
+										long timestamp = mapping.getClockStartTime() + (seekTime & 0xFFFFFFFFL);
+										log.trace("Setting last stream time to: {}", timestamp);
+										mapping.setLastStreamTime(timestamp);
+									} else {
+										log.debug("No ts mapping for channel id: {}", channelId);
+									}
 								}
 							}
 						}
@@ -518,6 +517,9 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 				return encodePing((Ping) message);
 			case TYPE_BYTES_READ:
 				return encodeBytesRead((BytesRead) message);
+			case TYPE_AGGREGATE:
+				log.trace("Encode aggregate message");
+				return encodeAggregate((Aggregate) message);
 			case TYPE_AUDIO_DATA:
 				log.trace("Encode audio message");
 
@@ -759,8 +761,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 			if (rtmp.getEncoding() == Encoding.AMF3 && rtmp.getMode() == RTMP.MODE_CLIENT) {
 				output = new org.red5.io.amf3.Output(out);
 			}
-			final String action = (call.getServiceName() == null) ? call.getServiceMethodName() : call.getServiceName()
-					+ '.' + call.getServiceMethodName();
+			final String action = (call.getServiceName() == null) ? call.getServiceMethodName() : call.getServiceName() + '.' + call.getServiceMethodName();
 			serializer.serialize(output, action); // seems right
 		}
 		if (invoke instanceof Invoke) {
@@ -832,6 +833,12 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 		final IoBuffer out = IoBuffer.allocate(4);
 		out.putInt(bytesRead.getBytesRead());
 		return out;
+	}
+
+	/** {@inheritDoc} */
+	public IoBuffer encodeAggregate(Aggregate aggregate) {
+		final IoBuffer result = aggregate.getData();
+		return result;
 	}
 
 	/** {@inheritDoc} */

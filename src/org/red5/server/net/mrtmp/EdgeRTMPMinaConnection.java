@@ -1,9 +1,9 @@
-package org.red5.server.net.rtmp;
+package org.red5.server.net.mrtmp;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -20,8 +20,7 @@ package org.red5.server.net.rtmp;
  */
 
 import org.red5.server.api.scheduling.ISchedulingService;
-import org.red5.server.net.mrtmp.IMRTMPConnection;
-import org.red5.server.net.mrtmp.IMRTMPEdgeManager;
+import org.red5.server.net.rtmp.RTMPMinaConnection;
 import org.red5.server.net.rtmp.codec.RTMP;
 
 public class EdgeRTMPMinaConnection extends RTMPMinaConnection {

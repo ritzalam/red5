@@ -1,9 +1,9 @@
 package org.red5.server.net.rtmp;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -139,19 +139,17 @@ public class Channel {
 			if (status.getCode().equals(StatusCodes.NS_PLAY_START)) {	
 				IScope scope = connection.getScope();
 				if (scope.getContext().getApplicationContext().containsBean(IRtmpSampleAccess.BEAN_NAME)) {
-    				IRtmpSampleAccess sampleAccess = (IRtmpSampleAccess) scope.getContext().getApplicationContext().getBean(IRtmpSampleAccess.BEAN_NAME);
-    				boolean videoAccess = sampleAccess.isVideoAllowed(scope);
-    				boolean audioAccess = sampleAccess.isAudioAllowed(scope);
-    				if (videoAccess || audioAccess) {
-        				final Call call2 = new Call(null, "|RtmpSampleAccess", null);
-        				Notify notify = new Notify();
-        				notify.setInvokeId(1);
-        				notify.setCall(call2);
-        				notify.setData(IoBuffer.wrap(new byte[]{
-    							0x01, (byte) (audioAccess ? 0x01 : 0x00),
-            					0x01, (byte) (videoAccess ? 0x01 : 0x00)}));
-        				write(notify, connection.getStreamIdForChannel(id));
-    				}
+					IRtmpSampleAccess sampleAccess = (IRtmpSampleAccess) scope.getContext().getApplicationContext().getBean(IRtmpSampleAccess.BEAN_NAME);
+					boolean videoAccess = sampleAccess.isVideoAllowed(scope);
+					boolean audioAccess = sampleAccess.isAudioAllowed(scope);
+					if (videoAccess || audioAccess) {
+						final Call call2 = new Call(null, "|RtmpSampleAccess", null);
+						Notify notify = new Notify();
+						notify.setInvokeId(1);
+						notify.setCall(call2);
+						notify.setData(IoBuffer.wrap(new byte[] { 0x01, (byte) (audioAccess ? 0x01 : 0x00), 0x01, (byte) (videoAccess ? 0x01 : 0x00) }));
+						write(notify, connection.getStreamIdForChannel(id));
+					}
 				}
 			}
 			event.setInvokeId(1);

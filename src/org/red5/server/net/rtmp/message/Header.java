@@ -6,9 +6,9 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -160,14 +160,6 @@ public class Header implements Constants, Cloneable, Externalizable {
 		this.timerDelta = 0;
 	}
 
-    @Override
-    public int hashCode() {
-    	int hash = dataType;
-    	hash = hash * 31 + channelId;
-    	hash = hash * 31 + streamId;
-    	return hash;
-    }	
-	
 	/** {@inheritDoc} */
 	@Override
 	public boolean equals(Object other) {

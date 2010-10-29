@@ -1,9 +1,9 @@
-package org.red5.server.net.rtmp;
+package org.red5.server.net.mrtmp;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -22,12 +22,14 @@ package org.red5.server.net.rtmp;
 import java.util.Map;
 
 import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.session.IoSession;
 import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
-import org.red5.server.net.mrtmp.IMRTMPConnection;
-import org.red5.server.net.mrtmp.IMRTMPManager;
 import org.red5.server.net.protocol.ProtocolState;
+import org.red5.server.net.rtmp.Channel;
+import org.red5.server.net.rtmp.RTMPConnection;
+import org.red5.server.net.rtmp.RTMPHandler;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
@@ -48,7 +50,9 @@ public class EdgeRTMPHandler extends RTMPHandler {
 	}
 
 	@Override
-	public void messageReceived(RTMPConnection conn, ProtocolState state, Object in) throws Exception {
+	public void messageReceived(Object in, IoSession session) throws Exception {
+		RTMPConnection conn = (RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
+		RTMP state = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
 		IRTMPEvent message = null;
 		final Packet packet = (Packet) in;
 		message = packet.getMessage();
@@ -66,8 +70,7 @@ public class EdgeRTMPHandler extends RTMPHandler {
 		if (header.getDataType() == TYPE_INVOKE) {
 			final IServiceCall call = ((Invoke) message).getCall();
 			final String action = call.getServiceMethodName();
-			if (call.getServiceName() == null && !conn.isConnected()
-					&& StreamAction.valueOf(action).equals(StreamAction.CONNECT)) {
+			if (call.getServiceName() == null && !conn.isConnected() && StreamAction.valueOf(action).equals(StreamAction.CONNECT)) {
 				handleConnect(conn, channel, header, (Invoke) message, (RTMP) state);
 				return;
 			}
@@ -104,14 +107,10 @@ public class EdgeRTMPHandler extends RTMPHandler {
 	}
 
 	public void messageSent(RTMPConnection conn, Object message) {
-		if (log.isDebugEnabled()) {
-			log.debug("Message sent");
-		}
-
+		log.debug("Message sent");
 		if (message instanceof IoBuffer) {
 			return;
 		}
-
 		// Increase number of sent messages
 		conn.messageSent((Packet) message);
 	}
@@ -211,4 +210,5 @@ public class EdgeRTMPHandler extends RTMPHandler {
 		// the state change will be maintained inside connection object.
 		conn.close();
 	}
+	
 }

@@ -1,9 +1,9 @@
 package org.red5.server.net.rtmpt;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -22,9 +22,12 @@ package org.red5.server.net.rtmpt;
 import java.util.Map;
 
 import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.session.IoSession;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.BaseRTMPClientHandler;
 import org.red5.server.net.rtmp.RTMPConnection;
+import org.red5.server.net.rtmp.RTMPMinaConnection;
+import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +39,7 @@ import org.slf4j.LoggerFactory;
  */
 public class RTMPTClient extends BaseRTMPClientHandler {
 
-	private static final Logger log = LoggerFactory
-			.getLogger(RTMPTClient.class);
+	private static final Logger log = LoggerFactory.getLogger(RTMPTClient.class);
 
 	// guarded by this
 	private RTMPTClientConnector connector = null;
@@ -45,14 +47,10 @@ public class RTMPTClient extends BaseRTMPClientHandler {
 	public RTMPTClient() {
 	}
 
-	public Map<String, Object> makeDefaultConnectionParams(String server,
-			int port, String application) {
-		Map<String, Object> params = super.makeDefaultConnectionParams(server,
-				port, application);
-
+	public Map<String, Object> makeDefaultConnectionParams(String server, int port, String application) {
+		Map<String, Object> params = super.makeDefaultConnectionParams(server, port, application);
 		if (!params.containsKey("tcUrl")) {
-			params.put("tcUrl", "rtmpt://" + server + ':' + port + '/'
-					+ application);
+			params.put("tcUrl", "rtmpt://" + server + ':' + port + '/' + application);
 		}
 
 		return params;
@@ -66,12 +64,13 @@ public class RTMPTClient extends BaseRTMPClientHandler {
 
 	/** {@inheritDoc} */
 	@Override
-	public void messageReceived(RTMPConnection conn, ProtocolState state,
-			Object in) throws Exception {
+	public void messageReceived(Object in, IoSession session) throws Exception {
+		RTMPConnection conn = (RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
+		RTMP state = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
 		if (in instanceof IoBuffer) {
 			rawBufferRecieved(conn, state, (IoBuffer) in);
 		} else {
-			super.messageReceived(conn, state, in);
+			super.messageReceived(in, session);
 		}
 	}
 
@@ -85,9 +84,7 @@ public class RTMPTClient extends BaseRTMPClientHandler {
 	 * @param in
 	 *            IoBuffer with input raw data
 	 */
-	private void rawBufferRecieved(RTMPConnection conn, ProtocolState state,
-			IoBuffer in) {
-
+	private void rawBufferRecieved(RTMPConnection conn, ProtocolState state, IoBuffer in) {
 		log.debug("Handshake 3d phase - size: {}", in.remaining());
 		in.skip(1);
 		IoBuffer out = IoBuffer.allocate(Constants.HANDSHAKE_SIZE);

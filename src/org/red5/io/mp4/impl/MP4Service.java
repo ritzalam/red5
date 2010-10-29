@@ -1,7 +1,7 @@
 package org.red5.io.mp4.impl;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
  * Copyright (c) 2006-2007 by respective authors (see below). All rights reserved.
  * 

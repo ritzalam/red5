@@ -1,9 +1,9 @@
 package org.red5.server.net.rtmp;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -123,8 +123,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 		for (IClientStream stream : conn.getStreams()) {
 			if (stream instanceof IClientBroadcastStream) {
 				IClientBroadcastStream bs = (IClientBroadcastStream) stream;
-				IBroadcastScope scope = (IBroadcastScope) bs.getScope().getBasicScope(IBroadcastScope.TYPE,
-						bs.getPublishedName());
+				IBroadcastScope scope = (IBroadcastScope) bs.getScope().getBasicScope(IBroadcastScope.TYPE, bs.getPublishedName());
 				if (scope == null) {
 					continue;
 				}
@@ -265,8 +264,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 							call.setStatus(Call.STATUS_APP_SHUTTING_DOWN);
 							if (call instanceof IPendingServiceCall) {
 								StatusObject status = getStatus(NC_CONNECT_APPSHUTDOWN);
-								status.setDescription(String.format("Application at '%s' is currently shutting down.",
-										path));
+								status.setDescription(String.format("Application at '%s' is currently shutting down.", path));
 								((IPendingServiceCall) call).setResult(status);
 							}
 							log.info("Application at {} currently shutting down on {}", path, host);
@@ -291,7 +289,8 @@ public class RTMPHandler extends BaseRTMPHandler {
 										//send fmsver and capabilities
 										StatusObject result = getStatus(NC_CONNECT_SUCCESS);
 										result.setAdditional("fmsVer", Red5.getFMSVersion());
-										result.setAdditional("capabilities", Integer.valueOf(33));
+										result.setAdditional("capabilities", Integer.valueOf(31));
+										result.setAdditional("mode", Integer.valueOf(1));
 										pc.setResult(result);
 									}
 									// Measure initial roundtrip time after connecting
@@ -383,21 +382,18 @@ public class RTMPHandler extends BaseRTMPHandler {
 					case PAUSE_RAW:
 					case RECEIVE_VIDEO:
 					case RECEIVE_AUDIO:
-						IStreamService streamService = (IStreamService) getScopeService(conn.getScope(),
-								IStreamService.class, StreamService.class);
+						IStreamService streamService = (IStreamService) getScopeService(conn.getScope(), IStreamService.class, StreamService.class);
 						Status status = null;
 						try {
-							log.debug("Invoking {} from {} with service: {}", new Object[]{call, conn, streamService});
+							log.debug("Invoking {} from {} with service: {}", new Object[] { call, conn, streamService });
 							if (!invokeCall(conn, call, streamService)) {
 								status = getStatus(NS_INVALID_ARGUMENT).asStatus();
-								status.setDescription(String.format("Failed to %s (stream id: %d)", action, source
-										.getStreamId()));
+								status.setDescription(String.format("Failed to %s (stream id: %d)", action, source.getStreamId()));
 							}
 						} catch (Throwable err) {
 							log.error("Error while invoking {} on stream service. {}", action, err);
 							status = getStatus(NS_FAILED).asStatus();
-							status.setDescription(String.format("Error while invoking %s (stream id: %d)", action,
-									source.getStreamId()));
+							status.setDescription(String.format("Error while invoking %s (stream id: %d)", action, source.getStreamId()));
 							status.setDetails(err.getMessage());
 						}
 						if (status != null) {
@@ -418,8 +414,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 		}
 
 		if (invoke instanceof Invoke) {
-			if ((source.getStreamId() != 0)
-					&& (call.getStatus() == Call.STATUS_SUCCESS_VOID || call.getStatus() == Call.STATUS_SUCCESS_NULL)) {
+			if ((source.getStreamId() != 0) && (call.getStatus() == Call.STATUS_SUCCESS_VOID || call.getStatus() == Call.STATUS_SUCCESS_NULL)) {
 				// This fixes a bug in the FP on Intel Macs.
 				log.debug("Method does not have return value, do not reply");
 				return;
@@ -521,11 +516,9 @@ public class RTMPHandler extends BaseRTMPHandler {
 			return;
 		}
 
-		ISharedObjectService sharedObjectService = (ISharedObjectService) getScopeService(scope,
-				ISharedObjectService.class, SharedObjectService.class, false);
+		ISharedObjectService sharedObjectService = (ISharedObjectService) getScopeService(scope, ISharedObjectService.class, SharedObjectService.class, false);
 		if (!sharedObjectService.hasSharedObject(scope, name)) {
-			ISharedObjectSecurityService security = (ISharedObjectSecurityService) ScopeUtils.getScopeService(scope,
-					ISharedObjectSecurityService.class);
+			ISharedObjectSecurityService security = (ISharedObjectSecurityService) ScopeUtils.getScopeService(scope, ISharedObjectSecurityService.class);
 			if (security != null) {
 				// Check handlers to see if creation is allowed
 				for (ISharedObjectSecurity handler : security.getSharedObjectSecurity()) {
@@ -544,9 +537,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 		so = sharedObjectService.getSharedObject(scope, name);
 		if (so.isPersistentObject() != persistent) {
 			SharedObjectMessage msg = new SharedObjectMessage(name, 0, persistent);
-			msg
-					.addEvent(new SharedObjectEvent(ISharedObjectEvent.Type.CLIENT_STATUS, "error",
-							SO_PERSISTENCE_MISMATCH));
+			msg.addEvent(new SharedObjectEvent(ISharedObjectEvent.Type.CLIENT_STATUS, "error", SO_PERSISTENCE_MISMATCH));
 			conn.getChannel(3).write(msg);
 		}
 		so.dispatchEvent(object);

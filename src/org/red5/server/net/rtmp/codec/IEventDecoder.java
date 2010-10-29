@@ -1,9 +1,9 @@
 package org.red5.server.net.rtmp.codec;
 
 /*
- * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright (c) 2006-2009 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -20,6 +20,7 @@ package org.red5.server.net.rtmp.codec;
  */
 
 import org.apache.mina.core.buffer.IoBuffer;
+import org.red5.server.net.rtmp.event.Aggregate;
 import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.ChunkSize;
@@ -104,6 +105,14 @@ public interface IEventDecoder {
      */
     public abstract BytesRead decodeBytesRead(IoBuffer in);
 
+	/**
+	 * Decodes the aggregated data.
+	 * 
+	 * @param in                     Byte buffer to decode
+     * @return                       Aggregate event
+	 */
+	public abstract Aggregate decodeAggregate(IoBuffer in);
+    
     /**
      * Decodes audio data event.
 	 *
