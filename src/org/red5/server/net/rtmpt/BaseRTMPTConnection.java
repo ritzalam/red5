@@ -22,6 +22,7 @@ package org.red5.server.net.rtmpt;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.mina.core.buffer.IoBuffer;
@@ -38,21 +39,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class BaseRTMPTConnection extends RTMPConnection {
-	
+
 	private static final Logger log = LoggerFactory.getLogger(BaseRTMPTConnection.class);
-	
+
 	/**
 	 * Protocol decoder
 	 */
 	private RTMPTProtocolDecoder decoder;
-	
+
 	/**
 	 * Protocol encoder
 	 */
 	private RTMPTProtocolEncoder encoder;
-	
+
 	private static class PendingData {
 		private IoBuffer buffer;
+
 		private Packet packet;
 
 		private PendingData(IoBuffer buffer, Packet packet) {
@@ -76,32 +78,32 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 			return getClass().getName() + "(buffer=" + buffer + "; packet=" + packet + ")";
 		}
 	}
-	
+
 	/**
 	 * List of pending messages
 	 */
-	private LinkedList<PendingData> pendingMessages = new LinkedList<PendingData>();
-	
+	private ConcurrentLinkedQueue<PendingData> pendingMessages = new ConcurrentLinkedQueue<PendingData>();
+
 	/**
 	 * Closing flag
 	 */
 	private volatile boolean closing;
-	
+
 	/**
 	 * Number of read bytes
 	 */
 	private AtomicLong readBytes = new AtomicLong(0);
-	
+
 	/**
 	 * Number of written bytes
 	 */
 	private AtomicLong writtenBytes = new AtomicLong(0);
-	
+
 	/**
 	 * Byte buffer
 	 */
 	private IoBuffer buffer;
-	
+
 	/**
 	 * RTMP events handler
 	 */
@@ -112,7 +114,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 		this.buffer = IoBuffer.allocate(2048);
 		this.buffer.setAutoExpand(true);
 	}
-	
+
 	/**
 	 * Return any pending messages up to a given size.
 	 *
@@ -121,7 +123,6 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 *         pending
 	 */
 	abstract public IoBuffer getPendingMessages(int targetSize);
-
 
 	/** {@inheritDoc} */
 	@Override
@@ -138,26 +139,20 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	public boolean isClosing() {
 		return closing;
 	}
-	
+
 	/**
 	 * Real close
 	 */
 	public void realClose() {
-		if (!isClosing()) {
-			return;
-		}
-		getWriteLock().lock();
-		try {
+		if (isClosing()) {
 			if (buffer != null) {
 				buffer.free();
 				buffer = null;
 			}
 			state.setState(RTMP.STATE_DISCONNECTED);
 			pendingMessages.clear();
-		} finally {
-			getWriteLock().unlock();
+			super.close();
 		}
-		super.close();
 	}
 
 	/**
@@ -167,12 +162,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 */
 	@Override
 	public void rawWrite(IoBuffer packet) {
-		getWriteLock().lock();
-		try {
-			pendingMessages.add(new PendingData(packet));
-		} finally {
-			getWriteLock().unlock();
-		}
+		pendingMessages.add(new PendingData(packet));
 	}
 
 	/** {@inheritDoc} */
@@ -190,12 +180,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	/** {@inheritDoc} */
 	@Override
 	public long getPendingMessages() {
-		getReadLock().lock();
-		try {
-			return pendingMessages.size();
-		} finally {
-			getReadLock().unlock();
-		}
+		return pendingMessages.size();
 	}
 
 	/**
@@ -211,15 +196,10 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 		}
 		//set the local connection
 		Red5.setConnectionLocal(this);
-		getWriteLock().lock();
-		try {
-			readBytes.addAndGet(data.limit());
-			this.buffer.put(data);
-			this.buffer.flip();
-			return this.decoder.decodeBuffer(this.state, this.buffer);
-		} finally {
-			getWriteLock().unlock();
-		}
+		readBytes.addAndGet(data.limit());
+		buffer.put(data);
+		buffer.flip();
+		return decoder.decodeBuffer(state, buffer);
 	}
 
 	/**
@@ -233,26 +213,20 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 			// Connection is being closed, don't send any new packets
 			return;
 		}
-		getWriteLock().lock();
+		IoBuffer data;
 		try {
-			IoBuffer data;
-			try {
-				data = this.encoder.encode(this.state, packet);
-			} catch (Exception e) {
-				log.error("Could not encode message {}", packet, e);
-				return;
-			}
-
-			if (data != null) {
-    			// Mark packet as being written
-    			writingMessage(packet);
-    			//add to pending
-    			pendingMessages.add(new PendingData(data, packet));			
-			} else {
-				log.info("Response buffer was null after encoding");
-			}
-		} finally {
-			getWriteLock().unlock();
+			data = encoder.encode(state, packet);
+		} catch (Exception e) {
+			log.error("Could not encode message {}", packet, e);
+			return;
+		}
+		if (data != null) {
+			// Mark packet as being written
+			writingMessage(packet);
+			//add to pending
+			pendingMessages.add(new PendingData(data, packet));
+		} else {
+			log.info("Response buffer was null after encoding");
 		}
 	}
 
@@ -260,29 +234,20 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 		if (pendingMessages.isEmpty()) {
 			return null;
 		}
-		
 		IoBuffer result = IoBuffer.allocate(2048);
 		result.setAutoExpand(true);
-		
 		// We'll have to create a copy here to avoid endless recursion
 		List<Object> toNotify = new LinkedList<Object>();
-
-		getWriteLock().lock();
-		try {
-			while (!pendingMessages.isEmpty()) {
-				PendingData pendingMessage = pendingMessages.remove();
-				result.put(pendingMessage.getBuffer());
-				if (pendingMessage.getPacket() != null) {
-					toNotify.add(pendingMessage.getPacket());
-				}
-				if ((result.position() > targetSize)) {
-					break;
-				}
+		while (!pendingMessages.isEmpty()) {
+			PendingData pendingMessage = pendingMessages.remove();
+			result.put(pendingMessage.getBuffer());
+			if (pendingMessage.getPacket() != null) {
+				toNotify.add(pendingMessage.getPacket());
 			}
-		} finally {
-			getWriteLock().unlock();
+			if ((result.position() > targetSize)) {
+				break;
+			}
 		}
-		
 		for (Object message : toNotify) {
 			try {
 				handler.messageSent(this, message);
@@ -290,7 +255,6 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 				log.error("Could not notify stream subsystem about sent message.", e);
 			}
 		}
-
 		result.flip();
 		writtenBytes.addAndGet(result.limit());
 		return result;

@@ -214,7 +214,6 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	public IoBuffer decodeHandshake(RTMP rtmp, IoBuffer in) {
 		log.debug("decodeHandshake - rtmp: {} buffer: {}", rtmp, in);
 		final int remaining = in.remaining();
-
 		if (rtmp.getMode() == RTMP.MODE_SERVER) {
 			if (rtmp.getState() == RTMP.STATE_CONNECT) {
 				if (remaining < HANDSHAKE_SIZE + 1) {
@@ -239,7 +238,6 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 					rtmp.continueDecoding();
 				}
 			}
-
 		} else {
 			// else, this is client mode.
 			if (rtmp.getState() == RTMP.STATE_CONNECT) {
@@ -304,7 +302,6 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 			byteCount = 1;
 		}
 		final int channelId = RTMPUtils.decodeChannelId(headerValue, byteCount);
-
 		if (channelId < 0) {
 			throw new ProtocolException("Bad channel id: " + channelId);
 		}
@@ -333,7 +330,6 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		// Check to see if this is a new packets or continue decoding an
 		// existing one.
 		Packet packet = rtmp.getLastReadPacket(channelId);
-
 		if (packet == null) {
 			packet = new Packet(header.clone());
 			rtmp.setLastReadPacket(channelId, packet);
@@ -343,7 +339,6 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		final int readRemaining = header.getSize() - buf.position();
 		final int chunkSize = rtmp.getReadChunkSize();
 		final int readAmount = (readRemaining > chunkSize) ? chunkSize : readRemaining;
-
 		if (in.remaining() < readAmount) {
 			log.debug("Chunk too small, buffering ({},{})", in.remaining(), readAmount);
 			// skip the position back to the start
@@ -353,7 +348,6 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		}
 
 		BufferUtils.put(buf, in, readAmount);
-
 		if (buf.position() < header.getSize()) {
 			rtmp.continueDecoding();
 			return null;
@@ -444,14 +438,12 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		Header header = new Header();
 		header.setChannelId(channelId);
 		header.setIsGarbage(false);
-
 		if (headerSize != HEADER_NEW && lastHeader == null) {
 			log.error("Last header null not new, headerSize: {}, channelId {}", headerSize, channelId);
 			//this will trigger an error status, which in turn will disconnect the "offending" flash player
 			//preventing a memory leak and bringing the whole server to its knees
 			return null;
 		}
-
 		int timeValue;
 		switch (headerSize) {
 			case HEADER_NEW:
@@ -660,7 +652,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		boolean persistent = in.getInt() == 2;
 		// Skip unknown bytes
 		in.skip(4);
-
+		
 		final SharedObjectMessage so = new FlexSharedObjectMessage(null, name, version, persistent);
 		doDecodeSharedObject(so, in, input);
 		return so;
@@ -791,6 +783,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 			case RECEIVE_AUDIO:
 				return true;
 			default:
+				log.debug("Stream action {} is not a recognized command", action);
 				return false;
 		}
 	}

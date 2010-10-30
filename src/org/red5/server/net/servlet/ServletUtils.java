@@ -44,8 +44,7 @@ public class ServletUtils {
 	 * 
 	 * @throws java.io.IOException on error
 	 */
-	public static void copy(InputStream input, OutputStream output)
-			throws IOException {
+	public static void copy(InputStream input, OutputStream output) throws IOException {
 		copy(input, output, DEFAULT_BUFFER_SIZE);
 	}
 
@@ -53,13 +52,12 @@ public class ServletUtils {
 	 * Copies information from the input stream to the output stream using the
 	 * specified buffer size
 	 * 
-     * @param input input
-     * @param bufferSize buffer size
-     * @param output output 
+	 * @param input input
+	 * @param bufferSize buffer size
+	 * @param output output 
 	 * @throws java.io.IOException on error
 	 */
-	public static void copy(InputStream input, OutputStream output,
-			int bufferSize) throws IOException {
+	public static void copy(InputStream input, OutputStream output, int bufferSize) throws IOException {
 		byte[] buf = new byte[bufferSize];
 		int bytesRead = input.read(buf);
 		while (bytesRead != -1) {
@@ -73,19 +71,18 @@ public class ServletUtils {
 	 * Copies information between specified streams and then closes both of the
 	 * streams.
 	 * 
-     * @param output output
-     * @param input input
+	 * @param output output
+	 * @param input input
 	 * @throws java.io.IOException on error
 	 */
-	public static void copyThenClose(InputStream input, OutputStream output)
-			throws IOException {
+	public static void copyThenClose(InputStream input, OutputStream output) throws IOException {
 		copy(input, output);
 		input.close();
 		output.close();
 	}
 
 	/**
-     * @param input input stream
+	 * @param input input stream
 	 * @return a byte[] containing the information contained in the specified
 	 *          InputStream.
 	 * @throws java.io.IOException on error
@@ -110,26 +107,26 @@ public class ServletUtils {
 			// Store both remote host and remote address 
 			addresses.add(request.getRemoteAddr());
 		}
-		
+
 		final String forwardedFor = request.getHeader("X-Forwarded-For");
 		if (forwardedFor != null) {
 			// Also store address this request was forwarded for.
 			final String[] parts = forwardedFor.split(",");
-			for (String part: parts) {
+			for (String part : parts) {
 				addresses.add(part);
 			}
 		}
-		
+
 		final String httpVia = request.getHeader("Via");
 		if (httpVia != null) {
 			// Also store address this request was forwarded for.
 			final String[] parts = httpVia.split(",");
-			for (String part: parts) {
+			for (String part : parts) {
 				addresses.add(part);
 			}
 		}
-		
+
 		return Collections.unmodifiableList(addresses);
 	}
-	
+
 }

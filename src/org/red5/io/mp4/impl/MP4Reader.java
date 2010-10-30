@@ -669,6 +669,11 @@ public class MP4Reader implements IoConstants, ITagReader {
 													log.debug("Record count: {}", compositionTimes.size());
 													if (log.isTraceEnabled()) {
 														for (MP4Atom.CompositionTimeSampleRecord rec : compositionTimes) {
+															double offset = rec.getSampleOffset();
+															if (scale > 0d) {
+																offset = (offset / (double) scale) * 1000.0;
+																rec.setSampleOffset((int) offset);
+															}
 															log.trace("Record data: Consecutive samples={} Offset={}", rec.getConsecutiveSamples(), rec.getSampleOffset());
 														}
 													}
@@ -1020,11 +1025,9 @@ public class MP4Reader implements IoConstants, ITagReader {
 				}
 				body.put(videoDecoderBytes);
 			}
-
 			tag = new Tag(IoConstants.TYPE_VIDEO, 0, body.position(), null, 0);
 			body.flip();
 			tag.setBody(body);
-
 			//add tag
 			firstTags.add(tag);
 		}
@@ -1054,7 +1057,6 @@ public class MP4Reader implements IoConstants, ITagReader {
 			tag = new Tag(IoConstants.TYPE_AUDIO, 0, body.position(), null, tag.getBodySize());
 			body.flip();
 			tag.setBody(body);
-
 			//add tag
 			firstTags.add(tag);
 		}
@@ -1107,10 +1109,17 @@ public class MP4Reader implements IoConstants, ITagReader {
 				}
 				// match the sample with its ctts / mdhd adjustment time
 				int timeOffset = frame.getTimeOffset();
-				timeOffset = (timeOffset >> 8) | ((timeOffset & 0x000000ff) << 24);
 				data.put((byte) ((timeOffset >>> 16) & 0xff));
 				data.put((byte) ((timeOffset >>> 8) & 0xff));
 				data.put((byte) (timeOffset & 0xff));
+				if (log.isTraceEnabled()) {
+					byte[] prefix = new byte[5];
+					int p = data.position();
+					data.position(0);
+					data.get(prefix);
+					data.position(p);
+					log.trace("{}", prefix);
+				}
 				// track video frame count
 				videoCount++;
 			} else {
@@ -1125,19 +1134,15 @@ public class MP4Reader implements IoConstants, ITagReader {
 		} catch (IOException e) {
 			log.error("Error on channel position / read", e);
 		}
-
 		//chunk the data
 		IoBuffer payload = IoBuffer.wrap(data.array());
-
 		//create the tag
 		ITag tag = new Tag(type, time, payload.limit(), payload, prevFrameSize);
 		//log.debug("Read tag - type: {} body size: {}", (type == TYPE_AUDIO ? "Audio" : "Video"), tag.getBodySize());
-
 		//increment the frame number
 		currentFrame++;
 		//set the frame / tag size
 		prevFrameSize = tag.getBodySize();
-
 		//log.debug("Tag: {}", tag);
 		return tag;
 	}
@@ -1148,7 +1153,6 @@ public class MP4Reader implements IoConstants, ITagReader {
 	 */
 	public void analyzeFrames() {
 		log.debug("Analyzing frames");
-
 		// Maps positions, samples, timestamps to one another
 		timePosMap = new HashMap<Integer, Long>();
 		samplePosMap = new HashMap<Integer, Long>();
@@ -1219,12 +1223,10 @@ public class MP4Reader implements IoConstants, ITagReader {
 								compositeIndex = 0;
 							}
 						}
-
 						// add the frame
 						frames.add(frame);
-
 						//log.debug("Sample #{} {}", sample, frame);
-
+						
 						//inc and dec stuff
 						pos += size;
 						sampleCount--;
@@ -1262,7 +1264,6 @@ public class MP4Reader implements IoConstants, ITagReader {
 						frame.setTime(ts);
 						frame.setType(TYPE_AUDIO);
 						frames.add(frame);
-
 						//log.debug("Sample #{} {}", sample, frame);
 
 						//inc and dec stuff
@@ -1273,10 +1274,8 @@ public class MP4Reader implements IoConstants, ITagReader {
 				}
 			}
 		}
-
 		//sort the frames
 		Collections.sort(frames);
-
 		log.debug("Frames count: {}", frames.size());
 		//log.debug("Frames: {}", frames);
 
@@ -1297,7 +1296,6 @@ public class MP4Reader implements IoConstants, ITagReader {
 
 		syncSamples.clear();
 		syncSamples = null;
-
 	}
 
 	/**

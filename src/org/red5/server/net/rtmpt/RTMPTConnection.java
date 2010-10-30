@@ -36,8 +36,7 @@ import org.slf4j.Logger;
 
 public class RTMPTConnection extends BaseRTMPTConnection {
 
-	private static final Logger log = Red5LoggerFactory
-			.getLogger(RTMPTConnection.class);
+	private static final Logger log = Red5LoggerFactory.getLogger(RTMPTConnection.class);
 
 	/**
 	 * Start to increase the polling delay after this many empty results
@@ -73,8 +72,8 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	/** Constructs a new RTMPTConnection. */
 	RTMPTConnection() {
 		super(POLLING);
-		this.state = new RTMP(RTMP.MODE_SERVER);
-		clientId = hashCode();
+		state = new RTMP(RTMP.MODE_SERVER);
+		clientId = getNextClientId();
 	}
 
 	/**
@@ -125,37 +124,30 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 			// Special value to notify client about a closed connection.
 			return (byte) 0;
 		}
-		return (byte) (this.pollingDelay + 1);
+		return (byte) (pollingDelay + 1);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public IoBuffer getPendingMessages(int targetSize) {
-		getWriteLock().lock();
-		try {
-			long currentPendingMessages = getPendingMessages();
-			if (currentPendingMessages == 0) {
-				this.noPendingMessages += 1;
-				if (this.noPendingMessages > INCREASE_POLLING_DELAY_COUNT) {
-					if (this.pollingDelay == 0) {
-						this.pollingDelay = 1;
-					}
-					this.pollingDelay = (byte) (this.pollingDelay * 2);
-					if (this.pollingDelay > MAX_POLLING_DELAY) {
-						this.pollingDelay = MAX_POLLING_DELAY;
-					}
+		long currentPendingMessages = getPendingMessages();
+		if (currentPendingMessages == 0) {
+			noPendingMessages += 1;
+			if (noPendingMessages > INCREASE_POLLING_DELAY_COUNT) {
+				if (pollingDelay == 0) {
+					pollingDelay = 1;
 				}
-				return null;
+				pollingDelay = (byte) (pollingDelay * 2);
+				if (pollingDelay > MAX_POLLING_DELAY) {
+					pollingDelay = MAX_POLLING_DELAY;
+				}
 			}
-
-			log.debug("Going to return {} messages to client.", currentPendingMessages);
-			this.noPendingMessages = 0;
-			this.pollingDelay = INITIAL_POLLING_DELAY;
-		} finally {
-			getWriteLock().unlock();
+			return null;
 		}
-
+		log.debug("Going to return {} messages to client", currentPendingMessages);
+		noPendingMessages = 0;
+		pollingDelay = INITIAL_POLLING_DELAY;
 		return foldPendingMessages(targetSize);
 	}
 }

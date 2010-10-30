@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -102,7 +103,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	protected AtomicLong droppedMessages = new AtomicLong(0);
 
 	/**
-	 *  Connection params passed from client with NetConnection.connect call
+	 * Connection params passed from client with NetConnection.connect call
 	 *
 	 * @see <a href='http://livedocs.adobe.com/fms/2/docs/00000570.html'>NetConnection in Flash Media Server docs (external)</a>
 	 */
@@ -110,17 +111,17 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	protected volatile Map<String, Object> params = null;
 
 	/**
-	 *  Client bound to connection
+	 * Client bound to connection
 	 */
 	protected volatile IClient client;
 
 	/**
-	 *  Scope that connection belongs to
+	 * Scope that connection belongs to
 	 */
 	protected volatile Scope scope;
 
 	/**
-	 *  Set of basic scopes.
+	 * Set of basic scopes.
 	 */
 	protected Set<IBasicScope> basicScopes = new CopyOnWriteArraySet<IBasicScope>();
 
@@ -128,30 +129,40 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	 * Is the connection closed?
 	 */
 	protected volatile boolean closed;
-	
-	private final ReadWriteLock lock = new ReentrantReadWriteLock();
-	
+
 	/**
-	 *
+	 * Lock used on in the connections to protect read and write operations
 	 */
-	@ConstructorProperties(value={"persistent"})
+	private final ReadWriteLock lock = new ReentrantReadWriteLock();
+
+	/**
+	 * Used for generation of client ids that may be shared across the server
+	 */
+	private final static AtomicInteger clientIdGenerator = new AtomicInteger(0);
+
+	/**
+	 * Creates a new persistent base connection
+	 */
+	@ConstructorProperties(value = { "persistent" })
 	public BaseConnection() {
 		log.debug("New BaseConnection");
 		this.type = PERSISTENT;
-	}	
-	
+	}
+
 	/**
-	 *
+	 * Creates a new base connection with the given type.
+	 * 
 	 * @param type                Connection type
 	 */
-	@ConstructorProperties({"type"})
+	@ConstructorProperties({ "type" })
 	public BaseConnection(String type) {
 		log.debug("New BaseConnection - type: {}", type);
 		this.type = type;
 	}
-	
+
 	/**
-	 *
+	 * Creates a new base connection with the given parameters.
+	 * 
 	 * @param type                Connection type
 	 * @param host                Host
 	 * @param remoteAddress       Remote address
@@ -160,12 +171,10 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	 * @param sessionId           Session id
 	 * @param params              Params passed from client
 	 */
-	@ConstructorProperties({"type", "host", "remoteAddress", "remotePort", "path", "sessionId"})
-	public BaseConnection(String type, String host, String remoteAddress,
-			int remotePort, String path, String sessionId,
-			Map<String, Object> params) {
-		log.debug("New BaseConnection - type: {} host: {} remoteAddress: {} remotePort: {} path: {} sessionId: {}", 
-				new Object[]{type, host, remoteAddress, remotePort, path, sessionId});
+	@ConstructorProperties({ "type", "host", "remoteAddress", "remotePort", "path", "sessionId" })
+	public BaseConnection(String type, String host, String remoteAddress, int remotePort, String path, String sessionId, Map<String, Object> params) {
+		log.debug("New BaseConnection - type: {} host: {} remoteAddress: {} remotePort: {} path: {} sessionId: {}", new Object[] { type, host, remoteAddress, remotePort, path,
+				sessionId });
 		log.debug("Params: {}", params);
 		this.type = type;
 		this.host = host;
@@ -177,6 +186,14 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 		this.path = path;
 		this.sessionId = sessionId;
 		this.params = params;
+	}
+
+	/**
+	 * Returns the next available client id.
+	 * @return
+	 */
+	public static int getNextClientId() {
+		return clientIdGenerator.incrementAndGet();
 	}
 
 	/**
@@ -198,20 +215,14 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	 * @param client        Client bound to connection
 	 */
 	public void initialize(IClient client) {
-		Lock lock = getWriteLock();
-		lock.lock();
-		try {
-			if (this.client != null && this.client instanceof Client) {
-				// Unregister old client
-				((Client) this.client).unregister(this);
-			}
-			this.client = client;
-			if (this.client instanceof Client) {
-				// Register new client
-				((Client) this.client).register(this);
-			}
-		} finally {
-			lock.unlock();
+		if (this.client != null && this.client instanceof Client) {
+			// Unregister old client
+			((Client) this.client).unregister(this);
+		}
+		this.client = client;
+		if (this.client instanceof Client) {
+			// Register new client
+			((Client) this.client).register(this);
 		}
 	}
 
@@ -312,9 +323,9 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	public boolean connect(IScope newScope, Object[] params) {
 		if (log.isDebugEnabled()) {
 			log.debug("Connect Params: {}", params);
-            for (Object e : params) {
-                log.debug("Param: {}", e);
-            }
+			for (Object e : params) {
+				log.debug("Param: {}", e);
+			}
 		}
 		Lock lock = getWriteLock();
 		lock.lock();
@@ -353,12 +364,10 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 				log.debug("Close, not connected nothing to do.");
 				return;
 			}
-			
 			closed = true;
 		} finally {
 			getWriteLock().unlock();
 		}
-
 		log.debug("Close, disconnect from scope, and children");
 		try {
 			// Unregister all child scopes first
@@ -368,14 +377,12 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 		} catch (Exception err) {
 			log.error("Error while unregistering basic scopes.", err);
 		}
-
 		// Disconnect
 		try {
 			scope.disconnect(this);
 		} catch (Exception err) {
 			log.error("Error while disconnecting from scope: {}. {}", scope, err);
 		}
-
 		// Unregister client
 		if (client != null && client instanceof Client) {
 			((Client) client).unregister(this);
@@ -493,7 +500,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	public long getClientBytesRead() {
 		return 0;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
@@ -532,6 +539,6 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 			return false;
 		}
 		return true;
-	}	
-	
+	}
+
 }

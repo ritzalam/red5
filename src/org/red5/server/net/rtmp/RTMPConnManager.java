@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.red5.server.BaseConnection;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.net.mrtmp.EdgeRTMPMinaConnection;
 import org.red5.server.net.rtmpt.RTMPTConnection;
@@ -36,9 +37,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 public class RTMPConnManager implements IRTMPConnManager, ApplicationContextAware {
-	
+
 	private static final Logger log = LoggerFactory.getLogger(RTMPConnManager.class);
-	
+
 	private ConcurrentMap<Integer, RTMPConnection> connMap = new ConcurrentHashMap<Integer, RTMPConnection>();
 
 	private ReadWriteLock lock = new ReentrantReadWriteLock();
@@ -53,20 +54,9 @@ public class RTMPConnManager implements IRTMPConnManager, ApplicationContextAwar
 			RTMPConnection conn = createConnectionInstance(connCls);
 			lock.writeLock().lock();
 			try {
-				int offset = 0;
-				int base = conn.hashCode();
-				while (offset >= 0) {
-					if (!connMap.containsKey(base + offset)) {
-						conn.setId(base + offset);
-						connMap.put(base + offset, conn);
-						break;
-					} else if (!connMap.containsKey(base - offset)) {
-						conn.setId(base - offset);
-						connMap.put(base - offset, conn);
-						break;
-					}
-					offset++;
-				}
+				int clientId = BaseConnection.getNextClientId();
+				conn.setId(clientId);
+				connMap.put(clientId, conn);
 				log.debug("Connection created, id: {}", conn.getId());
 			} finally {
 				lock.writeLock().unlock();

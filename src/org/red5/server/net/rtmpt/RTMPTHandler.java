@@ -83,16 +83,15 @@ public class RTMPTHandler extends RTMPHandler {
 	 * @param in          Byte buffer with input raw data
 	 */
 	private void rawBufferRecieved(RTMPTConnection conn, ProtocolState state, IoBuffer in) {
+		log.debug("rawBufferRecieved: {}", in);
 		final RTMP rtmp = (RTMP) state;
-
 		if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
 			log.warn("Raw buffer after handshake, something odd going on");
 		}
-
+		// create buffer to hold handshake 
 		IoBuffer out = IoBuffer.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
-
 		log.debug("Writing handshake reply, handskake size: {}", in.remaining());
-
+		// determine client type
 		if (in.get(4) == 0) {
 			log.debug("Using old style handshake");
 			out = IoBuffer.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
@@ -117,6 +116,7 @@ public class RTMPTHandler extends RTMPHandler {
 	/** {@inheritDoc} */
 	@Override
 	public void messageReceived(Object in, IoSession session) throws Exception {
+		log.debug("messageReceived");
 		if (in instanceof IoBuffer) {
 			RTMPTConnection conn = (RTMPTConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 			RTMP state = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);

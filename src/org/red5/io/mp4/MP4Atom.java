@@ -1039,5 +1039,9 @@ public class MP4Atom {
 		public int getSampleOffset() {
 			return sampleOffset;
 		}
+
+		public void setSampleOffset(int offset) {
+			sampleOffset = offset;			
+		}
 	}
 }

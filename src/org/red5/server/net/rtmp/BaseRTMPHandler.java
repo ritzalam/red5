@@ -110,7 +110,6 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 		RTMP state = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
 		IRTMPEvent message = null;
 		try {
-
 			final Packet packet = (Packet) in;
 			message = packet.getMessage();
 			final Header header = packet.getHeader();
@@ -214,7 +213,6 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 		if (message instanceof IoBuffer) {
 			return;
 		}
-
 		// Increase number of sent messages
 		conn.messageSent((Packet) message);
 	}
@@ -262,7 +260,6 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 				// TODO: can a client return multiple results?
 				pendingCall.setResult(args[0]);
 			}
-
 			Set<IPendingServiceCallback> callbacks = pendingCall.getCallbacks();
 			if (!callbacks.isEmpty()) {
 				HashSet<IPendingServiceCallback> tmp = new HashSet<IPendingServiceCallback>();

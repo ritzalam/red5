@@ -30,6 +30,7 @@ import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPHandshake;
 import org.red5.server.net.rtmp.codec.RTMP;
+import org.red5.server.net.rtmp.message.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,53 +46,62 @@ public class RTMPEIoFilter extends IoFilterAdapter {
 
 	@Override
 	public void messageReceived(NextFilter nextFilter, IoSession session, Object obj) throws Exception {
+		RTMP rtmp = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
 		//if there is a handshake on the session, ensure the type has been set
 		if (session.containsAttribute(RTMPConnection.RTMP_HANDSHAKE)) {
 			log.trace("Handshake exists on the session");
-			RTMP rtmp = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
 			//get the handshake from the session
 			RTMPHandshake handshake = (RTMPHandshake) session.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
-			if (handshake.getHandshakeType() == 0) {
+			int handshakeType = handshake.getHandshakeType();
+			if (handshakeType == 0) {
 				log.trace("Handshake type is not currently set");
 				// holds the handshake type, default is un-encrypted
-				byte handshakeType = RTMPConnection.RTMP_NON_ENCRYPTED;
+				byte handshakeByte = RTMPConnection.RTMP_NON_ENCRYPTED;
 				//get the current message
 				if (obj instanceof IoBuffer) {
 					IoBuffer message = (IoBuffer) obj;
 					message.mark();
-					handshakeType = message.get();
+					handshakeByte = message.get();
 					message.reset();
 				}
 				//set the type
-				handshake.setHandshakeType(handshakeType);
+				handshake.setHandshakeType(handshakeByte);
 				//set on the rtmp state
-				rtmp.setEncrypted(handshakeType == RTMPConnection.RTMP_ENCRYPTED ? true : false);
-			}
-			//if we are connected and doing encryption, add the ciphers
-			if (rtmp.getState() == RTMP.STATE_CONNECTED) {
-				log.debug("In connected state");
+				rtmp.setEncrypted(handshakeByte == RTMPConnection.RTMP_ENCRYPTED ? true : false);
+			} else if (handshakeType == 3) {
+				if (rtmp.getState() == RTMP.STATE_CONNECTED) {
+					log.debug("In connected state");
+					// remove handshake from session now that we are connected
+					session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
+					log.debug("Using non-encrypted communications");
+				}
+			} else if (handshakeType == 6) {
+				//if we are connected and doing encryption, add the ciphers
+				log.debug("Assumed to be in a connected state");
 				// remove handshake from session now that we are connected
 				session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
-    			// if we are using encryption then put the ciphers in the session
-        		if (handshake.getHandshakeType() == RTMPConnection.RTMP_ENCRYPTED) {
-    				log.debug("Using encrypted communications");
-        			//make sure they are not already on the session
-        			if (session.containsAttribute(RTMPConnection.RTMPE_CIPHER_IN)) {
-            			log.debug("Ciphers already exist on the session");
-        			} else {
-            			log.debug("Adding ciphers to the session");
-            			session.setAttribute(RTMPConnection.RTMPE_CIPHER_IN, handshake.getCipherIn());
-            			session.setAttribute(RTMPConnection.RTMPE_CIPHER_OUT, handshake.getCipherOut());
-        			}
-        		} else {
-    				log.debug("Using non-encrypted communications");
+				log.debug("Using encrypted communications");
+				//make sure they are not already on the session
+				if (session.containsAttribute(RTMPConnection.RTMPE_CIPHER_IN)) {
+					log.debug("Ciphers already exist on the session");
+				} else {
+					log.debug("Adding ciphers to the session");
+					session.setAttribute(RTMPConnection.RTMPE_CIPHER_IN, handshake.getCipherIn());
+					session.setAttribute(RTMPConnection.RTMPE_CIPHER_OUT, handshake.getCipherOut());
 				}
-			}			
+			}
 		}
 		Cipher cipher = (Cipher) session.getAttribute(RTMPConnection.RTMPE_CIPHER_IN);
 		if (cipher != null) { //may want to verify handshake is complete as well
 			// assume message is an IoBuffer
 			IoBuffer message = (IoBuffer) obj;
+			if (rtmp.getState() == RTMP.STATE_HANDSHAKE) {
+				//skip the first 1536
+				byte[] handshakeReply = new byte[Constants.HANDSHAKE_SIZE];
+				message.get(handshakeReply);
+				// TODO verify reply, for now just set to connected
+				rtmp.setState(RTMP.STATE_CONNECTED);
+			}
 			log.debug("Decrypting buffer: {}", message);
 			byte[] encrypted = new byte[message.remaining()];
 			message.get(encrypted);
