@@ -41,9 +41,6 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
  */
 public class StatisticsServlet extends HttpServlet {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 5810139109603229027L;
 
 	private final transient XmlRpcServer server = new XmlRpcServer();
@@ -55,12 +52,9 @@ public class StatisticsServlet extends HttpServlet {
 	/** {@inheritDoc} */
 	@Override
 	public void init() throws ServletException {
-		webAppCtx = WebApplicationContextUtils
-				.getWebApplicationContext(getServletContext());
+		webAppCtx = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
 		if (webAppCtx == null) {
-			webAppCtx = (WebApplicationContext) getServletContext()
-					.getAttribute(
-							WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+			webAppCtx = (WebApplicationContext) getServletContext().getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
 		}
 		if (webAppCtx == null) {
 			throw new ServletException("No web application context found.");
@@ -69,14 +63,12 @@ public class StatisticsServlet extends HttpServlet {
 		webContext = (IContext) webAppCtx.getBean("web.context");
 
 		// Register handlers in XML-RPC server
-		server.addHandler("scopes", new XmlRpcScopeStatistics(webContext
-				.getGlobalScope()));
+		server.addHandler("scopes", new XmlRpcScopeStatistics(webContext.getGlobalScope()));
 	}
 
 	/** {@inheritDoc} */
 	@Override
-	public void doPost(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
+	public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// Process request with XML-RPC server
 		byte[] result = server.execute(request.getInputStream());
 		response.setContentType("text/xml");

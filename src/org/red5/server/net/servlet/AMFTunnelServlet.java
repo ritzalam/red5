@@ -52,10 +52,11 @@ public class AMFTunnelServlet extends HttpServlet {
 	protected Logger logger = Red5LoggerFactory.getLogger(AMFTunnelServlet.class);
 
 	private static final String REQUEST_TYPE = "application/x-amf";
-	
+
 	private static String postAcceptorURL = "http://localhost:8080/gateway";
+
 	private static int connectionTimeout = 30000;
-	
+
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
@@ -67,7 +68,7 @@ public class AMFTunnelServlet extends HttpServlet {
 		//get the connection timeout
 		if (config.getInitParameter("tunnel.timeout") != null) {
 			connectionTimeout = Integer.valueOf(config.getInitParameter("tunnel.timeout"));
-		}		
+		}
 		logger.debug("POST connection timeout: {}", postAcceptorURL);
 	}
 
@@ -75,38 +76,13 @@ public class AMFTunnelServlet extends HttpServlet {
 	 * Redirect to HTTP port.
 	 */
 	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
+	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-		HttpClient client = new HttpClient(
-				new MultiThreadedHttpConnectionManager());
+		HttpClient client = new HttpClient(new MultiThreadedHttpConnectionManager());
 		client.getHttpConnectionManager().getParams().setConnectionTimeout(connectionTimeout);
 		PostMethod get = new PostMethod(postAcceptorURL);
 
 		try {
-			// copy all the headers
-			// Enumeration headerNames = req.getHeaderNames();
-			// while (headerNames.hasMoreElements()) {
-			// String headerName = (String) headerNames.nextElement();
-			// logger.debug("Adding received header to tunnel request: "
-			// + headerName);
-			// get.addRequestHeader(headerName, req.getHeader(headerName));
-			// }
-			// Enumeration parameterNames = req.getParameterNames();
-			// while (parameterNames.hasMoreElements()) {
-			// String parameterName = (String) parameterNames.nextElement();
-			// logger.debug("Adding received parameter to tunnel request: "
-			// + parameterName);
-			// get.getParams().setParameter(parameterName,
-			// req.getParameter(parameterName));
-			// }
-			// Enumeration attributeNames = req.getAttributeNames();
-			// while (attributeNames.hasMoreElements()) {
-			// String attributeName = (String) attributeNames.nextElement();
-			// logger.debug("Adding received attribute to tunnel request: "
-			// + attributeName);
-			// }
-
 			String path = req.getContextPath();
 			if (path == null) {
 				path = "";
@@ -122,13 +98,9 @@ public class AMFTunnelServlet extends HttpServlet {
 				logger.debug("Request content length: {}", reqContentLength);
 
 				IoBuffer reqBuffer = IoBuffer.allocate(reqContentLength);
-				ServletUtils.copy(req.getInputStream(), reqBuffer
-						.asOutputStream());
+				ServletUtils.copy(req.getInputStream(), reqBuffer.asOutputStream());
 				reqBuffer.flip();
-				get
-						.setRequestEntity(new InputStreamRequestEntity(
-								reqBuffer.asInputStream(), reqContentLength,
-								REQUEST_TYPE));
+				get.setRequestEntity(new InputStreamRequestEntity(reqBuffer.asInputStream(), reqContentLength, REQUEST_TYPE));
 				// get.setPath(path);
 				get.addRequestHeader("Tunnel-request", path);
 
@@ -137,14 +109,11 @@ public class AMFTunnelServlet extends HttpServlet {
 
 				if (get.getStatusCode() == HttpStatus.SC_OK) {
 					resp.setContentType(REQUEST_TYPE);
-					int responseLength = ((Long) get.getResponseContentLength())
-							.intValue();
+					int responseLength = ((Long) get.getResponseContentLength()).intValue();
 					IoBuffer respBuffer = IoBuffer.allocate(responseLength);
-					ServletUtils.copy(get.getResponseBodyAsStream(), respBuffer
-							.asOutputStream());
+					ServletUtils.copy(get.getResponseBodyAsStream(), respBuffer.asOutputStream());
 					respBuffer.flip();
-					ServletUtils.copy(respBuffer.asInputStream(), resp
-							.getOutputStream());
+					ServletUtils.copy(respBuffer.asInputStream(), resp.getOutputStream());
 					resp.flushBuffer();
 				} else {
 					resp.sendError(get.getStatusCode());

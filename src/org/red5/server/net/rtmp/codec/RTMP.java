@@ -31,6 +31,9 @@ import org.red5.server.net.rtmp.message.Packet;
  * RTMP is the RTMP protocol state representation.
  */
 public class RTMP extends ProtocolState {
+	
+	public String[] states = {"connect", "handshake", "connected", "error", "disconnected"};
+	
 	/**
 	 * Connect state.
 	 */
@@ -496,7 +499,7 @@ public class RTMP extends ProtocolState {
 	 */
 	@Override
 	public String toString() {
-		return "RTMP [state=" + state + ", client-mode=" + mode + ", debug=" + debug + ", encrypted=" + encrypted + ", lastReadChannel=" + lastReadChannel + ", lastWriteChannel="
+		return "RTMP [state=" + states[state] + ", client-mode=" + mode + ", debug=" + debug + ", encrypted=" + encrypted + ", lastReadChannel=" + lastReadChannel + ", lastWriteChannel="
 				+ lastWriteChannel + ", readHeaders=" + readHeaders + ", writeHeaders=" + writeHeaders + ", readPacketHeaders=" + readPacketHeaders + ", readPackets="
 				+ readPackets + ", writePackets=" + writePackets + ", writeTimestamps=" + writeTimestamps + ", liveTimestamps=" + liveTimestamps + ", readChunkSize="
 				+ readChunkSize + ", writeChunkSize=" + writeChunkSize + ", encoding=" + encoding + "]";
