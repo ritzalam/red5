@@ -432,7 +432,7 @@ public class RTMPTServlet extends HttpServlet {
 	 */
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		log.debug("Request - method: {} content type: {} path: {}", new Object[]{req.getMethod(), req.getContentType(), req.getServletPath()});
+		log.debug("Request - method: {} content type: {} path: {}", new Object[] { req.getMethod(), req.getContentType(), req.getServletPath() });
 		if (!REQUEST_METHOD.equals(req.getMethod()) || req.getContentLength() == 0 || !CONTENT_TYPE.equals(req.getContentType())) {
 			// Bad request - return simple error page
 			handleBadRequest("Bad request, only RTMPT supported.", resp);
@@ -460,14 +460,23 @@ public class RTMPTServlet extends HttpServlet {
 				break;
 			case 'f': // HTTPIdent request (ident and ident2)
 				//if HTTPIdent is requested send back some Red5 info
-				//http://livedocs.adobe.com/flashmediaserver/3.0/docs/help.html?content=08_xmlref_011.html
-				String ident = "<fcs><Company>Red5</Company><Team>Red5 Server</Team></fcs>";
-				resp.setStatus(HttpServletResponse.SC_OK);
-				resp.setHeader("Connection", "Keep-Alive");
-				resp.setHeader("Cache-Control", "no-cache");
-				resp.setContentType(CONTENT_TYPE);
-				resp.setContentLength(ident.length());
-				resp.getWriter().write(ident);
+				//http://livedocs.adobe.com/flashmediaserver/3.0/docs/help.html?content=08_xmlref_011.html			
+				String uri = req.getRequestURI().trim();
+				// handle ident2 slightly different to appease osx clients
+				if (uri.charAt(uri.length() - 1) == '2') {
+					// just send 404 back for now
+					resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+					resp.setHeader("Connection", "Keep-Alive");
+					resp.setHeader("Cache-Control", "no-cache");
+				} else {
+					String ident = "<fcs><Company>Red5</Company><Team>Red5 Server</Team></fcs>";
+					resp.setStatus(HttpServletResponse.SC_OK);
+					resp.setHeader("Connection", "Keep-Alive");
+					resp.setHeader("Cache-Control", "no-cache");
+					resp.setContentType(CONTENT_TYPE);
+					resp.setContentLength(ident.length());
+					resp.getWriter().write(ident);
+				}
 				resp.flushBuffer();
 				break;
 			default:
