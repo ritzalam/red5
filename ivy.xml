@@ -12,61 +12,90 @@
     <dependencies>
         <!-- JEE --> 
         <!-- Modified JEE jar from: 
-        http://mirrors.ibiblio.org/pub/mirrors/maven2/org/ow2/jonas/osgi/javaee-api
-        http://jcp.org/aboutJava/communityprocess/final/jsr316/index.html
-        https://glassfish.dev.java.net/downloads/ri/
-        -->
+			http://mirrors.ibiblio.org/pub/mirrors/maven2/org/ow2/jonas/osgi/javaee-api
+			http://jcp.org/aboutJava/communityprocess/final/jsr316/index.html
+			https://glassfish.dev.java.net/downloads/ri/
+		-->
         <dependency org="javax" name="javaee-api" rev="5.1.2" />
         <!-- Spring --> 
-        <dependency org="spring" name="spring-asm" rev="3.0.4" />
-        <dependency org="spring" name="spring-beans" rev="3.0.4" />
-        <dependency org="spring" name="spring-context" rev="3.0.4" />
-        <dependency org="spring" name="spring-core" rev="3.0.4" />
-        <dependency org="spring" name="spring-web" rev="3.0.4" />
-        <dependency org="spring" name="spring-expression" rev="3.0.4" />
+        <dependency org="org.springframework" name="org.springframework.asm" rev="3.0.5.RELEASE" />
+        <dependency org="org.springframework" name="org.springframework.beans" rev="3.0.5.RELEASE" />
+        <dependency org="org.springframework" name="org.springframework.context" rev="3.0.5.RELEASE" />
+        <dependency org="org.springframework" name="org.springframework.core" rev="3.0.5.RELEASE" />
+        <dependency org="org.springframework" name="org.springframework.expression" rev="3.0.5.RELEASE" />
+        <dependency org="org.springframework" name="org.springframework.web" rev="3.0.5.RELEASE" />				
         <!-- Logging --> 
-        <dependency name="slf4j-api" rev="1.6.1" />
-        <dependency name="jcl-over-slf4j" rev="1.6.1" />
-        <dependency name="log4j-over-slf4j" rev="1.6.1" />
-        <dependency name="jul-to-slf4j" rev="1.6.1" />
-        <dependency name="logback-core" rev="0.9.24" />
-        <dependency name="logback-classic" rev="0.9.24" />
+        <dependency org="org.slf4j" name="com.springsource.slf4j.api" rev="1.6.1" />
+        <dependency org="org.slf4j" name="com.springsource.slf4j.org.apache.commons.logging" rev="1.6.1" />
+        <dependency org="org.slf4j" name="com.springsource.slf4j.log4j" rev="1.6.1" />
+        <dependency org="org.slf4j" name="com.springsource.slf4j.juli" rev="1.6.1" />
+        <dependency org="org.slf4j" name="com.springsource.slf4j.bridge" rev="1.6.1" />
+        <dependency org="ch.qos.logback" name="com.springsource.ch.qos.logback.classic" rev="0.9.24" />
+        <dependency org="ch.qos.logback" name="com.springsource.ch.qos.logback.core" rev="0.9.24" />				
         <!-- General --> 
         <dependency org="commons" name="commons-beanutils" rev="1.8.2" />
-        <dependency org="commons" name="commons-codec" rev="1.4" />
-        <dependency org="commons" name="commons-collections" rev="3.2.1" /> 
-        <dependency org="commons" name="commons-httpclient" rev="3.1" />
-        <dependency org="commons" name="commons-lang" rev="2.4" />
-        <dependency org="commons" name="commons-pool" rev="1.4" />
-        <dependency name="quartz" rev="1.6.5" />
-		<dependency name="ehcache" rev="2.2.0"/>
+        <!-- <dependency org="org.apache.commons" name="com.springsource.org.apache.commons.beanutils" rev="1.8.2" /> -->
+        <dependency org="org.apache.commons" name="com.springsource.org.apache.commons.codec" rev="1.4.0" />
+        <dependency org="org.apache.commons" name="com.springsource.org.apache.commons.collections" rev="3.2.1" />
+        <dependency org="org.apache.commons" name="com.springsource.org.apache.commons.httpclient" rev="3.1.0" />
+        <dependency org="org.apache.commons" name="com.springsource.org.apache.commons.lang" rev="2.4.0" />
+		<dependency org="org.apache.commons" name="com.springsource.org.apache.commons.modeler" rev="2.0.1" />
+        <dependency org="org.apache.commons" name="com.springsource.org.apache.commons.pool" rev="1.5.3" />		
+		<dependency name="quartz" rev="1.6.5" />
+        <!-- <dependency org="com.opensymphony.quartz" name="com.springsource.org.quartz" rev="1.6.5" /> -->
+		<dependency name="ehcache" rev="2.2.0" />
+        <!-- <dependency org="net.sourceforge.ehcache" name="com.springsource.net.sf.ehcache" rev="2.2.0" /> -->
         <!-- XML -->
-        <dependency name="xercesImpl" rev="2.9.1" />
+		<dependency org="org.apache.xerces" name="com.springsource.org.apache.xerces" rev="2.9.1" />
         <dependency name="xmlrpc" rev="2.0.1" />
-        <!-- Mina --> 
+        <!-- Mina --> 	
+		<dependency org="mina" name="mina-integration-beans" rev="2.0.1" />
+        <dependency org="mina" name="mina-integration-jmx" rev="2.0.1" />
         <dependency org="mina" name="mina-core" rev="2.0.1" />
-        <dependency org="mina" name="mina-integration-beans" rev="2.0.1" />
-        <dependency org="mina" name="mina-integration-jmx" rev="2.0.1" />   
+        <!-- <dependency org="org.apache.mina" name="com.springsource.org.apache.mina.core" rev="2.0.2" /> -->
         <!-- Scripting -->
-        <dependency org="asm" name="asm" rev="3.1" />
-        <dependency org="asm" name="asm-commons" rev="3.1" />
-        <dependency org="antlr" name="antlr" rev="3.1.3" />
-        <dependency name="groovy-all" rev="1.5.7" />  
-        <dependency name="jruby-complete" rev="1.1.6" conf="java6->*"/>  
-        <dependency name="jruby-engine" rev="1.1.6" conf="java6->*"/>  
-        <dependency name="jython" rev="2.5" />  
-        <dependency org="spring" name="spring-context-support" rev="3.0.4" />
+        <dependency org="org.objectweb.asm" name="com.springsource.org.objectweb.asm" rev="3.2.0" />
+        <dependency org="org.objectweb.asm" name="com.springsource.org.objectweb.asm.commons" rev="3.2.0" />
+        <dependency org="org.antlr" name="com.springsource.org.antlr" rev="3.1.3" />
+        <dependency org="org.codehaus.groovy" name="com.springsource.org.codehaus.groovy" rev="1.7.0" />
+        <dependency org="org.jruby" name="com.springsource.org.jruby" rev="1.1.6" />
+		<dependency name="jython" rev="2.5" /> 
+        <!-- <dependency org="org.python" name="com.springsource.org.python" rev="2.5.0" /> -->
+        <dependency org="org.mozilla.javascript" name="com.springsource.org.mozilla.javascript" rev="1.7.0.R2" />
+        <dependency org="javax.xml.stream" name="com.springsource.javax.xml.stream" rev="1.0.1" />		
+        <dependency org="org.springframework" name="org.springframework.context.support" rev="3.0.5.RELEASE" />
         <!-- Crypto -->
-        <dependency name="bcprov-jdk16" rev="145" conf="java6->*"/> 
+		<dependency name="bcprov-jdk16" rev="145" conf="java6->*"/> 
+        <!-- <dependency org="org.bouncycastle" name="com.springsource.org.bouncycastle.jce" rev="1.45.0" /> -->
         <!-- MP3 -->
         <dependency name="jaudiotagger" rev="1.0.8" />           
         <!-- Testing support -->
         <!-- until Eclipse updates their junit version, we have to use this -->
-        <dependency name="junit" rev="4.7" conf="eclipse->*"/>
+        <dependency org="org.junit" name="com.springsource.org.junit" rev="4.8.1" conf="eclipse->*"/>
         <dependency name="GroboUtils" rev="5-core" conf="eclipse->*"/>
-        <dependency org="spring" name="spring-test" rev="3.0.4" conf="eclipse->*"/>   
-        <dependency org="spring" name="spring-transaction" rev="3.0.4" conf="eclipse->*"/>  
-        <dependency name="jython-engine" rev="" conf="eclipse->*"/> 
-        <dependency name="groovy-engine" rev="" conf="eclipse->*"/>
+        <dependency org="org.springframework" name="org.springframework.test" rev="3.0.5.RELEASE" conf="eclipse->*"/>   
+		<dependency org="org.springframework" name="org.springframework.transaction" rev="3.0.5.RELEASE" conf="eclipse->*"/>   
+		<!-- Additional libraries / not required by Red5 -->
+		<!--
+        <dependency org="org.hibernate" name="com.springsource.org.hibernate.annotations" rev="3.4.0.GA" />
+        <dependency org="org.hibernate" name="com.springsource.org.hibernate.annotations.common" rev="3.3.0.ga" />
+        <dependency org="org.hibernate" name="com.springsource.org.hibernate" rev="3.3.2.GA" />
+        <dependency org="org.hibernate" name="com.springsource.org.hibernate.validator" rev="4.0.2.GA" />
+
+        <dependency org="org.aopalliance" name="com.springsource.org.aopalliance" rev="1.0.0" />
+        <dependency org="org.aspectj" name="com.springsource.org.aspectj.weaver" rev="1.6.8.RELEASE" />
+        <dependency org="org.aspectj" name="com.springsource.org.aspectj.runtime" rev="1.6.8.RELEASE" />
+        <dependency org="net.sourceforge.cglib" name="com.springsource.net.sf.cglib" rev="2.2.0" />
+
+        <dependency org="org.springframework" name="org.springframework.aop" rev="3.0.2.RELEASE" />
+        <dependency org="org.springframework" name="org.springframework.jdbc" rev="3.0.2.RELEASE" />
+        <dependency org="org.springframework" name="org.springframework.orm" rev="3.0.2.RELEASE" />
+
+        <dependency org="com.mchange.c3p0" name="com.springsource.com.mchange.v2.c3p0" rev="0.9.1.2" />
+
+        <dependency org="com.mysql.jdbc" name="com.springsource.com.mysql.jdbc" rev="5.1.6" />
+
+        <dependency org="org.apache.commons" name="com.springsource.org.apache.commons.fileupload" rev="1.2.1" />		
+		-->
     </dependencies>
 </ivy-module>
