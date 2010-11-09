@@ -179,12 +179,22 @@
 		<echo message="Ivy conf name: ${ivy.conf.name}"/>
 		<ivy:resolve file="ivy.xml" conf="${ivy.conf.name}"/>
 		<ivy:retrieve conf="${ivy.conf.name}"/>
+		<!-- install locally 
+		<ivy:install organisation="javax" module="javaee-api" revision="5.1.2" from="googlecode" to="local_cache"/>
+		<ivy:install organisation="*" module="jaudiotagger" revision="1.0.8" from="googlecode" to="local_cache"/>
+		<ivy:install organisation="org.apache.commons" module="com.springsource.org.apache.commons.codec" revision="latest" from="com.springsource.repository.bundles.external" to="local_cache"/>
+		<ivy:install organisation="org.apache.commons" module="com.springsource.org.apache.commons.collections" revision="latest" from="com.springsource.repository.bundles.external" to="local_cache"/>
+		<ivy:install organisation="org.apache.commons" module="com.springsource.org.apache.commons.httpclient" revision="latest" from="com.springsource.repository.bundles.external" to="local_cache"/>
+		<ivy:install organisation="org.apache.commons" module="com.springsource.org.apache.commons.lang" revision="latest" from="com.springsource.repository.bundles.external" to="local_cache"/>
+		<ivy:install organisation="org.apache.xerces" module="com.springsource.org.apache.xerces" revision="latest" from="com.springsource.repository.bundles.external" to="local_cache"/>
+		-->
 	</target>
 	<target name="ivyclear" description="Clears out the Ivy cache">
 		<delete dir="${user.home}/.ivy2/cache"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${lib.dir}" excludes="**/ivy*.jar"/>
 		</delete>
+		<ivy:cleancache/>
 	</target>
 	<target name="compile" depends="-library.check, -java6.check, prepare" description="Compiles the server">
 		<!-- token replacement filers -->
@@ -521,6 +531,7 @@
 				<exclude name="ivy*.jar"/>
 				<exclude name="junit*.jar"/>
 				<exclude name="grobo*.jar"/>
+				<exclude name="*-sources*.jar"/>
 			</fileset>
 		</copy>
 		<copy todir="${dist.dir}/conf">
