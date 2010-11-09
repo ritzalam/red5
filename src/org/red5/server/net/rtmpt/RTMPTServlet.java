@@ -20,6 +20,7 @@ package org.red5.server.net.rtmpt;
  */
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 
@@ -90,6 +91,9 @@ public class RTMPTServlet extends HttpServlet {
 
 	private static IRTMPConnManager rtmpConnManager;
 
+	// Response sent for ident2 requests. If this is null a 404 will be returned
+	private static String ident2;
+
 	public void setRtmpConnManager(IRTMPConnManager rtmpConnManager) {
 		RTMPTServlet.rtmpConnManager = rtmpConnManager;
 	}
@@ -101,6 +105,15 @@ public class RTMPTServlet extends HttpServlet {
 	 */
 	public void setHandler(RTMPTHandler handler) {
 		RTMPTServlet.handler = handler;
+	}
+
+	/** 
+	 * Set the fcs/ident2 string
+	 * 
+	 * @param ident2
+	 */
+	public void setIdent2(String ident2) {
+		RTMPTServlet.ident2 = ident2;
 	}
 
 	/**
@@ -193,26 +206,37 @@ public class RTMPTServlet extends HttpServlet {
 
 	/**
 	 * Return the client id from a url like /send/123456/12 -> 123456
-	 * 
-	 * @param req
-	 *            Servlet request
+	 *
+	 * @param req Servlet request
 	 * @return Client id
 	 */
 	protected Integer getClientId(HttpServletRequest req) {
-		String path = req.getPathInfo();
-		if (path.equals("")) {
+		String uri = req.getRequestURL().toString();
+		URL url = null;
+		try {
+			url = new URL(uri);
+		} catch (Exception e) {
+			log.warn("getclientId: error parsing url: {}", uri);
 			return null;
 		}
-		while (path.length() > 1 && path.charAt(0) == '/') {
-			path = path.substring(1);
+		// get path
+		String path = url.getPath();
+		if (path.equals("")) {
+			log.error("getClientId: path is empty");
+			return null;
 		}
-		int endPos = path.indexOf('/');
-		if (endPos != -1) {
-			path = path.substring(0, endPos);
+		// trim off end
+		int pos = path.lastIndexOf('/');
+		path = path.substring(0, pos);
+		// trim off beginning
+		pos = path.lastIndexOf('/');
+		if (pos != -1) {
+			path = path.substring(pos + 1);
 		}
 		try {
-			return Integer.parseInt(path);
-		} catch (NumberFormatException e) {
+			return Integer.valueOf(path);
+		} catch (Exception e) {
+			log.error("getClientId: parse error", e);
 			return null;
 		}
 	}
@@ -461,22 +485,28 @@ public class RTMPTServlet extends HttpServlet {
 			case 'f': // HTTPIdent request (ident and ident2)
 				//if HTTPIdent is requested send back some Red5 info
 				//http://livedocs.adobe.com/flashmediaserver/3.0/docs/help.html?content=08_xmlref_011.html			
-				String uri = req.getRequestURI().trim();
+				String ident = "<fcs><Company>Red5</Company><Team>Red5 Server</Team></fcs>";
 				// handle ident2 slightly different to appease osx clients
+				String uri = req.getRequestURI().trim();
 				if (uri.charAt(uri.length() - 1) == '2') {
-					// just send 404 back for now
-					resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-					resp.setHeader("Connection", "Keep-Alive");
-					resp.setHeader("Cache-Control", "no-cache");
-				} else {
-					String ident = "<fcs><Company>Red5</Company><Team>Red5 Server</Team></fcs>";
-					resp.setStatus(HttpServletResponse.SC_OK);
-					resp.setHeader("Connection", "Keep-Alive");
-					resp.setHeader("Cache-Control", "no-cache");
-					resp.setContentType(CONTENT_TYPE);
-					resp.setContentLength(ident.length());
-					resp.getWriter().write(ident);
+					// check for pre-configured ident2 value
+					if (ident2 != null) {
+						ident = ident2;
+					} else {
+						// just send 404 back if no ident2 value is set
+						resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+						resp.setHeader("Connection", "Keep-Alive");
+						resp.setHeader("Cache-Control", "no-cache");
+						resp.flushBuffer();
+						break;
+					}
 				}
+				resp.setStatus(HttpServletResponse.SC_OK);
+				resp.setHeader("Connection", "Keep-Alive");
+				resp.setHeader("Cache-Control", "no-cache");
+				resp.setContentType(CONTENT_TYPE);
+				resp.setContentLength(ident.length());
+				resp.getWriter().write(ident);
 				resp.flushBuffer();
 				break;
 			default:
