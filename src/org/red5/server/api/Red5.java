@@ -73,9 +73,10 @@ public final class Red5 {
 	 * Data version for NetStatusEvents
 	 */
 	@SuppressWarnings("serial")
-	public static final Map<String, Object> DATA_VERSION = new HashMap<String, Object>(1) {
+	public static final Map<String, Object> DATA_VERSION = new HashMap<String, Object>(2) {
 		{
 			put("version", "4,0,0,1121");
+			put("type", "red5");
 		}
 	};
 
