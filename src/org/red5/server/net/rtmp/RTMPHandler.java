@@ -291,6 +291,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 										result.setAdditional("fmsVer", Red5.getFMSVersion());
 										result.setAdditional("capabilities", Integer.valueOf(31));
 										result.setAdditional("mode", Integer.valueOf(1));
+										result.setAdditional("data", Red5.getDataVersion());
 										pc.setResult(result);
 									}
 									// Measure initial roundtrip time after connecting

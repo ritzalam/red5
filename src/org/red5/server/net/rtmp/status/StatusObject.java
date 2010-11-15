@@ -157,8 +157,7 @@ public class StatusObject implements Serializable, ICustomSerializable, External
     }
 
     public void setAdditional(String name, Object value) {
-    	if ("code".equals(name) || "level".equals(name) ||
-    			"description".equals(name) || "application".equals(name)) {
+    	if ("code,level,description,application".indexOf(name) != -1) {
     		throw new RuntimeException("the name \"" + name + "\" is reserved");
     	}
     	if (additional == null) {
@@ -174,9 +173,9 @@ public class StatusObject implements Serializable, ICustomSerializable, External
     	output.writeString(getCode());
     	output.putString("description");
     	output.writeString(getDescription());
-    	if (getApplication() != null) {
+    	if (application != null) {
     		output.putString("application");
-    		serializer.serialize(output, getApplication());
+    		serializer.serialize(output, application);
     	}
     	if (additional != null) {
     		// Add additional parameters
@@ -192,15 +191,19 @@ public class StatusObject implements Serializable, ICustomSerializable, External
 		code = (String) in.readObject();
 		description = (String) in.readObject();
 		level = (String) in.readObject();
-		application = in.readObject();
 		additional = (Map<String, Object>) in.readObject();
+		application = in.readObject();
 	}
 
 	public void writeExternal(ObjectOutput out) throws IOException {
 		out.writeObject(code);
 		out.writeObject(description);
 		out.writeObject(level);
-		out.writeObject(application);
-		out.writeObject(additional);
+		if (application != null) {
+			out.writeObject(additional);
+		}
+		if (additional != null) {
+			out.writeObject(application);
+		}
 	}
 }
