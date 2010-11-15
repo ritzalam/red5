@@ -26,12 +26,21 @@
         <dependency org="org.springframework" name="org.springframework.web" rev="3.0.5.RELEASE" transitive="false" />
         <!-- Logging --> 
         <dependency org="org.slf4j" name="com.springsource.slf4j.api" rev="1.6.1" transitive="false" />
-        <dependency org="org.slf4j" name="com.springsource.slf4j.org.apache.commons.logging" rev="1.6.1" transitive="false" />
-        <dependency org="org.slf4j" name="com.springsource.slf4j.log4j" rev="1.6.1" transitive="false" />
-        <dependency org="org.slf4j" name="com.springsource.slf4j.juli" rev="1.6.1" transitive="false" />
         <dependency org="org.slf4j" name="com.springsource.slf4j.bridge" rev="1.6.1" transitive="false" />
-        <dependency org="ch.qos.logback" name="com.springsource.ch.qos.logback.classic" rev="0.9.24" transitive="false" />
-        <dependency org="ch.qos.logback" name="com.springsource.ch.qos.logback.core" rev="0.9.24" transitive="false" />
+		<!--
+			<dependency org="org.slf4j" name="com.springsource.slf4j.org.apache.commons.logging" rev="1.6.1" transitive="false" />
+			<dependency org="org.slf4j" name="com.springsource.slf4j.log4j" rev="1.6.1" transitive="false" />
+			<dependency org="org.slf4j" name="com.springsource.slf4j.juli" rev="1.6.1" transitive="false" />
+		-->
+		<dependency name="jul-to-slf4j" rev="1.6.1" />
+		<dependency name="log4j-over-slf4j" rev="1.6.1" />
+		<dependency name="jcl-over-slf4j" rev="1.6.1" />	
+		<!-- commented out until spring updates their repo 
+			<dependency org="ch.qos.logback" name="com.springsource.ch.qos.logback.classic" rev="0.9.26" transitive="false" />
+			<dependency org="ch.qos.logback" name="com.springsource.ch.qos.logback.core" rev="0.9.26" transitive="false" />
+		-->
+		<dependency name="logback-classic" rev="0.9.26" />
+		<dependency name="logback-core" rev="0.9.26" />
         <!-- General --> 
         <dependency org="commons" name="commons-beanutils" rev="1.8.2" />
         <!-- <dependency org="org.apache.commons" name="com.springsource.org.apache.commons.beanutils" rev="1.8.2" /> -->

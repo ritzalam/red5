@@ -34,7 +34,7 @@ import org.red5.classloading.ClassLoaderBuilder;
  * @author Dominick Accattato (daccattato@gmail.com)
  */
 public class Bootstrap {
-	
+
 	/**
 	 * BootStrapping entry point
 	 * 
@@ -43,12 +43,12 @@ public class Bootstrap {
 	 */
 	public static void main(String[] args) throws Exception {
 		//retrieve path elements from system properties
-		String root = getRed5Root();		
+		String root = getRed5Root();
 		getConfigurationRoot(root);
-		
+
 		//bootstrap dependencies and start red5
 		bootStrap();
-			
+
 		System.out.println("Bootstrap complete");
 	}
 
@@ -61,31 +61,28 @@ public class Bootstrap {
 	 * @throws NoSuchMethodException
 	 * @throws InvocationTargetException
 	 */
-	private static void bootStrap()
-			throws InstantiationException, IllegalAccessException,
-			ClassNotFoundException, NoSuchMethodException,
-			InvocationTargetException {
-		
+	private static void bootStrap() throws InstantiationException, IllegalAccessException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException {
+
 		// print the classpath
 		//String classPath = System.getProperty("java.class.path");
 		//System.out.printf("JVM classpath: %s\n", classPath);		
-		
+
 		System.setProperty("red5.deployment.type", "bootstrap");
-		
+
 		System.setProperty("sun.lang.ClassLoader.allowArraySyntax", "true");
-		
+
 		//check system property before forcing out selector
 		if (System.getProperty("logback.ContextSelector") == null) {
 			//set to use our logger
 			System.setProperty("logback.ContextSelector", "org.red5.logging.LoggingContextSelector");
 		}
-		
+
 		String policyFile = System.getProperty("java.security.policy");
 		if (policyFile == null) {
-			System.setProperty("java.security.debug", "all");			
+			System.setProperty("java.security.debug", "all");
 			System.setProperty("java.security.policy", "conf/red5.policy");
 		}
-			
+
 		//set the temp directory if we're vista or later
 		String os = System.getProperty("os.name").toLowerCase();
 		//String arch = System.getProperty("os.arch").toLowerCase();
@@ -103,34 +100,34 @@ public class Bootstrap {
 				}
 				f = null;
 			} else {
-				dir += "\\AppData\\localLow";				
+				dir += "\\AppData\\localLow";
 			}
 			System.setProperty("java.io.tmpdir", dir);
 			System.out.printf("Setting temp directory to %s\n", System.getProperty("java.io.tmpdir"));
 		}
-		
+
 		/*
-	    try {
-	        // Enable the security manager
-	        SecurityManager sm = new SecurityManager();
-	        System.setSecurityManager(sm);
-	    } catch (SecurityException se) {
-	    	System.err.println("Security manager already set");
-	    }
+		try {
+		    // Enable the security manager
+		    SecurityManager sm = new SecurityManager();
+		    System.setSecurityManager(sm);
+		} catch (SecurityException se) {
+			System.err.println("Security manager already set");
+		}
 		*/
 
 		//get current loader
 		ClassLoader baseLoader = Thread.currentThread().getContextClassLoader();
-		
+
 		// build a ClassLoader
 		ClassLoader loader = ClassLoaderBuilder.build();
 
 		//set new loader as the loader for this thread
 		Thread.currentThread().setContextClassLoader(loader);
-		
+
 		// create a new instance of this class using new classloader
 		Object boot = Class.forName("org.red5.server.Launcher", true, loader).newInstance();
-	
+
 		Method m1 = boot.getClass().getMethod("launch", (Class[]) null);
 		m1.invoke(boot, (Object[]) null);
 
@@ -157,7 +154,7 @@ public class Bootstrap {
 		if (File.separatorChar != '/') {
 			conf = conf.replaceAll("\\\\", "/");
 		}
-		
+
 		//set conf sysprop
 		System.setProperty("red5.config_root", conf);
 		System.out.printf("Configuation root: %s\n", conf);
@@ -177,7 +174,7 @@ public class Bootstrap {
 		if (root == null) {
 			//check for env variable
 			root = System.getenv("RED5_HOME");
-		}		
+		}
 		// if root is null find out current directory and use it as root
 		if (root == null || ".".equals(root)) {
 			root = System.getProperty("user.dir");
@@ -188,14 +185,14 @@ public class Bootstrap {
 			root = root.replaceAll("\\\\", "/");
 		}
 		//drop last slash if exists
-		if (root.charAt(root.length()-1) == '/') {
+		if (root.charAt(root.length() - 1) == '/') {
 			root = root.substring(0, root.length() - 1);
-		}	
+		}
 		//set/reset property
 		System.setProperty("red5.root", root);
-		
+
 		System.out.printf("Red5 root: %s\n", root);
 		return root;
 	}
-	
+
 }
