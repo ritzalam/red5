@@ -20,6 +20,8 @@ package org.red5.server.api;
  */
 
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.management.openmbean.CompositeData;
 
@@ -49,28 +51,38 @@ public final class Red5 {
 	 * Current connection thread. Each connection of Red5 application runs in a
 	 * separate thread. This is thread object associated with
 	 * the current connection.
-	 */ 
+	 */
 	private static ThreadLocal<WeakReference<IConnection>> connThreadLocal = new ThreadLocal<WeakReference<IConnection>>();
- 
+
 	/**
 	 * Connection local to the current thread 
 	 */
-	public IConnection conn; 
- 
-    /**
-     * Current server version with revision
-     */
-    public static final String VERSION = "Red5 Server 1.0.0 RC1 $Rev$";
+	public IConnection conn;
 
-    /**
-     * Current server version for fmsVer requests 
-     */
-    public static final String FMS_VERSION = "RED5/1,0,0,0";    
-    
-    /**
-     * Server start time
-     */
-    private static final long START_TIME = System.currentTimeMillis();
+	/**
+	 * Current server version with revision
+	 */
+	public static final String VERSION = "Red5 Server 1.0.0 RC1 $Rev$";
+
+	/**
+	 * Current server version for fmsVer requests 
+	 */
+	public static final String FMS_VERSION = "RED5/1,0,0,0";
+
+	/**
+	 * Data version for NetStatusEvents
+	 */
+	@SuppressWarnings("serial")
+	public static final Map<String, Object> DATA_VERSION = new HashMap<String, Object>(1) {
+		{
+			put("version", "4,0,0,1121");
+		}
+	};
+
+	/**
+	 * Server start time
+	 */
+	private static final long START_TIME = System.currentTimeMillis();
 
 	/**
 	 * Create a new Red5 object using given connection.
@@ -86,15 +98,15 @@ public final class Red5 {
 	 * A bit of magic that lets you access the red5 scope from anywhere
 	 */
 	public Red5() {
-		conn = Red5.getConnectionLocal(); 
+		conn = Red5.getConnectionLocal();
 	}
 
 	/**
-     * Setter for connection
-     *
-     * @param connection     Thread local connection
-     */
-    public static void setConnectionLocal(IConnection connection) {
+	 * Setter for connection
+	 *
+	 * @param connection     Thread local connection
+	 */
+	public static void setConnectionLocal(IConnection connection) {
 		connThreadLocal.set(new WeakReference<IConnection>(connection));
 		IScope scope = connection.getScope();
 		if (scope != null) {
@@ -116,7 +128,7 @@ public final class Red5 {
 			return ref.get();
 		} else {
 			return null;
-		} 
+		}
 	}
 
 	/**
@@ -154,33 +166,37 @@ public final class Red5 {
 	public IContext getContext() {
 		return conn.getScope().getContext();
 	}
-	
+
 	/**
 	 * Returns the current version with revision number
 	 * 
 	 * @return String version
 	 */
 	public static String getVersion() {
-	    return VERSION;
+		return VERSION;
 	}
-	
+
 	/**
 	 * Returns the current version for fmsVer requests
 	 *
 	 * @return String fms version
 	 */
 	public static String getFMSVersion() {
-	    return FMS_VERSION;
+		return FMS_VERSION;
 	}
-	
+
+	public static Object getDataVersion() {
+		return DATA_VERSION;
+	}
+
 	/**
 	 * Returns server uptime in milliseconds.
 	 *
 	 * @return String version
 	 */
 	public static long getUpTime() {
-	    return System.currentTimeMillis() - START_TIME;
-	}	
+		return System.currentTimeMillis() - START_TIME;
+	}
 
 	/**
 	 * Allows for reconstruction via CompositeData.
@@ -188,19 +204,19 @@ public final class Red5 {
 	 * @param cd composite data
 	 * @return Red5 class instance
 	 */
-    public static Red5 from(CompositeData cd) {
-    	Red5 instance = null;
-    	if (cd.containsKey("connection")) {
-    		Object cn = cd.get("connection");
-    		if (cn != null && cn instanceof IConnection) {
-    			instance = new Red5((IConnection) cn);
-    		} else {
-    			instance = new Red5();
-    		}
+	public static Red5 from(CompositeData cd) {
+		Red5 instance = null;
+		if (cd.containsKey("connection")) {
+			Object cn = cd.get("connection");
+			if (cn != null && cn instanceof IConnection) {
+				instance = new Red5((IConnection) cn);
+			} else {
+				instance = new Red5();
+			}
 		} else {
 			instance = new Red5();
 		}
-        return instance;
-    }	
-    
+		return instance;
+	}
+
 }
