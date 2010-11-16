@@ -20,6 +20,7 @@ package org.red5.server.api;
  */
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 import org.red5.server.adapter.IApplication;
@@ -141,5 +142,11 @@ public interface IClient extends IAttributeStore {
 	 * Information may be found here: http://www.adobe.com/devnet/flashmediaserver/articles/dynamic_stream_switching_04.html
 	 */
 	public void checkBandwidth();
+	
+	/**
+	 * Performs a bandwidth checking callback for the client.
+	 * Information may be found here: http://www.adobe.com/devnet/flashmediaserver/articles/dynamic_stream_switching_04.html
+	 */
+	public Map<String, Object> checkBandwidthUp(Object[] params);
 	
 }
