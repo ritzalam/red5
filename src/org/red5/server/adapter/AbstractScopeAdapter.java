@@ -19,6 +19,8 @@ package org.red5.server.adapter;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.Map;
+
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
@@ -158,6 +160,19 @@ public abstract class AbstractScopeAdapter implements IScopeHandler {
     	if (client != null) {
     		client.checkBandwidth();
     	}
+    }
+    
+    /**
+	 * Calls the checkBandwidthUp method on the current client.
+	 * @param params Object passed from Flash
+	 */
+    public Map<String, Object> checkBandwidthUp(Object[] params) {
+    	//Incoming object should be null
+    	IClient client = Red5.getConnectionLocal().getClient();
+    	if (client != null) {
+    		return client.checkBandwidthUp(params);
+    	}
+		return null;
     }
 
 }

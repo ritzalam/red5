@@ -36,7 +36,10 @@ import javax.management.openmbean.CompositeData;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
+import org.red5.server.api.Red5;
 import org.red5.server.api.persistence.IPersistable;
+import org.red5.server.stream.bandwidth.ClientServerDetection;
+import org.red5.server.stream.bandwidth.ServerClientDetection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -275,6 +278,17 @@ public class Client extends AttributeStore implements IClient {
 	/** {@inheritDoc} */
 	public void checkBandwidth() {
 		//do something to check the bandwidth, Dan what do you think?
+		ServerClientDetection detection = new ServerClientDetection();
+		detection.checkBandwidth(Red5.getConnectionLocal());
+	}
+	
+	/** {@inheritDoc} */
+	public Map<String, Object> checkBandwidthUp(Object[] params) {
+		//do something to check the bandwidth, Dan what do you think?
+		ClientServerDetection detection = new ClientServerDetection();
+		
+		// if dynamic bw is turned on, we switch to a higher or lower
+		return detection.checkBandwidth(params);
 	}
 	
 	/**
