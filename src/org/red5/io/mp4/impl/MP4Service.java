@@ -49,9 +49,12 @@ public class MP4Service extends BaseStreamableFileService implements IMP4Service
     
     /**
      * File extensions handled by this service. If there are more than one, they
-     * are comma separated.
+     * are comma separated. '.mp4' must be the first on the list because it is the 
+     * default file extension for mp4 files. 
+     * 
+     * @see http://help.adobe.com/en_US/flashmediaserver/devguide/WS5b3ccc516d4fbf351e63e3d11a0773d117-7fc8.html 
      */
-    private static String extension = ".f4v,.mp4,.mov,.3gp,.3g2";
+    private static String extension = ".mp4,.f4v,.mov,.3gp,.3g2";
     
     private static String prefix = "mp4";
     
