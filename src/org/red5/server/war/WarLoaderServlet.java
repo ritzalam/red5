@@ -228,7 +228,7 @@ public class WarLoaderServlet extends ContextLoaderListener {
 					applicationContext.close();
 				}
 			} catch (Throwable e) {
-				log.warn("Exception {}", e);
+				logger.warn("Exception {}", e);
 			} finally {
 				super.contextDestroyed(sce);
 				if (ctx != null) {

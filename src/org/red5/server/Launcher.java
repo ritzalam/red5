@@ -71,7 +71,7 @@ public class Launcher {
 			}
 			*/
 		} catch (Exception e) {
-			log.warn("Exception {}", e);
+			System.out.printf("Exception %s\n", e);
 		}
 	}
 	

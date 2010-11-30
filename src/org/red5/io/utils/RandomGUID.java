@@ -45,6 +45,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Random;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /*
  * In the multitude of java GUID generators, I found none that
  * guaranteed randomness.  GUIDs are guaranteed to be globally unique
@@ -114,6 +117,8 @@ import java.util.Random;
  */
 public class RandomGUID extends Object {
 
+	private static Logger log = LoggerFactory.getLogger(RandomGUID.class);
+	
 	private static final String hexChars = "0123456789ABCDEF";
 
 	private static Random myRand;

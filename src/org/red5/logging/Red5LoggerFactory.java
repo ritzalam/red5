@@ -134,7 +134,7 @@ public class Red5LoggerFactory {
 		} catch (Exception e) {
 			//no logback, use whatever logger is in-place
 			logger = LoggerFactory.getLogger(clazz);
-			log.warn("Exception {}", e);
+			logger.warn("Exception {}", e);
 		}
 		return logger;
 	}
