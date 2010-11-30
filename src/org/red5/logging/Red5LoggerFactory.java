@@ -58,7 +58,7 @@ public class Red5LoggerFactory {
 					contextName = scope.getName();
 				}
 			} catch (Exception cce) {
-				//cce.printStackTrace();
+				//cclog.warn("Exception {}", e);
 			}
 		} else {
 			//route the Launcher entries to the correct context
@@ -134,7 +134,7 @@ public class Red5LoggerFactory {
 		} catch (Exception e) {
 			//no logback, use whatever logger is in-place
 			logger = LoggerFactory.getLogger(clazz);
-			e.printStackTrace();
+			log.warn("Exception {}", e);
 		}
 		return logger;
 	}

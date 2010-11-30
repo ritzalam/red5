@@ -122,7 +122,7 @@ public class PlaylistSubscriberStreamTest extends AbstractDependencyInjectionSpr
 		try {
 			pss.seek((int) (sent * 2));
 		} catch (OperationNotSupportedException e) {
-			e.printStackTrace();
+			log.warn("Exception {}", e);
 		}		
 	}
 

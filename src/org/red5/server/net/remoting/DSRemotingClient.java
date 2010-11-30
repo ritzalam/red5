@@ -436,7 +436,7 @@ public class DSRemotingClient extends RemotingClient {
 			} while (--loop > 0);
 						
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.warn("Exception {}", e);
 		}
 	}
 

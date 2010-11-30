@@ -76,7 +76,7 @@ public class ContextLoggingListener implements ServletContextListener {
 			}
 		} catch (Exception e) {
 			//System.err.println("LoggingContextSelector is not the correct type");
-			e.printStackTrace();
+			log.warn("Exception {}", e);
 		} finally {
 			//reset the name
 			if (selector != null) {

@@ -108,7 +108,7 @@ public final class ChildFirstClassLoader extends URLClassLoader {
 			} catch (Exception e) {
 				//ignore the Spring "BeanInfo" class lookup errors
 				//if (e.getMessage().indexOf("BeanInfo") == -1) {
-				//	e.printStackTrace();
+				//	log.warn("Exception {}", e);
 				//}
 			}
 			if (c == null && parentParent != null) {
@@ -116,7 +116,7 @@ public final class ChildFirstClassLoader extends URLClassLoader {
     				c = parentParent.loadClass(name);
     			} catch (Exception e) {
     				//if (e.getMessage().indexOf("BeanInfo") == -1) {
-    				//	e.printStackTrace();
+    				//	log.warn("Exception {}", e);
     				//}
     			}
 			}
@@ -125,7 +125,7 @@ public final class ChildFirstClassLoader extends URLClassLoader {
 					c = system.loadClass(name);
 				} catch (Exception e) {
 					//if (e.getMessage().indexOf("BeanInfo") == -1) {
-					//	e.printStackTrace();
+					//	log.warn("Exception {}", e);
 					//}
 				}
 			}

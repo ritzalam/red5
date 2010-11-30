@@ -44,7 +44,10 @@ public class ArrayCollection<T> extends ArrayList<T> implements Collection<T>, I
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void readExternal(IDataInput input) {
 		clear();
-		addAll((List) input.readObject());
+		Object tmp = input.readObject();
+		if (tmp != null) {
+			addAll((List) tmp);
+		}
 	}
 
 	/** {@inheritDoc} */

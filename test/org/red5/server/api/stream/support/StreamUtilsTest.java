@@ -105,7 +105,7 @@ public class StreamUtilsTest {
 		try {
 			syncedrunner.runTestRunnables();
 		} catch (Throwable e) {
-			e.printStackTrace();
+			log.warn("Exception {}", e);
 			fail();
 		}
 		System.out.println("Runtime for synced runner: "
@@ -131,7 +131,7 @@ public class StreamUtilsTest {
 		try {
 			unsyncedrunner.runTestRunnables();
 		} catch (Throwable e) {
-			e.printStackTrace();
+			log.warn("Exception {}", e);
 			fail();
 		}
 		System.out.println("Runtime for unsynced runner: "

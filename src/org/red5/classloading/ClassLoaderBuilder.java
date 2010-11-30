@@ -170,7 +170,7 @@ public final class ClassLoaderBuilder {
 				try {
 					urlList.add(lib.toURI().toURL());
 				} catch (MalformedURLException e) {
-					e.printStackTrace();
+					log.warn("Exception {}", e);
 				}
 			}
 
@@ -189,7 +189,7 @@ public final class ClassLoaderBuilder {
 					urlList.add(confUrl);
 				}
 			} catch (MalformedURLException e) {
-				e.printStackTrace();
+				log.warn("Exception {}", e);
 			}
 
 			//add the plugins 
@@ -218,7 +218,7 @@ public final class ClassLoaderBuilder {
 					urlList.add(pluginsUrl);
 				}
 			} catch (MalformedURLException e) {
-				e.printStackTrace();
+				log.warn("Exception {}", e);
 			}	
 			//get all the plugin jars
 			File[] pluginsFiles = pluginsDir.listFiles(jarFileFilter);
@@ -228,7 +228,7 @@ public final class ClassLoaderBuilder {
 					try {
 						urlList.add(plugin.toURI().toURL());
 					} catch (MalformedURLException e) {
-						e.printStackTrace();
+						log.warn("Exception {}", e);
 					}
 				}
 			}
@@ -269,7 +269,7 @@ public final class ClassLoaderBuilder {
 					try {
 						urlList.add(new File(nextPath).toURI().toURL());
 					} catch (MalformedURLException e) {
-						e.printStackTrace();
+						log.warn("Exception {}", e);
 					}
 				}
 			}
@@ -284,7 +284,7 @@ public final class ClassLoaderBuilder {
 							try {
 								urlList.add(lib.toURI().toURL());
 							} catch (MalformedURLException e) {
-								e.printStackTrace();
+								log.warn("Exception {}", e);
 							}
 						}
 					}
@@ -302,7 +302,7 @@ public final class ClassLoaderBuilder {
 						}
 						jarStream.close();
 					} catch (IOException e) {
-						e.printStackTrace();
+						log.warn("Exception {}", e);
 					}
 				}
 			}

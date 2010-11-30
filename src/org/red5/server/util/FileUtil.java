@@ -391,7 +391,7 @@ public class FileUtil {
 			e = null;
 		} catch (IOException e) {
 			log.error("Errord unzipping", e);
-			//e.printStackTrace();
+			//log.warn("Exception {}", e);
 		}
 	}
 	
@@ -458,7 +458,7 @@ public class FileUtil {
 //			log.debug("Checksum: {}", checksum.getChecksum().getValue());
 //		} catch (Exception e) {
 //			log.error("Error unzipping {}", compressedFileName, e);
-//			e.printStackTrace();
+//			log.warn("Exception {}", e);
 //		}
 //
 //	}

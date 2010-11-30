@@ -39,7 +39,7 @@ import javax.management.openmbean.CompositeData;
  * conn = r5.getConnection();
  * r5 = new Red5(conn);
  * IClient client = r5.getClient();
- * </pre> 
+ * </pre>
  *  
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
@@ -108,10 +108,15 @@ public final class Red5 {
 	 * @param connection     Thread local connection
 	 */
 	public static void setConnectionLocal(IConnection connection) {
-		connThreadLocal.set(new WeakReference<IConnection>(connection));
-		IScope scope = connection.getScope();
-		if (scope != null) {
-			Thread.currentThread().setContextClassLoader(scope.getClassLoader());
+		if (connection != null) {
+    		connThreadLocal.set(new WeakReference<IConnection>(connection));
+    		IScope scope = connection.getScope();
+    		if (scope != null) {
+    			Thread.currentThread().setContextClassLoader(scope.getClassLoader());
+    		}
+		} else {
+			// use null to clear the value
+			connThreadLocal.remove();
 		}
 	}
 
