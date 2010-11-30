@@ -66,7 +66,7 @@ public class ProviderService implements IProviderService {
 				}
 			} catch (IOException e) {
 				log.warn("Exception attempting to lookup file: {}", name, e);
-				e.printStackTrace();
+				log.warn("Exception {}", e);
 			} finally {
 				//null it to prevent leak or file locking
 				file = null;				

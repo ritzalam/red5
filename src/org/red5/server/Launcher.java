@@ -71,7 +71,7 @@ public class Launcher {
 			}
 			*/
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.warn("Exception {}", e);
 		}
 	}
 	

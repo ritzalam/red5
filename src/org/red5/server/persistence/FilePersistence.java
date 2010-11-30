@@ -443,7 +443,7 @@ public class FilePersistence extends RamPersistence {
     			log.debug("Stored persistent object {} at {}", object, filename);
     		} catch (IOException e) {
     			log.error("Could not create / write file {}", filename, e);
-    			e.printStackTrace();
+    			log.warn("Exception {}", e);
     			result = false;
    			} finally {
    			    if (buf != null) {

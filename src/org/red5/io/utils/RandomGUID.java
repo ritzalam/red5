@@ -141,7 +141,7 @@ public class RandomGUID extends Object {
 		try {
 			s_id = InetAddress.getLocalHost().toString();
 		} catch (UnknownHostException e) {
-			e.printStackTrace();
+			log.warn("Exception {}", e);
 		}
 
 	}

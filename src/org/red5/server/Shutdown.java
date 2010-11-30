@@ -115,7 +115,7 @@ public class Shutdown {
 		} catch (NullPointerException e) {
 			//ignore
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.warn("Exception {}", e);
 		}
 
 	}
