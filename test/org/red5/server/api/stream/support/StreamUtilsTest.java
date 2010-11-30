@@ -26,9 +26,13 @@ import net.sourceforge.groboutils.junit.v1.TestRunnable;
 import org.junit.Test;
 import org.red5.server.stream.NoSyncServerStream;
 import org.red5.server.stream.ServerStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class StreamUtilsTest {
 
+	protected static Logger log = LoggerFactory.getLogger(StreamUtilsTest.class);
+	
 	/* ------- workers ------- */
 	private class SynchedWorker extends TestRunnable {
 		private ServerStream stream;
