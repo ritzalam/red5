@@ -36,9 +36,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.regex.Pattern;
 
-import org.red5.logging.Red5LoggerFactory;
-import org.slf4j.Logger;
-
 /**
  * Class used to get the Servlet Class loader. The class loader returned is a
  * child first class loader. 
@@ -56,8 +53,7 @@ public final class ClassLoaderBuilder {
 	 http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6516909
 	 http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4976356
 	 */
-	public static Logger log = Red5LoggerFactory.getLogger(ClassLoaderBuilder.class);
-
+	
 	/**
 	 * Load the Servlet code from the WAR file and use the current classpath for
 	 * the libraries.
@@ -174,7 +170,7 @@ public final class ClassLoaderBuilder {
 				try {
 					urlList.add(lib.toURI().toURL());
 				} catch (MalformedURLException e) {
-					log.warn("Exception {}", e);
+					System.err.printf("Exception %s\n", e);
 				}
 			}
 
@@ -193,7 +189,7 @@ public final class ClassLoaderBuilder {
 					urlList.add(confUrl);
 				}
 			} catch (MalformedURLException e) {
-				log.warn("Exception {}", e);
+				System.err.printf("Exception %s\n", e);
 			}
 
 			//add the plugins 
@@ -222,7 +218,7 @@ public final class ClassLoaderBuilder {
 					urlList.add(pluginsUrl);
 				}
 			} catch (MalformedURLException e) {
-				log.warn("Exception {}", e);
+				System.err.printf("Exception %s\n", e);
 			}	
 			//get all the plugin jars
 			File[] pluginsFiles = pluginsDir.listFiles(jarFileFilter);
@@ -232,7 +228,7 @@ public final class ClassLoaderBuilder {
 					try {
 						urlList.add(plugin.toURI().toURL());
 					} catch (MalformedURLException e) {
-						log.warn("Exception {}", e);
+						System.err.printf("Exception %s\n", e);
 					}
 				}
 			}
@@ -273,7 +269,7 @@ public final class ClassLoaderBuilder {
 					try {
 						urlList.add(new File(nextPath).toURI().toURL());
 					} catch (MalformedURLException e) {
-						log.warn("Exception {}", e);
+						System.err.printf("Exception %s\n", e);
 					}
 				}
 			}
@@ -288,7 +284,7 @@ public final class ClassLoaderBuilder {
 							try {
 								urlList.add(lib.toURI().toURL());
 							} catch (MalformedURLException e) {
-								log.warn("Exception {}", e);
+								System.err.printf("Exception %s\n", e);
 							}
 						}
 					}
@@ -306,7 +302,7 @@ public final class ClassLoaderBuilder {
 						}
 						jarStream.close();
 					} catch (IOException e) {
-						log.warn("Exception {}", e);
+						System.err.printf("Exception %s\n", e);
 					}
 				}
 			}
