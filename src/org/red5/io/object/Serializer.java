@@ -21,7 +21,6 @@ package org.red5.io.object;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
@@ -82,11 +81,11 @@ public class Serializer {
 			// Write ByteArray objects directly
 			out.writeByteArray((ByteArray) value);
 		} else {
-    		if (writeBasic(out, value)) {
-    			log.debug("Wrote as basic");
-    		} else if (!writeComplex(out, value)) {
-    			log.debug("Unable to serialize: {}", value);
-    		}
+			if (writeBasic(out, value)) {
+				log.debug("Wrote as basic");
+			} else if (!writeComplex(out, value)) {
+				log.debug("Unable to serialize: {}", value);
+			}
 		}
 	}
 
@@ -212,8 +211,7 @@ public class Serializer {
 			out.writeArray((Collection<Object>) arrType, this);
 		} else if (arrType instanceof Iterator) {
 			writeIterator(out, (Iterator<Object>) arrType);
-		} else if (arrType.getClass().isArray()
-				&& arrType.getClass().getComponentType().isPrimitive()) {
+		} else if (arrType.getClass().isArray() && arrType.getClass().getComponentType().isPrimitive()) {
 			out.writeArray(arrType, this);
 		} else if (arrType instanceof Object[]) {
 			out.writeArray((Object[]) arrType, this);
@@ -340,23 +338,24 @@ public class Serializer {
 	 *         <code>false</code>
 	 */
 	public boolean serializeField(String keyName, Field field, Method getter) {
-		if ("class".equals(keyName)) return false;
-
-		if (field != null && Modifier.isTransient(field.getModifiers())) {
-			log.warn("Using \"transient\" to declare fields not to be serialized is deprecated and will be removed in Red5 0.8, use \"@DontSerialize\" instead.");
+		log.debug("serializeField - keyName: {} field: {} method: {}", new Object[] { keyName, field, getter });
+		if ("class".equals(keyName)) {
 			return false;
 		}
-
 		if ((field != null && field.isAnnotationPresent(DontSerialize.class)) || (getter != null && getter.isAnnotationPresent(DontSerialize.class))) {
 			log.debug("Skipping {} because its marked with @DontSerialize", keyName);
 			return false;
 		}
-
 		log.debug("Serialize field: {}", field);
-
 		return true;
 	}
 
+	/**
+	 * Handles classes by name, also provides "shortened" class aliases where appropriate.
+	 * 
+	 * @param objectClass
+	 * @return
+	 */
 	public String getClassName(Class<?> objectClass) {
 		RemoteClass annotation = objectClass.getAnnotation(RemoteClass.class);
 		if (annotation != null) {

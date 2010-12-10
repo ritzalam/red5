@@ -40,6 +40,10 @@ import org.red5.io.amf3.IExternalizable;
  */
 public class ObjectProxy<T, V> implements Map<T, V>, IExternalizable {
 
+	private String uid;
+	
+	private Object type;
+	
 	/** The proxied object. */
 	private Map<T, V> item;
 	
@@ -149,6 +153,34 @@ public class ObjectProxy<T, V> implements Map<T, V>, IExternalizable {
 
 	public Collection<V> values() {
 		return Collections.unmodifiableCollection(item.values());
+	}
+
+	/**
+	 * @return the uid
+	 */
+	public String getUid() {
+		return uid;
+	}
+
+	/**
+	 * @param uid the uid to set
+	 */
+	public void setUid(String uid) {
+		this.uid = uid;
+	}
+
+	/**
+	 * @return the type
+	 */
+	public Object getType() {
+		return type;
+	}
+
+	/**
+	 * @param type the type to set
+	 */
+	public void setType(Object type) {
+		this.type = type;
 	}
 	
 	// TODO: implement other ObjectProxy methods
