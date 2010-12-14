@@ -133,25 +133,11 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 */
 	private final HashSet<DeferredResult> deferredResults = new HashSet<DeferredResult>();
 
-	/**
-	 * Last ping round trip time
-	 */
-	private AtomicInteger lastPingTime = new AtomicInteger(-1);
+	private AtomicInteger pingRoundTripTime = new AtomicInteger(-1);
+	private AtomicLong lastPingSentOn = new AtomicLong(0);
+	private AtomicLong lastPongReceivedOn = new AtomicLong(0);
 
-	/**
-	 * Timestamp when last ping command was sent.
-	 */
-	private AtomicLong lastPingSent = new AtomicLong(0);
-
-	/**
-	 * Timestamp when last ping result was received.
-	 */
-	private AtomicLong lastPongReceived = new AtomicLong(0);
-
-	/**
-	 * Name of quartz job that keeps connection alive.
-	 */
-	private String keepAliveJobName;
+	private String connKeepAliveJobName;
 
 	/**
 	 * Ping interval in ms to detect dead clients.
@@ -597,9 +583,9 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	public void close() {
 		getWriteLock().lock();
 		try {
-			if (keepAliveJobName != null) {
-				schedulingService.removeScheduledJob(keepAliveJobName);
-				keepAliveJobName = null;
+			if (connKeepAliveJobName != null) {
+				schedulingService.removeScheduledJob(connKeepAliveJobName);
+				connKeepAliveJobName = null;
 			}
 		} finally {
 			getWriteLock().unlock();
@@ -905,14 +891,17 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	/** {@inheritDoc} */
 	public void ping() {
 		long newPingTime = System.currentTimeMillis();
-		log.debug("Pinging client with id {} at {}, last ping sent at {}", new Object[] { getId(), newPingTime, lastPingSent.get() });
-		if (lastPingSent.get() == 0) {
-			lastPongReceived.set(newPingTime);
+		
+		if (lastPingSentOn.get() == 0) {
+			lastPongReceivedOn.set(newPingTime);
 		}
+		
+		lastPingSentOn.set(newPingTime);
+		int now = (int) (newPingTime & 0xffffffff);
+		log.debug("Ping [clientId={} payload={} lastPingOn={}]", new Object[] { getId(), (long)(now & 0xffffffffL), lastPingSentOn.get() });
+		
 		Ping pingRequest = new Ping();
 		pingRequest.setEventType(Ping.PING_CLIENT);
-		lastPingSent.set(newPingTime);
-		int now = (int) (newPingTime & 0xffffffff);
 		pingRequest.setValue2(now);
 		ping(pingRequest);
 	}
@@ -925,17 +914,20 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 */
 	public void pingReceived(Ping pong) {
 		long now = System.currentTimeMillis();
-		long previousReceived = (int) (lastPingSent.get() & 0xffffffff);
-		log.debug("Pong from client id {} at {} with value {}, previous received at {}", new Object[] { getId(), now, pong.getValue2(), previousReceived });
-		if (pong.getValue2() == previousReceived) {
-			lastPingTime.set((int) (now & 0xffffffff) - pong.getValue2());
-		}
-		lastPongReceived.set(now);
+		lastPongReceivedOn.set(now);
+		long pongPayload = (long)(0xFFFFFFFFL & pong.getValue2());
+		long rtt = ((int)now & 0xFFFFFFFFL) - pongPayload;
+		if (rtt < 0) {
+			// Timestamp has wrapped around.
+			rtt = (0xFFFFFFFF + now) - pongPayload;			
+		} 
+		pingRoundTripTime.set((int)rtt);		
+		log.debug("Pong [clientId={} payload={} receivedOn={} rtt={}]", new Object[] { getId(), pongPayload, now, rtt});		
 	}
 
 	/** {@inheritDoc} */
 	public int getLastPingTime() {
-		return lastPingTime.get();
+		return pingRoundTripTime.get();
 	}
 
 	/**
@@ -962,9 +954,9 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * Starts measurement.
 	 */
 	public void startRoundTripMeasurement() {
-		if (pingInterval > 0 && keepAliveJobName == null) {
-			keepAliveJobName = schedulingService.addScheduledJob(pingInterval, new KeepAliveJob());
-			log.debug("Keep alive job name {} for client id {}", keepAliveJobName, getId());
+		if (pingInterval > 0 && connKeepAliveJobName == null) {
+			connKeepAliveJobName = schedulingService.addScheduledJob(pingInterval, new KeepAliveJob());
+			log.debug("Keep alive job name {} for client id {}", connKeepAliveJobName, getId());
 		}
 	}
 
@@ -1089,41 +1081,27 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * Quartz job that keeps connection alive and disconnects if client is dead.
 	 */
 	private class KeepAliveJob implements IScheduledJob {
-
-		private final AtomicLong lastBytesRead = new AtomicLong(0);
-
-		private volatile long lastBytesReadTime = 0;
-
 		/** {@inheritDoc} */
 		public void execute(ISchedulingService service) {
-			long thisRead = getReadBytes();
-			long previousReadBytes = lastBytesRead.get();
-			if (thisRead > previousReadBytes) {
-				// Client sent data since last check and thus is not dead. No need to ping
-				if (lastBytesRead.compareAndSet(previousReadBytes, thisRead)) {
-					lastBytesReadTime = System.currentTimeMillis();
-				}
-				return;
-			}
-			// Client didn't send response to ping command and didn't sent data for too long, disconnect
-			if (lastPongReceived.get() > 0 && (lastPingSent.get() - lastPongReceived.get() > maxInactivity) && !(System.currentTimeMillis() - lastBytesReadTime < maxInactivity)) {
-				log.debug("Keep alive job name {}", keepAliveJobName);
+			long now = System.currentTimeMillis();
+			if (lastPongReceivedOn.get() !=0 && (now - lastPongReceivedOn.get() > maxInactivity)) {
+				log.debug("Keep alive job name {}", connKeepAliveJobName);
 				if (log.isDebugEnabled()) {
 					log.debug("Scheduled job list");
 					for (String jobName : service.getScheduledJobNames()) {
 						log.debug("Job: {}", jobName);
 					}
 				}
-				service.removeScheduledJob(keepAliveJobName);
-				keepAliveJobName = null;
-				log.warn("Closing {}, with id {}, due to too much inactivity ({}ms), last ping sent {}ms ago", new Object[] { RTMPConnection.this, getId(),
-						(lastPingSent.get() - lastPongReceived.get()), (System.currentTimeMillis() - lastPingSent.get()) });
-				// Add the following line to (hopefully) deal with a very common support request
-				// on the Red5 list
-				log.warn("This often happens if YOUR Red5 application generated an exception on start-up. Check earlier in the log for that exception first!");
+				service.removeScheduledJob(connKeepAliveJobName);
+				connKeepAliveJobName = null;
+				log.warn("Closing connection {}, [clientId={}, no reply to ping for {}ms, last ping sent {}ms ago]", new Object[] { RTMPConnection.this, getId(),
+						(now - lastPongReceivedOn.get()), (now - lastPingSentOn.get()) });
 				onInactive();
 				return;
 			}
+			long rtt = now - lastPingSentOn.get();
+			pingRoundTripTime.set((int)rtt);
+			
 			// Send ping command to client to trigger sending of data
 			ping();
 		}
