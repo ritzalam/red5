@@ -30,8 +30,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.BaseConnection;
 import org.red5.server.api.IScope;
@@ -73,11 +71,8 @@ import org.slf4j.LoggerFactory;
  * session.
  */
 public abstract class RTMPConnection extends BaseConnection implements IStreamCapableConnection, IServiceCapableConnection {
-
 	private static Logger log = LoggerFactory.getLogger(RTMPConnection.class);
-
 	public static final String RTMP_CONNECTION_KEY = "rtmp.conn";
-
 	public static final String RTMP_HANDSHAKE = "rtmp.handshake";
 
 	/**
@@ -119,7 +114,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	/**
 	 * Identifier for remote calls.
 	 */
-	private AtomicInteger invokeId = new AtomicInteger(1);
+	private AtomicInteger invokedRemoteCallsId = new AtomicInteger(1);
 
 	/**
 	 * Hash map that stores pending calls and ids as pairs.
@@ -132,22 +127,6 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * @see org.red5.server.net.rtmp.DeferredResult
 	 */
 	private final HashSet<DeferredResult> deferredResults = new HashSet<DeferredResult>();
-
-	private AtomicInteger pingRoundTripTime = new AtomicInteger(-1);
-	private AtomicLong lastPingSentOn = new AtomicLong(0);
-	private AtomicLong lastPongReceivedOn = new AtomicLong(0);
-
-	private String connKeepAliveJobName;
-
-	/**
-	 * Ping interval in ms to detect dead clients.
-	 */
-	private volatile int pingInterval = 5000;
-
-	/**
-	 * Maximum time in ms after which a client is disconnected because of inactivity.
-	 */
-	private volatile int maxInactivity = 60000;
 
 	/**
 	 * Data read interval
@@ -203,6 +182,8 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 
 	private ISchedulingService schedulingService;
 
+	private final PingService keepAliveService;
+	
 	/**
 	 * Creates anonymous RTMP connection without scope.
 	 * 
@@ -213,6 +194,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		// We start with an anonymous connection without a scope.
 		// These parameters will be set during the call of "connect" later.
 		super(type);
+		keepAliveService = new PingService(this);
 	}
 
 	public int getId() {
@@ -583,10 +565,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	public void close() {
 		getWriteLock().lock();
 		try {
-			if (connKeepAliveJobName != null) {
-				schedulingService.removeScheduledJob(connKeepAliveJobName);
-				connKeepAliveJobName = null;
-			}
+			keepAliveService.close();
 		} finally {
 			getWriteLock().unlock();
 		}
@@ -714,7 +693,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * @return Next invoke id for RPC
 	 */
 	public int getInvokeId() {
-		return invokeId.incrementAndGet();
+		return invokedRemoteCallsId.incrementAndGet();
 	}
 
 	/**
@@ -890,20 +869,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 
 	/** {@inheritDoc} */
 	public void ping() {
-		long newPingTime = System.currentTimeMillis();
-		
-		if (lastPingSentOn.get() == 0) {
-			lastPongReceivedOn.set(newPingTime);
-		}
-		
-		lastPingSentOn.set(newPingTime);
-		int now = (int) (newPingTime & 0xffffffff);
-		log.debug("Ping [clientId={} payload={} lastPingOn={}]", new Object[] { getId(), (long)(now & 0xffffffffL), lastPingSentOn.get() });
-		
-		Ping pingRequest = new Ping();
-		pingRequest.setEventType(Ping.PING_CLIENT);
-		pingRequest.setValue2(now);
-		ping(pingRequest);
+		keepAliveService.ping();
 	}
 
 	/**
@@ -913,21 +879,12 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 *            Ping object
 	 */
 	public void pingReceived(Ping pong) {
-		long now = System.currentTimeMillis();
-		lastPongReceivedOn.set(now);
-		long pongPayload = (long)(0xFFFFFFFFL & pong.getValue2());
-		long rtt = ((int)now & 0xFFFFFFFFL) - pongPayload;
-		if (rtt < 0) {
-			// Timestamp has wrapped around.
-			rtt = (0xFFFFFFFF + now) - pongPayload;			
-		} 
-		pingRoundTripTime.set((int)rtt);		
-		log.debug("Pong [clientId={} payload={} receivedOn={} rtt={}]", new Object[] { getId(), pongPayload, now, rtt});		
+		keepAliveService.pingReceived(pong);		
 	}
 
 	/** {@inheritDoc} */
 	public int getLastPingTime() {
-		return pingRoundTripTime.get();
+		return keepAliveService.getLastPingTime();
 	}
 
 	/**
@@ -937,7 +894,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 *            disable ghost detection code.
 	 */
 	public void setPingInterval(int pingInterval) {
-		this.pingInterval = pingInterval;
+		keepAliveService.setPingInterval(pingInterval);
 	}
 
 	/**
@@ -947,17 +904,14 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 *            case of inactivity.
 	 */
 	public void setMaxInactivity(int maxInactivity) {
-		this.maxInactivity = maxInactivity;
+		this.keepAliveService.setMaxInactivity(maxInactivity);
 	}
 
 	/**
 	 * Starts measurement.
 	 */
 	public void startRoundTripMeasurement() {
-		if (pingInterval > 0 && connKeepAliveJobName == null) {
-			connKeepAliveJobName = schedulingService.addScheduledJob(pingInterval, new KeepAliveJob());
-			log.debug("Keep alive job name {} for client id {}", connKeepAliveJobName, getId());
-		}
+		keepAliveService.startRoundTripMeasurement();
 	}
 
 	/**
@@ -967,6 +921,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 */
 	public void setSchedulingService(ISchedulingService schedulingService) {
 		this.schedulingService = schedulingService;
+		keepAliveService.setSchedulingService(schedulingService);
 	}
 
 	/**
@@ -1077,35 +1032,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		return true;
 	}
 
-	/**
-	 * Quartz job that keeps connection alive and disconnects if client is dead.
-	 */
-	private class KeepAliveJob implements IScheduledJob {
-		/** {@inheritDoc} */
-		public void execute(ISchedulingService service) {
-			long now = System.currentTimeMillis();
-			if (lastPongReceivedOn.get() !=0 && (now - lastPongReceivedOn.get() > maxInactivity)) {
-				log.debug("Keep alive job name {}", connKeepAliveJobName);
-				if (log.isDebugEnabled()) {
-					log.debug("Scheduled job list");
-					for (String jobName : service.getScheduledJobNames()) {
-						log.debug("Job: {}", jobName);
-					}
-				}
-				service.removeScheduledJob(connKeepAliveJobName);
-				connKeepAliveJobName = null;
-				log.warn("Closing connection {}, [clientId={}, no reply to ping for {}ms, last ping sent {}ms ago]", new Object[] { RTMPConnection.this, getId(),
-						(now - lastPongReceivedOn.get()), (now - lastPingSentOn.get()) });
-				onInactive();
-				return;
-			}
-			long rtt = now - lastPingSentOn.get();
-			pingRoundTripTime.set((int)rtt);
-			
-			// Send ping command to client to trigger sending of data
-			ping();
-		}
-	}
+
 
 	/**
 	 * Quartz job that waits for a valid handshake and disconnects the client if
