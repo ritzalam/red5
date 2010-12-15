@@ -1015,6 +1015,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				dataReference = ((AudioData) messageIn.getBody()).getData();
 				event = new AudioData(dataReference);
 				event.setTimestamp(messageIn.getBody().getTimestamp());
+				event.setSourceType(messageIn.getBody().getSourceType());
 				break;
 			case Constants.TYPE_VIDEO_DATA:
 				dataReference = ((VideoData) messageIn.getBody()).getData();
