@@ -728,14 +728,13 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 						releasePendingMessage();
 						clearWaitJobs();
 		
-						sendClearPing();
-						sendReset();
-		
 						break;
 					default:
 						throw new IllegalStateException("Cannot seek in current state");
 				}
 		
+				sendClearPing();
+				sendReset();
 				sendSeekStatus(currentItem, position);
 				sendStartStatus(currentItem);
 				int seekPos = sendVODSeekCM(msgIn, position);
@@ -796,6 +795,39 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 					lastMessageTs = seekPos;
 					doPushMessage(audioMessage);
 					audioMessage.getBody().release();
+				}
+				if (!messageSent && subscriberStream.getState() == StreamState.PLAYING) {
+					// send all frames from last keyframe up to requested position and fill client buffer
+					if (sendCheckVideoCM(msgIn)) {
+						final long clientBuffer = subscriberStream.getClientBufferDuration();
+						IMessage msg = null;
+						do {
+							try {
+								msg = msgIn.pullMessage();
+							} catch (Throwable err) {
+								log.error("Error while pulling message", err);
+								msg = null;
+							}
+							if (msg instanceof RTMPMessage) {
+								RTMPMessage rtmpMessage = (RTMPMessage) msg;
+								IRTMPEvent body = rtmpMessage.getBody();
+								if (body.getTimestamp() >= position + (clientBuffer*2)) {
+									// client buffer should be full by now, continue regular pull/push
+									releasePendingMessage();
+									if (checkSendMessageEnabled(rtmpMessage)) {
+										pendingMessage = rtmpMessage;
+									}
+									break;
+								}
+								if (!checkSendMessageEnabled(rtmpMessage)) {
+									continue;
+								}
+								
+								sendMessage(rtmpMessage);
+							}
+						} while (msg != null);
+						playbackStart = System.currentTimeMillis() - lastMessageTs;
+					}
 				}
 				// start pull-push
 				if (startPullPushThread) {
@@ -1567,6 +1599,40 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			pendingMessage = null;
 		}
 	}
+	
+	/**
+	 * Check if sending the given message was enabled by the client.
+	 * 
+	 * @param message the message to check
+	 * @return <code>true</code> if the message should be sent, <code>false</code> otherwise (and the message is discarded)
+	 */
+	protected boolean checkSendMessageEnabled(RTMPMessage message) {
+		IRTMPEvent body = message.getBody();
+		if (!receiveAudio && body instanceof AudioData) {
+			// The user doesn't want to get audio packets
+			((IStreamData<?>) body).getData().free();
+			if (sendBlankAudio) {
+				// Send reset audio packet
+				sendBlankAudio = false;
+				body = new AudioData();
+				// We need a zero timestamp
+				if (lastMessageTs >= 0) {
+					body.setTimestamp(lastMessageTs - timestampOffset);
+				} else {
+					body.setTimestamp(-timestampOffset);
+				}
+				message.setBody(body);
+			} else {
+				return false;
+			}
+		} else if (!receiveVideo && body instanceof VideoData) {
+			// The user doesn't want to get video packets
+			((IStreamData<?>) body).getData().free();
+			return false;
+		}
+
+		return true;
+	}
 
 	/**
 	 * Periodically triggered by executor to send messages to the client.
@@ -1609,31 +1675,12 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 								} else {
 									if (msg instanceof RTMPMessage) {
 										RTMPMessage rtmpMessage = (RTMPMessage) msg;
-										IRTMPEvent body = rtmpMessage.getBody();
-										if (!receiveAudio && body instanceof AudioData) {
-											// The user doesn't want to get audio packets
-											((IStreamData<?>) body).getData().free();
-											if (sendBlankAudio) {
-												// Send reset audio packet
-												sendBlankAudio = false;
-												body = new AudioData();
-												// We need a zero timestamp
-												if (lastMessageTs >= 0) {
-													body.setTimestamp(lastMessageTs - timestampOffset);
-												} else {
-													body.setTimestamp(-timestampOffset);
-												}
-												rtmpMessage.setBody(body);
-											} else {
-												continue;
-											}
-										} else if (!receiveVideo && body instanceof VideoData) {
-											// The user doesn't want to get video packets
-											((IStreamData<?>) body).getData().free();
+										if (!checkSendMessageEnabled(rtmpMessage)) {
 											continue;
 										}
 
 										// Adjust timestamp when playing lists
+										IRTMPEvent body = rtmpMessage.getBody();
 										body.setTimestamp(body.getTimestamp() + timestampOffset);
 										if (okayToSendMessage(body)) {
 											log.trace("ts: {}", rtmpMessage.getBody().getTimestamp());
