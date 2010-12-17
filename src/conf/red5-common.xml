@@ -57,7 +57,7 @@
 				<property name="serializer">
 					<ref bean="serializer"/>
 				</property>
-				<property name="baseTolerance" value="1000" />
+				<property name="baseTolerance" value="5000" />
 				<property name="dropLiveFuture" value="false" />
 			</bean>
 		</property>
