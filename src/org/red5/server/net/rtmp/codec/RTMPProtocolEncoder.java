@@ -224,6 +224,19 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 		if (rtmp.getMode() == RTMP.MODE_SERVER) {
 			//whether or not the packet is video data
 			boolean isVideo = false;
+			if (message instanceof Ping) {
+				final Ping pingMessage = (Ping) message;
+				if (pingMessage.getEventType() == Ping.STREAM_PLAYBUFFER_CLEAR) {
+					// client buffer cleared, make sure to reset timestamps for this stream
+					final int channel = (4 + ((pingMessage.getValue2() - 1) * 5));
+					rtmp.setLastTimestampMapping(channel, null);
+					rtmp.setLastTimestampMapping(channel+1, null);
+					rtmp.setLastTimestampMapping(channel+2, null);
+				}
+				// never drop pings
+				return false;
+			}
+			
 			//we only drop audio or video data
 			if ((isVideo = message instanceof VideoData) || message instanceof AudioData) {
 				//determine working type
