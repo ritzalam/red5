@@ -1294,8 +1294,10 @@ public class MP4Reader implements IoConstants, ITagReader {
 			videoSamplesToChunks = null;
 		}
 
-		syncSamples.clear();
-		syncSamples = null;
+		if (syncSamples != null) {
+			syncSamples.clear();
+			syncSamples = null;
+		}
 	}
 
 	/**
