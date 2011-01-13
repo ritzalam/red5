@@ -967,7 +967,7 @@ public class MP4Reader implements IoConstants, ITagReader {
 			arr.add(videoMap);
 
 		}
-		props.put("trackinfo", arr.toArray());
+		props.put("trackinfo", arr);
 		//set this based on existence of seekpoints
 		props.put("canSeekToEnd", (seekPoints != null));
 
