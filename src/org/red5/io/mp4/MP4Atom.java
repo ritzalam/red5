@@ -341,7 +341,7 @@ public class MP4Atom {
 		create_full_atom(bitstream);
 		chunks = new Vector<Long>();
 		entryCount = (int) bitstream.readBytes(4);
-		readed += 8;
+		readed += 4;
 		for (int i = 0; i < entryCount; i++) {
 			long chunkOffset = bitstream.readBytes(8);
 			chunks.addElement(Long.valueOf(chunkOffset));
