@@ -202,6 +202,8 @@ public class MP4Reader implements IoConstants, ITagReader {
 
 	private int prevFrameSize = 0;
 
+	private int prevVideoTS = -1;
+	
 	private List<MP4Frame> frames = new ArrayList<MP4Frame>();
 
 	private long audioCount;
@@ -1108,7 +1110,7 @@ public class MP4Reader implements IoConstants, ITagReader {
 					data.put(PREFIX_VIDEO_FRAME);
 				}
 				// match the sample with its ctts / mdhd adjustment time
-				int timeOffset = frame.getTimeOffset();
+				int timeOffset = prevVideoTS != -1 ? time - prevVideoTS : 0;
 				data.put((byte) ((timeOffset >>> 16) & 0xff));
 				data.put((byte) ((timeOffset >>> 8) & 0xff));
 				data.put((byte) (timeOffset & 0xff));
@@ -1122,6 +1124,7 @@ public class MP4Reader implements IoConstants, ITagReader {
 				}
 				// track video frame count
 				videoCount++;
+				prevVideoTS = time;
 			} else {
 				//log.debug("Writing audio prefix");
 				data.put(PREFIX_AUDIO_FRAME);
@@ -1329,6 +1332,7 @@ public class MP4Reader implements IoConstants, ITagReader {
 		currentFrame = getFrame(pos);
 		//
 		createPreStreamingTags();
+		prevVideoTS = -1;
 		log.debug("Setting current frame: {}", currentFrame);
 	}
 
