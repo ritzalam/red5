@@ -803,27 +803,26 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 						IMessage msg = null;
 						do {
 							try {
-								msg = msgIn.pullMessage();
+								msg = msgIn != null ? msgIn.pullMessage() : null;
+								if (msg instanceof RTMPMessage) {
+									RTMPMessage rtmpMessage = (RTMPMessage) msg;
+									IRTMPEvent body = rtmpMessage.getBody();
+									if (body.getTimestamp() >= position + (clientBuffer*2)) {
+										// client buffer should be full by now, continue regular pull/push
+										releasePendingMessage();
+										if (checkSendMessageEnabled(rtmpMessage)) {
+											pendingMessage = rtmpMessage;
+										}
+										break;
+									}
+									if (!checkSendMessageEnabled(rtmpMessage)) {
+										continue;
+									}								
+									sendMessage(rtmpMessage);
+								}
 							} catch (Throwable err) {
 								log.error("Error while pulling message", err);
 								msg = null;
-							}
-							if (msg instanceof RTMPMessage) {
-								RTMPMessage rtmpMessage = (RTMPMessage) msg;
-								IRTMPEvent body = rtmpMessage.getBody();
-								if (body.getTimestamp() >= position + (clientBuffer*2)) {
-									// client buffer should be full by now, continue regular pull/push
-									releasePendingMessage();
-									if (checkSendMessageEnabled(rtmpMessage)) {
-										pendingMessage = rtmpMessage;
-									}
-									break;
-								}
-								if (!checkSendMessageEnabled(rtmpMessage)) {
-									continue;
-								}
-								
-								sendMessage(rtmpMessage);
 							}
 						} while (msg != null);
 						playbackStart = System.currentTimeMillis() - lastMessageTs;
