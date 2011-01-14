@@ -239,6 +239,12 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 			
 			//we only drop audio or video data
 			if ((isVideo = message instanceof VideoData) || message instanceof AudioData) {
+				if (message.getTimestamp() == 0) {
+					// never drop initial packages, also this could be the first packet after
+					// MP4 seeking and therefore mess with the timestamp mapping
+					return false;
+				}
+				
 				//determine working type
 				boolean isLive = message.getSourceType() == Constants.SOURCE_TYPE_LIVE;
 				log.trace("Connection type: {}", (isLive ? "Live" : "VOD"));
