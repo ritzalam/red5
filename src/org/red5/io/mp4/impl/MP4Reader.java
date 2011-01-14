@@ -42,6 +42,7 @@ import org.red5.io.ITag;
 import org.red5.io.ITagReader;
 import org.red5.io.IoConstants;
 import org.red5.io.amf.Output;
+import org.red5.io.flv.IKeyFrameDataAnalyzer;
 import org.red5.io.flv.impl.Tag;
 import org.red5.io.mp4.MP4Atom;
 import org.red5.io.mp4.MP4Atom.CompositionTimeSampleRecord;
@@ -75,7 +76,7 @@ import org.slf4j.LoggerFactory;
  * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public class MP4Reader implements IoConstants, ITagReader {
+public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer {
 
 	/**
 	 * Logger
@@ -249,7 +250,7 @@ public class MP4Reader implements IoConstants, ITagReader {
 		//add meta data
 		firstTags.add(createFileMeta());
 		//create / add the pre-streaming (decoder config) tags
-		createPreStreamingTags();
+		createPreStreamingTags(0);
 	}
 
 	/**
@@ -1004,7 +1005,7 @@ public class MP4Reader implements IoConstants, ITagReader {
 	 * 
 	 * Still not absolutely certain about this order or the bytes - need to verify later
 	 */
-	private void createPreStreamingTags() {
+	private void createPreStreamingTags(int timestamp) {
 		log.debug("Creating pre-streaming tags");
 		ITag tag = null;
 		IoBuffer body = null;
@@ -1027,7 +1028,7 @@ public class MP4Reader implements IoConstants, ITagReader {
 				}
 				body.put(videoDecoderBytes);
 			}
-			tag = new Tag(IoConstants.TYPE_VIDEO, 0, body.position(), null, 0);
+			tag = new Tag(IoConstants.TYPE_VIDEO, timestamp, body.position(), null, 0);
 			body.flip();
 			tag.setBody(body);
 			//add tag
@@ -1056,7 +1057,7 @@ public class MP4Reader implements IoConstants, ITagReader {
 				body.put(AUDIO_CONFIG_FRAME_AAC_LC);
 			}
 			body.put((byte) 0x06); //suffix
-			tag = new Tag(IoConstants.TYPE_AUDIO, 0, body.position(), null, tag.getBodySize());
+			tag = new Tag(IoConstants.TYPE_AUDIO, timestamp, body.position(), null, tag.getBodySize());
 			body.flip();
 			tag.setBody(body);
 			//add tag
@@ -1304,24 +1305,6 @@ public class MP4Reader implements IoConstants, ITagReader {
 	}
 
 	/**
-	 * Returns the position of a frame given the timestamp.
-	 * 
-	 * @param timestamp
-	 * @return the position
-	 */
-	public long getFramePosition(int timestamp) {
-		log.debug("Get frame position for timestamp: {}", timestamp);
-		long pos = 0;
-		if (timePosMap.containsKey(timestamp)) {
-			pos = timePosMap.get(timestamp);
-			log.debug("Found position: {}", pos);
-		} else {
-			log.info("Frame position was not found for timestamp: {}", timestamp);
-		}
-		return pos;
-	}
-
-	/**
 	 * Put the current position to pos. The caller must ensure the pos is a valid one.
 	 *
 	 * @param pos position to move to in file / channel
@@ -1329,21 +1312,6 @@ public class MP4Reader implements IoConstants, ITagReader {
 	public void position(long pos) {
 		log.debug("Position: {}", pos);
 		log.debug("Current frame: {}", currentFrame);
-		currentFrame = getFrame(pos);
-		//
-		createPreStreamingTags();
-		prevVideoTS = -1;
-		log.debug("Setting current frame: {}", currentFrame);
-	}
-
-	/**
-	 * Search through the frames by offset / position to find the one we want to seek to.
-	 * 
-	 * @param pos
-	 * @return
-	 */
-	private int getFrame(long pos) {
-		int sample = 1;
 		int len = frames.size();
 		MP4Frame frame = null;
 		for (int f = 0; f < len; f++) {
@@ -1352,17 +1320,20 @@ public class MP4Reader implements IoConstants, ITagReader {
 			//look for pos to match frame offset or grab the first keyframe 
 			//beyond the offset
 			if (pos == offset || (offset > pos && frame.isKeyFrame())) {
-				log.debug("Frame #{} found for seek: {}", f, frame);
 				//ensure that it is a keyframe
 				if (!frame.isKeyFrame()) {
 					log.debug("Frame #{} was not a key frame, so trying again..", f);
 					continue;
 				}
-				sample = f;
+				log.info("Frame #{} found for seek: {}", f, frame);
+				createPreStreamingTags((int) (frame.getTime() * 1000));
+				currentFrame = f;
 				break;
 			}
+			prevVideoTS = (int) (frame.getTime() * 1000);
 		}
-		return sample;
+		//
+		log.debug("Setting current frame: {}", currentFrame);
 	}
 
 	/** {@inheritDoc}
@@ -1395,6 +1366,21 @@ public class MP4Reader implements IoConstants, ITagReader {
 
 	public ITag readTagHeader() {
 		return null;
+	}
+
+	@Override
+	public KeyFrameMeta analyzeKeyFrames() {
+		KeyFrameMeta result = new KeyFrameMeta();
+		result.audioOnly = hasAudio && !hasVideo;
+		result.duration = duration;
+		result.positions = new long[seekPoints.size()];
+		result.timestamps = new int[seekPoints.size()];
+		for (int idx=0; idx<seekPoints.size(); idx++) {
+			final Integer ts = seekPoints.get(idx);
+			result.positions[idx] = timePosMap.get(ts);
+			result.timestamps[idx] = ts;
+		}
+		return result;
 	}
 
 }
