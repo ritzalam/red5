@@ -88,8 +88,8 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	private long baseTolerance = 15000;
 
 	/**
-	 * Middle tardiness level, between base and this value disposible frames
-	 * will be dropped. Between this and highest value regulare interframes
+	 * Middle tardiness level, between base and this value disposable frames
+	 * will be dropped. Between this and highest value regular interframes
 	 * will be dropped.
 	 */
 	private long midTolerance = baseTolerance + (long) (baseTolerance * 0.3);
@@ -102,7 +102,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	
 	/**
 	 * Indicates if we should drop live packets with future timestamp 
-	 * (i.e, when publisher bandwith is limited) - EXPERIMENTAL
+	 * (i.e, when publisher bandwidth is limited) - EXPERIMENTAL
 	 * */
 	private boolean dropLiveFuture = false;
 	

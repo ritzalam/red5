@@ -621,6 +621,26 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		super.close();
 	}
 
+
+	/**
+	 * When the connection has been closed, notify any remaining pending service calls that they have failed because
+	 * the connection is broken. Implementors of IPendingServiceCallback may only deduce from this notification that
+	 * it was not possible to read a result for this service call. It is possible that (1) the service call was never
+	 * written to the service, or (2) the service call was written to the service and although the remote method was
+	 * invoked, the connection failed before the result could be read, or (3) although the remote method was invoked
+	 * on the service, the service implementor detected the failure of the connection and performed only partial
+	 * processing. The caller only knows that it cannot be confirmed that the callee has invoked the service call
+	 * and returned a result.
+	 */
+	public void sendPendingServiceCallsCloseError() {
+		for (IPendingServiceCall call : pendingCalls.values()) {
+			call.setStatus(Call.STATUS_NOT_CONNECTED);
+			for (IPendingServiceCallback callback : call.getCallbacks()) {
+				callback.resultReceived(call);
+			}
+		}
+	}
+
 	/** {@inheritDoc} */
 	public void unreserveStreamId(int streamId) {
 		getWriteLock().lock();
