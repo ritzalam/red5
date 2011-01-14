@@ -375,6 +375,9 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 			conn.invoke(method, callback);
 		} else {
 			log.info("Connection was null");
+            PendingCall result = new PendingCall(method);
+            result.setStatus(Call.STATUS_NOT_CONNECTED);
+            callback.resultReceived(result);
 		}
 	}
 
@@ -388,9 +391,12 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	public void invoke(String method, Object[] params, IPendingServiceCallback callback) {
 		log.debug("invoke method: {} params {} callback {}", new Object[] { method, params, callback });
 		if (conn != null) {
-			((IServiceCapableConnection) conn).invoke(method, params, callback);
+            conn.invoke(method, params, callback);
 		} else {
 			log.info("Connection was null");
+            PendingCall result = new PendingCall(method, params);
+            result.setStatus(Call.STATUS_NOT_CONNECTED);
+            callback.resultReceived(result);
 		}
 	}
 

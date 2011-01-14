@@ -129,6 +129,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		log.debug("Session closed");	
 		RTMP rtmp = (RTMP) session.removeAttribute(ProtocolState.SESSION_KEY);
 		RTMPMinaConnection conn = (RTMPMinaConnection) session.removeAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
+        conn.sendPendingServiceCallsCloseError();
 		handler.connectionClosed(conn, rtmp);
 		//remove the handshake if not already done
 		if (session.containsAttribute(RTMPConnection.RTMP_HANDSHAKE)) {
