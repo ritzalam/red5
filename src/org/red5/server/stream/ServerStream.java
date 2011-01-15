@@ -195,6 +195,10 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	/** {@inheritDoc} */
 	public void addItem(IPlayItem item, int index) {
 		items.add(index, item);
+		if (index <= currentItemIndex) {
+			// item was added before the currently playing
+			currentItemIndex++;
+		}
 	}
 
 	/** {@inheritDoc} */
@@ -203,6 +207,13 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 			return;
 		}
 		items.remove(index);
+		if (index < currentItemIndex) {
+			// item was removed before the currently playing
+			currentItemIndex--;
+		} else if (index == currentItemIndex) {
+			// TODO: the currently playing item is removed - this should be handled differently
+			currentItemIndex--;
+		}
 	}
 
 	/** {@inheritDoc} */
