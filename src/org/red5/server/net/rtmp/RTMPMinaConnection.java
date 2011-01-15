@@ -82,8 +82,9 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 			//check if it exists and remove
 			if (filters.contains("bandwidthFilter")) {
         		ioSession.getFilterChain().remove("bandwidthFilter");
-			}			
-			ioSession.close(true);
+			}
+			// only close socket after all pending data has been sent
+			ioSession.close(false);
 		}
 		//de-register with JMX
 		try {
@@ -206,7 +207,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	/** {@inheritDoc} */
 	@Override
 	public boolean isConnected() {
-		return super.isConnected() && (ioSession != null) && ioSession.isConnected();
+		return super.isConnected() && (ioSession != null) && ioSession.isConnected() && !ioSession.isClosing();
 	}
 
 	/** {@inheritDoc} */
