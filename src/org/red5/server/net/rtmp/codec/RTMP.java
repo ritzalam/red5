@@ -32,7 +32,7 @@ import org.red5.server.net.rtmp.message.Packet;
  */
 public class RTMP extends ProtocolState {
 	
-	public String[] states = {"connect", "handshake", "connected", "error", "disconnected"};
+	public String[] states = {"connect", "handshake", "connected", "error", "disconnecting", "disconnected"};
 	
 	/**
 	 * Connect state.
@@ -40,7 +40,7 @@ public class RTMP extends ProtocolState {
 	public static final byte STATE_CONNECT = 0x00;
 
 	/**
-	 * Handshake state. Server sends handshake request to client right after connection estabilished.
+	 * Handshake state. Server sends handshake request to client right after connection established.
 	 */
 	public static final byte STATE_HANDSHAKE = 0x01;
 
@@ -55,9 +55,14 @@ public class RTMP extends ProtocolState {
 	public static final byte STATE_ERROR = 0x03;
 
 	/**
+	 * In the processing of disconnecting
+	 */
+	public static final byte STATE_DISCONNECTING = 0x04;	
+	
+	/**
 	 * Disconnected.
 	 */
-	public static final byte STATE_DISCONNECTED = 0x04;
+	public static final byte STATE_DISCONNECTED = 0x05;
 
 	/**
 	 * Sent the connect message to origin.

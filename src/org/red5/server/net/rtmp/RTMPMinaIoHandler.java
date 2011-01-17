@@ -157,35 +157,40 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		log.debug("state: {}", rtmp);
 		final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		RTMPHandshake handshake = (RTMPHandshake) session.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
-		IoBuffer out = null;
-		conn.getWriteLock().lock();
-		try {
-			if (rtmp.getMode() == RTMP.MODE_SERVER) {
-				if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
-					log.warn("Raw buffer after handshake, something odd going on");
+		if (handshake != null) {
+			IoBuffer out = null;
+			conn.getWriteLock().lock();
+			try {
+				if (rtmp.getMode() == RTMP.MODE_SERVER) {
+					if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
+						log.warn("Raw buffer after handshake, something odd going on");
+					}
+					log.debug("Handshake - server phase 1 - size: {}", in.remaining());
+				} else {
+					log.debug("Handshake - client phase 2 - size: {}", in.remaining());
 				}
-				log.debug("Handshake - server phase 1 - size: {}", in.remaining());
-			} else {
-				log.debug("Handshake - client phase 2 - size: {}", in.remaining());
-			}
-			out = handshake.doHandshake(in);
-		} finally {
-			conn.getWriteLock().unlock();
-			if (out != null) {
-				log.debug("Output: {}", out);
-				session.write(out);
-				//if we are connected and doing encryption, add the ciphers
-				if (rtmp.getState() == RTMP.STATE_CONNECTED) {
-					// remove handshake from session now that we are connected
-					session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
-	    			// if we are using encryption then put the ciphers in the session
-	        		if (handshake.getHandshakeType() == RTMPConnection.RTMP_ENCRYPTED) {
-	        			log.debug("Adding ciphers to the session");
-	        			session.setAttribute(RTMPConnection.RTMPE_CIPHER_IN, handshake.getCipherIn());
-	        			session.setAttribute(RTMPConnection.RTMPE_CIPHER_OUT, handshake.getCipherOut());
-	        		}	
+				out = handshake.doHandshake(in);
+			} finally {
+				conn.getWriteLock().unlock();
+				if (out != null) {
+					log.debug("Output: {}", out);
+					session.write(out);
+					//if we are connected and doing encryption, add the ciphers
+					if (rtmp.getState() == RTMP.STATE_CONNECTED) {
+						// remove handshake from session now that we are connected
+						session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
+		    			// if we are using encryption then put the ciphers in the session
+		        		if (handshake.getHandshakeType() == RTMPConnection.RTMP_ENCRYPTED) {
+		        			log.debug("Adding ciphers to the session");
+		        			session.setAttribute(RTMPConnection.RTMPE_CIPHER_IN, handshake.getCipherIn());
+		        			session.setAttribute(RTMPConnection.RTMPE_CIPHER_OUT, handshake.getCipherOut());
+		        		}	
+					}
 				}
-			}
+			}		
+		} else {
+			log.warn("Handshake was not found for this connection: {}", conn);
+			log.debug("RTMP state: {} Session: {}", rtmp, session);
 		}
 	}
 
