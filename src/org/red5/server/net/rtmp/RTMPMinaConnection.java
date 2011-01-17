@@ -36,6 +36,8 @@ import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
 import org.red5.server.jmx.mxbeans.RTMPMinaConnectionMXBean;
 import org.red5.server.net.filter.TrafficShapingFilter;
+import org.red5.server.net.protocol.ProtocolState;
+import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.event.ClientBW;
 import org.red5.server.net.rtmp.event.ServerBW;
 import org.red5.server.net.rtmp.message.Packet;
@@ -83,8 +85,26 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 			if (filters.contains("bandwidthFilter")) {
         		ioSession.getFilterChain().remove("bandwidthFilter");
 			}
-			// only close socket after all pending data has been sent
-			ioSession.close(false);
+			// update our state
+			if (ioSession.containsAttribute(ProtocolState.SESSION_KEY)) {
+				RTMP rtmp = (RTMP) ioSession.getAttribute(ProtocolState.SESSION_KEY);
+				log.debug("RTMP state: {}", rtmp);
+				rtmp.setState(RTMP.STATE_DISCONNECTING);
+			}
+			// accept no further incoming data
+			ioSession.suspendRead();
+			// close now, no flushing, no waiting
+			ioSession.close(true);
+			// only close socket after all pending data has been sent, this does not
+			// work as expected when using RTMPE
+			//CloseFuture future = ioSession.close(false);
+			// wait until the connection is closed
+			//future.awaitUninterruptibly();
+			// now connection should be closed.
+			//if (!future.isClosed()) {
+				// force the close
+			//	ioSession.close(true);				
+			//}
 		}
 		//de-register with JMX
 		try {
@@ -207,7 +227,8 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	/** {@inheritDoc} */
 	@Override
 	public boolean isConnected() {
-		return super.isConnected() && (ioSession != null) && ioSession.isConnected() && !ioSession.isClosing();
+		// XXX Paul: not sure isClosing is actually working as we expect here
+		return super.isConnected() && (ioSession != null) && ioSession.isConnected(); // && !ioSession.isClosing();
 	}
 
 	/** {@inheritDoc} */
