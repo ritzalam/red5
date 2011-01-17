@@ -128,14 +128,16 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 	public void sessionClosed(IoSession session) throws Exception {
 		log.debug("Session closed");	
 		RTMP rtmp = (RTMP) session.removeAttribute(ProtocolState.SESSION_KEY);
+		log.debug("RTMP state: {}", rtmp);	
 		RTMPMinaConnection conn = (RTMPMinaConnection) session.removeAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
-        conn.sendPendingServiceCallsCloseError();
+		conn.sendPendingServiceCallsCloseError();
+		// fire-off closed
 		handler.connectionClosed(conn, rtmp);
-		//remove the handshake if not already done
+		// remove the handshake if not already done
 		if (session.containsAttribute(RTMPConnection.RTMP_HANDSHAKE)) {
     		session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
 		}
-		//remove ciphers
+		// remove ciphers
 		if (session.containsAttribute(RTMPConnection.RTMPE_CIPHER_IN)) {
 			session.removeAttribute(RTMPConnection.RTMPE_CIPHER_IN);
 			session.removeAttribute(RTMPConnection.RTMPE_CIPHER_OUT);
@@ -178,7 +180,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 					//if we are connected and doing encryption, add the ciphers
 					if (rtmp.getState() == RTMP.STATE_CONNECTED) {
 						// remove handshake from session now that we are connected
-						session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
+						//session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
 		    			// if we are using encryption then put the ciphers in the session
 		        		if (handshake.getHandshakeType() == RTMPConnection.RTMP_ENCRYPTED) {
 		        			log.debug("Adding ciphers to the session");

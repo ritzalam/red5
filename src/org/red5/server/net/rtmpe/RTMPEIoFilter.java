@@ -29,6 +29,7 @@ import org.apache.mina.core.write.WriteRequestWrapper;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPHandshake;
+import org.red5.server.net.rtmp.RTMPMinaConnection;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
 import org.slf4j.Logger;
@@ -76,18 +77,26 @@ public class RTMPEIoFilter extends IoFilterAdapter {
 					log.debug("Using non-encrypted communications");
 				}
 			} else if (handshakeType == 6) {
-				//if we are connected and doing encryption, add the ciphers
-				log.debug("Assumed to be in a connected state");
-				// remove handshake from session now that we are connected
-				session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
-				log.debug("Using encrypted communications");
-				//make sure they are not already on the session
-				if (session.containsAttribute(RTMPConnection.RTMPE_CIPHER_IN)) {
-					log.debug("Ciphers already exist on the session");
-				} else {
-					log.debug("Adding ciphers to the session");
-					session.setAttribute(RTMPConnection.RTMPE_CIPHER_IN, handshake.getCipherIn());
-					session.setAttribute(RTMPConnection.RTMPE_CIPHER_OUT, handshake.getCipherOut());
+				// ensure we have received enough bytes to be encrypted
+				RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
+				long readBytesCount = conn.getReadBytes();
+				long writeBytesCount = conn.getWrittenBytes();
+				log.trace("Bytes read: {} written: {}", readBytesCount, writeBytesCount);
+				// don't remove the handshake when using RTMPE until we've written all the handshake data
+				if (writeBytesCount >= (Constants.HANDSHAKE_SIZE * 2)) {
+					//if we are connected and doing encryption, add the ciphers
+					log.debug("Assumed to be in a connected state");
+					// remove handshake from session now that we are connected
+					session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
+					log.debug("Using encrypted communications");
+					//make sure they are not already on the session
+					if (session.containsAttribute(RTMPConnection.RTMPE_CIPHER_IN)) {
+						log.debug("Ciphers already exist on the session");
+					} else {
+						log.debug("Adding ciphers to the session");
+						session.setAttribute(RTMPConnection.RTMPE_CIPHER_IN, handshake.getCipherIn());
+						session.setAttribute(RTMPConnection.RTMPE_CIPHER_OUT, handshake.getCipherOut());
+					}					
 				}
 			}
 		}
