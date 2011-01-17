@@ -621,7 +621,6 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		super.close();
 	}
 
-
 	/**
 	 * When the connection has been closed, notify any remaining pending service calls that they have failed because
 	 * the connection is broken. Implementors of IPendingServiceCallback may only deduce from this notification that
@@ -633,10 +632,12 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * and returned a result.
 	 */
 	public void sendPendingServiceCallsCloseError() {
-		for (IPendingServiceCall call : pendingCalls.values()) {
-			call.setStatus(Call.STATUS_NOT_CONNECTED);
-			for (IPendingServiceCallback callback : call.getCallbacks()) {
-				callback.resultReceived(call);
+		if (pendingCalls != null && !pendingCalls.isEmpty()) {
+			for (IPendingServiceCall call : pendingCalls.values()) {
+				call.setStatus(Call.STATUS_NOT_CONNECTED);
+				for (IPendingServiceCallback callback : call.getCallbacks()) {
+					callback.resultReceived(call);
+				}
 			}
 		}
 	}
