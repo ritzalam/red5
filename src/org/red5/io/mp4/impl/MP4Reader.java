@@ -250,7 +250,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		//add meta data
 		firstTags.add(createFileMeta());
 		//create / add the pre-streaming (decoder config) tags
-		createPreStreamingTags(0);
+		createPreStreamingTags(0, false);
 	}
 
 	/**
@@ -1005,8 +1005,11 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	 * 
 	 * Still not absolutely certain about this order or the bytes - need to verify later
 	 */
-	private void createPreStreamingTags(int timestamp) {
+	private void createPreStreamingTags(int timestamp, boolean clear) {
 		log.debug("Creating pre-streaming tags");
+		if (clear) {
+			firstTags.clear();
+		}
 		ITag tag = null;
 		IoBuffer body = null;
 
@@ -1326,7 +1329,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 					continue;
 				}
 				log.info("Frame #{} found for seek: {}", f, frame);
-				createPreStreamingTags((int) (frame.getTime() * 1000));
+				createPreStreamingTags((int) (frame.getTime() * 1000), true);
 				currentFrame = f;
 				break;
 			}
