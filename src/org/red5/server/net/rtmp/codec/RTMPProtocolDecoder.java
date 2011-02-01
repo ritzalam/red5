@@ -106,21 +106,16 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 *         decoded
 	 */
 	public List<Object> decodeBuffer(ProtocolState state, IoBuffer buffer) {
-
 		final List<Object> result = new LinkedList<Object>();
-
 		try {
 			while (true) {
-
 				final int remaining = buffer.remaining();
 				if (state.canStartDecoding(remaining)) {
 					state.startDecoding();
 				} else {
 					break;
 				}
-
 				final Object decodedObject = decode(state, buffer);
-
 				if (state.hasDecodedObject()) {
 					if (decodedObject != null) {
 						result.add(decodedObject);
@@ -130,7 +125,6 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				} else {
 					break;
 				}
-
 				if (!buffer.hasRemaining()) {
 					break;
 				}
@@ -652,7 +646,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		boolean persistent = in.getInt() == 2;
 		// Skip unknown bytes
 		in.skip(4);
-		
+
 		final SharedObjectMessage so = new FlexSharedObjectMessage(null, name, version, persistent);
 		doDecodeSharedObject(so, in, input);
 		return so;

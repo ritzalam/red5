@@ -98,6 +98,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 
 	/** {@inheritDoc} */
 	public void connectionOpened(RTMPConnection conn, RTMP state) {
+		log.trace("connectionOpened - conn: {} state: {}", conn, state);
 		if (state.getMode() == RTMP.MODE_SERVER && appCtx != null) {
 			ISchedulingService service = (ISchedulingService) appCtx.getBean(ISchedulingService.BEAN_NAME);
 			conn.startWaitForHandshake(service);
@@ -106,8 +107,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 
 	/** {@inheritDoc} */
 	public void messageReceived(Object in, IoSession session) throws Exception {
-		RTMPConnection conn = (RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
-		RTMP state = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
+		RTMPConnection conn = (RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		IRTMPEvent message = null;
 		try {
 			final Packet packet = (Packet) in;
@@ -115,28 +115,23 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 			final Header header = packet.getHeader();
 			final Channel channel = conn.getChannel(header.getChannelId());
 			final IClientStream stream = conn.getStreamById(header.getStreamId());
-
 			log.debug("Message received, header: {}", header);
-
 			// Thread local performance ? Should we benchmark
 			Red5.setConnectionLocal(conn);
-
 			// XXX: HACK HACK HACK to support stream ids
 			BaseRTMPHandler.setStreamId(header.getStreamId());
-
-			// Increase number of received messages
+			// increase number of received messages
 			conn.messageReceived();
-
+			// set the source of the message
 			message.setSource(conn);
-
+			// process based on data type
 			switch (header.getDataType()) {
 				case TYPE_CHUNK_SIZE:
 					onChunkSize(conn, channel, header, (ChunkSize) message);
 					break;
-
 				case TYPE_INVOKE:
 				case TYPE_FLEX_MESSAGE:
-					onInvoke(conn, channel, header, (Invoke) message, state);
+					onInvoke(conn, channel, header, (Invoke) message, (RTMP) session.getAttribute(ProtocolState.SESSION_KEY));
 					IPendingServiceCall call = ((Invoke) message).getCall();
 					if (message.getHeader().getStreamId() != 0 && call.getServiceName() == null && StreamAction.PUBLISH.equals(call.getServiceMethodName())) {
 						if (stream != null) {
@@ -145,26 +140,22 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 						}
 					}
 					break;
-
 				case TYPE_NOTIFY: // just like invoke, but does not return
 					if (((Notify) message).getData() != null && stream != null) {
 						// Stream metadata
 						((IEventDispatcher) stream).dispatchEvent(message);
 					} else {
-						onInvoke(conn, channel, header, (Notify) message, state);
+						onInvoke(conn, channel, header, (Notify) message, (RTMP) session.getAttribute(ProtocolState.SESSION_KEY));
 					}
 					break;
-
 				case TYPE_FLEX_STREAM_SEND:
 					if (stream != null) {
 						((IEventDispatcher) stream).dispatchEvent(message);
 					}
 					break;
-
 				case TYPE_PING:
 					onPing(conn, channel, header, (Ping) message);
 					break;
-
 				case TYPE_BYTES_READ:
 					onStreamBytesRead(conn, channel, header, (BytesRead) message);
 					break;
@@ -288,8 +279,8 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 	 * @param chunkSize
 	 *            New chunk size
 	 */
-	protected abstract void onChunkSize(RTMPConnection conn, Channel channel, Header source, ChunkSize chunkSize);	
-	
+	protected abstract void onChunkSize(RTMPConnection conn, Channel channel, Header source, ChunkSize chunkSize);
+
 	/**
 	 * Invocation event handler.
 	 * 

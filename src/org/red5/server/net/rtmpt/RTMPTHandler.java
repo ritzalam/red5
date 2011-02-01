@@ -19,18 +19,14 @@ package org.red5.server.net.rtmpt;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.Arrays;
-
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.IoSession;
-import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.InboundHandshake;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPHandler;
 import org.red5.server.net.rtmp.RTMPHandshake;
 import org.red5.server.net.rtmp.codec.RTMP;
-import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmpt.codec.RTMPTCodecFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +36,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public class RTMPTHandler extends RTMPHandler {
 
@@ -77,40 +74,20 @@ public class RTMPTHandler extends RTMPHandler {
 	}
 
 	/**
-	 * Handle raw buffer reciept
+	 * Handle raw buffer received
 	 * @param conn        RTMP connection
 	 * @param state       Protocol state
 	 * @param in          Byte buffer with input raw data
 	 */
-	private void rawBufferRecieved(RTMPTConnection conn, ProtocolState state, IoBuffer in) {
+	private void rawBufferReceived(RTMPTConnection conn, RTMP state, IoBuffer in) {
 		log.debug("rawBufferRecieved: {}", in);
-		final RTMP rtmp = (RTMP) state;
-		if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
+		if (state.getState() != RTMP.STATE_HANDSHAKE) {
 			log.warn("Raw buffer after handshake, something odd going on");
 		}
-		// create buffer to hold handshake 
-		IoBuffer out = IoBuffer.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
 		log.debug("Writing handshake reply, handskake size: {}", in.remaining());
-		// determine client type
-		if (in.get(4) == 0) {
-			log.debug("Using old style handshake");
-			out = IoBuffer.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
-			out.put((byte) RTMPConnection.RTMP_NON_ENCRYPTED);
-			// set server uptime in seconds
-			out.putInt((int) Red5.getUpTime() / 1000);
-			out.put(RTMPHandshake.HANDSHAKE_PAD_BYTES).put(in).flip();
-		} else {
-			log.debug("Using new style handshake");
-			//save resource by only doing this after the first request
-			if (RTMPHandshake.HANDSHAKE_PAD_BYTES == null) {
-				RTMPHandshake.HANDSHAKE_PAD_BYTES = new byte[Constants.HANDSHAKE_SIZE - 4];
-				//fill pad bytes
-				Arrays.fill(RTMPHandshake.HANDSHAKE_PAD_BYTES, (byte) 0x00);
-			}
-			RTMPHandshake shake = new InboundHandshake();
-			out = shake.doHandshake(in);
-		}
-		conn.rawWrite(out);
+		RTMPHandshake shake = new InboundHandshake();
+		shake.setHandshakeType(RTMPConnection.RTMP_NON_ENCRYPTED);
+		conn.rawWrite(shake.doHandshake(in));
 	}
 
 	/** {@inheritDoc} */
@@ -120,7 +97,8 @@ public class RTMPTHandler extends RTMPHandler {
 		if (in instanceof IoBuffer) {
 			RTMPTConnection conn = (RTMPTConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 			RTMP state = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
-			rawBufferRecieved(conn, state, (IoBuffer) in);
+			log.trace("state: {}", state);
+			rawBufferReceived(conn, state, (IoBuffer) in);
 			((IoBuffer) in).free();
 			in = null;
 		} else {

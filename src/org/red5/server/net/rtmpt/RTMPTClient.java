@@ -52,7 +52,6 @@ public class RTMPTClient extends BaseRTMPClientHandler {
 		if (!params.containsKey("tcUrl")) {
 			params.put("tcUrl", "rtmpt://" + server + ':' + port + '/' + application);
 		}
-
 		return params;
 	}
 

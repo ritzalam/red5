@@ -73,7 +73,7 @@ public class Serializer {
 	 * @param value Object to serialize
 	 */
 	public void serialize(Output out, Field field, Method getter, Object object, Object value) {
-		log.debug("serialize");
+		log.trace("serialize");
 		if (value instanceof IExternalizable) {
 			// Make sure all IExternalizable objects are serialized as objects
 			out.writeObject(value, this);
@@ -82,9 +82,9 @@ public class Serializer {
 			out.writeByteArray((ByteArray) value);
 		} else {
 			if (writeBasic(out, value)) {
-				log.debug("Wrote as basic");
+				log.trace("Wrote as basic");
 			} else if (!writeComplex(out, value)) {
-				log.debug("Unable to serialize: {}", value);
+				log.trace("Unable to serialize: {}", value);
 			}
 		}
 	}
@@ -128,7 +128,7 @@ public class Serializer {
 	 *         otherwise
 	 */
 	public boolean writeComplex(Output out, Object complex) {
-		log.debug("writeComplex");
+		log.trace("writeComplex");
 		if (writeListType(out, complex)) {
 			return true;
 		} else if (writeArrayType(out, complex)) {
@@ -155,7 +155,7 @@ public class Serializer {
 	 *         otherwise
 	 */
 	protected boolean writeListType(Output out, Object listType) {
-		log.debug("writeListType");
+		log.trace("writeListType");
 		if (listType instanceof List<?>) {
 			writeList(out, (List<?>) listType);
 		} else {
@@ -206,7 +206,7 @@ public class Serializer {
 	 */
 	@SuppressWarnings("all")
 	protected boolean writeArrayType(Output out, Object arrType) {
-		log.debug("writeArrayType");
+		log.trace("writeArrayType");
 		if (arrType instanceof Collection) {
 			out.writeArray((Collection<Object>) arrType, this);
 		} else if (arrType instanceof Iterator) {
@@ -230,7 +230,7 @@ public class Serializer {
 	 *            Iterator to write
 	 */
 	protected void writeIterator(Output out, Iterator<Object> it) {
-		log.debug("writeIterator");
+		log.trace("writeIterator");
 		// Create LinkedList of collection we iterate thru and write it out
 		// later
 		LinkedList<Object> list = new LinkedList<Object>();
@@ -252,7 +252,7 @@ public class Serializer {
 	 *         <code>false</code> otherwise
 	 */
 	protected boolean writeXMLType(Output out, Object xml) {
-		log.debug("writeXMLType");
+		log.trace("writeXMLType");
 		// If it's a Document write it as Document
 		if (xml instanceof Document) {
 			writeDocument(out, (Document) xml);
@@ -338,15 +338,15 @@ public class Serializer {
 	 *         <code>false</code>
 	 */
 	public boolean serializeField(String keyName, Field field, Method getter) {
-		log.debug("serializeField - keyName: {} field: {} method: {}", new Object[] { keyName, field, getter });
+		log.trace("serializeField - keyName: {} field: {} method: {}", new Object[] { keyName, field, getter });
 		if ("class".equals(keyName)) {
 			return false;
 		}
 		if ((field != null && field.isAnnotationPresent(DontSerialize.class)) || (getter != null && getter.isAnnotationPresent(DontSerialize.class))) {
-			log.debug("Skipping {} because its marked with @DontSerialize", keyName);
+			log.trace("Skipping {} because its marked with @DontSerialize", keyName);
 			return false;
 		}
-		log.debug("Serialize field: {}", field);
+		log.trace("Serialize field: {}", field);
 		return true;
 	}
 
