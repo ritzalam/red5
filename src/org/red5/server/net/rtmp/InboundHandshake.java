@@ -68,16 +68,11 @@ public class InboundHandshake extends RTMPHandshake {
 			log.info("Invalid RTMP connection data detected, you may experience errors");
 		}
 		input.reset();
-
 		log.debug("Using new style handshake");
-		
-		input.mark();
-		
+		input.mark();	
 		//create all the dh stuff and add to handshake bytes
 		prepareResponse(input);
-
 		input.reset();
-
 		if (handshakeType == RTMPConnection.RTMP_ENCRYPTED) {
     		log.debug("Incoming public key [{}]: {}", incomingPublicKey.length, Hex.encodeHexString(incomingPublicKey));
     		log.debug("Outgoing public key [{}]: {}", outgoingPublicKey.length, Hex.encodeHexString(outgoingPublicKey));
@@ -107,10 +102,8 @@ public class InboundHandshake extends RTMPHandshake {
             byte[] dummyBytes = new byte[Constants.HANDSHAKE_SIZE];
             cipherIn.update(dummyBytes);
             cipherOut.update(dummyBytes);
-		}				
-		
+		}						
 		input.mark();
-		
 		//create the server digest
 		int serverDigestOffset = getDigestOffset(handshakeBytes);
 		byte[] tempBuffer = new byte[Constants.HANDSHAKE_SIZE - DIGEST_LENGTH];
@@ -120,35 +113,28 @@ public class InboundHandshake extends RTMPHandshake {
 		byte[] tempHash = calculateHMAC_SHA256(tempBuffer, GENUINE_FMS_KEY, 36);
 		//add the digest 
 		System.arraycopy(tempHash, 0, handshakeBytes, serverDigestOffset, DIGEST_LENGTH);
-		
 		//compute the challenge digest
 		byte[] inputBuffer = new byte[Constants.HANDSHAKE_SIZE - DIGEST_LENGTH];
 		//log.debug("Before get: {}", input.position());
 		input.get(inputBuffer);
 		//log.debug("After get: {}", input.position());
-		
 		int keyChallengeIndex = getDigestOffset(inputBuffer);
-					
 		byte[] challengeKey = new byte[DIGEST_LENGTH];
 		input.position(keyChallengeIndex);
 		input.get(challengeKey, 0, DIGEST_LENGTH);			
 		input.reset();
-		
 		//compute key
 		tempHash = calculateHMAC_SHA256(challengeKey, GENUINE_FMS_KEY, 68);
-
 		//generate hash
 		byte[] randBytes = new byte[Constants.HANDSHAKE_SIZE - DIGEST_LENGTH];
 		random.nextBytes(randBytes);
 		byte[] lastHash = calculateHMAC_SHA256(randBytes, tempHash, DIGEST_LENGTH);
-
 		//set handshake with encryption type 
 		output.put(handshakeType);			
 		output.put(handshakeBytes);
 		output.put(randBytes);
 		output.put(lastHash);
 		output.flip();			
-		
 		if (log.isTraceEnabled()) {
 			byte[] bOut = output.array();
 			log.trace("First few bytes (out): {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}", new Object[] { 

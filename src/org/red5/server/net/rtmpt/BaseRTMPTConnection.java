@@ -127,6 +127,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	/** {@inheritDoc} */
 	@Override
 	public void close() {
+		log.debug("close - state: {}", state.getState());		
 		// Defer actual closing so we can send back pending messages to the client.
 		closing = true;
 	}
@@ -190,6 +191,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 * @return a list of decoded objects
 	 */
 	public List<?> decode(IoBuffer data) {
+		log.debug("decode - state: {}", state);
 		if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
 			// Connection is being closed, don't decode any new packets
 			return Collections.EMPTY_LIST;
@@ -209,6 +211,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 */
 	@Override
 	public void write(final Packet packet) {
+		log.debug("write - state: {}", state);		
 		if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
 			// Connection is being closed, don't send any new packets
 			return;

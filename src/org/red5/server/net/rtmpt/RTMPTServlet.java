@@ -49,6 +49,7 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public class RTMPTServlet extends HttpServlet {
 
@@ -93,6 +94,9 @@ public class RTMPTServlet extends HttpServlet {
 
 	// Response sent for ident2 requests. If this is null a 404 will be returned
 	private static String ident2;
+	
+	// Whether or not to enforce content type checking for requests
+	private boolean enforceContentTypeCheck;
 
 	public void setRtmpConnManager(IRTMPConnManager rtmpConnManager) {
 		RTMPTServlet.rtmpConnManager = rtmpConnManager;
@@ -457,9 +461,15 @@ public class RTMPTServlet extends HttpServlet {
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		log.debug("Request - method: {} content type: {} path: {}", new Object[] { req.getMethod(), req.getContentType(), req.getServletPath() });
-		if (!REQUEST_METHOD.equals(req.getMethod()) || req.getContentLength() == 0 || !CONTENT_TYPE.equals(req.getContentType())) {
+		// allow only POST requests with valid content length
+		if (!REQUEST_METHOD.equals(req.getMethod()) || req.getContentLength() == 0) {
 			// Bad request - return simple error page
 			handleBadRequest("Bad request, only RTMPT supported.", resp);
+			return;
+		}
+		// decide whether or not to enforce request content checks
+		if (enforceContentTypeCheck && !CONTENT_TYPE.equals(req.getContentType())) {
+			handleBadRequest(String.format("Bad request, unsupported content type: %s.", req.getContentType()), resp);
 			return;
 		}
 		//get the path
@@ -567,5 +577,19 @@ public class RTMPTServlet extends HttpServlet {
 
 	protected void removeConnection(int clientId) {
 		rtmpConnManager.removeConnection(clientId);
+	}
+
+	/**
+	 * @return the enforceContentTypeCheck
+	 */
+	public boolean isEnforceContentTypeCheck() {
+		return enforceContentTypeCheck;
+	}
+
+	/**
+	 * @param enforceContentTypeCheck the enforceContentTypeCheck to set
+	 */
+	public void setEnforceContentTypeCheck(boolean enforceContentTypeCheck) {
+		this.enforceContentTypeCheck = enforceContentTypeCheck;
 	}
 }

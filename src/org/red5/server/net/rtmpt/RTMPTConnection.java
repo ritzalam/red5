@@ -33,7 +33,6 @@ import org.slf4j.Logger;
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
-
 public class RTMPTConnection extends BaseRTMPTConnection {
 
 	private static final Logger log = Red5LoggerFactory.getLogger(RTMPTConnection.class);
@@ -120,6 +119,7 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	 * @return the polling delay
 	 */
 	public byte getPollingDelay() {
+		log.debug("getPollingDelay {}", pollingDelay);
 		if (state.getState() == RTMP.STATE_DISCONNECTED) {
 			// Special value to notify client about a closed connection.
 			return (byte) 0;
@@ -145,7 +145,7 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 			}
 			return null;
 		}
-		log.debug("Going to return {} messages to client", currentPendingMessages);
+		log.debug("Returning {} messages to client", currentPendingMessages);
 		noPendingMessages = 0;
 		pollingDelay = INITIAL_POLLING_DELAY;
 		return foldPendingMessages(targetSize);

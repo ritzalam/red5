@@ -48,14 +48,14 @@ public class Deserializer {
 	public <T> T deserialize(Input in, Type target) {
 		
 		byte type = in.readDataType();
-		log.debug("Type: {} target: {}", type, (target != null ? target.toString() : "Target not specified"));
+		log.trace("Type: {} target: {}", type, (target != null ? target.toString() : "Target not specified"));
 
 		while (type == DataTypes.CORE_SKIP) {
 			type = in.readDataType();
-			log.debug("Type (skip): {}", type);
+			log.trace("Type (skip): {}", type);
 		}
 
-		log.debug("Datatype: {}", DataTypes.toStringValue(type));
+		log.trace("Datatype: {}", DataTypes.toStringValue(type));
 
 		Object result;
 
