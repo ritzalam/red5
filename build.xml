@@ -369,7 +369,6 @@
 	</target>
 	<target name="compile-war" depends="-library.check, -java6.check, clean, prepare">
 		<!-- token replacement filers -->
-
 		<property name="filter.file" value="${config.dir}/war/build_war.properties"/>
 		<condition property="java.target_version" value="1.6">
 			<not>
@@ -894,7 +893,6 @@
 	</target>
 	<target name="webwar" description="Make Web Archive" depends="compile-war">
 		<!-- token replacement filers -->
-
 		<filter filtersfile="${config.dir}/war/build_war.properties"/>
 		<copy todir="${classes.dir}">
 			<fileset dir=".">
@@ -955,12 +953,15 @@
 				<exclude name="el-api*.jar"/>
 				<exclude name="jetty*.jar"/>
 				<exclude name="jasper*.jar"/>
-				<exclude name="ehcache*.jar"/>
 				<exclude name="whirly*.jar"/>
-				<exclude name="Grobo*.jar"/>
-				<exclude name="grobo*.jar"/>
+				<exclude name="*robo*.jar"/>
 				<exclude name="junit*.jar"/>
-				<exclude name="ivy*.jar"/>
+                <exclude name="ivy*.jar"/>
+                <exclude name="javaee*.jar"/>
+			    <exclude name="*-sources-*.jar"/>
+                <exclude name="com.springsource.slf4j.juli*.jar"/>
+                <exclude name="com.springsource.slf4j.log4j*.jar"/>
+                <exclude name="com.springsource.slf4j.org.apache*.jar"/>
 			</lib>
 			<manifest>
 				<attribute name="Built-By" value="${red5.fullname}"/>
