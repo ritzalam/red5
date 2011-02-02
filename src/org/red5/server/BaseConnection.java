@@ -190,7 +190,8 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 
 	/**
 	 * Returns the next available client id.
-	 * @return
+	 * 
+	 * @return new client id
 	 */
 	public static int getNextClientId() {
 		return clientIdGenerator.incrementAndGet();
