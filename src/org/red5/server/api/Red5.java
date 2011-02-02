@@ -38,7 +38,7 @@ import javax.management.openmbean.CompositeData;
  * IScope scope = r5.getScope();
  * conn = r5.getConnection();
  * r5 = new Red5(conn);
- * IClient client = r5.getClient(); 
+ * IClient client = r5.getClient();
  * </pre> 
  *   
  * @author The Red5 Project (red5@osflash.org)
