@@ -241,8 +241,9 @@ public abstract class RTMPHandshake implements IHandshake {
 	/**
 	 * Determines the validation scheme for given input.
 	 * 
-	 * @param input
-	 * @return true if client used a supported validation scheme, false if unsupported
+	 * @param otherPublicKeyBytes
+	 * @param agreement
+	 * @return shared secret bytes if client used a supported validation scheme
 	 */
 	protected static byte[] getSharedSecret(byte[] otherPublicKeyBytes, KeyAgreement agreement) {
 		BigInteger otherPublicKeyInt = new BigInteger(1, otherPublicKeyBytes);

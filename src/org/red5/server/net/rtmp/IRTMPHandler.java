@@ -28,16 +28,17 @@ import org.red5.server.net.rtmp.codec.RTMP;
 public interface IRTMPHandler {
     /**
      * Connection open event
+     * 
      * @param conn          Connection
      * @param state         RTMP state
      */
 	public void connectionOpened(RTMPConnection conn, RTMP state);
 
     /**
-     * Message recieved
-     * @param conn          Connection
-     * @param state         RTMP state
+     * Message received
+     * 
      * @param message       Message
+     * @param session       Connected session
      * @throws Exception    Exception
      */
 	public void messageReceived(Object message, IoSession session) throws Exception;

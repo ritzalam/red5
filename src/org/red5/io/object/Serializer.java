@@ -354,7 +354,7 @@ public class Serializer {
 	 * Handles classes by name, also provides "shortened" class aliases where appropriate.
 	 * 
 	 * @param objectClass
-	 * @return
+	 * @return class name for given object
 	 */
 	public String getClassName(Class<?> objectClass) {
 		RemoteClass annotation = objectClass.getAnnotation(RemoteClass.class);
