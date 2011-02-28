@@ -123,7 +123,7 @@ public class Red5LoggerFactory {
 			for (Method method : methods) {
 				//ensure method exists
 				if (method.getName().equals("getContextSelector")) {
-					System.out.println("Logger context selector method found");
+					//System.out.println("Logger context selector method found");
 					//get the context selector
 					StaticLoggerBinder binder = StaticLoggerBinder.getSingleton();
 					Method m1 = binder.getClass().getMethod("getContextSelector", (Class[]) null);

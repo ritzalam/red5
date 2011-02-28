@@ -16,7 +16,7 @@ package org.red5.server.api;
  * 
  * You should have received a copy of the GNU Lesser General Public License along 
  * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 import java.lang.ref.WeakReference;
@@ -39,7 +39,7 @@ import javax.management.openmbean.CompositeData;
  * conn = r5.getConnection();
  * r5 = new Red5(conn);
  * IClient client = r5.getClient();
- * </pre> 
+ * </pre>
  *   
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)

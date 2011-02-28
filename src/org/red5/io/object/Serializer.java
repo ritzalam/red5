@@ -173,24 +173,28 @@ public class Serializer {
 	 *            List to write as Object
 	 */
 	protected void writeList(Output out, List<?> list) {
-		// if its a small list, write it as an array
-		if (list.size() < 100) {
-			out.writeArray(list, this);
-			return;
-		}
-		// else we should check for lots of null values,
-		// if there are over 80% then its probably best to do it as a map
-		int size = list.size();
-		int nullCount = 0;
-		for (int i = 0; i < size; i++) {
-			if (list.get(i) == null) {
-				nullCount++;
-			}
-		}
-		if (nullCount > (size * 0.8)) {
-			out.writeMap(list, this);
+		if (!list.isEmpty()) {
+    		int size = list.size();
+    		// if its a small list, write it as an array
+    		if (size < 100) {
+    			out.writeArray(list, this);
+    			return;
+    		}
+    		// else we should check for lots of null values,
+    		// if there are over 80% then its probably best to do it as a map
+    		int nullCount = 0;
+    		for (int i = 0; i < size; i++) {
+    			if (list.get(i) == null) {
+    				nullCount++;
+    			}
+    		}
+    		if (nullCount > (size * 0.8)) {
+    			out.writeMap(list, this);
+    		} else {
+    			out.writeArray(list, this);
+    		}
 		} else {
-			out.writeArray(list, this);
+			out.writeArray(new Object[]{}, this);
 		}
 	}
 
