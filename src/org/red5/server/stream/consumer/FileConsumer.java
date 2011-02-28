@@ -401,7 +401,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 			writer.close();
 			writer = null;
 		}
-		if (queue != null) {
+		if (delayWrite && queue != null) {
 			writeLock.lock();
 			try {
 				//clear the queue

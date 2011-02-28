@@ -769,7 +769,6 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 		final IServiceCall call = invoke.getCall();
 		final boolean isPending = (call.getStatus() == Call.STATUS_PENDING);
 		log.debug("Call: {} pending: {}", call, isPending);
-
 		if (!isPending) {
 			log.debug("Call has been executed, send result");
 			serializer.serialize(output, call.isSuccess() ? "_result" : "_error"); // seems right
