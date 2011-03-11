@@ -312,7 +312,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	 * @return             true on success, false otherwise
 	 */
 	public boolean connect(IScope newScope) {
-		return connect(newScope, null);
+		return connect(newScope, new Object[]{});
 	}
 
 	/**

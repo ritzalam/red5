@@ -42,20 +42,21 @@ import org.springframework.core.io.support.ResourcePatternResolver;
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
  */
-public interface IScope extends IBasicScope, ResourcePatternResolver,
-		IServiceHandlerProvider {
+public interface IScope extends IBasicScope, ResourcePatternResolver, IServiceHandlerProvider {
 
-    /**
-     * ID constant
-     */
-    public static final String ID = "red5.scope";
-    /**
-     * Type constant
-     */
+	/**
+	 * ID constant
+	 */
+	public static final String ID = "red5.scope";
+
+	/**
+	 * Type constant
+	 */
 	public static final String TYPE = "scope";
-    /**
-     * Scope separator
-     */
+
+	/**
+	 * Scope separator
+	 */
 	public static final String SEPARATOR = ":";
 
 	/**
@@ -120,16 +121,16 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 	 * 
 	 * @param name Name of the child scope
 	 * @return the child scope, or null if no scope is found
-     * @param type     Child scope type
+	 * @param type     Child scope type
 	 */
 	public IBasicScope getBasicScope(String type, String name);
 
-    /**
-     * Return scope by name
-     * @param name     Scope name
-     * @return         Scope with given name
-     */
-    public IScope getScope(String name);
+	/**
+	 * Return scope by name
+	 * @param name     Scope name
+	 * @return         Scope with given name
+	 */
+	public IScope getScope(String name);
 
 	/**
 	 * Get a set of connected clients. You can get the connections by passing
@@ -194,14 +195,14 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 	 */
 	public boolean connect(IConnection conn);
 
-    /**
-     * Add given connection to the scope, overloaded for parameters pass case.
-     * @param conn             Given connection
-     * @param params           Parameters passed
-     * @return                 <code>true</code> on success, <code>false</code> if given
+	/**
+	 * Add given connection to the scope, overloaded for parameters pass case.
+	 * @param conn             Given connection
+	 * @param params           Parameters passed
+	 * @return                 <code>true</code> on success, <code>false</code> if given
 	 *                         connection already belongs to this scope
-     */
-    public boolean connect(IConnection conn, Object[] params);
+	 */
+	public boolean connect(IConnection conn, Object[] params);
 
 	/**
 	 * Removes given connection from list of scope connections. This disconnects
@@ -217,5 +218,5 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 	 * @return the statistics
 	 */
 	public IScopeStatistics getStatistics();
-	
+
 }

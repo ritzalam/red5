@@ -79,10 +79,9 @@ public class StatisticsService implements IStatisticsService {
 		Set<String> result = new HashSet<String>();
 		Iterator<String> iter = scope.getScopeNames();
 		while (iter.hasNext()) {
-			String name = iter.next();
-			result.add(name.substring(name.indexOf(IScope.SEPARATOR) + 1));
+			result.add(iter.next());
 		}
-
+		iter = null;
 		return result;
 	}
 
