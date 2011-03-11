@@ -101,6 +101,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		 * @param prefix prefix
 		 */
 		public PrefixFilteringStringIterator(Iterator<String> iterator, String prefix) {
+			//log.debug("Iterator: {} prefix: {}", iterator, prefix);
 			this.iterator = iterator;
 			this.prefix = prefix;
 		}
@@ -141,11 +142,6 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * Logger
 	 */
 	protected static Logger log = LoggerFactory.getLogger(Scope.class);
-
-	/**
-	 * Scope type constant
-	 */
-	private static final String TYPE = "scope";
 
 	/**
 	 * Unset flag constant
@@ -721,7 +717,8 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * @return Child scope names iterator
 	 */
 	public Iterator<String> getScopeNames() {
-		return new PrefixFilteringStringIterator(children.keySet().iterator(), "scope");
+		//log.debug("Children: {}", children);
+		return new PrefixFilteringStringIterator(children.keySet().iterator(), TYPE + SEPARATOR);
 	}
 
 	/**

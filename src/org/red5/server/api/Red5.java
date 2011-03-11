@@ -43,14 +43,13 @@ import javax.management.openmbean.CompositeData;
  *   
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
- * @author Paul Gregoire (mondain@gmail.com) 
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public final class Red5 {
 
 	/**
 	 * Current connection thread. Each connection of Red5 application runs in a
-	 * separate thread. This is thread object associated with
-	 * the current connection.
+	 * separate thread. This is thread object associated with the current connection.
 	 */
 	private static ThreadLocal<WeakReference<IConnection>> connThreadLocal = new ThreadLocal<WeakReference<IConnection>>();
 
