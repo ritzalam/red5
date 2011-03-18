@@ -20,6 +20,7 @@ package org.red5.io.flv.impl;
  */
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -33,6 +34,7 @@ import java.util.Map;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.IStreamableFile;
 import org.red5.io.ITag;
+import org.red5.io.ITagReader;
 import org.red5.io.ITagWriter;
 import org.red5.io.amf.Output;
 import org.red5.io.flv.FLVHeader;
@@ -149,7 +151,7 @@ public class FLVWriter implements ITagWriter {
 		this.file = file;
 		this.append = append;
 		try {
-			this.fos = new FileOutputStream(file, true);
+			this.fos = new FileOutputStream(file, append);
 			init();
 		} catch (Exception e) {
 			log.error("Failed to create FLV writer", e);
@@ -195,6 +197,15 @@ public class FLVWriter implements ITagWriter {
 	 */
 	public IStreamableFile getFile() {
 		return flv;
+	}
+	
+	/**
+	 * Sets the base file.
+	 * 
+	 * @param file source flv
+	 */
+	public void setFile(File file) {
+		this.file = file;
 	}
 
 	/**
@@ -313,7 +324,6 @@ public class FLVWriter implements ITagWriter {
 	 */
 	public void close() {
 		log.debug("close");
-		RandomAccessFile appender = null;
 		try {
 			// keep track of the original position
 			long oldPos = channel.position();
@@ -341,26 +351,39 @@ public class FLVWriter implements ITagWriter {
 					channel.position(oldPos);
 				}
 			}
-			channel.close();
-			fos.close();
-			channel = null;
 			// here we open the file again and overwrite the metadata with the final duration
 			// I tried just writing to the existing fos but for some reason it doesn't overwrite in the right place....
 			if (append) {
-				appender = new RandomAccessFile(file, "rw");
+				// close what we were using, so we can append
+				channel.close();
+				fos.close();
+				channel = null;
+				// create the appender
+				RandomAccessFile appender = new RandomAccessFile(file, "rw");
 				channel = appender.getChannel(); // reuse member variable to make sure writeMetadataTag() works
 				channel.position(13); // This is the position of the first tag
 				writeMetadataTag(duration * 0.001, videoCodecId, audioCodecId);
+				if (appender != null) {
+					appender.close();
+				}
 			}
 		} catch (IOException e) {
 			log.error("IO error on close", e);
 		} finally {
 			try {
-				if (appender != null) {
-					appender.close();
-				}
 				if (channel != null) {
+					// flush
+					channel.force(true);
+					// run a test on the flv if debugging is on
+					if (log.isDebugEnabled()) {
+    					// debugging
+    					testFLV();
+					}
+					// close the channel
 					channel.close();
+					if (fos != null) {
+						fos.close();
+					}
 				}
 			} catch (IOException e) {
 				log.error("", e);
@@ -409,6 +432,30 @@ public class FLVWriter implements ITagWriter {
 		log.debug("Metadata size: {}", fileMetaSize);
 		ITag onMetaData = new Tag(ITag.TYPE_METADATA, 0, fileMetaSize, buf, 9);
 		writeTag(onMetaData);
+	}
+
+	public void testFLV() {
+		log.debug("testFLV");
+		try {
+			ITagReader reader = null;
+			if (flv != null) {
+				reader = flv.getReader();
+			}
+			if (reader == null) {
+				FileInputStream fis = new FileInputStream(file);
+				reader = new FLVReader(fis.getChannel());				
+			}
+			log.debug("reader: {}", reader);
+			ITag tag = null;
+			log.debug("has more tags: {}", reader.hasMoreTags());
+			while (reader.hasMoreTags()) {
+				tag = reader.readTag();
+				log.debug("{}", tag);
+			}
+			//Assert.assertEquals(true, true);
+		} catch (IOException e) {
+			log.warn("", e);
+		}
 	}
 
 }

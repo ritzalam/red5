@@ -159,6 +159,32 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	}
 
 	/**
+	 * Creates FLV reader from file channel.
+	 *
+	 * @param channel
+	 * @throws IOException on error
+	 */
+	public FLVReader(FileChannel channel) throws IOException {
+		if (null == channel) {
+			log.warn("Reader was passed a null channel");
+			log.debug("{}", org.apache.commons.lang.builder.ToStringBuilder.reflectionToString(this));
+		}
+		if (!channel.isOpen()) {
+			log.warn("Reader was passed a closed channel");
+			return;
+		}
+		this.channel = channel;
+		channelSize = channel.size();
+		log.debug("Channel size: {}", channelSize);
+		if (channel.position() > 0) {
+			log.debug("Channel position: {}", channel.position());
+			channel.position(0);
+		}
+		fillBuffer();
+		postInitialize();
+	}
+
+	/**
 	 * Accepts mapped file bytes to construct internal members.
 	 *
 	 * @param generateMetadata         <code>true</code> if metadata generation required, <code>false</code> otherwise
@@ -184,7 +210,6 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		if (!useLoadBuf) {
 			return in.remaining();
 		}
-
 		try {
 			return channelSize - channel.position() + in.remaining();
 		} catch (Exception e) {
@@ -202,7 +227,6 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		if (!useLoadBuf) {
 			return in.capacity();
 		}
-
 		try {
 			return channelSize;
 		} catch (Exception e) {
@@ -218,11 +242,9 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	 */
 	private long getCurrentPosition() {
 		long pos;
-
 		if (!useLoadBuf) {
 			return in.position();
 		}
-
 		try {
 			if (in != null) {
 				pos = (channel.position() - in.remaining());
@@ -249,7 +271,6 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			in.position((int) pos);
 			return;
 		}
-
 		try {
 			if (pos >= (channel.position() - in.limit()) && pos < channel.position()) {
 				in.position((int) (pos - (channel.position() - in.limit())));
@@ -293,12 +314,12 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			if (amount > bufferSize) {
 				amount = bufferSize;
 			}
+			log.debug("Amount: {} buffer size: {}", amount, bufferSize);
 			// Read all remaining bytes if the requested amount reach the end
 			// of channel.
 			if (channelSize - channel.position() < amount) {
 				amount = channelSize - channel.position();
 			}
-
 			if (in == null) {
 				switch (bufferType) {
 					case HEAP:
@@ -314,11 +335,9 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 				in.flip();
 				useLoadBuf = true;
 			}
-
 			if (!useLoadBuf) {
 				return;
 			}
-
 			if (reload || in.remaining() < amount) {
 				if (!reload) {
 					in.compact();
@@ -328,7 +347,6 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 				channel.read(in.buf());
 				in.flip();
 			}
-
 		} catch (Exception e) {
 			log.error("Error fillBuffer", e);
 		}
@@ -344,7 +362,9 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		if (getRemainingBytes() >= 9) {
 			decodeHeader();
 		}
-		keyframeMeta = analyzeKeyFrames();
+		if (file != null) {
+			keyframeMeta = analyzeKeyFrames();
+		}
 		long old = getCurrentPosition();
 		log.debug("Old position: {}", old);
 	}
@@ -436,7 +456,6 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 
 	/** {@inheritDoc} */
 	public void decodeHeader() {
-		// XXX check signature?
 		// SIGNATURE, lets just skip
 		fillBuffer(9);
 		header = new FLVHeader();
@@ -445,7 +464,7 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		header.setTypeFlags(in.get());
 		header.setDataOffset(in.getInt());
 		if (log.isDebugEnabled()) {
-			log.debug("Header: " + header.toString());
+			log.debug("Header: {}", header.toString());
 		}
 	}
 
@@ -478,9 +497,9 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 
 	public int getVideoCodecId() {
 		KeyFrameMeta meta = analyzeKeyFrames();
-		if (meta == null)
+		if (meta == null) {
 			return -1;
-
+		}
 		long old = getCurrentPosition();
 		setCurrentPosition(firstVideoTag);
 		readTagHeader();
@@ -630,7 +649,6 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		if (keyframeMeta != null) {
 			return keyframeMeta;
 		}
-
 		// check for cached keyframe informations
 		if (keyframeCache != null) {
 			keyframeMeta = keyframeCache.loadKeyFrameMeta(file);
@@ -644,7 +662,6 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 				return keyframeMeta;
 			}
 		}
-
 		// Lists of video positions and timestamps
 		List<Long> positionList = new ArrayList<Long>();
 		List<Integer> timestampList = new ArrayList<Integer>();
