@@ -339,8 +339,7 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	 */
 	private void postInitialize() {
 		if (log.isDebugEnabled()) {
-			log.debug("FLVReader 1 - Buffer size: " + getTotalBytes() + " position: " + getCurrentPosition()
-					+ " remaining: " + getRemainingBytes());
+			log.debug("FLVReader 1 - Buffer size: {} position: {} remaining: {}", new Object[] { getTotalBytes(), getCurrentPosition(), getRemainingBytes() });
 		}
 		if (getRemainingBytes() >= 9) {
 			decodeHeader();
@@ -700,8 +699,7 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 					log.debug("-----");
 					log.debug("Keyframe analysis");
 					log.debug(" data type=" + tmpTag.getDataType() + " bodysize=" + tmpTag.getBodySize());
-					log.debug(" remaining=" + getRemainingBytes() + " limit=" + getTotalBytes() + " new pos="
-							+ newPosition);
+					log.debug(" remaining=" + getRemainingBytes() + " limit=" + getTotalBytes() + " new pos=" + newPosition);
 					log.debug(" pos=" + pos);
 					log.debug("-----");
 				}

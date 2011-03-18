@@ -138,6 +138,7 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 			assertTrue(appScope.getDepth() == 1);
 		}
 		IScope room1 = ScopeUtils.resolveScope(appScope, "/junit/room1");
+		@SuppressWarnings("unused")
 		IScope room5 = ScopeUtils.resolveScope(appScope, "/junit/room1/room4/room5");
 		Iterator<String> names = room1.getScopeNames();
 		while (names.hasNext()) {
