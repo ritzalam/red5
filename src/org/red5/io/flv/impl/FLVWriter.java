@@ -26,6 +26,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.FileChannel;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,9 +42,6 @@ import org.red5.io.utils.IOUtils;
 import org.red5.server.api.Red5;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static org.red5.io.IoConstants.MASK_VIDEO_FRAMETYPE;
-import static org.red5.io.IoConstants.FLAG_FRAMETYPE_KEYFRAME;
 
 /**
  * A Writer is used to write the contents of a FLV file
@@ -126,7 +124,7 @@ public class FLVWriter implements ITagWriter {
 	private final ByteBuffer trailerBuf = ByteBuffer.allocate(4);
 
 	private volatile int previousTagSize = 0;
-	
+
 	/**
 	 * Creates writer implementation with given file output stream and last tag
 	 *
@@ -181,21 +179,16 @@ public class FLVWriter implements ITagWriter {
 	 * @throws IOException      Any I/O exception
 	 */
 	public void writeHeader() throws IOException {
-		//Header fields (in same order than spec, for comparison purposes)
 		FLVHeader flvHeader = new FLVHeader();
-		flvHeader.setSignature("FLV".getBytes());
-		flvHeader.setVersion((byte) 0x01);
-		flvHeader.setFlagReserved01((byte) 0x0);
 		flvHeader.setFlagAudio(true);
-		flvHeader.setFlagReserved02((byte) 0x0);
 		flvHeader.setFlagVideo(true);
 		// create a buffer
-		IoBuffer out = IoBuffer.allocate(15);
-		flvHeader.write(out);
-		//Dump header to output channel
-		channel.write(out.buf());
-		out.clear();
-		out.free();
+		ByteBuffer header = ByteBuffer.allocate(13); // FLVHeader (9 bytes) + PreviousTagSize0 (4 bytes)
+		flvHeader.write(header);
+		// write header to output channel
+		channel.write(header);
+		channel.force(false);
+		header.clear();
 	}
 
 	/** {@inheritDoc}
@@ -240,7 +233,7 @@ public class FLVWriter implements ITagWriter {
 	 * {@inheritDoc}
 	 */
 	public synchronized boolean writeTag(ITag tag) throws IOException {
-		log.debug("writeTag - previous size: {}", tag.getPreviousTagSize());
+		log.debug("writeTag - previous size: {}", previousTagSize);
 		log.trace("Tag: {}", tag);
 		// skip tags with no data
 		int bodySize = tag.getBodySize();
@@ -251,11 +244,12 @@ public class FLVWriter implements ITagWriter {
 		}
 		// ensure that the channel is still open
 		if (channel.isOpen()) {
-			if (previousTagSize != tag.getPreviousTagSize()) {
+			byte dataType = tag.getDataType();
+			// dont reset previous tag size on metadata
+			if (previousTagSize != tag.getPreviousTagSize() && dataType != ITag.TYPE_METADATA) {
 				log.debug("Previous tag size: {} previous per tag: {}", previousTagSize, tag.getPreviousTagSize());
 				tag.setPreviousTagSize(previousTagSize);
 			}
-			byte dataType = tag.getDataType();
 			int timestamp = tag.getTimestamp() + offset;
 			// get the body
 			ByteBuffer bodyBuf = tag.getBody().buf();
@@ -269,15 +263,13 @@ public class FLVWriter implements ITagWriter {
 				log.debug("Video codec id: {}", videoCodecId);
 			}
 			// Data Type
-			headerBuf.put(tag.getDataType()); //1
-			// Body Size
+			headerBuf.put(dataType); //1
+			// Body Size - Length of the message. Number of bytes after StreamID to end of tag (Equal to length of the tag – 11) 
 			IOUtils.writeMediumInt(headerBuf, bodySize); //3
 			// Timestamp
 			IOUtils.writeExtendedMediumInt(headerBuf, timestamp); //4
-			// Reserved
-			headerBuf.put((byte) 0x00);
-			headerBuf.put((byte) 0x00);
-			headerBuf.put((byte) 0x00);
+			// Stream id
+			IOUtils.writeMediumInt(headerBuf, 0); //3
 			headerBuf.flip();
 			// write the header
 			bytesWritten += channel.write(headerBuf);
@@ -320,10 +312,27 @@ public class FLVWriter implements ITagWriter {
 	/** {@inheritDoc}
 	 */
 	public void close() {
+		log.debug("close");
 		RandomAccessFile appender = null;
 		try {
+			// keep track of the original position
+			long oldPos = channel.position();
+			// set to where the flv header goes
+			channel.position(0);
+			//Header fields (in same order than spec, for comparison purposes)
+			FLVHeader flvHeader = new FLVHeader();
+			flvHeader.setFlagAudio(audioCodecId != -1 ? true : false);
+			flvHeader.setFlagVideo(videoCodecId != -1 ? true : false);
+			// create a buffer
+			ByteBuffer header = ByteBuffer.allocate(13);
+			flvHeader.write(header);
+			// write header to output channel
+			channel.write(header);
+			channel.force(false);
+			header.clear();
+			// set it back to the original pos
+			channel.position(oldPos);
 			if (metaPosition > 0) {
-				long oldPos = channel.position();
 				try {
 					log.debug("In the metadata writing (close) method - duration:{}", duration);
 					channel.position(metaPosition);
@@ -357,7 +366,6 @@ public class FLVWriter implements ITagWriter {
 				log.error("", e);
 			}
 		}
-
 	}
 
 	/** {@inheritDoc} */
@@ -375,13 +383,16 @@ public class FLVWriter implements ITagWriter {
 	 * @throws IOException if the tag could not be written
 	 */
 	private void writeMetadataTag(double duration, Integer videoCodecId, Integer audioCodecId) throws IOException {
+		log.debug("writeMetadataTag - duration: {} video codec: {} audio codec: {}", new Object[] { duration, videoCodecId, audioCodecId });
 		metaPosition = channel.position();
-		IoBuffer buf = IoBuffer.allocate(1024);
+		log.debug("Metadata position: {}", metaPosition);
+		IoBuffer buf = IoBuffer.allocate(192);
 		buf.setAutoExpand(true);
 		Output out = new Output(buf);
 		out.writeString("onMetaData");
 		Map<Object, Object> params = new HashMap<Object, Object>(4);
 		params.put("server", Red5.getVersion());
+		params.put("creationdate", GregorianCalendar.getInstance().getTime().toString());
 		params.put("duration", duration);
 		if (videoCodecId != null) {
 			params.put("videocodecid", videoCodecId.intValue());
@@ -395,7 +406,8 @@ public class FLVWriter implements ITagWriter {
 		if (fileMetaSize == 0) {
 			fileMetaSize = buf.limit();
 		}
-		ITag onMetaData = new Tag(ITag.TYPE_METADATA, 0, fileMetaSize, buf, 0);
+		log.debug("Metadata size: {}", fileMetaSize);
+		ITag onMetaData = new Tag(ITag.TYPE_METADATA, 0, fileMetaSize, buf, 9);
 		writeTag(onMetaData);
 	}
 

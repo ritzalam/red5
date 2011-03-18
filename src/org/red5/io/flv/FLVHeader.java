@@ -1,5 +1,7 @@
 package org.red5.io.flv;
 
+import java.nio.ByteBuffer;
+
 import org.apache.mina.core.buffer.IoBuffer;
 
 /*
@@ -35,45 +37,45 @@ import org.apache.mina.core.buffer.IoBuffer;
 public class FLVHeader {
 
 	static final int FLV_HEADER_FLAG_HAS_AUDIO = 4;
-	static final int FLV_HEADER_FLAG_HAS_VIDEO = 1;
-	
-	
-    /**
-     * Signature
-     */
-	public byte[] signature;
 
-    /**
-     * FLV version
-     */
-    public byte version = 0x00; //version 1
+	static final int FLV_HEADER_FLAG_HAS_VIDEO = 1;
+
+	/**
+	 * Signature
+	 */
+	public static byte[] signature = "FLV".getBytes();
+
+	/**
+	 * FLV version
+	 */
+	public static byte version = 0x01; //version 1
 
 	// TYPES
 
-    /**
-     * Reserved flag, one
-     */
-    public byte flagReserved01 = 0x00;
+	/**
+	 * Reserved flag, one
+	 */
+	public static byte flagReserved01 = 0x00;
 
-    /**
-     * Audio flag
-     */
-    public boolean flagAudio;
+	/**
+	 * Audio flag
+	 */
+	public boolean flagAudio;
 
-    /**
-     * Reserved flag, two
-     */
-    public byte flagReserved02 = 0x00;
+	/**
+	 * Reserved flag, two
+	 */
+	public static byte flagReserved02 = 0x00;
 
-    /**
-     * Video flag
-     */
-    public boolean flagVideo;
+	/**
+	 * Video flag
+	 */
+	public boolean flagVideo;
 
 	// DATA OFFSET
-    /**
-     * reserved for data up to 4,294,967,295
-     */
+	/**
+	 * reserved for data up to 4,294,967,295
+	 */
 	public int dataOffset = 0x00;
 
 	/**
@@ -129,6 +131,7 @@ public class FLVHeader {
 	 *
 	 * @param signature     Signature
 	 */
+	@SuppressWarnings("static-access")
 	public void setSignature(byte[] signature) {
 		this.signature = signature;
 	}
@@ -177,6 +180,7 @@ public class FLVHeader {
 	 *
 	 * @param flagReserved01    Flag reserved, first
 	 */
+	@SuppressWarnings("static-access")
 	public void setFlagReserved01(byte flagReserved01) {
 		this.flagReserved01 = flagReserved01;
 	}
@@ -197,6 +201,7 @@ public class FLVHeader {
 	 *
 	 * @param flagReserved02    FlagReserved02
 	 */
+	@SuppressWarnings("static-access")
 	public void setFlagReserved02(byte flagReserved02) {
 		this.flagReserved02 = flagReserved02;
 	}
@@ -233,23 +238,42 @@ public class FLVHeader {
 	 *
 	 * @param version           FLV version byte
 	 */
+	@SuppressWarnings("static-access")
 	public void setVersion(byte version) {
 		this.version = version;
 	}
-	
+
 	/**
 	 * Writes the FLVHeader to IoBuffer.
 	 *
 	 * @param buffer           IoBuffer to write
 	 */
 	public void write(IoBuffer buffer) {
+		// FLV
 		buffer.put(signature);
+		// version
 		buffer.put(version);
-		buffer.put((byte) (FLV_HEADER_FLAG_HAS_AUDIO*(flagAudio?1:0) + FLV_HEADER_FLAG_HAS_VIDEO*(flagVideo?1:0)));
-		buffer.putInt(0x09);
+		// flags
+		buffer.put((byte) (FLV_HEADER_FLAG_HAS_AUDIO * (flagAudio ? 1 : 0) + FLV_HEADER_FLAG_HAS_VIDEO * (flagVideo ? 1 : 0)));
+		// data offset
+		buffer.putInt(9);
+		// previous tag size 0 (this is the "first" tag)
 		buffer.putInt(0);
 		buffer.flip();
-	
+	}
+
+	public void write(ByteBuffer buffer) {
+		// FLV
+		buffer.put(signature);
+		// version
+		buffer.put(version);
+		// flags
+		buffer.put((byte) (FLV_HEADER_FLAG_HAS_AUDIO * (flagAudio ? 1 : 0) + FLV_HEADER_FLAG_HAS_VIDEO * (flagVideo ? 1 : 0)));
+		// data offset
+		buffer.putInt(9);
+		// previous tag size 0 (this is the "first" tag)
+		buffer.putInt(0);
+		buffer.flip();
 	}
 
 }
