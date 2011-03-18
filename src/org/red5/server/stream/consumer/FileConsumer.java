@@ -385,6 +385,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		IStreamableFile flv = service.getStreamableFile(file);
 		if (mode == null || mode.equals(IClientStream.MODE_RECORD)) {
 			writer = flv.getWriter();
+			writer.setFile(file);
 			//write the decoder config tag if it exists
 			if (videoConfigurationTag != null) {
 				writer.writeTag(videoConfigurationTag);
@@ -392,6 +393,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 			}
 		} else if (mode.equals(IClientStream.MODE_APPEND)) {
 			writer = flv.getAppendWriter();
+			writer.setFile(file);
 		} else {
 			throw new IllegalStateException("Illegal mode type: " + mode);
 		}
