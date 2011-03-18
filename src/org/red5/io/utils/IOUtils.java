@@ -19,6 +19,7 @@ package org.red5.io.utils;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
 import org.apache.mina.core.buffer.IoBuffer;
@@ -67,6 +68,17 @@ public class IOUtils {
 		bytes[2] = (byte) (value & 0xff);
 		out.put(bytes);
 	}
+	
+	/**
+	 * Writes medium integer
+	 * @param out           Output buffer
+	 * @param value         Integer to write
+	 */
+	public static void writeMediumInt(ByteBuffer out, int value) {
+		out.put((byte) ((value >>> 16) & 0xff));
+		out.put((byte) ((value >>> 8) & 0xff));
+		out.put((byte) (value & 0xff));
+	}	
 
 	/**
 	 * Writes extended medium integer (equivalent to a regular integer whose
@@ -87,6 +99,18 @@ public class IOUtils {
 		out.put(bytes);
 		*/
 	}
+	
+	/**
+	 * Writes extended medium integer (equivalent to a regular integer whose
+	 * most significant byte has been moved to its end, past its least significant
+	 * byte)
+	 * @param out           Output buffer
+	 * @param value         Integer to write
+	 */
+	public static void writeExtendedMediumInt(ByteBuffer out, int value) {
+		value = ((value & 0xff000000) >> 24) | (value << 8);
+		out.putInt(value);
+	}	
 
 	/**
 	 * Reads unsigned medium integer

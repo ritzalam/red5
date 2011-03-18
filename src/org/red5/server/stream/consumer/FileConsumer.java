@@ -55,6 +55,8 @@ import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.event.FlexStreamSend;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
+import org.red5.server.net.rtmp.event.VideoData;
+import org.red5.server.net.rtmp.event.VideoData.FrameType;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.stream.IStreamData;
 import org.red5.server.stream.message.RTMPMessage;
@@ -76,7 +78,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	 * Executor for all writer jobs
 	 */
 	private static ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(2, new CustomizableThreadFactory("FileConsumerExecutor-"));
-	
+
 	/**
 	 * Queue to hold data for delayed writing
 	 */
@@ -146,12 +148,12 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	 * Percentage of the queue which is sliced for writing
 	 */
 	private int percentage = 25;
-	
+
 	/**
 	 * Size of the slice of queued data to write at a time
 	 */
 	private int sliceLength = (queueThreshold / (100 / percentage));
-	
+
 	/**
 	 * Whether or not to use a queue for delaying file writes. The queue is useful
 	 * for keeping Tag items in their expected order based on their time stamp.
@@ -162,11 +164,13 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	 * Tracks the last timestamp written to prevent backwards time stamped data.
 	 */
 	private volatile int lastWrittenTs = -1;
-	
+
 	/**
 	 * Keeps track of the last spawned write worker.
 	 */
 	private volatile Future<?> writerFuture;
+
+	private volatile boolean gotVideoKeyFrame;
 
 	/**
 	 * Default ctor
@@ -204,6 +208,20 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 				log.trace("Not FlexStreamSend type");
 				lastTimestamp = timestamp;
 			}
+			// ensure that our first video frame written is a key frame
+			if (msg instanceof VideoData) {
+				if (!gotVideoKeyFrame) {
+					VideoData video = (VideoData) msg;
+					if (video.getFrameType() == FrameType.KEYFRAME) {
+						log.debug("Got our first keyframe");
+						gotVideoKeyFrame = true;
+					} else {
+						// skip this frame bail out
+						log.debug("Skipping video data since keyframe has not been written yet");
+						return;
+					}
+				}
+			}
 			//initialize a writer
 			if (writer == null) {
 				init();
@@ -213,7 +231,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 				write(timestamp, msg);
 			} else {
 				QueuedData queued = null;
-				if (msg instanceof IStreamData) {				
+				if (msg instanceof IStreamData) {
 					log.debug("Stream data, body saved. Data type: {} class type: {}", dataType, msg.getClass().getName());
 					try {
 						queued = new QueuedData(timestamp, dataType, ((IStreamData) msg).duplicate());
@@ -246,8 +264,10 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 					// check for existing future
 					if (writerFuture != null) {
 						try {
-							//wait 1 second for a result from the last writer
-							writeResult = writerFuture.get(1000L, TimeUnit.MILLISECONDS);
+							// timeout 1/2 second for every slice entry
+							long timeout = sliceLength * 500L;
+							//wait n seconds for a result from the last writer
+							writeResult = writerFuture.get(timeout, TimeUnit.MILLISECONDS);
 						} catch (Exception e) {
 							log.warn("Exception waiting for write result", e);
 							return;
@@ -259,13 +279,13 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 					log.trace("Slice length: {}", slice.length);
 					writeLock.lock();
 					try {
-    					// sort the queue
-    					Collections.sort(queue);
-    					log.trace("Queue length: {}", queue.size());    					
-    					for (int q = 0; q < sliceLength; q++) {
-    						slice[q] = queue.remove(0);
-    					}
-    					log.trace("Queue length (after removal): {}", queue.size());
+						// sort the queue
+						Collections.sort(queue);
+						log.trace("Queue length: {}", queue.size());
+						for (int q = 0; q < sliceLength; q++) {
+							slice[q] = queue.remove(0);
+						}
+						log.trace("Queue length (after removal): {}", queue.size());
 					} finally {
 						writeLock.unlock();
 					}
@@ -348,8 +368,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 				offset = (int) duration + 1;
 			}
 		}
-		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils.getScopeService(scope,
-				IStreamableFileFactory.class, StreamableFileFactory.class);
+		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils.getScopeService(scope, IStreamableFileFactory.class, StreamableFileFactory.class);
 		File folder = file.getParentFile();
 		if (!folder.exists()) {
 			if (!folder.mkdirs()) {
@@ -394,8 +413,8 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 			}
 			writerFuture = null;
 			if (delayWrite) {
-    			//write all the queued items
-    			doWrites();
+				//write all the queued items
+				doWrites();
 			}
 			//close the writer
 			writer.close();
@@ -420,10 +439,10 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	 */
 	public final void doWrites() {
 		QueuedData[] slice = null;
-		writeLock.lock();		
+		writeLock.lock();
 		try {
-    		slice = queue.toArray(new QueuedData[0]);
-    		queue.removeAll(Arrays.asList(slice));
+			slice = queue.toArray(new QueuedData[0]);
+			queue.removeAll(Arrays.asList(slice));
 		} finally {
 			writeLock.unlock();
 		}
@@ -549,7 +568,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 				data = null;
 			}
 			queued.dispose();
-			queued = null;			
+			queued = null;
 		} else {
 			log.warn("Queued data was null");
 		}
@@ -720,7 +739,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		public void dispose() {
 			streamData.getData().free();
 		}
-		
+
 	}
 
 }
