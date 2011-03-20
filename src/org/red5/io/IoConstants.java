@@ -40,6 +40,26 @@ public interface IoConstants {
 	public static final byte TYPE_METADATA = 0x12;
 
 	/**
+	 * Encryption
+	 */
+	public static final byte TYPE_ENCRYPTED = 0x20;
+
+	/**
+	 * Encrypted audio data
+	 */
+	public static final byte TYPE_ENCRYPTED_AUDIO = TYPE_AUDIO + TYPE_ENCRYPTED;
+
+	/**
+	 * Encrypted video data
+	 */
+	public static final byte TYPE_ENCRYPTED_VIDEO = TYPE_VIDEO + TYPE_ENCRYPTED;
+
+	/**
+	 * Encrypted meta data
+	 */
+	public static final byte TYPE_ENCRYPTED_METADATA = TYPE_METADATA + TYPE_ENCRYPTED;
+
+	/**
 	 * Mask sound type
 	 */
 	public static final byte MASK_SOUND_TYPE = 0x01;
@@ -97,7 +117,7 @@ public interface IoConstants {
 	/**
 	 * Mask sound format (unsigned)
 	 */
-	public static final int MASK_SOUND_FORMAT = 0xf0; 
+	public static final int MASK_SOUND_FORMAT = 0xf0;
 
 	/**
 	 * Raw data format flag
@@ -147,7 +167,7 @@ public interface IoConstants {
 	/**
 	 * Video frametype flag
 	 */
-	public static final int MASK_VIDEO_FRAMETYPE = 0xf0; 
+	public static final int MASK_VIDEO_FRAMETYPE = 0xf0;
 
 	/**
 	 * Keyframe type flag
@@ -163,5 +183,25 @@ public interface IoConstants {
 	 * Disposable frame type flag
 	 */
 	public static final byte FLAG_FRAMETYPE_DISPOSABLE = 0x03;
+
+	/**
+	 * Generated keyframe type flag
+	 */
+	public static final byte FLAG_FRAMETYPE_GENERATED_KEYFRAME = 0x04;
+
+	/**
+	 * Info frame type flag
+	 */
+	public static final byte FLAG_FRAMETYPE_INFO = 0x05;
+
+	public static final byte AVC_PACKET_TYPE_SEQUENCE_HEADER = 0x00;
+
+	public static final byte AVC_PACKET_TYPE_NALU = 0x01;
+
+	public static final byte AVC_PACKET_TYPE_END_OF_SEQUENCE = 0x02;
+
+	public static final byte INFO_PACKET_SEEK_START = 0x00;
+
+	public static final byte INFO_PACKET_SEEK_END = 0x01;
 
 }

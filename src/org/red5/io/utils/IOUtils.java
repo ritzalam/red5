@@ -131,6 +131,28 @@ public class IOUtils {
 	}
 
 	/**
+	 * Reads extended medium int
+	 * @param in       Source
+	 * @return         int value
+	 */
+	public static int readExtendedMediumInt(IoBuffer in) {
+		int result = in.getInt();
+		result = (result >>> 8) | ((result & 0x000000ff) << 24);
+		return result;
+	}	
+	
+	/**
+	 * Reads extended medium int
+	 * @param in       Source
+	 * @return         int value
+	 */
+	public static int readExtendedMediumInt(ByteBuffer in) {
+		int result = in.getInt();
+		result = (result >>> 8) | ((result & 0x000000ff) << 24);
+		return result;
+	}		
+	
+	/**
 	 * Reads reverse int
 	 * @param in       Source
 	 * @return         int
@@ -176,4 +198,11 @@ public class IOUtils {
 		return string;
 	}
 
+	public static void main(String[] args) {
+		ByteBuffer buf = ByteBuffer.allocate(4);
+		IOUtils.writeExtendedMediumInt(buf, 1234567890);
+		buf.flip();
+		System.out.println("Result: " + IOUtils.readExtendedMediumInt(buf));
+	}
+	
 }

@@ -20,9 +20,7 @@ package org.red5.io.flv.impl;
  */
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Map;
 
@@ -38,7 +36,6 @@ import org.red5.io.flv.meta.MetaService;
 import org.red5.server.api.cache.ICacheStore;
 import org.red5.server.api.cache.ICacheable;
 import org.red5.server.cache.NoCacheImpl;
-import org.red5.server.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +87,6 @@ public class FLV implements IFLV {
 		this.file = file;
 		this.generateMetadata = generateMetadata;
 		int count = 0;
-
 		if (!generateMetadata) {
 			try {
 				FLVReader reader = new FLVReader(this.file);
@@ -109,7 +105,6 @@ public class FLV implements IFLV {
 				log.error("An error occured looking for metadata", e);
 			}
 		}
-
 	}
 
 	/**
@@ -133,7 +128,7 @@ public class FLV implements IFLV {
 	 */
 	@SuppressWarnings({ "rawtypes" })
 	public IMetaData getMetaData() throws FileNotFoundException {
-		metaService.setInStream(new FileInputStream(file));
+		metaService.setFile(file);
 		return null;
 	}
 
@@ -178,7 +173,6 @@ public class FLV implements IFLV {
 		FLVReader reader = null;
 		IoBuffer fileData;
 		String fileName = file.getName();
-
 		// if no cache is set an NPE will be thrown
 		if (cache == null) {
 			log.info("FLV cache is null, forcing NoCacheImpl instance");
@@ -224,7 +218,7 @@ public class FLV implements IFLV {
 			file.delete();
 		}
 		file.createNewFile();
-		ITagWriter writer = new FLVWriter(new FileOutputStream(file), false);
+		ITagWriter writer = new FLVWriter(file, false);
 		return writer;
 	}
 
@@ -250,26 +244,15 @@ public class FLV implements IFLV {
 	/** {@inheritDoc} */
 	@SuppressWarnings({ "rawtypes" })
 	public void setMetaData(IMetaData meta) throws IOException {
-		File tmpFile = File.createTempFile("setMeta_", ".flv");
 		if (metaService == null) {
 			metaService = new MetaService(file);
 		}
-		metaService.setInStream(new FileInputStream(file));
-		metaService.setOutStream(new FileOutputStream(tmpFile));
 		//if the file is not checked the write may produce an NPE
-		if (((MetaService) metaService).getFile() == null) {
-			((MetaService) metaService).setFile(file);
+		if (metaService.getFile() == null) {
+			metaService.setFile(file);
 		}
 		metaService.write(meta);
 		metaData = meta;
-		file.delete();
-		if (!tmpFile.renameTo(file)) {
-			// Probably renaming across filesystems? Move manually.
-			FileUtil.copyFile(tmpFile, file);
-			if (!tmpFile.delete()) {
-				tmpFile.deleteOnExit();
-			}
-		}
 	}
 
 	/** {@inheritDoc} */

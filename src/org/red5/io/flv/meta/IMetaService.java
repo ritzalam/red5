@@ -19,8 +19,7 @@ package org.red5.io.flv.meta;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.File;
 import java.io.IOException;
 
 import org.apache.mina.core.buffer.IoBuffer;
@@ -84,17 +83,17 @@ public interface IMetaService {
 	public IMetaCue[] readMetaCue();
 
 	/**
-     * Setter for  input stream
-     *
-     * @param fis  File input stream
-     */
-    public void setInStream(FileInputStream fis);
+	 * Media file to be accessed
+	 * 
+	 * @param file
+	 */
+	public void setFile(File file);
 
 	/**
-     * Setter for output stream
-     *
-     * @param fos  File output stream
-     */
-    public void setOutStream(FileOutputStream fos);
+	 * Returns the file being accessed
+	 * 
+	 * @return
+	 */
+	public File getFile();
 
 }

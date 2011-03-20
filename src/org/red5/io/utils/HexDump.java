@@ -19,6 +19,7 @@ package org.red5.io.utils;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.UnsupportedCharsetException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +55,12 @@ public class HexDump {
 	 * @return Hexdump string
 	 */
 	public static String prettyPrintHex(byte[] baToConvert) {
-		HexCharset hde = (HexCharset) HexCharset.forName("HEX");
+		HexCharset hde = null;
+		try {
+			hde = (HexCharset) HexCharset.forName("HEX");
+		} catch (UnsupportedCharsetException uce) {
+			hde = new HexCharset(true);
+		}
 		return new String(hde.encode(new String(baToConvert)).array());
 	}
 
@@ -66,21 +72,52 @@ public class HexDump {
 	 * @return hexdump string
 	 */
 	public static String prettyPrintHex(String sToConvert) {
-		HexCharset hde = (HexCharset) HexCharset.forName("HEX");
+		HexCharset hde = null;
+		try {
+			hde = (HexCharset) HexCharset.forName("HEX");
+		} catch (UnsupportedCharsetException uce) {
+			hde = new HexCharset(true);
+		}
 		return new String(hde.encode(sToConvert).array());
 	}
 
+	/**
+	 * Dumps a byte array as hex.
+	 * 
+	 * @param sb
+	 * @param b
+	 */
+	public static void dumpHex(StringBuilder sb, byte[] b) {
+		for (int i = 0; i < b.length; ++i) {
+			if (i % 16 == 0) {
+				sb.append(Integer.toHexString((i & 0xFFFF) | 0x10000).substring(1, 5) + " - ");
+			}
+			sb.append(Integer.toHexString((b[i] & 0xFF) | 0x100).substring(1, 3) + " ");
+			if (i % 16 == 15 || i == b.length - 1) {
+				int j;
+				for (j = 16 - i % 16; j > 1; --j)
+					sb.append("   ");
+				sb.append(" - ");
+				int start = (i / 16) * 16;
+				int end = (b.length < i + 1) ? b.length : (i + 1);
+				for (j = start; j < end; ++j)
+					if (b[j] >= 32 && b[j] <= 126)
+						sb.append((char) b[j]);
+					else
+						sb.append(".");
+				sb.append("\n");
+			}
+		}
+	}
+
 	/** Field HEX_DIGITS */
-	private static final char[] HEX_DIGITS = { '0', '1', '2', '3', '4', '5',
-			'6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+	private static final char[] HEX_DIGITS = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 
 	/** Field BIT_DIGIT */
 	private static char[] BIT_DIGIT = { '0', '1' };
 
 	/** Field COMPARE_BITS */
-	private static final byte[] COMPARE_BITS = { (byte) 0x80, (byte) 0x40,
-			(byte) 0x20, (byte) 0x10, (byte) 0x08, (byte) 0x04, (byte) 0x02,
-			(byte) 0x01 };
+	private static final byte[] COMPARE_BITS = { (byte) 0x80, (byte) 0x40, (byte) 0x20, (byte) 0x10, (byte) 0x08, (byte) 0x04, (byte) 0x02, (byte) 0x01 };
 
 	/** Field BYTE_SEPARATOR */
 	private static char BYTE_SEPARATOR = ' ';
@@ -179,11 +216,8 @@ public class HexDump {
 	 * @return the binary representation of the byte
 	 */
 	public static String toBinaryString(byte b) {
-
 		byte[] ba = new byte[1];
-
 		ba[0] = b;
-
 		return byteArrayToBinaryString(ba);
 	}
 
@@ -224,12 +258,9 @@ public class HexDump {
 	 * @return the short as array of bytes
 	 */
 	public static final byte[] toByteArray(short s) {
-
 		byte[] baTemp = new byte[2];
-
 		baTemp[1] = (byte) (s);
 		baTemp[0] = (byte) (s >> 8);
-
 		return baTemp;
 	}
 
@@ -240,14 +271,11 @@ public class HexDump {
 	 * @return the int as array of bytes
 	 */
 	public static final byte[] toByteArray(int i) {
-
 		byte[] baTemp = new byte[4];
-
 		baTemp[3] = (byte) i;
 		baTemp[2] = (byte) (i >> 8);
 		baTemp[1] = (byte) (i >> 16);
 		baTemp[0] = (byte) (i >> 24);
-
 		return baTemp;
 	}
 
@@ -258,9 +286,7 @@ public class HexDump {
 	 * @return the long as array of bytes
 	 */
 	public static final byte[] toByteArray(long l) {
-
 		byte[] baTemp = new byte[8];
-
 		baTemp[7] = (byte) l;
 		baTemp[6] = (byte) (l >> 8);
 		baTemp[5] = (byte) (l >> 16);
@@ -269,7 +295,6 @@ public class HexDump {
 		baTemp[2] = (byte) (l >> 40);
 		baTemp[1] = (byte) (l >> 48);
 		baTemp[0] = (byte) (l >> 56);
-
 		return baTemp;
 	}
 
@@ -280,18 +305,14 @@ public class HexDump {
 	 * @return Description of the Returned Value
 	 */
 	public static String byteArrayToHexString(byte[] block) {
-
 		StringBuffer buf = new StringBuffer();
 		int len = block.length;
-
 		for (int i = 0; i < len; i++) {
 			byte2hex(block[i], buf);
-
 			if ((i < len - 1) & WITH_BYTE_SEPARATOR) {
 				buf.append(BYTE_SEPARATOR);
 			}
 		}
-
 		return buf.toString();
 	}
 
@@ -302,9 +323,7 @@ public class HexDump {
 	 * @return String in readable hex encoding
 	 */
 	public static String stringToHexString(String in) {
-
 		byte[] ba = in.getBytes();
-
 		return toHexString(ba);
 	}
 
@@ -316,26 +335,19 @@ public class HexDump {
 	 * @param length Description of Parameter
 	 * @return Description of the Returned Value
 	 */
-	public static String byteArrayToHexString(byte[] block, int offset,
-			int length) {
-
+	public static String byteArrayToHexString(byte[] block, int offset, int length) {
 		StringBuffer buf = new StringBuffer();
 		int len = block.length;
-
 		length = length + offset;
-
 		if ((len < length)) {
 			length = len;
 		}
-
 		for (int i = 0 + offset; i < length; i++) {
 			byte2hex(block[i], buf);
-
 			if (i < length - 1) {
 				buf.append(':');
 			}
 		}
-
 		return buf.toString();
 	}
 
@@ -357,11 +369,8 @@ public class HexDump {
 	 * @return the hexadecimal representation of the byte
 	 */
 	public static String toHexString(byte b) {
-
 		byte[] ba = new byte[1];
-
 		ba[0] = b;
-
 		return toHexString(ba, 0, ba.length);
 	}
 
@@ -412,11 +421,8 @@ public class HexDump {
 	 * @return the byte as string
 	 */
 	public static String toString(byte b) {
-
 		byte[] ba = new byte[1];
-
 		ba[0] = b;
-
 		return new String(ba);
 	}
 
@@ -429,25 +435,20 @@ public class HexDump {
 	 * @return Description of the Returned Value
 	 */
 	public static String toHexString(byte[] ba, int offset, int length) {
-
 		char[] buf;
-
 		if (WITH_BYTE_SEPARATOR) {
 			buf = new char[length * 3];
 		} else {
 			buf = new char[length * 2];
 		}
-
 		for (int i = offset, j = 0, k; i < offset + length;) {
 			k = ba[i++];
 			buf[j++] = HEX_DIGITS[(k >>> 4) & 0x0F];
 			buf[j++] = HEX_DIGITS[k & 0x0F];
-
 			if (WITH_BYTE_SEPARATOR) {
 				buf[j++] = BYTE_SEPARATOR;
 			}
 		}
-
 		return new String(buf);
 	}
 
@@ -650,8 +651,7 @@ public class HexDump {
 		}
 
 		if (!nextCharIsUpper) {
-			throw new RuntimeException(
-					"The String did not contain an equal number of hex digits");
+			throw new RuntimeException("The String did not contain an equal number of hex digits");
 		}
 
 		return result.toByteArray();
@@ -685,10 +685,8 @@ public class HexDump {
 	 *            Description of Parameter
 	 */
 	private static void byte2bin(byte b, StringBuffer buf) {
-
 		// test every 8 bit
 		for (int i = 0; i < 8; i++) {
-
 			// ---test if bit is set
 			if ((b & COMPARE_BITS[i]) != 0) {
 				buf.append(BIT_DIGIT[1]);
@@ -707,14 +705,11 @@ public class HexDump {
 	 * @return Description of the Returned Value
 	 */
 	private static String intToHexString(int n) {
-
 		char[] buf = new char[8];
-
 		for (int i = 7; i >= 0; i--) {
 			buf[i] = HEX_DIGITS[n & 0x0F];
 			n >>>= 4;
 		}
-
 		return new String(buf);
 	}
 
@@ -724,7 +719,6 @@ public class HexDump {
 	 * @param args none needed
 	 */
 	public static void main(String args[]) {
-
 		logger.info("-test and demo of the converter ");
 
 		String str = "Niko";
@@ -741,23 +735,18 @@ public class HexDump {
 		logger.info("to convert: " + i + " -> " + intToHexString(i));
 		logger.info("----Convert byte[] to binary String...");
 
-		byte[] baToConvert = { (byte) 0xff, (byte) 0x00, (byte) 0x33,
-				(byte) 0x11, (byte) 0xff, (byte) 0x5f, (byte) 0x5f,
-				(byte) 0x4f, (byte) 0x1f, (byte) 0xff };
+		byte[] baToConvert = { (byte) 0xff, (byte) 0x00, (byte) 0x33, (byte) 0x11, (byte) 0xff, (byte) 0x5f, (byte) 0x5f, (byte) 0x4f, (byte) 0x1f, (byte) 0xff };
 
-		logger.info("to convert: " + toHexString(baToConvert) + " -> "
-				+ byteArrayToBinaryString(baToConvert));
+		logger.info("to convert: " + toHexString(baToConvert) + " -> " + byteArrayToBinaryString(baToConvert));
 
 		// ---- modify line separator
 		setByteSeparator('-');
-		logger.info("to convert: " + toHexString(baToConvert) + " -> "
-				+ byteArrayToBinaryString(baToConvert));
+		logger.info("to convert: " + toHexString(baToConvert) + " -> " + byteArrayToBinaryString(baToConvert));
 
 		// ---- modify line separator
 		setByteSeparator('*');
 		setWithByteSeparator(true);
-		logger.info("to convert: " + toHexString(baToConvert) + " -> "
-				+ byteArrayToBinaryString(baToConvert));
+		logger.info("to convert: " + toHexString(baToConvert) + " -> " + byteArrayToBinaryString(baToConvert));
 
 		// ---- modify bit digits
 		char[] bd = { 'a', 'b' };
@@ -769,23 +758,20 @@ public class HexDump {
 			// ex.printStackTrace();
 		}
 
-		logger.info("to convert: " + toHexString(baToConvert) + " -> "
-				+ byteArrayToBinaryString(baToConvert));
+		logger.info("to convert: " + toHexString(baToConvert) + " -> " + byteArrayToBinaryString(baToConvert));
 
 		// ------------------------------------------------//
 		setBitDigits('0', '1');
 		logger.info("---- Convert.toByteArray(int) ");
 
 		for (int iToConvert = -10; iToConvert < 10; iToConvert++) {
-			logger.info("to convert = " + iToConvert + " = "
-					+ HexDump.toBinaryString(iToConvert));
+			logger.info("to convert = " + iToConvert + " = " + HexDump.toBinaryString(iToConvert));
 
 			byte[] baConvInt = new byte[4];
 
 			baConvInt = HexDump.toByteArray(iToConvert);
 
-			logger.info("convertet byteArray = "
-					+ HexDump.toBinaryString(baConvInt));
+			logger.info("convertet byteArray = " + HexDump.toBinaryString(baConvInt));
 		}
 
 		logger.info("---- toHexString(int) ");

@@ -40,6 +40,7 @@ import org.red5.io.amf.Output;
 import org.red5.io.flv.FLVHeader;
 import org.red5.io.flv.IKeyFrameDataAnalyzer;
 import org.red5.io.object.Serializer;
+import org.red5.io.utils.HexDump;
 import org.red5.io.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -151,10 +152,8 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		this.generateMetadata = generateMetadata;
 		channel = fis.getChannel();
 		channelSize = channel.size();
-
 		in = null;
 		fillBuffer();
-
 		postInitialize();
 	}
 
@@ -193,7 +192,6 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	public FLVReader(IoBuffer buffer, boolean generateMetadata) {
 		this.generateMetadata = generateMetadata;
 		in = buffer;
-
 		postInitialize();
 	}
 
@@ -314,7 +312,7 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			if (amount > bufferSize) {
 				amount = bufferSize;
 			}
-			log.debug("Amount: {} buffer size: {}", amount, bufferSize);
+			log.debug("Buffering amount: {} buffer size: {}", amount, bufferSize);
 			// Read all remaining bytes if the requested amount reach the end
 			// of channel.
 			if (channelSize - channel.position() < amount) {
@@ -366,7 +364,7 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			keyframeMeta = analyzeKeyFrames();
 		}
 		long old = getCurrentPosition();
-		log.debug("Old position: {}", old);
+		log.debug("Position: {}", old);
 	}
 
 	/** {@inheritDoc} */
@@ -456,9 +454,10 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 
 	/** {@inheritDoc} */
 	public void decodeHeader() {
-		// SIGNATURE, lets just skip
+		// flv header is 9 bytes
 		fillBuffer(9);
 		header = new FLVHeader();
+		// skip signature
 		in.skip(3);
 		header.setVersion(in.get());
 		header.setTypeFlags(in.get());
@@ -580,9 +579,7 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	public synchronized ITag readTag() {
 		long oldPos = getCurrentPosition();
 		ITag tag = readTagHeader();
-
-		log.debug("readTag, oldPos: {}, tag header: {}", oldPos, tag);
-
+		log.debug("readTag, oldPos: {}, tag header: \n{}", oldPos, tag);
 		if (!metadataSent && tag.getDataType() != TYPE_METADATA && generateMetadata) {
 			// Generate initial metadata automatically
 			setCurrentPosition(oldPos);
@@ -591,11 +588,10 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 				return createFileMeta();
 			}
 		}
-
-		IoBuffer body = IoBuffer.allocate(tag.getBodySize(), false);
-
+		int bodySize = tag.getBodySize();
+		IoBuffer body = IoBuffer.allocate(bodySize, false);
 		// XXX Paul: this assists in 'properly' handling damaged FLV files		
-		long newPosition = getCurrentPosition() + tag.getBodySize();
+		long newPosition = getCurrentPosition() + bodySize;
 		if (newPosition <= getTotalBytes()) {
 			int limit;
 			while (getCurrentPosition() < newPosition) {
@@ -609,15 +605,12 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 					body.put(in);
 				}
 			}
-
 			body.flip();
 			tag.setBody(body);
 		}
-
 		if (tag.getDataType() == TYPE_METADATA) {
 			metadataSent = true;
 		}
-
 		return tag;
 	}
 
@@ -771,24 +764,32 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	 * @return              Tag header
 	 */
 	private ITag readTagHeader() {
-		// PREVIOUS TAG SIZE
+		// previous tag size (4 bytes) + flv tag header size (11 bytes)
 		fillBuffer(15);
+//		if (log.isDebugEnabled()) {
+//			in.mark();
+//			StringBuilder sb = new StringBuilder();
+//			HexDump.dumpHex(sb, in.array());
+//			log.debug("\n{}", sb);
+//			in.reset();
+//		}		
+		// previous tag's size
 		int previousTagSize = in.getInt();
-
-		// START OF FLV TAG
+		// start of the flv tag
 		byte dataType = in.get();
-
-		// The next two lines use a utility method which reads in
-		// three consecutive bytes but stores them in a 4 byte int.
-		// We are able to write those three bytes back out by using
-		// another utility method which strips off the last byte
-		// However, we will have to check into this during optimization.
+		if (dataType != 8 && dataType != 9 && dataType != 18) {
+			log.debug("Invalid data type detected, skipping crap-bytes");
+			in.skip(51);			
+			dataType = in.get();
+		}
 		int bodySize = IOUtils.readUnsignedMediumInt(in);
-		int timestamp = IOUtils.readUnsignedMediumInt(in);
-
-		timestamp += (in.get() & 0xFF) * 256 * 256 * 256;
-		IOUtils.readUnsignedMediumInt(in);
-
+		int timestamp = IOUtils.readExtendedMediumInt(in);
+		if (log.isDebugEnabled()) {
+			int streamId = IOUtils.readUnsignedMediumInt(in);
+			log.debug("Data type: {} timestamp: {} stream id: {} body size: {} previous tag size: {}", new Object[]{dataType, timestamp, streamId, bodySize, previousTagSize});
+		} else {
+			in.skip(3);
+		}
 		return new Tag(dataType, timestamp, bodySize, null, previousTagSize);
 	}
 
@@ -826,9 +827,8 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 					flv.close();
 				}
 			} catch (IOException e) {
-			} finally {
-				flv = null;
 			}
+			flv = null;
 		}
 	}
 }
