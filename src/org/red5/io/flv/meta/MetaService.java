@@ -20,14 +20,12 @@ package org.red5.io.flv.meta;
  */
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.ITag;
@@ -57,17 +55,6 @@ public class MetaService implements IMetaService {
 	 * Source file
 	 */
 	File file;
-
-	/**
-	 * File input stream
-	 */
-	@SuppressWarnings("unused")
-	private FileInputStream fis;
-
-	/**
-	 * File output stream
-	 */
-	private FileOutputStream fos;
 
 	/**
 	 * Serializer
@@ -126,9 +113,8 @@ public class MetaService implements IMetaService {
 		// Get cue points, FLV reader and writer
 		IMetaCue[] metaArr = meta.getMetaCue();
 		FLVReader reader = new FLVReader(file, false);
-		FLVWriter writer = new FLVWriter(fos, false);
+		FLVWriter writer = new FLVWriter(file, false);
 		ITag tag = null;
-
 		// Read first tag
 		if (reader.hasMoreTags()) {
 			tag = reader.readTag();
@@ -138,11 +124,9 @@ public class MetaService implements IMetaService {
 				}
 			}
 		}
-
 		if (tag == null) {
 			throw new IOException("Tag was null");
 		}
-
 		meta.setDuration(((double) reader.getDuration() / 1000));
 		meta.setVideoCodecId(reader.getVideoCodecId());
 		meta.setAudioCodecId(reader.getAudioCodecId());
@@ -161,41 +145,29 @@ public class MetaService implements IMetaService {
 			Arrays.sort(metaArr);
 			cuePointTimeStamp = getTimeInMilliseconds(metaArr[0]);
 		}
-
 		while (reader.hasMoreTags()) {
 			tag = reader.readTag();
-
 			// if there are cuePoints in the array
 			if (counter < metaArr.length) {
-
 				// If the tag has a greater timestamp than the
 				// cuePointTimeStamp, then inject the tag
 				while (tag.getTimestamp() > cuePointTimeStamp) {
-
 					injectedTag = injectMetaCue(metaArr[counter], tag);
 					writer.writeTag(injectedTag);
-
 					tag.setPreviousTagSize(injectedTag.getBodySize());
-
 					// Advance to the next CuePoint
 					counter++;
-
 					if (counter > (metaArr.length - 1)) {
 						break;
 					}
-
 					cuePointTimeStamp = getTimeInMilliseconds(metaArr[counter]);
-
 				}
 			}
-
 			if (tag.getDataType() != IoConstants.TYPE_METADATA) {
 				writer.writeTag(tag);
 			}
-
 		}
 		writer.close();
-
 	}
 
 	/**
@@ -355,16 +327,6 @@ public class MetaService implements IMetaService {
 	 */
 	public void setFile(File file) {
 		this.file = file;
-	}
-
-	/** {@inheritDoc} */
-	public void setInStream(FileInputStream fis) {
-		this.fis = fis;
-	}
-
-	/** {@inheritDoc} */
-	public void setOutStream(FileOutputStream fos) {
-		this.fos = fos;
 	}
 
 	/** {@inheritDoc} */

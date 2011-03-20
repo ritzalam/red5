@@ -20,9 +20,7 @@ package org.red5.io.mp4.impl;
  */
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Map;
 
@@ -91,7 +89,7 @@ public class MP4 implements IMP4 {
 	 * {@inheritDoc}
 	 */
 	public IMetaData<?, ?> getMetaData() throws FileNotFoundException {
-		metaService.setInStream(new FileInputStream(file));
+		metaService.setFile(file);
 		return null;
 	}
 
@@ -170,32 +168,15 @@ public class MP4 implements IMP4 {
 
 	/** {@inheritDoc} */
 	public void setMetaData(IMetaData<?, ?> meta) throws IOException {
-		File tmpFile = File.createTempFile("setMeta_", ".mp4");
 		if (metaService == null) {
 			metaService = new MetaService(file);
 		}
-		metaService.setInStream(new FileInputStream(file));
-		metaService.setOutStream(new FileOutputStream(tmpFile));
 		//if the file is not checked the write may produce an NPE
-		if (((MetaService) metaService).getFile() == null) {
-			((MetaService) metaService).setFile(file);
+		if (metaService.getFile() == null) {
+			metaService.setFile(file);
 		}
 		metaService.write(meta);
 		metaData = meta;
-		file.delete();
-		if (!tmpFile.renameTo(file)) {
-			// Probably renaming across filesystems? Move manually.
-			FileInputStream fis = new FileInputStream(tmpFile);
-			FileOutputStream fos = new FileOutputStream(file);
-			byte[] buf = new byte[16384];
-			int i = 0;
-			while ((i = fis.read(buf)) != -1) {
-				fos.write(buf, 0, i);
-			}
-			fis.close();
-			fos.close();
-			tmpFile.delete();
-		}
 	}
 
 	/** {@inheritDoc} */

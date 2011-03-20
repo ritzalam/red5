@@ -121,9 +121,7 @@ public class FLVHeader {
 		ret += "TYPE FLAGS AUDIO: \t" + getFlagAudio() + "\n";
 		ret += "DATA OFFSET: \t\t" + getDataOffset() + "\n";
 		//byte b = 0x01;
-
 		return ret;
-
 	}
 
 	/**

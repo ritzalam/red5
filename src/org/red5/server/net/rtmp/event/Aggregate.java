@@ -128,8 +128,7 @@ public class Aggregate extends BaseEvent implements IoConstants, IStreamData<Agg
 			byte subType = data.get();
 			int size = IOUtils.readUnsignedMediumInt(data);
 			log.debug("Data subtype: {} size: {}", subType, size);
-			int timestamp = data.getInt();
-			timestamp = (timestamp >> 8) | ((timestamp & 0x000000ff) << 24);
+			int timestamp = IOUtils.readExtendedMediumInt(data);
 			/*timestamp = ntohap((GETIBPOINTER(buffer) + 4)); 0x12345678 == 34 56 78 12*/
 			int streamId = IOUtils.readUnsignedMediumInt(data);
 			log.debug("Data timestamp: {} stream id: {}", timestamp, streamId);
