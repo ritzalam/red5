@@ -67,6 +67,10 @@ import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 /**
  * Consumer that pushes messages to file. Used when recording live streams.
+ * 
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Paul Gregoire (mondain@gmail.com)
+ * @author Miguel Molina - SplitmediaLabs (MiMo@splitmedialabs.com)
  */
 public class FileConsumer implements Constants, IPushableConsumer, IPipeConnectionListener {
 	/**
@@ -138,6 +142,11 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	 * Video decoder configuration
 	 */
 	private ITag videoConfigurationTag;
+	
+	/**
+	 * Audio decoder configuration
+	 */
+	private ITag audioConfigurationTag;
 
 	/**
 	 * Number of queued items needed before writes are initiated
@@ -391,6 +400,10 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 				writer.writeTag(videoConfigurationTag);
 				videoConfigurationTag = null;
 			}
+			if (audioConfigurationTag != null) {
+				writer.writeTag(audioConfigurationTag);
+				audioConfigurationTag = null;
+			}
 		} else if (mode.equals(IClientStream.MODE_APPEND)) {
 			writer = flv.getAppendWriter();
 			writer.setFile(file);
@@ -491,7 +504,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		//Search for "offset" in this class constructor
 		tag.setTimestamp(timestamp + offset);
 		// get data bytes
-		IoBuffer data = ((IStreamData<?>) msg).getData();
+		IoBuffer data = ((IStreamData<?>) msg).getData().duplicate();
 		if (data != null) {
 			tag.setBodySize(data.limit());
 			tag.setBody(data);
@@ -592,6 +605,24 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		}
 	}
 
+	// SplitmediaLabs - begin AAC fix
+	/**
+	 * Sets a audio decoder configuration; some codecs require this, such as AAC.
+	 * 
+	 * @param decoderConfig audio codec configuration
+	 */
+	public void setAudioDecoderConfiguration(IRTMPEvent decoderConfig) {
+		audioConfigurationTag = new Tag();
+		audioConfigurationTag.setDataType(decoderConfig.getDataType());
+		audioConfigurationTag.setTimestamp(0);
+		if (decoderConfig instanceof IStreamData) {
+			IoBuffer data = ((IStreamData<?>) decoderConfig).getData().asReadOnlyBuffer();
+			audioConfigurationTag.setBodySize(data.limit());
+			audioConfigurationTag.setBody(data);
+		}
+	}
+	// SplitmediaLabs - end AAC fix
+	
 	/**
 	 * Sets the scope for this consumer.
 	 * 

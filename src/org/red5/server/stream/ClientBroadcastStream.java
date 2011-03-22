@@ -37,17 +37,18 @@ import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.statistics.IClientBroadcastStreamStatistics;
 import org.red5.server.api.statistics.support.StatisticsCounter;
+import org.red5.server.api.stream.IAudioStreamCodec;
 import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamCodecInfo;
 import org.red5.server.api.stream.IStreamFilenameGenerator;
+import org.red5.server.api.stream.IStreamFilenameGenerator.GenerationType;
 import org.red5.server.api.stream.IStreamListener;
 import org.red5.server.api.stream.IStreamPacket;
 import org.red5.server.api.stream.IVideoStreamCodec;
 import org.red5.server.api.stream.ResourceExistException;
 import org.red5.server.api.stream.ResourceNotFoundException;
-import org.red5.server.api.stream.IStreamFilenameGenerator.GenerationType;
 import org.red5.server.jmx.mxbeans.ClientBroadcastStreamMXBean;
 import org.red5.server.messaging.AbstractPipe;
 import org.red5.server.messaging.IConsumer;
@@ -86,14 +87,15 @@ import org.slf4j.LoggerFactory;
  * without paying of licensing fee or buying SDK.
  *
  * This type of stream uses two different pipes for live streaming and recording.
+ * 
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Steven Gong
+ * @author Paul Gregoire (mondain@gmail.com)
+ * @author Miguel Molina - SplitmediaLabs (MiMo@splitmedialabs.com)
  */
-public class ClientBroadcastStream extends AbstractClientStream implements IClientBroadcastStream, IFilter,
-		IPushableConsumer, IPipeConnectionListener, IEventDispatcher, IClientBroadcastStreamStatistics,
-		ClientBroadcastStreamMXBean {
+public class ClientBroadcastStream extends AbstractClientStream implements IClientBroadcastStream, IFilter, IPushableConsumer, IPipeConnectionListener, IEventDispatcher,
+		IClientBroadcastStreamStatistics, ClientBroadcastStreamMXBean {
 
-	/**
-	 * Logger
-	 */
 	private static final Logger log = LoggerFactory.getLogger(ClientBroadcastStream.class);
 
 	/**
@@ -105,6 +107,14 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 * Is there need to check video codec?
 	 */
 	protected boolean checkVideoCodec = false;
+
+	// SplitmediaLabs - begin AAC fix
+	/**
+	 * Is there need to check audio codec?
+	 */
+	protected boolean checkAudioCodec = false;
+
+	// SplitmediaLabs - end AAC fix
 
 	/**
 	 * Data is sent by chunks, each of them has size
@@ -217,8 +227,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 * @param event          Event to dispatch
 	 */
 	public void dispatchEvent(IEvent event) {
-		if (!(event instanceof IRTMPEvent) && (event.getType() != IEvent.Type.STREAM_CONTROL)
-				&& (event.getType() != IEvent.Type.STREAM_DATA) || closed) {
+		if (!(event instanceof IRTMPEvent) && (event.getType() != IEvent.Type.STREAM_CONTROL) && (event.getType() != IEvent.Type.STREAM_DATA) || closed) {
 			// ignored event
 			log.debug("dispatchEvent: {}", event.getType());
 			return;
@@ -243,12 +252,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			// absolute? no matter: it's never used!
 			if (firstPacketTime == -1) {
 				firstPacketTime = rtmpEvent.getTimestamp();
-				log.trace(String.format("CBS=@%08x: rtmpEvent=%s creation=%s firstPacketTime=%d", System
-						.identityHashCode(this), rtmpEvent.getClass().getSimpleName(), creationTime, firstPacketTime));
+				log.trace(String.format("CBS=@%08x: rtmpEvent=%s creation=%s firstPacketTime=%d", System.identityHashCode(this), rtmpEvent.getClass().getSimpleName(),
+						creationTime, firstPacketTime));
 			} else {
-				log.trace(String.format("CBS=@%08x: rtmpEvent=%s creation=%s firstPacketTime=%d timestamp=%d", System
-						.identityHashCode(this), rtmpEvent.getClass().getSimpleName(), creationTime, firstPacketTime,
-						rtmpEvent.getTimestamp()));
+				log.trace(String.format("CBS=@%08x: rtmpEvent=%s creation=%s firstPacketTime=%d timestamp=%d", System.identityHashCode(this), rtmpEvent.getClass().getSimpleName(),
+						creationTime, firstPacketTime, rtmpEvent.getTimestamp()));
 			}
 
 		}
@@ -258,6 +266,20 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			bytesReceived += buf.limit();
 		}
 		if (rtmpEvent instanceof AudioData) {
+			// SplitmediaLabs - begin AAC fix
+			IAudioStreamCodec audioStreamCodec = null;
+			if (checkAudioCodec) {
+				audioStreamCodec = AudioCodecFactory.getAudioCodec(buf);
+				if (info != null) {
+					info.setAudioCodec(audioStreamCodec);
+				}
+				checkAudioCodec = false;
+			} else if (codecInfo != null) {
+				audioStreamCodec = codecInfo.getAudioCodec();
+			}
+			if (audioStreamCodec != null) {
+				audioStreamCodec.addData(buf.asReadOnlyBuffer());
+			}
 			if (info != null) {
 				info.setHasAudio(true);
 			}
@@ -312,27 +334,32 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 				if (recordPipe != null) {
 					int bufferLimit = buf.limit();
 					if (bufferLimit > 0) {
-    					// make a copy for the record pipe
-    					buf.mark();
-    					byte[] buffer = new byte[bufferLimit];
-    					buf.get(buffer);
-    					buf.reset();
-    					// Create new RTMP message, initialize it and push through pipe
-    					RTMPMessage msg = new RTMPMessage();
-    					if (rtmpEvent instanceof AudioData) {
-    						AudioData audio = new AudioData(IoBuffer.wrap(buffer));
-    						audio.setTimestamp(eventTime);
-    						msg.setBody(audio);
-    					} else if (rtmpEvent instanceof VideoData) {
-    						VideoData video = new VideoData(IoBuffer.wrap(buffer));
-    						video.setTimestamp(eventTime);
-    						msg.setBody(video);
-    					} else {
-    						log.info("Data was not of A/V type: {}", rtmpEvent.getType());
-    						msg.getBody().setTimestamp(eventTime);
-    					}
-    					// push it down to the recorder
-    					recordPipe.pushMessage(msg);
+						// make a copy for the record pipe
+						buf.mark();
+						byte[] buffer = new byte[bufferLimit];
+						buf.get(buffer);
+						buf.reset();
+						// Create new RTMP message, initialize it and push through pipe
+						RTMPMessage msg = new RTMPMessage();
+						if (rtmpEvent instanceof AudioData) {
+							AudioData audio = new AudioData(IoBuffer.wrap(buffer));
+							audio.setTimestamp(eventTime);
+							msg.setBody(audio);
+						} else if (rtmpEvent instanceof VideoData) {
+							VideoData video = new VideoData(IoBuffer.wrap(buffer));
+							video.setTimestamp(eventTime);
+							msg.setBody(video);
+						} else if (rtmpEvent instanceof Notify) {
+							Notify not = new Notify(IoBuffer.wrap(buffer));
+							not.setTimestamp(eventTime);
+							msg.setBody(not);
+						} else {
+							log.info("Data was not of A/V type: {}", rtmpEvent.getType());
+							msg.setBody(rtmpEvent);
+							msg.getBody().setTimestamp(eventTime);
+						}
+						// push it down to the recorder
+						recordPipe.pushMessage(msg);
 					} else {
 						log.debug("Stream data size was 0, recording pipe will not be notified");
 					}
@@ -508,8 +535,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		switch (event.getType()) {
 			case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
 				log.info("Provider connect");
-				if (event.getProvider() == this && event.getSource() != connMsgOut
-						&& (event.getParamMap() == null || !event.getParamMap().containsKey("record"))) {
+				if (event.getProvider() == this && event.getSource() != connMsgOut && (event.getParamMap() == null || !event.getParamMap().containsKey("record"))) {
 
 					this.livePipe = (IPipe) event.getSource();
 					log.debug("Provider: {}", this.livePipe.getClass().getName());
@@ -521,7 +547,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			case PipeConnectionEvent.PROVIDER_DISCONNECT:
 				log.info("Provider disconnect");
 				if (log.isDebugEnabled() && this.livePipe != null) {
-					log.debug("Provider: {}", this.livePipe.getClass().getName());					
+					log.debug("Provider: {}", this.livePipe.getClass().getName());
 				}
 				if (this.livePipe == event.getSource()) {
 					this.livePipe = null;
@@ -565,8 +591,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 * @throws ResourceNotFoundException     Resource doesn't exist when trying to append.
 	 * @throws ResourceExistException        Resource exist when trying to create.
 	 */
-	public void saveAs(String name, boolean isAppend) throws IOException, ResourceNotFoundException,
-			ResourceExistException {
+	public void saveAs(String name, boolean isAppend) throws IOException, ResourceNotFoundException, ResourceExistException {
 		log.debug("SaveAs - name: {} append: {}", name, isAppend);
 
 		Map<String, Object> recordParamMap = new HashMap<String, Object>(1);
@@ -588,8 +613,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		}
 		IScope scope = conn.getScope();
 		// Get stream filename generator
-		IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils.getScopeService(scope,
-				IStreamFilenameGenerator.class, DefaultStreamFilenameGenerator.class);
+		IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.class, DefaultStreamFilenameGenerator.class);
 
 		// Generate filename
 		recordingFilename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
@@ -653,11 +677,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			log.debug("Context contains a file consumer");
 			recordingFile = (FileConsumer) scope.getContext().getBean("fileConsumer");
 			recordingFile.setScope(scope);
-			recordingFile.setFile(file);			
+			recordingFile.setFile(file);
 		} else {
 			log.debug("Context does not contain a file consumer, using direct instance");
 			// get a new instance
-			recordingFile = new FileConsumer(scope, file);			
+			recordingFile = new FileConsumer(scope, file);
 		}
 		//get decoder info if it exists for the stream
 		IStreamCodecInfo codecInfo = getCodecInfo();
@@ -682,8 +706,26 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			} else {
 				log.debug("Could not initialize stream output, videoCodec is null.");
 			}
+			// SplitmediaLabs - begin AAC fix
+			IAudioStreamCodec audioCodec = info.getAudioCodec();
+			log.debug("Audio codec: {}", audioCodec);
+			if (audioCodec != null) {
+				//check for decoder configuration to send
+				IoBuffer config = audioCodec.getDecoderConfiguration();
+				if (config != null) {
+					log.debug("Decoder configuration is available for {}", audioCodec.getName());
+					AudioData conf = new AudioData(config.asReadOnlyBuffer());
+					try {
+						log.debug("Setting decoder configuration for recording");
+						recordingFile.setAudioDecoderConfiguration(conf);
+					} finally {
+						conf.release();
+					}
+				}
+			} else {
+				log.debug("No decoder configuration available, audioCodec is null.");
+			}
 		}
-
 		if (isAppend) {
 			recordParamMap.put("mode", "append");
 		} else {
