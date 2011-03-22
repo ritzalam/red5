@@ -285,7 +285,7 @@ public class FLVWriter implements ITagWriter {
 				// Data Type
 				tagBuffer.put(dataType); //1
 				// Body Size - Length of the message. Number of bytes after StreamID to end of tag 
-				// (Equal to length of the tag – 11) 
+				// (Equal to length of the tag - 11) 
 				IOUtils.writeMediumInt(tagBuffer, bodySize); //3
 				// Timestamp
 				IOUtils.writeExtendedMediumInt(tagBuffer, timestamp); //4

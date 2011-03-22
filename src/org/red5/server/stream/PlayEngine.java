@@ -34,6 +34,7 @@ import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.IScope;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
+import org.red5.server.api.stream.IAudioStreamCodec;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IPlayItem;
 import org.red5.server.api.stream.IPlaylistSubscriberStream;
@@ -80,6 +81,7 @@ import org.slf4j.Logger;
  * @author Paul Gregoire (mondain@gmail.com)
  * @author Dan Rossi
  * @author Tiago Daniel Jacobs (tiago@imdt.com.br)
+ * @author Miguel Molina - SplitmediaLabs (MiMo@splitmedialabs.com)
  */
 public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnectionListener {
 
@@ -219,7 +221,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 * List of pending operations
 	 */
 	private LinkedList<Runnable> pendingOperations = null;
-	
+
 	/**
 	 * Constructs a new PlayEngine.
 	 */
@@ -563,6 +565,29 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				} else {
 					log.debug("Could not initialize stream output, videoCodec is null.");
 				}
+				// SplitmediaLabs - begin AAC fix
+				IAudioStreamCodec audioCodec = info.getAudioCodec();
+				log.debug("Audio codec: {}", audioCodec);
+				if (audioCodec != null) {
+					//check for decoder configuration to send
+					IoBuffer config = audioCodec.getDecoderConfiguration();
+					if (config != null) {
+						log.debug("Decoder configuration is available for {}", audioCodec.getName());
+						//log.debug("Dump:\n{}", Hex.encodeHex(config.array()));
+						AudioData conf = new AudioData(config.asReadOnlyBuffer());
+						log.trace("Configuration ts: {}", conf.getTimestamp());
+						RTMPMessage confMsg = new RTMPMessage();
+						confMsg.setBody(conf);
+						try {
+							log.debug("Pushing decoder configuration");
+							msgOut.pushMessage(confMsg);
+						} finally {
+							conf.release();
+						}
+					}
+				} else {
+					log.debug("No decoder configuration available, audioCodec is null.");
+				}
 			}
 		}
 	}
@@ -709,7 +734,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 */
 	public synchronized void seek(final int position) throws IllegalStateException, OperationNotSupportedException {
 		Runnable seekRunnable = null;
-		
+
 		seekRunnable = new Runnable() {
 			public void run() {
 				log.trace("Seek: {}", position);
@@ -724,15 +749,15 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 							// throw new OperationNotSupportedException();
 							throw new RuntimeException();
 						}
-		
+
 						releasePendingMessage();
 						clearWaitJobs();
-		
+
 						break;
 					default:
 						throw new IllegalStateException("Cannot seek in current state");
 				}
-		
+
 				sendClearPing();
 				sendReset();
 				sendSeekStatus(currentItem, position);
@@ -807,7 +832,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 								if (msg instanceof RTMPMessage) {
 									RTMPMessage rtmpMessage = (RTMPMessage) msg;
 									IRTMPEvent body = rtmpMessage.getBody();
-									if (body.getTimestamp() >= position + (clientBuffer*2)) {
+									if (body.getTimestamp() >= position + (clientBuffer * 2)) {
 										// client buffer should be full by now, continue regular pull/push
 										releasePendingMessage();
 										if (checkSendMessageEnabled(rtmpMessage)) {
@@ -817,7 +842,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 									}
 									if (!checkSendMessageEnabled(rtmpMessage)) {
 										continue;
-									}								
+									}
 									sendMessage(rtmpMessage);
 								}
 							} catch (Throwable err) {
@@ -834,9 +859,9 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				}
 			}
 		};
-		
+
 		// Add this pending seek operation to the list
-		synchronized(this.pendingOperations) {
+		synchronized (this.pendingOperations) {
 			this.pendingOperations.addLast(seekRunnable);
 		}
 	}
@@ -1598,7 +1623,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			pendingMessage = null;
 		}
 	}
-	
+
 	/**
 	 * Check if sending the given message was enabled by the client.
 	 * 
@@ -1645,8 +1670,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			synchronized (doingPullMonitor) {
 				try {
 					// Are there any pending operations?
-					while(pendingOperations.size() > 0) {
-						synchronized(pendingOperations) {
+					while (pendingOperations.size() > 0) {
+						synchronized (pendingOperations) {
 							// Remove the first operation and execute it 
 							log.debug("Executing pending operation");
 							pendingOperations.removeFirst().run();
