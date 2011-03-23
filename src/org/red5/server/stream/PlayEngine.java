@@ -81,7 +81,7 @@ import org.slf4j.Logger;
  * @author Paul Gregoire (mondain@gmail.com)
  * @author Dan Rossi
  * @author Tiago Daniel Jacobs (tiago@imdt.com.br)
- * @author Miguel Molina - SplitmediaLabs (MiMo@splitmedialabs.com)
+ * @author Vladimir Hmelyoff (vlhm@splitmedialabs.com)
  */
 public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnectionListener {
 
