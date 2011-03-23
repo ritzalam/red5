@@ -70,7 +70,7 @@ import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)
- * @author Miguel Molina - SplitmediaLabs (MiMo@splitmedialabs.com)
+ * @author Vladimir Hmelyoff (vlhm@splitmedialabs.com)
  */
 public class FileConsumer implements Constants, IPushableConsumer, IPipeConnectionListener {
 	/**

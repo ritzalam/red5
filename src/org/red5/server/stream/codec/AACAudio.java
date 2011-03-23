@@ -31,7 +31,7 @@ import org.slf4j.Logger;
  * 
  * @author Paul Gregoire (mondain@gmail.com) 
  * @author Wittawas Nakkasem (vittee@hotmail.com)
- * @author Miguel Molina - SplitmediaLabs (MiMo@splitmedialabs.com)
+ * @author Vladimir Hmelyoff (vlhm@splitmedialabs.com)
  */
 public class AACAudio implements IAudioStreamCodec {
 

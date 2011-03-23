@@ -91,7 +91,7 @@ import org.slf4j.LoggerFactory;
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong
  * @author Paul Gregoire (mondain@gmail.com)
- * @author Miguel Molina - SplitmediaLabs (MiMo@splitmedialabs.com)
+ * @author Vladimir Hmelyoff (vlhm@splitmedialabs.com)
  */
 public class ClientBroadcastStream extends AbstractClientStream implements IClientBroadcastStream, IFilter, IPushableConsumer, IPipeConnectionListener, IEventDispatcher,
 		IClientBroadcastStreamStatistics, ClientBroadcastStreamMXBean {
