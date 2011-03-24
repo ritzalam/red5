@@ -255,6 +255,10 @@ public class FLVWriter implements ITagWriter {
 		if (bodySize > 0) {
 			// ensure that the channel is still open
 			if (file != null) {
+				// it's necessary to seek to the length of the file
+				// so that we can append new tags
+				file.seek(prevBytesWritten);
+				
 				// set a var holding the entire tag size including the previous tag length
 				int totalTagSize = TAG_HEADER_LENGTH + bodySize + 4;
 				// resize
@@ -293,6 +297,7 @@ public class FLVWriter implements ITagWriter {
 				IOUtils.writeMediumInt(tagBuffer, 0); //3
 				// get the body
 				tagBuffer.put(bodyBuf);
+
 				// update previous tag size
 				previousTagSize = TAG_HEADER_LENGTH + bodySize;
 				// we add the tag size
@@ -302,7 +307,7 @@ public class FLVWriter implements ITagWriter {
 				if (log.isDebugEnabled()) {
     				StringBuilder sb = new StringBuilder();
     				HexDump.dumpHex(sb, tagBuffer.array());
-    				log.debug("\n{}", sb);
+    				//log.debug("\n{}", sb);
 				}
 				// write the tag
 				file.write(tagBuffer.array());
@@ -362,7 +367,7 @@ public class FLVWriter implements ITagWriter {
 					// run a test on the flv if debugging is on
 					if (log.isDebugEnabled()) {
 						// debugging
-						testFLV();
+						//testFLV();
 					}
 					// close the file
 					file.close();
@@ -387,7 +392,7 @@ public class FLVWriter implements ITagWriter {
 	 * @param audioCodecId		Id of the audio codec used while recording.
 	 * @throws IOException if the tag could not be written
 	 */
-	private void writeMetadataTag(double duration, Integer videoCodecId, Integer audioCodecId) throws IOException {
+	private void writeMetadataTag(double duration, int videoCodecId, int audioCodecId) throws IOException {
 		log.debug("writeMetadataTag - duration: {} video codec: {} audio codec: {}", new Object[] { duration, videoCodecId, audioCodecId });
 		IoBuffer buf = IoBuffer.allocate(192);
 		buf.setAutoExpand(true);
@@ -397,11 +402,11 @@ public class FLVWriter implements ITagWriter {
 		params.put("server", Red5.getVersion());
 		params.put("creationdate", GregorianCalendar.getInstance().getTime().toString());
 		params.put("duration", duration);
-		if (videoCodecId != null) {
-			params.put("videocodecid", videoCodecId.intValue());
+		if (videoCodecId != -1) {
+			params.put("videocodecid", videoCodecId);
 		}
-		if (audioCodecId != null) {
-			params.put("audiocodecid", audioCodecId.intValue());
+		if (audioCodecId != -1) {
+			params.put("audiocodecid", audioCodecId);
 		}
 		params.put("canSeekToEnd", true);
 		out.writeMap(params, new Serializer());
