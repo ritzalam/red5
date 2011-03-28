@@ -124,45 +124,49 @@ public class FileProvider implements IPassive, ISeekableProvider, IPullableProvi
 
 	/** {@inheritDoc} */
 	public synchronized IMessage pullMessage(IPipe pipe) throws IOException {
-		if (this.pipe != pipe) {
-			return null;
+		if (this.pipe == pipe) {
+			if (this.reader == null) {
+				init();
+			}
+			if (reader.hasMoreTags()) {
+				IRTMPEvent msg = null;
+				ITag tag = reader.readTag();
+				if (tag != null) {
+					int timestamp = tag.getTimestamp();
+					switch (tag.getDataType()) {
+						case Constants.TYPE_AUDIO_DATA:
+							msg = new AudioData(tag.getBody());
+							break;
+						case Constants.TYPE_VIDEO_DATA:
+							msg = new VideoData(tag.getBody());
+							break;
+						case Constants.TYPE_INVOKE:
+							msg = new Invoke(tag.getBody());
+							break;
+						case Constants.TYPE_NOTIFY:
+							msg = new Notify(tag.getBody());
+							break;
+						case Constants.TYPE_FLEX_STREAM_SEND:
+							msg = new FlexStreamSend(tag.getBody());
+							break;
+						default:
+							log.warn("Unexpected type? {}", tag.getDataType());
+							msg = new Unknown(tag.getDataType(), tag.getBody());
+					}
+					msg.setTimestamp(timestamp);
+					RTMPMessage rtmpMsg = new RTMPMessage();
+					rtmpMsg.setBody(msg);
+					return rtmpMsg;
+				} else {
+					log.debug("Tag was null");
+				}
+			} else {
+				// TODO send OOBCM to notify EOF
+				// Do not unsubscribe if there aren't any more tags, as this kills VOD seek while in buffer
+				// this.pipe.unsubscribe(this);
+			}			
 		}
-		if (this.reader == null) {
-			init();
-		}
-		if (!reader.hasMoreTags()) {
-			// TODO send OOBCM to notify EOF
-			// Do not unsubscribe as this kills VOD seek while in buffer
-			// this.pipe.unsubscribe(this);
-			return null;
-		}
-		ITag tag = reader.readTag();
-		IRTMPEvent msg = null;
-		int timestamp = tag.getTimestamp();
-		switch (tag.getDataType()) {
-			case Constants.TYPE_AUDIO_DATA:
-				msg = new AudioData(tag.getBody());
-				break;
-			case Constants.TYPE_VIDEO_DATA:
-				msg = new VideoData(tag.getBody());
-				break;
-			case Constants.TYPE_INVOKE:
-				msg = new Invoke(tag.getBody());
-				break;
-			case Constants.TYPE_NOTIFY:
-				msg = new Notify(tag.getBody());
-				break;
-			case Constants.TYPE_FLEX_STREAM_SEND:
-				msg = new FlexStreamSend(tag.getBody());
-				break;
-			default:
-				log.warn("Unexpected type? {}", tag.getDataType());
-				msg = new Unknown(tag.getDataType(), tag.getBody());
-		}
-		msg.setTimestamp(timestamp);
-		RTMPMessage rtmpMsg = new RTMPMessage();
-		rtmpMsg.setBody(msg);
-		return rtmpMsg;
+		return null;
 	}
 
 	/** {@inheritDoc} */

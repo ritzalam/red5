@@ -38,7 +38,6 @@ import org.red5.io.amf.Output;
 import org.red5.io.flv.FLVHeader;
 import org.red5.io.flv.IFLV;
 import org.red5.io.object.Serializer;
-import org.red5.io.utils.HexDump;
 import org.red5.io.utils.IOUtils;
 import org.red5.server.api.Red5;
 import org.slf4j.Logger;
@@ -146,7 +145,7 @@ public class FLVWriter implements ITagWriter {
 			try {
 				// write the flv file type header
 				writeHeader();
-				// write intermediate onMetaData tag, will be replaced later
+				// write onMetaData tag, it will be replaced when the file is closed
 				writeMetadataTag(0, videoCodecId, audioCodecId);
 			} catch (IOException e) {
 				log.warn("Exception writing header or intermediate meta data", e);
@@ -255,28 +254,37 @@ public class FLVWriter implements ITagWriter {
 		if (bodySize > 0) {
 			// ensure that the channel is still open
 			if (file != null) {
-				// it's necessary to seek to the length of the file
-				// so that we can append new tags
-				file.seek(prevBytesWritten);
-				
+				// get the data type
+				byte dataType = tag.getDataType();
 				// set a var holding the entire tag size including the previous tag length
 				int totalTagSize = TAG_HEADER_LENGTH + bodySize + 4;
 				// resize
 				file.setLength(file.length() + totalTagSize);
 				// create a buffer for this tag
-				ByteBuffer tagBuffer = ByteBuffer.allocate(totalTagSize);				
-				// get the data type
-				byte dataType = tag.getDataType();
-				// dont reset previous tag size on metadata
-				if (previousTagSize != tag.getPreviousTagSize() && dataType != ITag.TYPE_METADATA) {
-					log.debug("Previous tag size: {} previous per tag: {}", previousTagSize, tag.getPreviousTagSize());
-					tag.setPreviousTagSize(previousTagSize);
+				ByteBuffer tagBuffer = ByteBuffer.allocate(totalTagSize);
+				// get the current file offset
+				long fileOffset = file.getFilePointer();
+				log.debug("Current file offset: {} expected offset: {}", fileOffset, prevBytesWritten);
+				// if we're writing non-meta tags do seeking and tag size update
+				if (dataType != ITag.TYPE_METADATA) {
+					if (fileOffset < prevBytesWritten && dataType != ITag.TYPE_METADATA) {
+						log.debug("Seeking to expected offset");
+						// it's necessary to seek to the length of the file
+						// so that we can append new tags
+						file.seek(prevBytesWritten);
+					}
+					// dont reset previous tag size on metadata
+					if (previousTagSize != tag.getPreviousTagSize()) {
+						log.debug("Previous tag size: {} previous per tag: {}", previousTagSize, tag.getPreviousTagSize());
+						tag.setPreviousTagSize(previousTagSize);
+					}
 				}
 				int timestamp = tag.getTimestamp() + offset;
 				// create an array big enough
 				byte[] bodyBuf = new byte[bodySize];
 				// put the bytes into the array
 				tag.getBody().get(bodyBuf);
+				// get the audio or video codec identifier
 				if (dataType == ITag.TYPE_AUDIO && audioCodecId == -1) {
 					int id = bodyBuf[0] & 0xff; // must be unsigned
 					audioCodecId = (id & ITag.MASK_SOUND_FORMAT) >> 4;
@@ -297,7 +305,6 @@ public class FLVWriter implements ITagWriter {
 				IOUtils.writeMediumInt(tagBuffer, 0); //3
 				// get the body
 				tagBuffer.put(bodyBuf);
-
 				// update previous tag size
 				previousTagSize = TAG_HEADER_LENGTH + bodySize;
 				// we add the tag size
@@ -305,9 +312,9 @@ public class FLVWriter implements ITagWriter {
 				// flip so we can process from the beginning
 				tagBuffer.flip();
 				if (log.isDebugEnabled()) {
-    				StringBuilder sb = new StringBuilder();
-    				HexDump.dumpHex(sb, tagBuffer.array());
-    				//log.debug("\n{}", sb);
+					//StringBuilder sb = new StringBuilder();
+					//HexDump.dumpHex(sb, tagBuffer.array());
+					//log.debug("\n{}", sb);
 				}
 				// write the tag
 				file.write(tagBuffer.array());
@@ -343,6 +350,8 @@ public class FLVWriter implements ITagWriter {
 	public void close() {
 		log.debug("close");
 		try {
+			// keep track of where the pointer is before we update the header and meta
+			long tail = bytesWritten;
 			// set to where the flv header goes
 			file.seek(0);
 			//Header fields (in same order than spec, for comparison purposes)
@@ -356,9 +365,18 @@ public class FLVWriter implements ITagWriter {
 			file.write(header.array());
 			header.clear();
 			// here we overwrite the metadata with the final duration
+			// get the file offset
+			long fileOffset = file.getFilePointer();
+			log.debug("Current file offset: {} expected offset: {}", fileOffset, META_POSITION);
+			if (fileOffset < META_POSITION) {
+				file.seek(META_POSITION);
+				fileOffset = file.getFilePointer();
+				log.debug("Updated file offset: {} expected offset: {}", fileOffset, META_POSITION);
+			}
 			log.debug("In the metadata writing (close) method - duration:{}", duration);
-			file.seek(META_POSITION);
 			writeMetadataTag(duration * 0.001, videoCodecId, audioCodecId);
+			// seek to the end of the data
+			file.seek(tail);
 		} catch (IOException e) {
 			log.error("IO error on close", e);
 		} finally {
@@ -399,14 +417,20 @@ public class FLVWriter implements ITagWriter {
 		Output out = new Output(buf);
 		out.writeString("onMetaData");
 		Map<Object, Object> params = new HashMap<Object, Object>();
-		params.put("server", Red5.getVersion());
+		params.put("server", Red5.getVersion().replaceAll("\\$", "").trim());
 		params.put("creationdate", GregorianCalendar.getInstance().getTime().toString());
 		params.put("duration", duration);
 		if (videoCodecId != -1) {
 			params.put("videocodecid", videoCodecId);
+		} else {
+			// place holder
+			params.put("novideocodec", 0);			
 		}
 		if (audioCodecId != -1) {
 			params.put("audiocodecid", audioCodecId);
+		} else {
+			// place holder
+			params.put("noaudiocodec", 0);			
 		}
 		params.put("canSeekToEnd", true);
 		out.writeMap(params, new Serializer());
@@ -429,8 +453,8 @@ public class FLVWriter implements ITagWriter {
 			if (reader == null) {
 				file.seek(0);
 				reader = new FLVReader(file.getChannel());
-//				RandomAccessFile raf = new RandomAccessFile("E:/dev/red5/java/server/trunk/distx/webapps/oflaDemo/streams/toystory3.flv", "r");
-//				reader = new FLVReader(raf.getChannel());
+				//				RandomAccessFile raf = new RandomAccessFile("E:/dev/red5/java/server/trunk/distx/webapps/oflaDemo/streams/toystory3.flv", "r");
+				//				reader = new FLVReader(raf.getChannel());
 			}
 			log.trace("reader: {}", reader);
 			log.debug("Has more tags: {}", reader.hasMoreTags());
