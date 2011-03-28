@@ -22,6 +22,7 @@ package org.red5.io.flv.impl;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.mina.core.buffer.IoBuffer;
@@ -32,6 +33,7 @@ import org.red5.io.IoConstants;
 import org.red5.io.flv.IFLV;
 import org.red5.io.flv.meta.IMetaData;
 import org.red5.io.flv.meta.IMetaService;
+import org.red5.io.flv.meta.MetaData;
 import org.red5.io.flv.meta.MetaService;
 import org.red5.server.api.cache.ICacheStore;
 import org.red5.server.api.cache.ICacheable;
@@ -136,14 +138,42 @@ public class FLV implements IFLV {
 	 * {@inheritDoc}
 	 */
 	public boolean hasKeyFrameData() {
+//		if (hasMetaData()) {
+//			return !((MetaData) metaData).getKeyframes().isEmpty();
+//		}
 		return false;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings({ "rawtypes" })
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void setKeyFrameData(Map keyframedata) {
+		if (!hasMetaData()) {
+			metaData = new MetaData();
+		}
+		//The map is expected to contain two entries named "times" and "filepositions",
+		//both of which contain a map keyed by index and time or position values.
+		Map<String, Double> times = new HashMap<String, Double>();
+		Map<String, Double> filepositions = new HashMap<String, Double>();
+		//
+		if (keyframedata.containsKey("times")) {
+			Map inTimes = (Map) keyframedata.get("times");
+			for (Object o : inTimes.entrySet()) {
+				Map.Entry<String, Double> entry = (Map.Entry<String, Double>) o;
+				times.put(entry.getKey(), entry.getValue());
+			}
+		}
+		((MetaData) metaData).put("times", times);
+		//
+		if (keyframedata.containsKey("filepositions")) {
+			Map inPos = (Map) keyframedata.get("filepositions");
+			for (Object o : inPos.entrySet()) {
+				Map.Entry<String, Double> entry = (Map.Entry<String, Double>) o;
+				filepositions.put(entry.getKey(), entry.getValue());
+			}			
+		}
+		((MetaData) metaData).put("filepositions", filepositions);
 	}
 
 	/**
@@ -151,7 +181,11 @@ public class FLV implements IFLV {
 	 */
 	@SuppressWarnings({ "rawtypes" })
 	public Map getKeyFrameData() {
-		return null;
+		Map keyframes = null;
+//		if (hasMetaData()) {
+//			keyframes = ((MetaData) metaData).getKeyframes();
+//		}
+		return keyframes;
 	}
 
 	/**

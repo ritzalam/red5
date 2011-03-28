@@ -85,6 +85,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		 * @param attributeNames attributes
 		 */
 		public ClassReference(String className, int type, List<String> attributeNames) {
+			log.debug("Pending property - className: {} type: {} attributeNames: {}", new Object[]{className, type, attributeNames});
 			this.className = className;
 			this.type = type;
 			this.attributeNames = attributeNames;
@@ -97,6 +98,10 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 */
 	protected static class PendingObject {
 
+		public PendingObject() {
+			log.debug("PendingObject");
+		}
+		
 		static final class PendingProperty {
 			Object obj;
 
@@ -105,6 +110,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			String name;
 
 			PendingProperty(Object obj, Class<?> klass, String name) {
+				log.debug("Pending property - obj: {} class: {} name: {}", new Object[]{obj, klass, name});
 				this.obj = obj;
 				this.klass = klass;
 				this.name = name;
@@ -121,22 +127,23 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		}
 
 		public void resolveProperties(Object result) {
-			if (properties == null)
-				// No pending properties
-				return;
-
-			for (PendingProperty prop : properties) {
-				try {
-					prop.klass.getField(prop.name).set(prop.obj, result);
-				} catch (Exception e) {
+			if (properties != null) {
+				for (PendingProperty prop : properties) {
 					try {
-						BeanUtils.setProperty(prop.obj, prop.name, result);
-					} catch (Exception ex) {
-						log.error("Error mapping property: {} ({})", prop.name, result);
+						prop.klass.getField(prop.name).set(prop.obj, result);
+					} catch (Exception e) {
+						try {
+							BeanUtils.setProperty(prop.obj, prop.name, result);
+						} catch (Exception ex) {
+							log.error("Error mapping property: {} ({})", prop.name, result);
+						}
 					}
 				}
+				properties.clear();				
+			} else {
+				// No pending properties
+				return;
 			}
-			properties.clear();
 		}
 	}
 
@@ -423,7 +430,6 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			// Reference to previously found date
 			return (Date) getReference(ref >> 1);
 		}
-
 		long ms = (long) buf.getDouble();
 		Date date = new Date(ms);
 		storeReference(date);
