@@ -40,7 +40,6 @@ import org.red5.io.amf.Output;
 import org.red5.io.flv.FLVHeader;
 import org.red5.io.flv.IKeyFrameDataAnalyzer;
 import org.red5.io.object.Serializer;
-import org.red5.io.utils.HexDump;
 import org.red5.io.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -777,10 +776,17 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		int previousTagSize = in.getInt();
 		// start of the flv tag
 		byte dataType = in.get();
-		if (dataType != 8 && dataType != 9 && dataType != 18) {
+		// loop counter
+		int i = 0;
+		while (dataType != 8 && dataType != 9 && dataType != 18) {
 			log.debug("Invalid data type detected, skipping crap-bytes");
-			in.skip(51);			
+			// move ahead and see if we get a valid datatype
+			in.skip(1);			
 			dataType = in.get();
+			// only allow 10 loops
+			if (i++ > 10) {
+				break;
+			}
 		}
 		int bodySize = IOUtils.readUnsignedMediumInt(in);
 		int timestamp = IOUtils.readExtendedMediumInt(in);
