@@ -534,7 +534,7 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	 */
 	private ITag createFileMeta() {
 		// Create tag for onMetaData event
-		IoBuffer buf = IoBuffer.allocate(1024);
+		IoBuffer buf = IoBuffer.allocate(192);
 		buf.setAutoExpand(true);
 		Output out = new Output(buf);
 		// Duration property
@@ -567,7 +567,6 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 
 		ITag result = new Tag(IoConstants.TYPE_METADATA, 0, buf.limit(), null, 0);
 		result.setBody(buf);
-		metadataSent = true;
 		//
 		out = null;
 		return result;
@@ -578,37 +577,42 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	public synchronized ITag readTag() {
 		long oldPos = getCurrentPosition();
 		ITag tag = readTagHeader();
-		log.debug("readTag, oldPos: {}, tag header: \n{}", oldPos, tag);
-		if (!metadataSent && tag.getDataType() != TYPE_METADATA && generateMetadata) {
-			// Generate initial metadata automatically
-			setCurrentPosition(oldPos);
-			KeyFrameMeta meta = analyzeKeyFrames();
-			if (meta != null) {
-				return createFileMeta();
-			}
-		}
-		int bodySize = tag.getBodySize();
-		IoBuffer body = IoBuffer.allocate(bodySize, false);
-		// XXX Paul: this assists in 'properly' handling damaged FLV files		
-		long newPosition = getCurrentPosition() + bodySize;
-		if (newPosition <= getTotalBytes()) {
-			int limit;
-			while (getCurrentPosition() < newPosition) {
-				fillBuffer(newPosition - getCurrentPosition());
-				if (getCurrentPosition() + in.remaining() > newPosition) {
-					limit = in.limit();
-					in.limit((int) (newPosition - getCurrentPosition()) + in.position());
-					body.put(in);
-					in.limit(limit);
-				} else {
-					body.put(in);
+		if (tag != null) {
+			boolean isMetaData = tag.getDataType() == TYPE_METADATA;
+			log.debug("readTag, oldPos: {}, tag header: \n{}", oldPos, tag);
+			if (!metadataSent && !isMetaData && generateMetadata) {
+				// Generate initial metadata automatically
+				setCurrentPosition(oldPos);
+				KeyFrameMeta meta = analyzeKeyFrames();
+				if (meta != null) {
+					return createFileMeta();
 				}
 			}
-			body.flip();
-			tag.setBody(body);
-		}
-		if (tag.getDataType() == TYPE_METADATA) {
-			metadataSent = true;
+			int bodySize = tag.getBodySize();
+			IoBuffer body = IoBuffer.allocate(bodySize, false);
+			// XXX Paul: this assists in 'properly' handling damaged FLV files		
+			long newPosition = getCurrentPosition() + bodySize;
+			if (newPosition <= getTotalBytes()) {
+				int limit;
+				while (getCurrentPosition() < newPosition) {
+					fillBuffer(newPosition - getCurrentPosition());
+					if (getCurrentPosition() + in.remaining() > newPosition) {
+						limit = in.limit();
+						in.limit((int) (newPosition - getCurrentPosition()) + in.position());
+						body.put(in);
+						in.limit(limit);
+					} else {
+						body.put(in);
+					}
+				}
+				body.flip();
+				tag.setBody(body);
+			}
+			if (isMetaData) {
+				metadataSent = true;
+			}
+		} else {
+			log.debug("Tag was null");
 		}
 		return tag;
 	}
@@ -663,12 +667,19 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		long origPos = getCurrentPosition();
 		// point to the first tag
 		setCurrentPosition(9);
-
+		// number of tags read
+		int totalValidTags = 0;
+		// start off as audio only
 		boolean audioOnly = true;
-		while (this.hasMoreTags()) {
+		while (hasMoreTags()) {
 			long pos = getCurrentPosition();
 			// Read tag header and duration
 			ITag tmpTag = this.readTagHeader();
+			if (tmpTag != null) {
+				totalValidTags++;
+			} else {
+				break;
+			}
 			duration = tmpTag.getTimestamp();
 			if (tmpTag.getDataType() == IoConstants.TYPE_VIDEO) {
 				if (audioOnly) {
@@ -679,7 +690,6 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 				if (firstVideoTag == -1) {
 					firstVideoTag = pos;
 				}
-
 				// Grab Frame type
 				fillBuffer(1);
 				byte frametype = in.get();
@@ -687,7 +697,6 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 					positionList.add(pos);
 					timestampList.add(tmpTag.getTimestamp());
 				}
-
 			} else if (tmpTag.getDataType() == IoConstants.TYPE_AUDIO) {
 				if (firstAudioTag == -1) {
 					firstAudioTag = pos;
@@ -722,6 +731,8 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		}
 		// restore the pos
 		setCurrentPosition(origPos);
+
+		log.debug("Total valid tags found: {}", totalValidTags);
 
 		keyframeMeta = new KeyFrameMeta();
 		keyframeMeta.duration = duration;
@@ -765,13 +776,13 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	private ITag readTagHeader() {
 		// previous tag size (4 bytes) + flv tag header size (11 bytes)
 		fillBuffer(15);
-//		if (log.isDebugEnabled()) {
-//			in.mark();
-//			StringBuilder sb = new StringBuilder();
-//			HexDump.dumpHex(sb, in.array());
-//			log.debug("\n{}", sb);
-//			in.reset();
-//		}		
+		//		if (log.isDebugEnabled()) {
+		//			in.mark();
+		//			StringBuilder sb = new StringBuilder();
+		//			HexDump.dumpHex(sb, in.array());
+		//			log.debug("\n{}", sb);
+		//			in.reset();
+		//		}		
 		// previous tag's size
 		int previousTagSize = in.getInt();
 		// start of the flv tag
@@ -779,20 +790,20 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		// loop counter
 		int i = 0;
 		while (dataType != 8 && dataType != 9 && dataType != 18) {
-			log.debug("Invalid data type detected, skipping crap-bytes");
-			// move ahead and see if we get a valid datatype
-			in.skip(1);			
-			dataType = in.get();
+			log.debug("Invalid data type detected, reading ahead");
+			log.debug("Current position: {} limit: {}", in.position(), in.limit());
 			// only allow 10 loops
 			if (i++ > 10) {
-				break;
+				return null;
 			}
+			// move ahead and see if we get a valid datatype		
+			dataType = in.get();
 		}
 		int bodySize = IOUtils.readUnsignedMediumInt(in);
 		int timestamp = IOUtils.readExtendedMediumInt(in);
 		if (log.isDebugEnabled()) {
 			int streamId = IOUtils.readUnsignedMediumInt(in);
-			log.debug("Data type: {} timestamp: {} stream id: {} body size: {} previous tag size: {}", new Object[]{dataType, timestamp, streamId, bodySize, previousTagSize});
+			log.debug("Data type: {} timestamp: {} stream id: {} body size: {} previous tag size: {}", new Object[] { dataType, timestamp, streamId, bodySize, previousTagSize });
 		} else {
 			in.skip(3);
 		}

@@ -37,38 +37,37 @@ import org.red5.io.object.Serializer;
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public class FLVService extends BaseStreamableFileService implements
-		IFLVService {
+public class FLVService extends BaseStreamableFileService implements IFLVService {
 
-    /**
-     * Serializer
-     */
-    private Serializer serializer;
+	/**
+	 * Serializer
+	 */
+	private Serializer serializer;
 
-    /**
-     * Deserializer
-     */
-    private Deserializer deserializer;
+	/**
+	 * Deserializer
+	 */
+	private Deserializer deserializer;
 
-    /**
-     * Generate FLV metadata?
-     */
-    private boolean generateMetadata;
+	/**
+	 * Generate FLV metadata?
+	 */
+	private boolean generateMetadata;
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public String getPrefix() {
 		return "flv";
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public String getExtension() {
 		return ".flv";
 	}
 
 	/** 
-     * {@inheritDoc}
+	 * {@inheritDoc}
 	 */
 	public void setSerializer(Serializer serializer) {
 		this.serializer = serializer;
@@ -90,29 +89,29 @@ public class FLVService extends BaseStreamableFileService implements
 	}
 
 	/**
-     * Generate metadata or not
-     *
-     * @param generate  <code>true</code> if there's need to generate metadata, <code>false</code> otherwise
-     */
-    public void setGenerateMetadata(boolean generate) {
+	 * Generate metadata or not
+	 *
+	 * @param generate  <code>true</code> if there's need to generate metadata, <code>false</code> otherwise
+	 */
+	public void setGenerateMetadata(boolean generate) {
 		generateMetadata = generate;
 	}
 
 	/**
-     * Getter for serializer
-     *
-     * @return  Serializer
-     */
-    public Serializer getSerializer() {
+	 * Getter for serializer
+	 *
+	 * @return  Serializer
+	 */
+	public Serializer getSerializer() {
 		return serializer;
 	}
 
 	/**
-     * Getter for deserializer
-     *
-     * @return  Deserializer
-     */
-    public Deserializer getDeserializer() {
+	 * Getter for deserializer
+	 *
+	 * @return  Deserializer
+	 */
+	public Deserializer getDeserializer() {
 		return deserializer;
 	}
 }

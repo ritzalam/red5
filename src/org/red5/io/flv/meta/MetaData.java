@@ -42,13 +42,12 @@ import java.util.Map;
  */
 public class MetaData<K, V> extends HashMap<String, Object> implements IMetaData<Object, Object> {
 
-	/** serialVersionUID = -5681069577717669925L; */
 	private static final long serialVersionUID = -5681069577717669925L;
 
 	/**
 	 * Cue points array. Cue points can be injected on fly like any other data even on client-side.
 	 */
-	IMetaCue cuePoints[]; //CuePoint array
+	IMetaCue[] cuePoints; //CuePoint array
 
 	/** MetaData constructor */
 	public MetaData() {
@@ -172,7 +171,6 @@ public class MetaData<K, V> extends HashMap<String, Object> implements IMetaData
 		//							time, "0.5"
 
 		this.put("cuePoints", cues);
-
 	}
 
 	/**
