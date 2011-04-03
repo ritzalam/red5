@@ -59,8 +59,7 @@ public class PlayBufferTest extends TestCase {
 		super.setUp();
 		VideoData message = new VideoData(IoBuffer.allocate(100));
 		playBuffer = new PlayBuffer(1000);
-		rtmpMessage = new RTMPMessage();
-		rtmpMessage.setBody(message);
+		rtmpMessage = RTMPMessage.build(message);
 	}
 
 	public void testClear() {

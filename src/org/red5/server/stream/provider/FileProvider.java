@@ -154,8 +154,7 @@ public class FileProvider implements IPassive, ISeekableProvider, IPullableProvi
 							msg = new Unknown(tag.getDataType(), tag.getBody());
 					}
 					msg.setTimestamp(timestamp);
-					RTMPMessage rtmpMsg = new RTMPMessage();
-					rtmpMsg.setBody(msg);
+					RTMPMessage rtmpMsg = RTMPMessage.build(msg);
 					return rtmpMsg;
 				} else {
 					log.debug("Tag was null");
