@@ -511,9 +511,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			//check for metadata to send
 			if (metaData != null) {
 				log.debug("Metadata is available");
-				RTMPMessage metaMsg = new RTMPMessage();
-				metaMsg.setBody(metaData);
-				metaMsg.getBody().setTimestamp(0);
+				RTMPMessage metaMsg = RTMPMessage.build(metaData, 0);
 				try {
 					msgOut.pushMessage(metaMsg);
 				} catch (IOException e) {
@@ -537,8 +535,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 						//log.debug("Dump:\n{}", Hex.encodeHex(config.array()));
 						VideoData conf = new VideoData(config.asReadOnlyBuffer());
 						log.trace("Configuration ts: {}", conf.getTimestamp());
-						RTMPMessage confMsg = new RTMPMessage();
-						confMsg.setBody(conf);
+						RTMPMessage confMsg = RTMPMessage.build(conf);
 						try {
 							log.debug("Pushing decoder configuration");
 							msgOut.pushMessage(confMsg);
@@ -553,8 +550,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 						VideoData video = new VideoData(keyFrame.asReadOnlyBuffer());
 						log.trace("Keyframe ts: {}", video.getTimestamp());
 						//log.debug("Dump:\n{}", Hex.encodeHex(keyFrame.array()));
-						RTMPMessage videoMsg = new RTMPMessage();
-						videoMsg.setBody(video);
+						RTMPMessage videoMsg = RTMPMessage.build(video);
 						try {
 							log.debug("Pushing keyframe");
 							msgOut.pushMessage(videoMsg);
@@ -576,8 +572,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 						//log.debug("Dump:\n{}", Hex.encodeHex(config.array()));
 						AudioData conf = new AudioData(config.asReadOnlyBuffer());
 						log.trace("Configuration ts: {}", conf.getTimestamp());
-						RTMPMessage confMsg = new RTMPMessage();
-						confMsg.setBody(conf);
+						RTMPMessage confMsg = RTMPMessage.build(conf);
 						try {
 							log.debug("Pushing decoder configuration");
 							msgOut.pushMessage(confMsg);
@@ -815,8 +810,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 					audio.setTimestamp(seekPos);
 					audio.setHeader(new Header());
 					audio.getHeader().setTimer(seekPos);
-					RTMPMessage audioMessage = new RTMPMessage();
-					audioMessage.setBody(audio);
+					RTMPMessage audioMessage = RTMPMessage.build(audio);
 					lastMessageTs = seekPos;
 					doPushMessage(audioMessage);
 					audioMessage.getBody().release();
@@ -1083,8 +1077,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				event.setTimestamp(messageIn.getBody().getTimestamp());
 				break;
 		}
-		RTMPMessage messageOut = new RTMPMessage();
-		messageOut.setBody(event);
+		RTMPMessage messageOut = RTMPMessage.build(event);
 		//get the current timestamp from the message
 		int ts = messageOut.getBody().getTimestamp();
 		if (log.isTraceEnabled()) {
@@ -1128,8 +1121,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		eof.setEventType(Ping.STREAM_PLAYBUFFER_CLEAR);
 		eof.setValue2(streamId);
 		// eos 
-		RTMPMessage eofMsg = new RTMPMessage();
-		eofMsg.setBody(eof);
+		RTMPMessage eofMsg = RTMPMessage.build(eof);
 		doPushMessage(eofMsg);
 	}
 
@@ -1142,8 +1134,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			recorded.setEventType(Ping.RECORDED_STREAM);
 			recorded.setValue2(streamId);
 			// recorded 
-			RTMPMessage recordedMsg = new RTMPMessage();
-			recordedMsg.setBody(recorded);
+			RTMPMessage recordedMsg = RTMPMessage.build(recorded);
 			doPushMessage(recordedMsg);
 		}
 
@@ -1151,8 +1142,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		begin.setEventType(Ping.STREAM_BEGIN);
 		begin.setValue2(streamId);
 		// begin 
-		RTMPMessage beginMsg = new RTMPMessage();
-		beginMsg.setBody(begin);
+		RTMPMessage beginMsg = RTMPMessage.build(begin);
 		doPushMessage(beginMsg);
 		// reset
 		ResetMessage reset = new ResetMessage();
@@ -1217,8 +1207,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		} else {
 			event.setTimestamp(0);
 		}
-		RTMPMessage msg = new RTMPMessage();
-		msg.setBody(event);
+		RTMPMessage msg = RTMPMessage.build(event);
 		doPushMessage(msg);
 	}
 
@@ -1496,7 +1485,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 						} else {
 							body.setTimestamp(0);
 						}
-						rtmpMessage.setBody(body);
+						rtmpMessage = RTMPMessage.build(body);
 					} else if (subscriberStream.getState() == StreamState.PAUSED || !receiveAudio) {
 						return;
 					}
@@ -1619,7 +1608,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			if (body instanceof IStreamData && ((IStreamData<?>) body).getData() != null) {
 				((IStreamData<?>) body).getData().free();
 			}
-			pendingMessage.setBody(null);
 			pendingMessage = null;
 		}
 	}
@@ -1645,7 +1633,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				} else {
 					body.setTimestamp(-timestampOffset);
 				}
-				message.setBody(body);
+				message = RTMPMessage.build(body);
 			} else {
 				return false;
 			}
@@ -1654,7 +1642,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			((IStreamData<?>) body).getData().free();
 			return false;
 		}
-
 		return true;
 	}
 

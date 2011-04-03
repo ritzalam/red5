@@ -27,8 +27,28 @@ import org.red5.server.net.rtmp.event.IRTMPEvent;
  */
 public class RTMPMessage extends AbstractMessage {
 	
-	private IRTMPEvent body;
+	private final IRTMPEvent body;
 
+	/**
+	 * Creates a new rtmp message.
+	 * 
+	 * @param body value to set for property 'body'
+	 */
+	private RTMPMessage(IRTMPEvent body) {
+		this.body = body;
+	}
+	
+	/**
+	 * Creates a new rtmp message.
+	 * 
+	 * @param body value to set for property 'body'
+	 * @param eventTime updated timestamp
+	 */
+	private RTMPMessage(IRTMPEvent body, int eventTime) {
+		this.body = body;
+		this.body.setTimestamp(eventTime);
+	}
+	
 	/**
 	 * Return RTMP message body
 	 *
@@ -39,12 +59,24 @@ public class RTMPMessage extends AbstractMessage {
 	}
 
 	/**
-	 * Setter for RTMP message body
-	 *
-	 * @param body Value to set for property 'body'.
+	 * Builder for RTMPMessage.
+	 * 
+	 * @param body event data
+	 * @return Immutable RTMPMessage
 	 */
-	public void setBody(IRTMPEvent body) {
-		this.body = body;
+	public final static RTMPMessage build(IRTMPEvent body) {
+		return new RTMPMessage(body);
 	}
-
+	
+	/**
+	 * Builder for RTMPMessage.
+	 * 
+	 * @param body event data
+	 * @param eventTime time value to set on the event body
+	 * @return Immutable RTMPMessage
+	 */
+	public final static RTMPMessage build(IRTMPEvent body, int eventTime) {
+		return new RTMPMessage(body, eventTime);
+	}
+	
 }

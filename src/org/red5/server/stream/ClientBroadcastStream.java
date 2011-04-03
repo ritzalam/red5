@@ -108,13 +108,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 */
 	protected boolean checkVideoCodec = false;
 
-	// SplitmediaLabs - begin AAC fix
 	/**
 	 * Is there need to check audio codec?
 	 */
 	protected boolean checkAudioCodec = false;
-
-	// SplitmediaLabs - end AAC fix
 
 	/**
 	 * Data is sent by chunks, each of them has size
@@ -340,23 +337,22 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 						buf.get(buffer);
 						buf.reset();
 						// Create new RTMP message, initialize it and push through pipe
-						RTMPMessage msg = new RTMPMessage();
+						RTMPMessage msg = null;
 						if (rtmpEvent instanceof AudioData) {
 							AudioData audio = new AudioData(IoBuffer.wrap(buffer));
 							audio.setTimestamp(eventTime);
-							msg.setBody(audio);
+							msg = RTMPMessage.build(audio);
 						} else if (rtmpEvent instanceof VideoData) {
 							VideoData video = new VideoData(IoBuffer.wrap(buffer));
 							video.setTimestamp(eventTime);
-							msg.setBody(video);
+							msg = RTMPMessage.build(video);
 						} else if (rtmpEvent instanceof Notify) {
 							Notify not = new Notify(IoBuffer.wrap(buffer));
 							not.setTimestamp(eventTime);
-							msg.setBody(not);
+							msg = RTMPMessage.build(not);
 						} else {
 							log.info("Data was not of A/V type: {}", rtmpEvent.getType());
-							msg.setBody(rtmpEvent);
-							msg.getBody().setTimestamp(eventTime);
+							msg = RTMPMessage.build(rtmpEvent, eventTime);
 						}
 						// push it down to the recorder
 						recordPipe.pushMessage(msg);
@@ -372,9 +368,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			// route to live
 			if (livePipe != null) {
 				// create new RTMP message, initialize it and push through pipe
-				RTMPMessage msg = new RTMPMessage();
-				msg.setBody(rtmpEvent);
-				msg.getBody().setTimestamp(eventTime);
+				RTMPMessage msg = RTMPMessage.build(rtmpEvent, eventTime);
 				livePipe.pushMessage(msg);
 			} else {
 				log.debug("Live pipe was null, message was not pushed");
