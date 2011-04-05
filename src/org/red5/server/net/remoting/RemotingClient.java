@@ -26,18 +26,20 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpConnectionManager;
-import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
-import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
-import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.util.EntityUtils;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.amf.Input;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.RecordSet;
 import org.red5.io.object.Serializer;
-import org.red5.server.net.servlet.ServletUtils;
+import org.red5.server.util.HttpConnectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -50,9 +52,7 @@ import org.springframework.beans.factory.InitializingBean;
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public class RemotingClient implements InitializingBean {
-	/**
-	 * Logger
-	 */
+
 	protected static Logger log = LoggerFactory.getLogger(RemotingClient.class);
 
 	/** Default timeout to use. */
@@ -61,11 +61,8 @@ public class RemotingClient implements InitializingBean {
 	/** Content MIME type for HTTP requests. */
 	protected static final String CONTENT_TYPE = "application/x-amf";
 
-	/** Manages HTTP connections. */
-	protected static HttpConnectionManager connectionMgr = new MultiThreadedHttpConnectionManager();
-
 	/** HTTP client for remoting calls. */
-	protected HttpClient client;
+	protected DefaultHttpClient client;
 
 	/** Url to connect to. */
 	protected String url;
@@ -106,33 +103,10 @@ public class RemotingClient implements InitializingBean {
 	 * @param timeout Timeout for one request in milliseconds
 	 */
 	public RemotingClient(String url, int timeout) {
-		this(url, timeout, connectionMgr);
-		log.debug("RemotingClient created  - url: {} timeout: {}", url, timeout);
-	}
-
-	/**
-	 * Create new remoting client in the given connection manager.
-	 * 
-	 * @param url URL to connect to
-	 * @param mgr The connection manager to use
-	 */
-	public RemotingClient(String url, HttpConnectionManager mgr) {
-		this(url, DEFAULT_TIMEOUT, mgr);
-		log.debug("RemotingClient created  - url: {} http manager: {}", url, mgr);
-	}
-
-	/**
-	 * Create new remoting client with the given connection manager and timeout.
-	 * 
-	 * @param url URL to connect to
-	 * @param timeout Timeout for one request in milliseconds
-	 * @param mgr The connection manager to use
-	 */
-	public RemotingClient(String url, int timeout, HttpConnectionManager mgr) {
-		client = new HttpClient(mgr);
-		client.getHttpConnectionManager().getParams().setConnectionTimeout(timeout);
+		client = HttpConnectionUtil.getClient();
+		client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, timeout);
 		this.url = url;
-		log.debug("RemotingClient created  - url: {} timeout: {} http manager: {}", new Object[] { url, timeout, mgr });
+		log.debug("RemotingClient created  - url: {} timeout: {}", url, timeout);
 	}
 
 	public void afterPropertiesSet() throws Exception {
@@ -345,38 +319,45 @@ public class RemotingClient implements InitializingBean {
 	 */
 	public Object invokeMethod(String method, Object[] params) {
 		log.debug("invokeMethod url: {}", (url + appendToUrl));
-		PostMethod post = new PostMethod(this.url + appendToUrl);
 		IoBuffer resultBuffer = null;
 		IoBuffer data = encodeInvoke(method, params);
-		post.setRequestEntity(new InputStreamRequestEntity(data.asInputStream(), data.limit(), CONTENT_TYPE));
+		//setup POST
+		HttpPost post = null;
 		try {
-			log.debug("Client: {}", client);
-			int resultCode = client.executeMethod(post);
-			log.debug("Result code: {}", resultCode);
-			if (resultCode / 100 != 2) {
-				throw new RuntimeException("Didn't receive success from remoting server.");
-			}
-			//fix for Trac #676
-			int contentLength = (int) post.getResponseContentLength();
-			//default the content length to 16 if post doesn't contain a good value
-			if (contentLength < 1) {
-				contentLength = 16;
-			}
-			resultBuffer = IoBuffer.allocate(contentLength);
-			//allow for expansion
-			resultBuffer.setAutoExpand(true);
-			ServletUtils.copy(post.getResponseBodyAsStream(), resultBuffer.asOutputStream());
-			resultBuffer.flip();
-			Object result = decodeResult(resultBuffer);
-			if (result instanceof RecordSet) {
-				// Make sure we can retrieve paged results
-				((RecordSet) result).setRemotingClient(this);
-			}
-			return result;
+			post = new HttpPost(url + appendToUrl);
+			post.addHeader("Content-Type", CONTENT_TYPE);
+			post.setEntity(new InputStreamEntity(data.asInputStream(), data.limit()));
+			// execute the method
+			HttpResponse response = client.execute(post);
+			int code = response.getStatusLine().getStatusCode();
+			log.debug("HTTP response code: {}", code);
+			if (code / 100 != 2) {
+				throw new RuntimeException("Didn't receive success from remoting server");
+			} else {
+				HttpEntity entity = response.getEntity();
+				if (entity != null) {
+					//fix for Trac #676
+					int contentLength = (int) entity.getContentLength();
+					//default the content length to 16 if post doesn't contain a good value
+					if (contentLength < 1) {
+						contentLength = 16;
+					}
+					// get the response as bytes
+					byte[] bytes = EntityUtils.toByteArray(entity);
+					resultBuffer = IoBuffer.wrap(bytes);
+					resultBuffer.flip();
+					Object result = decodeResult(resultBuffer);
+					if (result instanceof RecordSet) {
+						// Make sure we can retrieve paged results
+						((RecordSet) result).setRemotingClient(this);
+					}
+					return result;			
+				}			
+			}			
 		} catch (Exception ex) {
 			log.error("Error while invoking remoting method.", ex);
+			post.abort();
 		} finally {
-			post.releaseConnection();
 			if (resultBuffer != null) {
 				resultBuffer.free();
 				resultBuffer = null;

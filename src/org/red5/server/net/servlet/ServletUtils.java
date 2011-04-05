@@ -107,7 +107,6 @@ public class ServletUtils {
 			// Store both remote host and remote address 
 			addresses.add(request.getRemoteAddr());
 		}
-
 		final String forwardedFor = request.getHeader("X-Forwarded-For");
 		if (forwardedFor != null) {
 			// Also store address this request was forwarded for.
@@ -116,7 +115,6 @@ public class ServletUtils {
 				addresses.add(part);
 			}
 		}
-
 		final String httpVia = request.getHeader("Via");
 		if (httpVia != null) {
 			// Also store address this request was forwarded for.
@@ -125,7 +123,6 @@ public class ServletUtils {
 				addresses.add(part);
 			}
 		}
-
 		return Collections.unmodifiableList(addresses);
 	}
 

@@ -28,13 +28,13 @@ import javax.management.JMX;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
-import org.apache.commons.httpclient.HostConfiguration;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.params.HttpClientParams;
-import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.HttpHostConnectException;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.CoreProtocolPNames;
+import org.apache.http.util.EntityUtils;
 import org.red5.compatibility.flex.messaging.messages.AcknowledgeMessage;
 import org.red5.compatibility.flex.messaging.messages.AsyncMessage;
 import org.red5.logging.Red5LoggerFactory;
@@ -44,6 +44,7 @@ import org.red5.server.api.service.ServiceUtils;
 import org.red5.server.jmx.JMXFactory;
 import org.red5.server.jmx.mxbeans.LoaderMXBean;
 import org.red5.server.util.FileUtil;
+import org.red5.server.util.HttpConnectionUtil;
 import org.slf4j.Logger;
 
 /**
@@ -58,8 +59,6 @@ public final class Installer {
 	private static Logger log = Red5LoggerFactory.getLogger(Installer.class);
 
 	private String applicationRepositoryUrl;
-
-	private static final String userAgent = "Mozilla/4.0 (compatible; Red5 Server)";
 
 	{
 		log.info("Installer service created");
@@ -98,53 +97,51 @@ public final class Installer {
 	 */
 	public AsyncMessage getApplicationList() {
 		AcknowledgeMessage result = new AcknowledgeMessage();
-
 		// create a singular HttpClient object
-		HttpClient client = new HttpClient();
-
-		// set the proxy (WT)
-		// test if we received variables on the commandline
-		if ((System.getProperty("http.proxyHost") != null) && (System.getProperty("http.proxyPort") != null)) {
-			HostConfiguration config = client.getHostConfiguration();
-			config.setProxy(System.getProperty("http.proxyHost").toString(), Integer.parseInt(System.getProperty("http.proxyPort")));
-		}
-
-		// establish a connection within 5 seconds
-		client.getHttpConnectionManager().getParams().setConnectionTimeout(5000);
-		//get the params for the client
-		HttpClientParams params = client.getParams();
-		params.setParameter(HttpMethodParams.USER_AGENT, userAgent);
-		//get registry file
-		HttpMethod method = new GetMethod(applicationRepositoryUrl + "registry-0.9.xml");
-		//follow any 302's although there shouldnt be any
-		method.setFollowRedirects(true);
-		// execute the method
+		DefaultHttpClient client = HttpConnectionUtil.getClient();
+		//setup GET
+		HttpGet method = null;
 		try {
-			IConnection conn = Red5.getConnectionLocal();
-			int code = client.executeMethod(method);
+			//get registry file
+			method = new HttpGet(applicationRepositoryUrl + "registry-0.9.xml");
+			// execute the method
+			HttpResponse response = client.execute(method);
+			int code = response.getStatusLine().getStatusCode();
 			log.debug("HTTP response code: {}", code);
-			String xml = method.getResponseBodyAsString();
-			log.trace("Response: {}", xml);
-			//prepare response for flex			
-			result.body = xml;
-			result.clientId = conn.getClient().getId();
-			result.messageId = UUID.randomUUID().toString();
-			result.timestamp = System.currentTimeMillis();
-			//send the servers java version so the correct apps are installed
-			String javaVersion = System.getProperty("java.version");
-			if (!ServiceUtils.invokeOnConnection(conn, "onJavaVersion", new Object[] { javaVersion })) {
-				log.warn("Client call to onJavaVersion failed");
+			if (code == 200) {
+				HttpEntity entity = response.getEntity();
+				if (entity != null) {
+					String responseText = EntityUtils.toString(entity);
+					log.debug("Response: {}", responseText);
+					//prepare response for flex			
+					result.body = responseText;
+					IConnection conn = Red5.getConnectionLocal();
+					result.clientId = conn.getClient().getId();
+					result.messageId = UUID.randomUUID().toString();
+					result.timestamp = System.currentTimeMillis();
+					//send the servers java version so the correct apps are installed
+					String javaVersion = System.getProperty("java.version");
+					// work around for jdk7
+					if ("1.7.0-ea".equals(javaVersion)) {
+						javaVersion = "1.6";
+					}
+					if (!ServiceUtils.invokeOnConnection(conn, "onJavaVersion", new Object[] { javaVersion })) {
+						log.warn("Client call to onJavaVersion failed");
+					}
+				}
+			} else {
+				log.warn("Service returned an error");
+				if (log.isDebugEnabled()) {
+					HttpConnectionUtil.handleError(response);
+				}
 			}
-		} catch (HttpException he) {
+		} catch (HttpHostConnectException he) {
 			log.error("Http error connecting to {}", applicationRepositoryUrl, he);
+			method.abort();
 		} catch (IOException ioe) {
 			log.error("Unable to connect to {}", applicationRepositoryUrl, ioe);
-		} finally {
-			if (method != null) {
-				method.releaseConnection();
-			}
+			method.abort();
 		}
-
 		return result;
 	}
 
@@ -156,21 +153,16 @@ public final class Installer {
 	 */
 	public boolean install(String applicationWarName) {
 		IConnection conn = Red5.getConnectionLocal();
-
 		boolean result = false;
-
 		//strip everything except the applications name
 		String application = applicationWarName.substring(0, applicationWarName.indexOf('-'));
 		log.debug("Application name: {}", application);
-
 		//get webapp location
 		String webappsDir = System.getProperty("red5.webapp.root");
 		log.debug("Webapp folder: {}", webappsDir);
-
 		//setup context
 		String contextPath = '/' + application;
 		String contextDir = webappsDir + contextPath;
-
 		//verify this is a unique app
 		File appDir = new File(webappsDir, application);
 		if (appDir.exists()) {
@@ -179,8 +171,8 @@ public final class Installer {
 			} else {
 				log.warn("Application destination is not a directory");
 			}
-
-			ServiceUtils.invokeOnConnection(conn, "onAlert", new Object[]{String.format("Application %s already installed, please un-install before attempting another install", application)});			
+			ServiceUtils.invokeOnConnection(conn, "onAlert",
+					new Object[] { String.format("Application %s already installed, please un-install before attempting another install", application) });
 		} else {
 			//use the system temp directory for moving files around
 			String srcDir = System.getProperty("java.io.tmpdir");
@@ -212,51 +204,45 @@ public final class Installer {
 				}
 			}
 			dir = null;
-
 			//if the file was not found then download it
 			if (!result) {
 				// create a singular HttpClient object
-				HttpClient client = new HttpClient();
-
-				// set the proxy (WT)
-				if ((System.getProperty("http.proxyHost") != null) && (System.getProperty("http.proxyPort") != null)) {
-					HostConfiguration config = client.getHostConfiguration();
-					config.setProxy(System.getProperty("http.proxyHost").toString(), Integer.parseInt(System.getProperty("http.proxyPort")));
-				}
-
-				// establish a connection within 5 seconds
-				client.getHttpConnectionManager().getParams().setConnectionTimeout(5000);
-				//get the params for the client
-				HttpClientParams params = client.getParams();
-				params.setParameter(HttpMethodParams.USER_AGENT, userAgent);
-				params.setParameter(HttpMethodParams.STRICT_TRANSFER_ENCODING, Boolean.TRUE);
-
-				//try the wav version first
-				HttpMethod method = new GetMethod(applicationRepositoryUrl + applicationWarName);
-				//we dont want any transformation - RFC2616
-				method.addRequestHeader("Accept-Encoding", "identity");
-				//follow any 302's although there shouldnt be any
-				method.setFollowRedirects(true);
+				DefaultHttpClient client = HttpConnectionUtil.getClient();
+				// set transfer encoding
+				client.getParams().setBooleanParameter(CoreProtocolPNames.STRICT_TRANSFER_ENCODING, Boolean.TRUE);
+				//setup GET
+				HttpGet method = null;
 				FileOutputStream fos = null;
-				// execute the method
 				try {
-					int code = client.executeMethod(method);
+					//try the war version first
+					method = new HttpGet(applicationRepositoryUrl + applicationWarName);
+					//we dont want any transformation - RFC2616
+					method.addHeader("Accept-Encoding", "identity");
+					// execute the method
+					HttpResponse response = client.execute(method);
+					int code = response.getStatusLine().getStatusCode();
 					log.debug("HTTP response code: {}", code);
-					//create output file
-					fos = new FileOutputStream(srcDir + '/' + applicationWarName);
-					log.debug("Writing response to {}/{}", srcDir, applicationWarName);
-
-					// have to receive the response as a byte array.  This has the advantage of writing to the filesystem
-					// faster and it also works on macs ;)
-					byte[] buf = method.getResponseBody();
-					fos.write(buf);
-					fos.flush();
-
-					result = true;
-				} catch (HttpException he) {
+					if (code == 200) {
+						HttpEntity entity = response.getEntity();
+						if (entity != null) {
+							//create output file
+							fos = new FileOutputStream(srcDir + '/' + applicationWarName);
+							log.debug("Writing response to {}/{}", srcDir, applicationWarName);
+							// have to receive the response as a byte array.  This has the advantage of writing to the file system
+							// faster and it also works on macs ;)
+							byte[] buf = EntityUtils.toByteArray(entity);
+							fos.write(buf);
+							fos.flush();
+							// we should be good to go
+							result = true;
+						}
+					}
+				} catch (HttpHostConnectException he) {
 					log.error("Http error connecting to {}", applicationRepositoryUrl, he);
+					method.abort();
 				} catch (IOException ioe) {
 					log.error("Unable to connect to {}", applicationRepositoryUrl, ioe);
+					method.abort();
 				} finally {
 					if (fos != null) {
 						try {
@@ -264,12 +250,8 @@ public final class Installer {
 						} catch (IOException e) {
 						}
 					}
-					if (method != null) {
-						method.releaseConnection();
-					}
 				}
 			}
-
 			//if we've found or downloaded the war
 			if (result) {
 				//get the webapp loader
@@ -283,17 +265,15 @@ public final class Installer {
 					//just copy the war to the webapps dir
 					try {
 						FileUtil.moveFile(srcDir + '/' + applicationWarName, webappsDir + '/' + application + ".war");
-						ServiceUtils.invokeOnConnection(conn, "onAlert", new Object[]{String.format("Application %s will not be available until container is restarted", application)});			
+						ServiceUtils.invokeOnConnection(conn, "onAlert",
+								new Object[] { String.format("Application %s will not be available until container is restarted", application) });
 					} catch (IOException e) {
 					}
 				}
 			}
-
-			ServiceUtils.invokeOnConnection(conn, "onAlert", new Object[]{String.format("Application %s was %s", application, (result ? "installed" : "not installed"))});
-		
+			ServiceUtils.invokeOnConnection(conn, "onAlert", new Object[] { String.format("Application %s was %s", application, (result ? "installed" : "not installed")) });
 		}
 		appDir = null;
-
 		return result;
 	}
 
@@ -304,7 +284,7 @@ public final class Installer {
 	 * @return true if uninstalled; else false
 	 */
 	public boolean uninstall(String applicationName) {
-		ServiceUtils.invokeOnConnection(Red5.getConnectionLocal(), "onAlert", new Object[]{"Uninstall function not available"});
+		ServiceUtils.invokeOnConnection(Red5.getConnectionLocal(), "onAlert", new Object[] { "Uninstall function not available" });
 
 		return false;
 	}

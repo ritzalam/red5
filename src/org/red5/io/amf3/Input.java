@@ -79,13 +79,15 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		/** Names of the attributes of the class. */
 		protected List<String> attributeNames;
 
-		/** Create new informations about a class. 
+		/** 
+		 * Create new information about a class. 
+		 * 
 		 * @param className class name
 		 * @param type type
 		 * @param attributeNames attributes
 		 */
 		public ClassReference(String className, int type, List<String> attributeNames) {
-			log.debug("Pending property - className: {} type: {} attributeNames: {}", new Object[]{className, type, attributeNames});
+			log.debug("Pending property - className: {} type: {} attributeNames: {}", new Object[] { className, type, attributeNames });
 			this.className = className;
 			this.type = type;
 			this.attributeNames = attributeNames;
@@ -101,7 +103,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		public PendingObject() {
 			log.debug("PendingObject");
 		}
-		
+
 		static final class PendingProperty {
 			Object obj;
 
@@ -110,7 +112,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			String name;
 
 			PendingProperty(Object obj, Class<?> klass, String name) {
-				log.debug("Pending property - obj: {} class: {} name: {}", new Object[]{obj, klass, name});
+				log.debug("Pending property - obj: {} class: {} name: {}", new Object[] { obj, klass, name });
 				this.obj = obj;
 				this.klass = klass;
 				this.name = name;
@@ -139,7 +141,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 						}
 					}
 				}
-				properties.clear();				
+				properties.clear();
 			} else {
 				// No pending properties
 				return;
@@ -152,8 +154,11 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * In AMF3 references should be collected through the whole "body" (across several Input objects).
 	 */
 	public static class RefStorage {
+
+		// informations about previously deserialized classes
 		private List<ClassReference> classReferences = new ArrayList<ClassReference>();
 
+		// list of string values found in the input stream
 		private List<String> stringReferences = new ArrayList<String>();
 
 		private Map<Integer, Object> refMap = new HashMap<Integer, Object>();
@@ -169,15 +174,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 */
 	private int amf3_mode;
 
-	/**
-	 * List of string values found in the input stream.
-	 */
-	private List<String> stringReferences;
-
-	/**
-	 * Informations about already deserialized classes.
-	 */
-	private List<ClassReference> classReferences;
+	private RefStorage refStorage;
 
 	/**
 	 * Creates Input object for AMF3 from byte buffer
@@ -187,8 +184,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	public Input(IoBuffer buf) {
 		super(buf);
 		amf3_mode = 0;
-		stringReferences = new ArrayList<String>();
-		classReferences = new ArrayList<ClassReference>();
+		refStorage = new RefStorage();
 	}
 
 	/**
@@ -199,8 +195,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 */
 	public Input(IoBuffer buf, RefStorage refStorage) {
 		super(buf);
-		this.stringReferences = refStorage.stringReferences;
-		this.classReferences = refStorage.classReferences;
+		this.refStorage = refStorage;
 		this.refMap = refStorage.refMap;
 		amf3_mode = 0;
 	}
@@ -232,16 +227,13 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		if (buf != null) {
 			currentDataType = buf.get();
 			log.debug("Current data type: {}", currentDataType);
-
 			if (currentDataType == AMF.TYPE_AMF3_OBJECT) {
 				currentDataType = buf.get();
 			} else if (amf3_mode == 0) {
 				// AMF0 object
 				return readDataType(currentDataType);
 			}
-
 			log.debug("Current data type (after amf checks): {}", currentDataType);
-
 			switch (currentDataType) {
 				case AMF3.TYPE_UNDEFINED:
 				case AMF3.TYPE_NULL:
@@ -308,8 +300,6 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		return coreType;
 	}
 
-	// Basic
-
 	/**
 	 * Reads a null (value)
 	 * 
@@ -339,21 +329,18 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	@Override
 	public Number readNumber(Type target) {
 		Number v;
-
 		if (currentDataType == AMF3.TYPE_NUMBER) {
 			v = buf.getDouble();
 		} else {
 			// we are decoding an int
 			v = readAMF3Integer();
 		}
-
 		if (target instanceof Class && Number.class.isAssignableFrom((Class<?>) target)) {
 			Class cls = (Class) target;
 			if (!cls.isAssignableFrom(v.getClass())) {
 				v = (Number) convertUtilsBean.convert(v.toString(), cls);
 			}
 		}
-
 		return v;
 	}
 
@@ -372,11 +359,11 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		}
 		if ((len & 1) == 0) {
 			//if the refs are empty an IndexOutOfBoundsEx will be thrown
-			if (stringReferences.isEmpty()) {
+			if (refStorage.stringReferences.isEmpty()) {
 				log.debug("String reference list is empty");
 			}
 			// Reference
-			return stringReferences.get(len >> 1);
+			return refStorage.stringReferences.get(len >> 1);
 		}
 		len >>= 1;
 		log.debug("readString - new length: {}", len);
@@ -386,8 +373,8 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		strBuf.limit(strBuf.position() + len);
 		final String string = AMF3.CHARSET.decode(strBuf).toString();
 		log.debug("String: {}", string);
-		buf.limit(limit); // Reset the limit
-		stringReferences.add(string);
+		buf.limit(limit); // reset the limit
+		refStorage.stringReferences.add(string);
 		return string;
 	}
 
@@ -412,6 +399,10 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			buf.position(buf.position() - 1);
 		}
 		return string;
+	}
+
+	public RefStorage getRefStorage() {
+		return refStorage;
 	}
 
 	public String getString() {
@@ -454,7 +445,6 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				return ref;
 			}
 		}
-
 		count = (count >> 1);
 		String key = readString(String.class);
 		amf3_mode += 1;
@@ -463,7 +453,6 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			Class<?> nested = Object.class;
 			Class<?> collection = Collection.class;
 			Collection resultCollection;
-
 			if (target instanceof ParameterizedType) {
 				ParameterizedType t = (ParameterizedType) target;
 				Type[] actualTypeArguments = t.getActualTypeArguments();
@@ -472,11 +461,9 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				}
 				target = t.getRawType();
 			}
-
 			if (target instanceof Class) {
 				collection = (Class) target;
 			}
-
 			if (collection.isArray()) {
 				nested = ArrayUtils.getGenericType(collection.getComponentType());
 				result = Array.newInstance(nested, count);
@@ -493,21 +480,17 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				} else {
 					resultCollection = new ArrayList(count);
 				}
-
 				result = resultCollection;
 				storeReference(result);
-
 				for (int i = 0; i < count; i++) {
 					final Object value = deserializer.deserialize(this, nested);
 					resultCollection.add(value);
 				}
-
 			}
 		} else {
 			Class<?> k = Object.class;
 			Class<?> v = Object.class;
 			Class<?> collection = Collection.class;
-
 			if (target instanceof ParameterizedType) {
 				ParameterizedType t = (ParameterizedType) target;
 				Type[] actualTypeArguments = t.getActualTypeArguments();
@@ -517,25 +500,20 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				}
 				target = t.getRawType();
 			}
-
 			if (target instanceof Class) {
 				collection = (Class) target;
 			}
-
 			if (SortedMap.class.isAssignableFrom(collection)) {
 				collection = TreeMap.class;
 			} else {
 				collection = HashMap.class;
 			}
-
 			Map resultMap;
-
 			try {
 				resultMap = (Map) collection.newInstance();
 			} catch (Exception e) {
 				resultMap = new HashMap(count);
 			}
-
 			// associative array
 			storeReference(resultMap);
 			while (!key.equals("")) {
@@ -557,8 +535,6 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		throw new RuntimeException("AMF3 doesn't support maps.");
 	}
 
-	// Object
-
 	@SuppressWarnings({ "unchecked", "rawtypes", "serial" })
 	public Object readObject(Deserializer deserializer, Type target) {
 		int type = readAMF3Integer();
@@ -577,7 +553,6 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				log.debug("Extra byte: {}", buf.get());
 			}
 		}
-
 		type >>= 1;
 		List<String> attributes = null;
 		String className;
@@ -585,7 +560,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		boolean inlineClass = (type & 1) == 1;
 		log.debug("Class is in-line? {}", inlineClass);
 		if (!inlineClass) {
-			ClassReference info = classReferences.get(type >> 1);
+			ClassReference info = refStorage.classReferences.get(type >> 1);
 			className = info.className;
 			attributes = info.attributeNames;
 			type = info.type;
@@ -638,7 +613,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 					for (int i = 0; i < count; i++) {
 						attributes.add(readString(String.class));
 					}
-					classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_PROPERTY, attributes));
+					refStorage.classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_PROPERTY, attributes));
 				}
 				properties = new ObjectMap<String, Object>();
 				for (int i = 0; i < count; i++) {
@@ -662,10 +637,9 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 					throw new RuntimeException(String.format("Could not instantiate class: %s", className));
 				}
 				if (!(result instanceof IExternalizable)) {
-					throw new RuntimeException(String.format("Class must implement the IExternalizable interface: %s",
-							className));
+					throw new RuntimeException(String.format("Class must implement the IExternalizable interface: %s", className));
 				}
-				classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_EXTERNALIZABLE, null));
+				refStorage.classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_EXTERNALIZABLE, null));
 				storeReference(tempRefId, result);
 				((IExternalizable) result).readExternal(new DataInput(this, deserializer));
 				break;
@@ -680,7 +654,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 					for (int i = 0; i < count; i++) {
 						attributes.add(readString(String.class));
 					}
-					classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_VALUE, attributes));
+					refStorage.classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_VALUE, attributes));
 				}
 				//use the size of the attributes if we have no count
 				if (count == 0 && attributes != null) {
@@ -694,7 +668,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 					if (count != tmpAttributes.size()) {
 						log.debug("Count and attributes length does not match!");
 					}
-					classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_VALUE, attributes));
+					refStorage.classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_VALUE, attributes));
 				}
 
 				properties = new ObjectMap<String, Object>();
@@ -704,7 +678,6 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 					log.debug("Key: {} Value: {}", key, value);
 					properties.put(key, value);
 				}
-
 				log.trace("Buffer - position: {} limit: {}", buf.position(), buf.limit());
 				//no more items to read if we are at the end of the buffer
 				if (buf.position() < buf.limit()) {
@@ -730,10 +703,9 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 					throw new RuntimeException(String.format("Could not instantiate class: %s", className));
 				}
 				if (!(result instanceof IExternalizable)) {
-					throw new RuntimeException(String.format("Class must implement the IExternalizable interface: %s",
-							className));
+					throw new RuntimeException(String.format("Class must implement the IExternalizable interface: %s", className));
 				}
-				classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_PROXY, null));
+				refStorage.classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_PROXY, null));
 				storeReference(tempRefId, result);
 				((IExternalizable) result).readExternal(new DataInput(this, deserializer));
 		}
@@ -772,13 +744,11 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 						if (value == pending) {
 							value = result;
 						}
-
 						if (value instanceof PendingObject) {
 							// Defer setting of value until real object is created
 							((PendingObject) value).addPendingProperty(result, resultClass, key);
 							continue;
 						}
-
 						if (value != null) {
 							try {
 								final Field field = resultClass.getField(key);
@@ -848,12 +818,9 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		if ((type & 1) == 0) {
 			return (List<Long>) getReference(type >> 1);
 		}
-
 		int len = type >> 1;
 		List<Long> array = new ArrayList<Long>(len);
-
 		storeReference(array);
-
 		@SuppressWarnings("unused")
 		int ref2 = readAMF3Integer();
 		for (int j = 0; j < len; ++j) {
@@ -863,7 +830,6 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			value += (buf.get() & 0xff);
 			array.add(value);
 		}
-
 		return array;
 	}
 
@@ -873,18 +839,14 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		if ((type & 1) == 0) {
 			return (List<Double>) getReference(type >> 1);
 		}
-
 		int len = type >> 1;
 		List<Double> array = new ArrayList<Double>(len);
-
 		storeReference(array);
-
 		@SuppressWarnings("unused")
 		int ref2 = readAMF3Integer();
 		for (int j = 0; j < len; ++j) {
 			array.add(buf.getDouble());
 		}
-
 		return array;
 	}
 
@@ -894,24 +856,17 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		if ((type & 1) == 0) {
 			return (List<Object>) getReference(type >> 1);
 		}
-
 		int len = type >> 1;
 		List<Object> array = new ArrayList<Object>(len);
-
 		storeReference(array);
-		
 		Deserializer deserializer = new Deserializer();
 		Object object;
-
 		for (int j = 0; j < len; ++j) {
 			object = readObject(deserializer, null);
 			array.add(object);
 		}
-
 		return array;
-	}	
-	
-	// Others
+	}
 
 	/**
 	 * Reads Custom
@@ -930,15 +885,6 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	}
 
 	/**
-	 * Resets map
-	 */
-	@Override
-	public void reset() {
-		super.reset();
-		stringReferences.clear();
-	}
-
-	/**
 	 * Parser of AMF3 "compressed" integer data type
 	 * 
 	 * @return a converted integer value
@@ -949,7 +895,6 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		int n = 0;
 		int b = buf.get();
 		int result = 0;
-
 		while ((b & 0x80) != 0 && n < 3) {
 			result <<= 7;
 			result |= (b & 0x7f);
@@ -970,10 +915,9 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				result |= 0xe0000000;
 			}
 		}
-
 		return result;
 	}
-	
+
 	//Read UInt29 style
 	@SuppressWarnings("unused")
 	private int readAMF3IntegerNew() {
@@ -994,7 +938,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		value = (value | b & 0x7F) << 8;
 		b = buf.get() & 0xFF;
 		return (value | b);
-	}	
+	}
 
 	/** {@inheritDoc} */
 	public Document readXML(Type target) {
@@ -1021,6 +965,16 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		}
 		storeReference(doc);
 		return doc;
+	}
+
+	/**
+	 * Resets map
+	 */
+	@Override
+	public void reset() {
+		super.reset();
+		// input must keep the String references for all parameters
+		//refStorage.stringReferences.clear();
 	}
 
 }
