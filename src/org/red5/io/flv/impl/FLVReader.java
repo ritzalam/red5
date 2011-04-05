@@ -144,7 +144,7 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	public FLVReader(File f, boolean generateMetadata) throws IOException {
 		if (null == f) {
 			log.warn("Reader was passed a null file");
-			log.debug("{}", org.apache.commons.lang.builder.ToStringBuilder.reflectionToString(this));
+			log.debug("{}", org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString(this));
 		}
 		this.file = f;
 		this.fis = new FileInputStream(f);
@@ -165,7 +165,7 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	public FLVReader(FileChannel channel) throws IOException {
 		if (null == channel) {
 			log.warn("Reader was passed a null channel");
-			log.debug("{}", org.apache.commons.lang.builder.ToStringBuilder.reflectionToString(this));
+			log.debug("{}", org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString(this));
 		}
 		if (!channel.isOpen()) {
 			log.warn("Reader was passed a closed channel");

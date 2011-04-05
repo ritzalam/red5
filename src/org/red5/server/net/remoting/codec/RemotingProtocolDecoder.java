@@ -28,6 +28,7 @@ import java.util.Map;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.amf.AMF;
+import org.red5.io.amf3.Input.RefStorage;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Input;
 import org.red5.server.net.protocol.ProtocolState;
@@ -165,21 +166,28 @@ public class RemotingProtocolDecoder {
 			if (type == AMF.TYPE_ARRAY) {
 				int elements = in.getInt();
 				List<Object> values = new ArrayList<Object>();
+				RefStorage refStorage = null;
 				for (int j = 0; j < elements; j++) {
 					byte amf3Check = in.get();
 					in.position(in.position() - 1);
 					isAMF3 = (amf3Check == AMF.TYPE_AMF3_OBJECT);
 					if (isAMF3) {
-						input = new org.red5.io.amf3.Input(in);
+						if (refStorage == null) {
+							input = new org.red5.io.amf3.Input(in);
+						} else {
+							input = new org.red5.io.amf3.Input(in, refStorage);
+						}
 					} else {
 						input = new org.red5.io.amf.Input(in);
 					}
-					// Prepare remoting mode
+					// prepare remoting mode
 					input.reset();
-
+					// add deserialized object to the value list
 					values.add(deserializer.deserialize(input, Object.class));
+					if (isAMF3) {
+						refStorage = ((org.red5.io.amf3.Input) input).getRefStorage();
+					}
 				}
-
 				args = values.toArray(new Object[values.size()]);
 				if (log.isDebugEnabled()) {
 					for (Object element : args) {

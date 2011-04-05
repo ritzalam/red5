@@ -21,7 +21,7 @@ package org.red5.server.util;
 
 import java.util.Calendar;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Converter for properties originating from properties files. Predetermined

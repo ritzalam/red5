@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.beanutils.ConversionException;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.red5.compatibility.flex.data.messages.DataMessage;
 import org.red5.compatibility.flex.data.messages.SequencedMessage;
 import org.red5.compatibility.flex.messaging.messages.AbstractMessage;

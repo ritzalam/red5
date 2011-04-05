@@ -23,8 +23,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
-import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
-import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.util.EntityUtils;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.compatibility.flex.messaging.messages.AcknowledgeMessage;
 import org.red5.compatibility.flex.messaging.messages.AcknowledgeMessageExt;
@@ -39,7 +42,6 @@ import org.red5.io.object.Deserializer;
 import org.red5.io.object.RecordSet;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.ObjectMap;
-import org.red5.server.net.servlet.ServletUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,7 +100,6 @@ public class DSRemotingClient extends RemotingClient {
 		log.debug("RemotingClient encodeInvoke - method: {} params: {}", method, params);
 		IoBuffer result = IoBuffer.allocate(1024);
 		result.setAutoExpand(true);
-
 		//force version 3
 		result.putShort((short) 3);
 		// Headers
@@ -123,20 +124,16 @@ public class DSRemotingClient extends RemotingClient {
 		}
 		// One body
 		result.putShort((short) 1);
-
 		// Method name
 		Output.putString(result, method);
-
 		// Client callback for response
 		//Output.putString(result, "");
 		//responseURI 
 		Output.putString(result, "/" + sequenceCounter++);
-
 		// Serialize parameters
 		IoBuffer tmp = IoBuffer.allocate(1024);
 		tmp.setAutoExpand(true);
 		Output tmpOut = new Output(tmp);
-
 		//if the params are null send the NULL AMF type
 		//this should fix APPSERVER-296
 		if (params == null) {
@@ -145,7 +142,6 @@ public class DSRemotingClient extends RemotingClient {
 			tmpOut.writeArray(params, new Serializer());
 		}
 		tmp.flip();
-
 		// Store size and parameters
 		result.putInt(tmp.limit());
 		result.put(tmp);
@@ -178,7 +174,6 @@ public class DSRemotingClient extends RemotingClient {
 			log.debug("Name: {}", name);
 			boolean required = (in.get() == 0x01);
 			log.debug("Required: {}", required);
-			
 			Object value = null;
 			int len = in.getInt();
 			log.debug("Length: {}", len);
@@ -192,7 +187,6 @@ public class DSRemotingClient extends RemotingClient {
 				value = deserializer.deserialize(input, Object.class);
 			}
 			log.debug("Value: {}", value);
-
 			// XXX: this is pretty much untested!!!
 			if (RemotingHeader.APPEND_TO_GATEWAY_URL.equals(name)) {
 				// Append string to gateway url
@@ -277,7 +271,6 @@ public class DSRemotingClient extends RemotingClient {
 			//read return value
 			return input.readObject(deserializer, ErrorMessage.class);
 		}
-
 		//read return value
 		return deserializer.deserialize(input, Object.class);
 	}
@@ -292,38 +285,45 @@ public class DSRemotingClient extends RemotingClient {
 	@Override
 	public Object invokeMethod(String method, Object[] params) {
 		log.debug("invokeMethod url: {}", (url + appendToUrl));
-		PostMethod post = new PostMethod(this.url + appendToUrl);
 		IoBuffer resultBuffer = null;
 		IoBuffer data = encodeInvoke(method, params);
-		post.setRequestEntity(new InputStreamRequestEntity(data.asInputStream(), data.limit(), CONTENT_TYPE));
+		//setup POST
+		HttpPost post = null;
 		try {
-			log.debug("Client: {}", client);
-			int resultCode = client.executeMethod(post);
-			log.debug("Result code: {}", resultCode);
-			if (resultCode / 100 != 2) {
-				throw new RuntimeException("Didn't receive success from remoting server.");
-			}
-			//fix for Trac #676
-			int contentLength = (int) post.getResponseContentLength();
-			//default the content length to 16 if post doesn't contain a good value
-			if (contentLength < 1) {
-				contentLength = 16;
-			}
-			resultBuffer = IoBuffer.allocate(contentLength);
-			//allow for expansion
-			resultBuffer.setAutoExpand(true);
-			ServletUtils.copy(post.getResponseBodyAsStream(), resultBuffer.asOutputStream());
-			resultBuffer.flip();
-			Object result = decodeResult(resultBuffer);
-			if (result instanceof RecordSet) {
-				// Make sure we can retrieve paged results
-				((RecordSet) result).setRemotingClient(this);
-			}
-			return result;
+			post = new HttpPost(url + appendToUrl);
+			post.addHeader("Content-Type", CONTENT_TYPE);
+			post.setEntity(new InputStreamEntity(data.asInputStream(), data.limit()));
+			// execute the method
+			HttpResponse response = client.execute(post);
+			int code = response.getStatusLine().getStatusCode();
+			log.debug("HTTP response code: {}", code);
+			if (code / 100 != 2) {
+				throw new RuntimeException("Didn't receive success from remoting server");
+			} else {
+				HttpEntity entity = response.getEntity();
+				if (entity != null) {
+					//fix for Trac #676
+					int contentLength = (int) entity.getContentLength();
+					//default the content length to 16 if post doesn't contain a good value
+					if (contentLength < 1) {
+						contentLength = 16;
+					}
+					// get the response as bytes
+					byte[] bytes = EntityUtils.toByteArray(entity);
+					resultBuffer = IoBuffer.wrap(bytes);
+					resultBuffer.flip();
+					Object result = decodeResult(resultBuffer);
+					if (result instanceof RecordSet) {
+						// Make sure we can retrieve paged results
+						((RecordSet) result).setRemotingClient(this);
+					}
+					return result;			
+				}			
+			}			
 		} catch (Exception ex) {
 			log.error("Error while invoking remoting method.", ex);
+			post.abort();
 		} finally {
-			post.releaseConnection();
 			if (resultBuffer != null) {
 				resultBuffer.free();
 				resultBuffer = null;
@@ -354,10 +354,8 @@ public class DSRemotingClient extends RemotingClient {
 	public static void main(String[] args) {
 		//blazeds my-polling-amf http://localhost:8400/meta/messagebroker/amfpolling
 		DSRemotingClient client = new DSRemotingClient("http://localhost:8400/meta/messagebroker/amfpolling");
-
 		try {
 			client.afterPropertiesSet();
-			
 			//send ping
 			CommandMessage msg = new CommandMessage();
 			msg.setCorrelationId("");
@@ -381,13 +379,11 @@ public class DSRemotingClient extends RemotingClient {
 					client.setDataSourceId((String) id);
 				}
 			}
-
 			//wait a second for a dsid
 			do {
 				Thread.sleep(1000);
 				log.info("Done with sleeping");
 			} while (client.getDataSourceId().equals("nil"));
-			
 			//send subscribe
 			msg = new CommandMessage();
 			msg.setCorrelationId("");
@@ -410,7 +406,6 @@ public class DSRemotingClient extends RemotingClient {
 			do {
 				Thread.sleep(5000);
 				log.info("Done with sleeping");
-
 				//send poll 
 				//0 messages - returns DSK
 				//n messages - CommandMessage with internal DSA
