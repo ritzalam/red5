@@ -427,9 +427,11 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			}
 			return;
 		}
-
-		final Set<IConnection> conns = clients.get(client);
+		// remove it if it exists
+		final Set<IConnection> conns = clients.remove(client);
 		if (conns != null) {
+			// decrement if there was a set of connections
+			clientStats.decrement();
 			conns.remove(conn);
 			IScopeHandler handler = null;
 			if (hasHandler()) {
@@ -442,8 +444,6 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				}
 			}
 			if (conns.isEmpty()) {
-				clients.remove(client);
-				clientStats.decrement();
 				if (handler != null) {
 					try {
 						// there may be a timeout here ?
@@ -456,7 +456,6 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			}
 			removeEventListener(conn);
 			connectionStats.decrement();
-
 			if (this.equals(conn.getScope())) {
 				final IServer server = getServer();
 				if (server instanceof Server) {

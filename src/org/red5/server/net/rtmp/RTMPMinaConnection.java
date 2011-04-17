@@ -111,7 +111,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 		    JMXAgent.unregisterMBean(oName);
 		} catch (Exception e) {
 		    //sometimes the client is not registered in jmx
-		}
+		}		
 	}
 
 	@SuppressWarnings("cast")
@@ -228,7 +228,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	@Override
 	public boolean isConnected() {
 		// XXX Paul: not sure isClosing is actually working as we expect here
-		return super.isConnected() && (ioSession != null) && ioSession.isConnected(); // && !ioSession.isClosing();
+		return super.isConnected() && (ioSession != null && ioSession.isConnected()); // && !ioSession.isClosing();
 	}
 
 	/** {@inheritDoc} */

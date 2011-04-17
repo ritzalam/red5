@@ -101,6 +101,9 @@ public class Client extends AttributeStore implements IClient {
 			con.close();
 		}
 		connToScope.clear();
+		connToScope = null;
+		// remove ourself
+		registry.removeClient(this);
 	}
 
 	/**

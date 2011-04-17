@@ -171,19 +171,13 @@ public class Header implements Constants, Cloneable, Externalizable {
 				&& header.getTimer() == this.getTimer() && header.getStreamId() == streamId);
 	}
 
-	/** {@inheritDoc} */
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
-		sb.append("ChannelId: ").append(channelId).append(", ");
-		sb.append("Timer: ").append(getTimer()).append(", ");
-		sb.append("TimerBase: ").append(timerBase).append(", ");
-		sb.append("TimerDelta: ").append(timerDelta).append(", ");
-		sb.append("Size: ").append(size).append(", ");
-		sb.append("DataType: ").append(dataType).append(", ");
-		sb.append("Garbage: ").append(isGarbage).append(", ");
-		sb.append("StreamId: ").append(streamId);
-		return sb.toString();
+		return "Header [channelId=" + channelId + ", dataType=" + dataType + ", timerBase=" + timerBase + ", timerDelta=" + timerDelta + ", size=" + size + ", streamId="
+				+ streamId + ", isGarbage=" + isGarbage + "]";
 	}
 
 	/** {@inheritDoc} */
