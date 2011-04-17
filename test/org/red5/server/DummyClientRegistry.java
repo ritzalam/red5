@@ -60,11 +60,9 @@ public final class DummyClientRegistry extends ClientRegistry {
 			id = idGen.toString();
 		}
 		IClient client = new DummyClient(id, this);
-		log.debug("New client: {}", client);	
-		
+		log.debug("New client: {}", client);		
 		//add it
 		clients.put(client.getId(), client);
-
 		return client;
 	}
 

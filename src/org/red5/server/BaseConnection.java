@@ -386,7 +386,10 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 		}
 		// Unregister client
 		if (client != null && client instanceof Client) {
-			((Client) client).unregister(this);
+			Client tmp = (Client) client;
+			tmp.unregister(this);
+			tmp.removeAttributes();
+			tmp.disconnect();
 			client = null;
 		}
 		scope = null;

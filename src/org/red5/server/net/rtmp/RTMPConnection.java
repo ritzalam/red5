@@ -131,7 +131,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * 
 	 * @see org.red5.server.net.rtmp.DeferredResult
 	 */
-	private final HashSet<DeferredResult> deferredResults = new HashSet<DeferredResult>();
+	private HashSet<DeferredResult> deferredResults = new HashSet<DeferredResult>();
 
 	/**
 	 * Last ping round trip time
@@ -615,10 +615,22 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 					usedStreams.decrementAndGet();
 				}
 			}
-			streams.clear();
 		}
-		channels.clear();
+		// close the base connection - disconnect scopes and unregister client
 		super.close();
+		// kill all the collections etc
+		channels.clear();
+		channels = null;
+		streams.clear();
+		streams = null;
+		pendingCalls.clear();
+		pendingCalls = null;
+		deferredResults.clear();
+		deferredResults = null;
+		pendingVideos.clear();
+		pendingVideos = null;
+		streamBuffers.clear();
+		streamBuffers = null;
 	}
 
 	/**
