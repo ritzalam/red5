@@ -342,7 +342,6 @@ public final class ClassLoaderBuilder {
 		File tempJarFile = File.createTempFile("tmp_" + libName, ".jar");
 		tempJarFile.deleteOnExit();
 		FileOutputStream out = new FileOutputStream(tempJarFile);
-
 		// Transfer bytes from the JAR file to the output file
 		byte[] buf = new byte[8192];
 		int len;

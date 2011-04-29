@@ -419,6 +419,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	protected Object newInstance(String className) {
 		log.debug("Loading class: {}", className);
 		Object instance = null;
+		Class<?> clazz = null;
 		//fix for Trac #604
 		if ("".equals(className) || className == null)
 			return instance;
@@ -432,8 +433,17 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 				className = "org.red5.compatibility." + className;
 				log.debug("Modified classname: {}", className);
 			}
-			Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(className);
+			clazz = Thread.currentThread().getContextClassLoader().loadClass(className);
 			instance = clazz.newInstance();
+		} catch (InstantiationException iex) {
+			try {
+				//check for default ctor
+				clazz.getConstructor(null);
+				log.error("Error loading class: {}", className);			
+			} catch (NoSuchMethodException nse) {
+				log.error("Error loading class: {}; this can be resolved by adding a default constructor to your class", className);							
+			}
+			log.debug("Exception was: {}", iex);
 		} catch (Exception ex) {
 			log.error("Error loading class: {}", className);
 			log.debug("Exception was: {}", ex);
