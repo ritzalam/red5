@@ -619,18 +619,42 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		// close the base connection - disconnect scopes and unregister client
 		super.close();
 		// kill all the collections etc
-		channels.clear();
-		channels = null;
-		streams.clear();
-		streams = null;
-		pendingCalls.clear();
-		pendingCalls = null;
-		deferredResults.clear();
-		deferredResults = null;
-		pendingVideos.clear();
-		pendingVideos = null;
-		streamBuffers.clear();
-		streamBuffers = null;
+		if (channels != null) {
+			channels.clear();
+			channels = null;
+		} else {
+			log.trace("Channels collection was null");
+		}
+		if (streams != null) {
+			streams.clear();
+			streams = null;
+		} else {
+			log.trace("Streams collection was null");
+		}
+		if (pendingCalls != null) {
+			pendingCalls.clear();
+			pendingCalls = null;
+		} else {
+			log.trace("PendingCalls collection was null");
+		}
+		if (deferredResults != null) {
+			deferredResults.clear();
+			deferredResults = null;
+		} else {
+			log.trace("DeferredResults collection was null");
+		}
+		if (pendingVideos != null) {
+			pendingVideos.clear();
+			pendingVideos = null;
+		} else {
+			log.trace("PendingVideos collection was null");
+		}
+		if (streamBuffers != null) {
+			streamBuffers.clear();
+			streamBuffers = null;
+		} else {
+			log.trace("StreamBuffers collection was null");
+		}
 	}
 
 	/**
