@@ -151,7 +151,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 
 	/**
 	 * Creates a new base connection with the given type.
-	 * 
+	 *
 	 * @param type                Connection type
 	 */
 	@ConstructorProperties({ "type" })
@@ -162,7 +162,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 
 	/**
 	 * Creates a new base connection with the given parameters.
-	 * 
+	 *
 	 * @param type                Connection type
 	 * @param host                Host
 	 * @param remoteAddress       Remote address
@@ -190,7 +190,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 
 	/**
 	 * Returns the next available client id.
-	 * 
+	 *
 	 * @return new client id
 	 */
 	public static int getNextClientId() {
@@ -218,7 +218,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	public void initialize(IClient client) {
 		if (this.client != null && this.client instanceof Client) {
 			// Unregister old client
-			((Client) this.client).unregister(this);
+			((Client) this.client).unregister(this, false);
 		}
 		this.client = client;
 		if (this.client instanceof Client) {
@@ -333,15 +333,16 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 		try {
 			final Scope oldScope = scope;
 			scope = (Scope) newScope;
-			if (scope.connect(this, params)) {
-				if (oldScope != null) {
-					oldScope.disconnect(this);
-				}
-				return true;
-			} else {
-				scope = oldScope;
+			/*
+			 * DW correct sequence is to disconnect from old scope(s), then reconnect to new scopes. This is necessary because there
+			 * may be an intersection between the old and new hierarchies.
+			 */
+			if (oldScope != null)
+				oldScope.disconnect(this);
+			if (!scope.connect(this, params))
 				return false;
-			}
+			// success
+			return true;
 		} finally {
 			lock.unlock();
 		}
@@ -386,11 +387,14 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 		}
 		// Unregister client
 		if (client != null && client instanceof Client) {
+			((Client) client).unregister(this);
+			/* Following code should be unnecessary and was causing client to set its registry to null (via tmp.disconnect())
+			 * resulting NPE + memory leaks in various cases
 			Client tmp = (Client) client;
 			tmp.unregister(this);
 			tmp.removeAttributes();
 			tmp.disconnect();
-			client = null;
+			client = null;*/
 		}
 		scope = null;
 	}

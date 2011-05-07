@@ -2,21 +2,21 @@ package org.red5.server.net.rtmp;
 
 /*
  * RED5 Open Source Flash Server - http://code.google.com/p/red5/
- * 
+ *
  * Copyright (c) 2006-2010 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 import org.apache.mina.core.buffer.IoBuffer;
@@ -72,7 +72,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		RTMP rtmp = new RTMP(mode);
 		session.setAttribute(ProtocolState.SESSION_KEY, rtmp);
 		//add rtmpe filter
-		session.getFilterChain().addFirst("rtmpeFilter", new RTMPEIoFilter());		
+		session.getFilterChain().addFirst("rtmpeFilter", new RTMPEIoFilter());
 		//add protocol filter next
 		session.getFilterChain().addLast("protocolFilter", new ProtocolCodecFilter(codecFactory));
 		if (log.isTraceEnabled()) {
@@ -102,14 +102,14 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 			}
 		} else {
 			//add the handshake
-			session.setAttribute(RTMPConnection.RTMP_HANDSHAKE, new InboundHandshake());			
+			session.setAttribute(RTMPConnection.RTMP_HANDSHAKE, new InboundHandshake());
 		}
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public void sessionOpened(IoSession session) throws Exception {
-		log.debug("Session opened");		
+		log.debug("Session opened");
 		super.sessionOpened(session);
 		// get protocol state
 		RTMP rtmp = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
@@ -126,28 +126,29 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 	/** {@inheritDoc} */
 	@Override
 	public void sessionClosed(IoSession session) throws Exception {
-		log.debug("Session closed");	
+		log.debug("Session closed");
 		RTMP rtmp = (RTMP) session.removeAttribute(ProtocolState.SESSION_KEY);
-		log.debug("RTMP state: {}", rtmp);	
+		log.debug("RTMP state: {}", rtmp);
 		RTMPMinaConnection conn = (RTMPMinaConnection) session.removeAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
-		conn.sendPendingServiceCallsCloseError();
-		// fire-off closed
-		handler.connectionClosed(conn, rtmp);
-		// remove the handshake if not already done
-		if (session.containsAttribute(RTMPConnection.RTMP_HANDSHAKE)) {
+		try {
+    		conn.sendPendingServiceCallsCloseError();
+    		// fire-off closed event
+    		handler.connectionClosed(conn, rtmp);
+    		// clear any session attributes we may have previously set
+    		// TODO: verify this cleanup code is necessary. The session is over and will be garbage collected surely?
     		session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
-		}
-		// remove ciphers
-		if (session.containsAttribute(RTMPConnection.RTMPE_CIPHER_IN)) {
 			session.removeAttribute(RTMPConnection.RTMPE_CIPHER_IN);
 			session.removeAttribute(RTMPConnection.RTMPE_CIPHER_OUT);
+		} finally {
+			// DW we *always* remove the connection from the RTMP manager even if unexpected exception gets thrown e.g. by handler.connectionClosed
+			// Otherwise connection stays around forever, and everything it references e.g. Client, ...
+    		rtmpConnManager.removeConnection(conn.getId());
 		}
-		rtmpConnManager.removeConnection(conn.getId());
 	}
 
 	/**
 	 * Handle raw buffer receiving event.
-	 * 
+	 *
 	 * @param in
 	 *            Data buffer
 	 * @param session
@@ -186,10 +187,10 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		        			log.debug("Adding ciphers to the session");
 		        			session.setAttribute(RTMPConnection.RTMPE_CIPHER_IN, handshake.getCipherIn());
 		        			session.setAttribute(RTMPConnection.RTMPE_CIPHER_OUT, handshake.getCipherOut());
-		        		}	
+		        		}
 					}
 				}
-			}		
+			}
 		} else {
 			log.warn("Handshake was not found for this connection: {}", conn);
 			log.debug("RTMP state: {} Session: {}", rtmp, session);
@@ -234,7 +235,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 
 	/**
 	 * Setter for handler.
-	 * 
+	 *
 	 * @param handler RTMP events handler
 	 */
 	public void setHandler(IRTMPHandler handler) {
@@ -243,7 +244,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 
 	/**
 	 * Setter for mode.
-	 * 
+	 *
 	 * @param mode <code>true</code> if handler should work in server mode,
 	 *            <code>false</code> otherwise
 	 */
@@ -253,7 +254,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 
 	/**
 	 * Setter for codec factory.
-	 * 
+	 *
 	 * @param codecFactory RTMP protocol codec factory
 	 */
 	public void setCodecFactory(ProtocolCodecFactory codecFactory) {

@@ -20,6 +20,7 @@ package org.red5.server;
  */
 
 import java.beans.ConstructorProperties;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -48,9 +49,7 @@ import org.slf4j.LoggerFactory;
  * Clients are tied to connections and registered in ClientRegistry
  */
 public class Client extends AttributeStore implements IClient {
-	/**
-	 *  Logger
-	 */
+
 	protected static Logger log = LoggerFactory.getLogger(Client.class);
 
 	/**
@@ -76,18 +75,20 @@ public class Client extends AttributeStore implements IClient {
 	/**
 	 *  Client registry where Client is registered
 	 */
-	protected ClientRegistry registry;
+	protected WeakReference<ClientRegistry> registry;
 
 	/**
 	 * Creates client, sets creation time and registers it in ClientRegistry
+	 * DW: nope, does not currently register it in ClientRegistry!
 	 *
 	 * @param id             Client id
 	 * @param registry       ClientRegistry
 	 */
-	@ConstructorProperties({"id", "registry"})
+	@ConstructorProperties({ "id", "registry" })
 	public Client(String id, ClientRegistry registry) {
 		this.id = id;
-		this.registry = registry;
+		// use a weak reference to prevent any hard-links to the registry
+		this.registry = new WeakReference<ClientRegistry>(registry);
 		this.creationTime = System.currentTimeMillis();
 	}
 
@@ -96,28 +97,17 @@ public class Client extends AttributeStore implements IClient {
 	 */
 	public void disconnect() {
 		log.debug("Disconnect - id: {}, closing {} connections", id, getConnections().size());
-		// Close all associated connections
+		// close all connections held to Red5 by client
 		for (IConnection con : getConnections()) {
-			con.close();
+			try {
+				con.close();
+			} catch (Exception e) {
+				// closing a connection calls into application code, so exception possible
+				log.error("Unexpected exception closing connection {}", e);
+			}
 		}
-		connToScope.clear();
-		connToScope = null;
-		// remove ourself
-		registry.removeClient(this);
-	}
-
-	/**
-	 * Check clients equality by id
-	 *
-	 * @param obj        Object to check against
-	 * @return           true if clients ids are the same, false otherwise
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (!(obj instanceof Client)) {
-			return false;
-		}
-		return ((Client) obj).getId().equals(id);
+		// unregister client
+		removeInstance();
 	}
 
 	/**
@@ -148,18 +138,27 @@ public class Client extends AttributeStore implements IClient {
 		return result;
 	}
 
+	/**
+	 * Sets the time at which the client was created.
+	 * 
+	 * @param creationTime
+	 */
 	public void setCreationTime(long creationTime) {
 		this.creationTime = creationTime;
 	}
-	
+
 	/**
-	 *
+	 * Returns the time at which the client was created.
+	 * 
 	 * @return creation time
 	 */
 	public long getCreationTime() {
 		return creationTime;
 	}
 
+	/**
+	 * Sets the client id
+	 */
 	public void setId(String id) {
 		this.id = id;
 	}
@@ -178,15 +177,6 @@ public class Client extends AttributeStore implements IClient {
 	 */
 	public Collection<IScope> getScopes() {
 		return connToScope.values();
-	}
-
-	/**
-	 * if overriding equals then also do hashCode
-	 * @return a has code
-	 */
-	@Override
-	public int hashCode() {
-		return Integer.valueOf(id);
 	}
 
 	/**
@@ -216,7 +206,7 @@ public class Client extends AttributeStore implements IClient {
 	protected void register(IConnection conn) {
 		log.debug("Registering connection for this client {}", id);
 		if (conn != null) {
-			IScope scp =  conn.getScope();
+			IScope scp = conn.getScope();
 			if (scp != null) {
 				connToScope.put(conn, scp);
 			} else {
@@ -228,28 +218,25 @@ public class Client extends AttributeStore implements IClient {
 	}
 
 	/**
-	 *
-	 * @return string representation of client
+	 * Removes client-connection association for given connection
+	 * @param conn         Connection object
 	 */
-	@Override
-	public String toString() {
-		return "Client: " + id;
+	protected void unregister(IConnection conn) {
+		unregister(conn, true);
 	}
 
 	/**
 	 * Removes client-connection association for given connection
 	 * @param conn         Connection object
+	 * @param deleteIfNoConns Whether to delete this client if it no longer has any connections
 	 */
-	protected void unregister(IConnection conn) {
+	protected void unregister(IConnection conn, boolean deleteIfNoConns) {
 		// Remove connection from connected scopes list
 		connToScope.remove(conn);
 		// If client is not connected to any scope any longer then remove
-		if (connToScope.isEmpty()) {
-			if (registry != null) {
-				// This client is not connected to any scopes, remove from registry.
-				registry.removeClient(this);
-				registry = null;
-			}
+		if (deleteIfNoConns && connToScope.isEmpty()) {
+			// TODO DW dangerous the way this is called from BaseConnection.initialize(). Could we unexpectedly pop a Client out of the registry?
+			removeInstance();
 		}
 	}
 
@@ -277,38 +264,84 @@ public class Client extends AttributeStore implements IClient {
 			conn.setAttribute(PERMISSIONS, permissions);
 		}
 	}
-	
+
 	/** {@inheritDoc} */
 	public void checkBandwidth() {
 		//do something to check the bandwidth, Dan what do you think?
 		ServerClientDetection detection = new ServerClientDetection();
 		detection.checkBandwidth(Red5.getConnectionLocal());
 	}
-	
+
 	/** {@inheritDoc} */
 	public Map<String, Object> checkBandwidthUp(Object[] params) {
 		//do something to check the bandwidth, Dan what do you think?
 		ClientServerDetection detection = new ClientServerDetection();
-		
+
 		// if dynamic bw is turned on, we switch to a higher or lower
 		return detection.checkBandwidth(params);
 	}
-	
+
 	/**
 	 * Allows for reconstruction via CompositeData.
-	 * 
+	 *
 	 * @param cd composite data
 	 * @return Client class instance
 	 */
-    public static Client from(CompositeData cd) {
-    	Client instance = null;
-    	if (cd.containsKey("id")) {
-    		String id = (String) cd.get("id");
-    		instance = new Client(id, null);
-    		instance.setCreationTime((Long) cd.get("creationTime"));
-    		instance.setAttribute(PERMISSIONS, cd.get(PERMISSIONS));
+	public static Client from(CompositeData cd) {
+		Client instance = null;
+		if (cd.containsKey("id")) {
+			String id = (String) cd.get("id");
+			instance = new Client(id, null);
+			instance.setCreationTime((Long) cd.get("creationTime"));
+			instance.setAttribute(PERMISSIONS, cd.get(PERMISSIONS));
 		}
-        return instance;
-    }		
+		return instance;
+	}
+
+	/**
+	 * Removes this instance from the client registry.
+	 */
+	private void removeInstance() {
+		// unregister client
+		ClientRegistry ref = registry.get();
+		if (ref != null) {
+			ref.removeClient(this);
+		} else {
+			log.warn("Client registry reference was not accessable, removal failed");
+			// TODO: attempt to lookup the registry via the global.clientRegistry
+		}
+	}
+
+	/**
+	 * if overriding equals then also do hashCode
+	 * @return a has code
+	 */
+	@Override
+	public int hashCode() {
+		return Integer.valueOf(id);
+	}
+
+	/**
+	 * Check clients equality by id
+	 *
+	 * @param obj        Object to check against
+	 * @return           true if clients ids are the same, false otherwise
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof Client)) {
+			return false;
+		}
+		return ((Client) obj).getId().equals(id);
+	}
+
+	/**
+	 *
+	 * @return string representation of client
+	 */
+	@Override
+	public String toString() {
+		return "Client: " + id;
+	}
 	
 }

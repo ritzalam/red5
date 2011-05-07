@@ -93,6 +93,9 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMXBean {
 		if (!hasClient(id)) {
 			clients.put(id, client);
 		} else {
+			// DW the Client object is meant to be unifying connections from a remote user. But currently the only case we
+			// specify this currently is when we use a remoting session. So we actually just create an arbitrary id, which means
+			// RTMP connections from same user are not combined.
 			//get the next available client id
 			String newId = nextId();
 			//update the client
@@ -123,7 +126,7 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMXBean {
 
 	/**
 	 * Check if client registry contains clients.
-	 * 
+	 *
 	 * @return             <code>True</code> if clients exist, otherwise <code>False</code>
 	 */
 	protected boolean hasClients() {
@@ -177,6 +180,7 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMXBean {
 	 * @throws ClientRejectedException if client rejected
 	 */
 	public IClient newClient(Object[] params) throws ClientNotFoundException, ClientRejectedException {
+		// DW I'm guessing perhaps that originally there was some idea to derive client id from the connection params?
 		String id = nextId();
 		IClient client = new Client(id, this);
 		addClient(id, client);
