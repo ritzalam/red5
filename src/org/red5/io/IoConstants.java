@@ -115,6 +115,11 @@ public interface IoConstants {
 	public static final byte FLAG_RATE_44_KHZ = 0x03;
 
 	/**
+	 * 48 KHz rate flag
+	 */
+	public static final byte FLAG_RATE_48_KHZ = 0x04;
+
+	/**
 	 * Mask sound format (unsigned)
 	 */
 	public static final int MASK_SOUND_FORMAT = 0xf0;
