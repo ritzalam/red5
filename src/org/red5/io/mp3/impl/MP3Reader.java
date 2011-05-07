@@ -136,7 +136,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 	 * be sent prior to media data.
 	 */
 	private LinkedList<ITag> firstTags = new LinkedList<ITag>();
-	
+
 	MP3Reader() {
 		// Only used by the bean startup code to initialize the frame cache
 	}
@@ -154,7 +154,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		try {
 			MP3File mp3file = (MP3File) AudioFileIO.read(file);
 			MP3AudioHeader audioHeader = (MP3AudioHeader) mp3file.getAudioHeader();
-			if (audioHeader != null) {				
+			if (audioHeader != null) {
 				log.debug("Track length: {}", audioHeader.getTrackLength());
 				log.debug("Sample rate: {}", audioHeader.getSampleRateAsNumber());
 				log.debug("Channels: {}", audioHeader.getChannels());
@@ -187,31 +187,31 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 				if (tagFieldList == null || tagFieldList.isEmpty()) {
 					log.debug("No cover art was found");
 				} else {
-    				TagField imageField = tagFieldList.get(0);
-    				if (imageField instanceof AbstractID3v2Frame) {
-    				    FrameBodyAPIC imageFrameBody = (FrameBodyAPIC)((AbstractID3v2Frame)imageField).getBody();
-    				    if (!imageFrameBody.isImageUrl()) {
-    				        byte[] imageBuffer = (byte[]) imageFrameBody.getObjectValue(DataTypes.OBJ_PICTURE_DATA);
-    						//set the cover image on the metadata
-    						metaData.setCovr(imageBuffer);
-    						// Create tag for onImageData event
-    						IoBuffer buf = IoBuffer.allocate(imageBuffer.length);
-    						buf.setAutoExpand(true);
-    						Output out = new Output(buf);
-    						out.writeString("onImageData");
-    						Map<Object, Object> props = new HashMap<Object, Object>();
-    						props.put("trackid", 1);
-    						props.put("data", imageBuffer);
-    						out.writeMap(props, new Serializer());
-    						buf.flip();
-    						//Ugh i hate flash sometimes!!
-    						//Error #2095: flash.net.NetStream was unable to invoke callback onImageData.
-    						ITag result = new Tag(IoConstants.TYPE_METADATA, 0, buf.limit(), null, 0);
-    						result.setBody(buf);								
-    						//add to first frames
-    						firstTags.add(result);
-    				    }
-    				}
+					TagField imageField = tagFieldList.get(0);
+					if (imageField instanceof AbstractID3v2Frame) {
+						FrameBodyAPIC imageFrameBody = (FrameBodyAPIC) ((AbstractID3v2Frame) imageField).getBody();
+						if (!imageFrameBody.isImageUrl()) {
+							byte[] imageBuffer = (byte[]) imageFrameBody.getObjectValue(DataTypes.OBJ_PICTURE_DATA);
+							//set the cover image on the metadata
+							metaData.setCovr(imageBuffer);
+							// Create tag for onImageData event
+							IoBuffer buf = IoBuffer.allocate(imageBuffer.length);
+							buf.setAutoExpand(true);
+							Output out = new Output(buf);
+							out.writeString("onImageData");
+							Map<Object, Object> props = new HashMap<Object, Object>();
+							props.put("trackid", 1);
+							props.put("data", imageBuffer);
+							out.writeMap(props, new Serializer());
+							buf.flip();
+							//Ugh i hate flash sometimes!!
+							//Error #2095: flash.net.NetStream was unable to invoke callback onImageData.
+							ITag result = new Tag(IoConstants.TYPE_METADATA, 0, buf.limit(), null, 0);
+							result.setBody(buf);
+							//add to first frames
+							firstTags.add(result);
+						}
+					}
 				}
 			} else {
 				log.info("File did not contain ID3v2 data: {}", file.getName());
@@ -228,8 +228,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		// read-only mode
 		channel = fis.getChannel();
 		try {
-			mappedFile = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel
-					.size());
+			mappedFile = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
 		} catch (IOException e) {
 			log.error("MP3Reader {}", e);
 		}
@@ -296,8 +295,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 				break;
 
 			default:
-				throw new RuntimeException("Unsupported sample rate: "
-						+ header.getSampleRate());
+				throw new RuntimeException("Unsupported sample rate: " + header.getSampleRate());
 		}
 	}
 
@@ -313,8 +311,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		Output out = new Output(buf);
 		out.writeString("onMetaData");
 		Map<Object, Object> props = new HashMap<Object, Object>();
-		props.put("duration",
-				frameMeta.timestamps[frameMeta.timestamps.length - 1] / 1000.0);
+		props.put("duration", frameMeta.timestamps[frameMeta.timestamps.length - 1] / 1000.0);
 		props.put("audiocodecid", IoConstants.FLAG_FORMAT_MP3);
 		if (dataRate > 0) {
 			props.put("audiodatarate", dataRate);
@@ -331,7 +328,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 			props.put("comment", metaData.getComment());
 			if (metaData.hasCoverImage()) {
 				Map<Object, Object> covr = new HashMap<Object, Object>(1);
-				covr.put("covr", new Object[]{metaData.getCovr()});
+				covr.put("covr", new Object[] { metaData.getCovr() });
 				props.put("tags", covr);
 			}
 			//clear meta for gc
@@ -340,8 +337,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		out.writeMap(props, new Serializer());
 		buf.flip();
 
-		ITag result = new Tag(IoConstants.TYPE_METADATA, 0, buf.limit(), null,
-				prevSize);
+		ITag result = new Tag(IoConstants.TYPE_METADATA, 0, buf.limit(), null, prevSize);
 		result.setBody(buf);
 		return result;
 	}
@@ -465,15 +461,16 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 			return null;
 		}
 
-		tag = new Tag(IoConstants.TYPE_AUDIO, (int) currentTime, frameSize + 1,
-				null, prevSize);
+		tag = new Tag(IoConstants.TYPE_AUDIO, (int) currentTime, frameSize + 1, null, prevSize);
 		prevSize = frameSize + 1;
 		currentTime += header.frameDuration();
 		IoBuffer body = IoBuffer.allocate(tag.getBodySize());
 		body.setAutoExpand(true);
-		byte tagType = (IoConstants.FLAG_FORMAT_MP3 << 4)
-				| (IoConstants.FLAG_SIZE_16_BIT << 1);
+		byte tagType = (IoConstants.FLAG_FORMAT_MP3 << 4) | (IoConstants.FLAG_SIZE_16_BIT << 1);
 		switch (header.getSampleRate()) {
+			case 48000:
+				tagType |= IoConstants.FLAG_RATE_48_KHZ << 2;
+				break;
 			case 44100:
 				tagType |= IoConstants.FLAG_RATE_44_KHZ << 2;
 				break;
@@ -486,8 +483,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 			default:
 				tagType |= IoConstants.FLAG_RATE_5_5_KHZ << 2;
 		}
-		tagType |= (header.isStereo() ? IoConstants.FLAG_TYPE_STEREO
-				: IoConstants.FLAG_TYPE_MONO);
+		tagType |= (header.isStereo() ? IoConstants.FLAG_TYPE_STEREO : IoConstants.FLAG_TYPE_MONO);
 		body.put(tagType);
 		final int limit = in.limit();
 		body.putInt(header.getData());
@@ -560,8 +556,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 				frameMeta.audioOnly = true;
 				posTimeMap = new HashMap<Integer, Double>();
 				for (int i = 0; i < frameMeta.positions.length; i++) {
-					posTimeMap.put((int) frameMeta.positions[i],
-							(double) frameMeta.timestamps[i]);
+					posTimeMap.put((int) frameMeta.positions[i], (double) frameMeta.timestamps[i]);
 				}
 				return frameMeta;
 			}
@@ -642,7 +637,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		String year = "";
 
 		String comment = "";
-		
+
 		byte[] covr = null;
 
 		public String getAlbum() {
@@ -713,7 +708,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		public boolean hasCoverImage() {
 			return covr != null;
 		}
-		
+
 	}
 
 }

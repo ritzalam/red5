@@ -416,6 +416,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @param className        Class name as String
 	 * @return Object          New object instance (for given class)
 	 */
+	@SuppressWarnings("all")
 	protected Object newInstance(String className) {
 		log.debug("Loading class: {}", className);
 		Object instance = null;
