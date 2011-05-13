@@ -47,10 +47,10 @@ public class LoggingContextSelector implements ContextSelector {
 	private final ThreadLocal<LoggerContext> threadLocal = new ThreadLocal<LoggerContext>();
 
 	private final LoggerContext defaultContext;
-	
-	private String contextName;
 
-	private String contextConfigFile;
+	private volatile String contextName;
+
+	private volatile String contextConfigFile;
 
 	public LoggingContextSelector(LoggerContext context) {
 		System.out.printf("Setting default logging context: %s\n", context.getName());
@@ -79,21 +79,21 @@ public class LoggingContextSelector implements ContextSelector {
 				// We have to create a new LoggerContext
 				loggerContext = new LoggerContext();
 				loggerContext.setName(contextName);
-				
+
 				// allow override using logbacks system prop
 				String overrideProperty = System.getProperty("logback.configurationFile");
 				if (overrideProperty == null) {
-					contextConfigFile = String.format("logback-%s.xml", contextName);					
+					contextConfigFile = String.format("logback-%s.xml", contextName);
 				} else {
 					contextConfigFile = String.format(overrideProperty, contextName);
-				}				
+				}
 				System.out.printf("Context logger config file: %s\n", contextConfigFile);
-				
+
 				ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 				//System.out.printf("Thread context cl: %s\n", classloader);
 				//ClassLoader classloader2 = Loader.class.getClassLoader();
 				//System.out.printf("Loader tcl: %s\n", classloader2);
-				
+
 				//URL url = Loader.getResourceBySelfClassLoader(contextConfigFile);
 				URL url = Loader.getResource(contextConfigFile, classloader);
 				if (url != null) {
@@ -125,14 +125,13 @@ public class LoggingContextSelector implements ContextSelector {
 		//System.out.printf("getLoggerContext request for %s\n", name);
 		//System.out.printf("Context is in map: %s\n", contextMap.containsKey(name));
 		return contextMap.get(name);
-	}	
-	
+	}
+
 	public LoggerContext getDefaultLoggerContext() {
 		return defaultContext;
 	}
 
-	public void attachLoggerContext(String contextName,
-			LoggerContext loggerContext) {
+	public void attachLoggerContext(String contextName, LoggerContext loggerContext) {
 		contextMap.put(contextName, loggerContext);
 	}
 

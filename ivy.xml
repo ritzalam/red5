@@ -39,8 +39,8 @@
 			<dependency org="ch.qos.logback" name="com.springsource.ch.qos.logback.classic" rev="0.9.26" transitive="false" />
 			<dependency org="ch.qos.logback" name="com.springsource.ch.qos.logback.core" rev="0.9.26" transitive="false" />
 		-->
-		<dependency name="logback-classic" rev="0.9.26" />
-		<dependency name="logback-core" rev="0.9.26" />
+		<dependency name="logback-classic" rev="0.9.28" />
+		<dependency name="logback-core" rev="0.9.28" />
         <!-- General --> 
         <dependency org="commons" name="commons-beanutils" rev="1.8.2" />
         <!-- <dependency org="org.apache.commons" name="com.springsource.org.apache.commons.beanutils" rev="1.8.2" /> -->
