@@ -70,8 +70,9 @@ public class Launcher {
 				}
 			}
 			*/
-		} catch (Exception e) {
-			System.out.printf("Exception %s\n", e);
+		} catch (Throwable t) {
+			System.out.printf("Exception %s\n", t);
+			System.exit(9999);
 		}
 	}
 	

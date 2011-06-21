@@ -38,7 +38,7 @@ import org.springframework.context.ApplicationContextAware;
  * @author Joachim Bauch (jojo@struktur.de)
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public class LoaderBase implements ApplicationContextAware {
+public abstract class LoaderBase implements ApplicationContextAware {
 
 	private static Logger log = LoggerFactory.getLogger(LoaderBase.class);
 	
@@ -178,5 +178,10 @@ public class LoaderBase implements ApplicationContextAware {
 	public void removeContext(String path) {
 		throw new UnsupportedOperationException();
 	}
+	
+	/**
+	 * Entry point to shutdown this loader.
+	 */
+	public abstract void shutdown();
 
 }

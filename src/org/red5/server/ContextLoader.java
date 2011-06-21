@@ -37,6 +37,7 @@ import org.red5.server.plugin.PluginRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -205,17 +206,29 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMXBe
 			log.warn("Exception shutting down plugin registry", e);
 		}
 		if (contextMap != null) {
+			log.debug("Context map: {}", contextMap);
 			try {
-        		//unload all the contexts in the map
-        		for (Map.Entry<String, ApplicationContext> entry : contextMap.entrySet()) {
-        			String contextName = entry.getKey();
-        			log.debug("Unloading context {} on uninit", contextName);
-        			unloadContext(contextName);
-        		}
-        		contextMap.clear();
+				//unload all the contexts in the map
+				for (Map.Entry<String, ApplicationContext> entry : contextMap.entrySet()) {
+					String contextName = entry.getKey();
+					log.debug("Unloading context {} on uninit", contextName);
+					unloadContext(contextName);
+				}
+				contextMap.clear();
 			} catch (Exception e) {
 				log.warn("Exception shutting down contexts", e);
 			}
+		}
+		try {
+			// look up any shutdown enabled beans
+			LoaderBase loader = BeanFactoryUtils.beanOfTypeIncludingAncestors(applicationContext, LoaderBase.class);
+			if (loader != null) {
+				loader.shutdown();
+			} else {
+				log.debug("Loader was not found");
+			}
+		} catch (Exception e) {
+			log.warn("Exception looking for loader", e);
 		}
 		//if theres no jee loader then exit
 		System.exit(0);
@@ -253,9 +266,8 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMXBe
 		}
 		// if parent context was not set then lookup red5.common
 		if (parentContext == null) {
-			log.debug("Lookup common - bean:{} local:{} singleton:{}", new Object[] {
-					factory.containsBean("red5.common"), factory.containsLocalBean("red5.common"),
-					factory.containsSingleton("red5.common"), });
+			log.debug("Lookup common - bean:{} local:{} singleton:{}",
+					new Object[] { factory.containsBean("red5.common"), factory.containsLocalBean("red5.common"), factory.containsSingleton("red5.common"), });
 			parentContext = (ApplicationContext) factory.getBean("red5.common");
 		}
 		if (config.startsWith("/")) {
@@ -287,6 +299,10 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMXBe
 		log.debug("Un-load context - name: {}", name);
 		ApplicationContext context = contextMap.remove(name);
 		log.debug("Context from map: {}", context);
+		String[] bnames = BeanFactoryUtils.beanNamesIncludingAncestors(context);
+		for (String bname : bnames) {
+			log.debug("Bean: {}", bname);
+		}
 		ConfigurableBeanFactory factory = ((ConfigurableApplicationContext) applicationContext).getBeanFactory();
 		if (factory.containsSingleton(name)) {
 			log.debug("Context found in parent, destroying: {}", name);
@@ -321,19 +337,19 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMXBe
 	 */
 	public void shutdown() {
 		log.info("Shutting down server");
-/*
-		//uninitialize contexts
-		uninit();
-		//shutdown jmx
-		JMXAgent.shutdown();
-		try {
-			//kill the jvm
-			System.exit(0);
-		} catch (Exception e) {
-			log.warn("Server could not be stopped", e);
-			throw new RuntimeException("Server could not be stopped");
-		}
-*/
+		/*
+				//uninitialize contexts
+				uninit();
+				//shutdown jmx
+				JMXAgent.shutdown();
+				try {
+					//kill the jvm
+					System.exit(0);
+				} catch (Exception e) {
+					log.warn("Server could not be stopped", e);
+					throw new RuntimeException("Server could not be stopped");
+				}
+		*/
 	}
 
 	/**
