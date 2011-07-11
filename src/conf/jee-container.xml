@@ -70,6 +70,13 @@
 			</bean>
 		</property>
 
+        <property name="address">
+            <bean class="java.net.InetSocketAddress">
+                <constructor-arg index="0" type="java.lang.String" value="${rtmpt.host}" />  
+                <constructor-arg index="1" type="int" value="${rtmpt.port}" />  
+            </bean>
+        </property>
+		
 		<property name="connectionProperties">
 			<map>
 				<entry key="maxKeepAliveRequests" value="${rtmpt.max_keep_alive_requests}"/>
@@ -106,6 +113,13 @@
 				<property name="redirectPort" value="${rtmp.port}" />
 			</bean>			
 		</property>	
+		
+        <property name="address">
+            <bean class="java.net.InetSocketAddress">
+                <constructor-arg index="0" type="java.lang.String" value="${rtmps.host}" />  
+                <constructor-arg index="1" type="int" value="${rtmps.port}" />  
+            </bean>
+        </property>
 		
 		<property name="host">
 			<bean class="org.apache.catalina.core.StandardHost">
