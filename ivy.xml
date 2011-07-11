@@ -60,7 +60,7 @@
 		<dependency org="commons" name="commons-pool" rev="1.5.6" />
 		<!-- <dependency org="org.apache.commons" name="com.springsource.org.apache.commons.pool" rev="1.5.3" transitive="false" /> -->
 		
-		<dependency name="quartz" rev="1.6.5" />
+		<dependency name="quartz" rev="1.8.5" />
         <!-- <dependency org="com.opensymphony.quartz" name="com.springsource.org.quartz" rev="1.6.5" /> -->
 
 		<dependency name="ehcache" rev="2.2.0" />
