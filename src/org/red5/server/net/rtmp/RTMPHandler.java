@@ -511,37 +511,36 @@ public class RTMPHandler extends BaseRTMPHandler {
 		final String name = object.getName();
 		final boolean persistent = object.isPersistent();
 		final IScope scope = conn.getScope();
-		if (scope == null) {
-			// The scope already has been deleted.
+		if (scope != null) {
+			ISharedObjectService sharedObjectService = (ISharedObjectService) getScopeService(scope, ISharedObjectService.class, SharedObjectService.class, false);
+			if (!sharedObjectService.hasSharedObject(scope, name)) {
+				ISharedObjectSecurityService security = (ISharedObjectSecurityService) ScopeUtils.getScopeService(scope, ISharedObjectSecurityService.class);
+				if (security != null) {
+					// Check handlers to see if creation is allowed
+					for (ISharedObjectSecurity handler : security.getSharedObjectSecurity()) {
+						if (!handler.isCreationAllowed(scope, name, persistent)) {
+							sendSOCreationFailed(conn, name, persistent);
+							return;
+						}
+					}
+				}
+				if (!sharedObjectService.createSharedObject(scope, name, persistent)) {
+					sendSOCreationFailed(conn, name, persistent);
+					return;
+				}
+			}
+			so = sharedObjectService.getSharedObject(scope, name);
+			if (so.isPersistentObject() != persistent) {
+				SharedObjectMessage msg = new SharedObjectMessage(name, 0, persistent);
+				msg.addEvent(new SharedObjectEvent(ISharedObjectEvent.Type.CLIENT_STATUS, "error", SO_PERSISTENCE_MISMATCH));
+				conn.getChannel(3).write(msg);
+			}
+			so.dispatchEvent(object);
+		} else {
+			// The scope already has been deleted
 			sendSOCreationFailed(conn, name, persistent);
 			return;
 		}
-
-		ISharedObjectService sharedObjectService = (ISharedObjectService) getScopeService(scope, ISharedObjectService.class, SharedObjectService.class, false);
-		if (!sharedObjectService.hasSharedObject(scope, name)) {
-			ISharedObjectSecurityService security = (ISharedObjectSecurityService) ScopeUtils.getScopeService(scope, ISharedObjectSecurityService.class);
-			if (security != null) {
-				// Check handlers to see if creation is allowed
-				for (ISharedObjectSecurity handler : security.getSharedObjectSecurity()) {
-					if (!handler.isCreationAllowed(scope, name, persistent)) {
-						sendSOCreationFailed(conn, name, persistent);
-						return;
-					}
-				}
-			}
-
-			if (!sharedObjectService.createSharedObject(scope, name, persistent)) {
-				sendSOCreationFailed(conn, name, persistent);
-				return;
-			}
-		}
-		so = sharedObjectService.getSharedObject(scope, name);
-		if (so.isPersistentObject() != persistent) {
-			SharedObjectMessage msg = new SharedObjectMessage(name, 0, persistent);
-			msg.addEvent(new SharedObjectEvent(ISharedObjectEvent.Type.CLIENT_STATUS, "error", SO_PERSISTENCE_MISMATCH));
-			conn.getChannel(3).write(msg);
-		}
-		so.dispatchEvent(object);
 	}
 
 }

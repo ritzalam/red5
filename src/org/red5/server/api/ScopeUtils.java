@@ -207,12 +207,10 @@ public class ScopeUtils {
 	 *            Class of service
 	 * @return				Service object
 	 */
-	protected static Object getScopeService(IScope scope, String name,
-			Class<?> defaultClass) {
+	protected static Object getScopeService(IScope scope, String name, Class<?> defaultClass) {
 		if (scope == null) {
 			return null;
 		}
-
 		final IContext context = scope.getContext();
 		ApplicationContext appCtx = context.getApplicationContext();
 		Object result;
@@ -220,7 +218,6 @@ public class ScopeUtils {
 			if (defaultClass == null) {
 				return null;
 			}
-
 			try {
 				result = defaultClass.newInstance();
 			} catch (Exception e) {
@@ -230,7 +227,6 @@ public class ScopeUtils {
 		} else {
 			result = appCtx.getBean(name);
 		}
-
 		return result;
 	}
 
@@ -257,13 +253,12 @@ public class ScopeUtils {
 	 * @param defaultClass Class that should be used to create a new service if no service was found.
 	 * @return Service object
 	 */
-	public static Object getScopeService(IScope scope, Class<?> intf,
-			Class<?> defaultClass) {
+	public static Object getScopeService(IScope scope, Class<?> intf, Class<?> defaultClass) {
 		return getScopeService(scope, intf, defaultClass, true);
 	}
 
-	public static Object getScopeService(IScope scope, Class<?> intf,
-			Class<?> defaultClass, boolean checkHandler) {
+	public static Object getScopeService(IScope scope, Class<?> intf, Class<?> defaultClass, boolean checkHandler) {
+		//log.trace("Classloaders - TCL: {} Default: {}", Thread.currentThread().getContextClassLoader(), (defaultClass != null ? defaultClass.getClassLoader(): null));
 		if (scope == null || intf == null) {
 			return null;
 		}
