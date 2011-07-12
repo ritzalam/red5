@@ -925,6 +925,13 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		return new VideoData(in.asReadOnlyBuffer());
 	}
 
+	/**
+	 * Decodes stream meta data, to include onMetaData, onCuePoint, and onFI.
+	 * 
+	 * @param in
+	 * @param rtmp
+	 * @return Notify
+	 */
 	@SuppressWarnings("unchecked")
 	public Notify decodeStreamMetadata(IoBuffer in, RTMP rtmp) {
 		Input input;
@@ -941,7 +948,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		byte dataType = input.readDataType();
 		if (dataType == DataTypes.CORE_STRING) {
 			String setData = input.readString(String.class);
-			if (setData.equals("@setDataFrame")) {
+			if ("@setDataFrame".equals(setData)) {
 				//get the second datatype
 				byte dataType2 = input.readDataType();
 				log.debug("Dataframe method type: {}", dataType2);
@@ -968,11 +975,35 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 
 				buf.flip();
 				return new Notify(buf);
+			} else if ("onFI".equals(setData)) {
+				// The onFI request contains 2 items relative to the publishing client application
+				// sd = system date (12-07-2011)
+				// st = system time (09:11:33.387)
+				byte object = input.readDataType();
+				log.debug("onFI params type: {}", object);
+				Map<Object, Object> params;
+				if (object == DataTypes.CORE_MAP) {
+					// The params are sent as a Mixed-Array
+					params = (Map<Object, Object>) input.readMap(deserializer, null);
+				} else {
+					// Read the params as a standard object
+					params = (Map<Object, Object>) input.readObject(deserializer, Object.class);
+				}
+				log.debug("onFI params: {}", params.toString());
 			} else {
 				log.info("Unhandled request: {}", setData);
+				if (log.isDebugEnabled()) {
+					byte object = input.readDataType();
+					log.debug("Params type: {}", object);
+					if (object == DataTypes.CORE_MAP) {
+						Map<Object, Object> params = (Map<Object, Object>) input.readMap(deserializer, null);
+						log.debug("Params: {}", params.toString());
+					} else {
+						log.debug("The unknown request was did not provide a parameter map");
+					}
+				}
 			}
 		}
-
 		return new Notify(in.asReadOnlyBuffer());
 	}
 
@@ -997,15 +1028,12 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		FlexMessage msg = new FlexMessage();
 		msg.setInvokeId(invokeId);
 		Object[] params = new Object[] {};
-
 		if (in.hasRemaining()) {
 			ArrayList<Object> paramList = new ArrayList<Object>();
-
 			final Object obj = deserializer.deserialize(input, Object.class);
 			if (obj != null) {
 				paramList.add(obj);
 			}
-
 			while (in.hasRemaining()) {
 				// Check for AMF3 encoding of parameters
 				byte tmp = in.get();
@@ -1021,17 +1049,16 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 			}
 			params = paramList.toArray();
 			if (log.isDebugEnabled()) {
-				log.debug("Num params: {}", paramList.size());
+				log.debug("Parameter count: {}", paramList.size());
 				for (int i = 0; i < params.length; i++) {
 					log.info(" > {}: {}", i, params[i]);
 				}
 			}
 		}
-
 		final int dotIndex = action.lastIndexOf('.');
 		String serviceName = (dotIndex == -1) ? null : action.substring(0, dotIndex);
 		String serviceMethod = (dotIndex == -1) ? action : action.substring(dotIndex + 1, action.length());
-
+		log.debug("Service name: {} method: {}", serviceName, serviceMethod);
 		PendingCall call = new PendingCall(serviceName, serviceMethod, params);
 		msg.setCall(call);
 		return msg;

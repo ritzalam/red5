@@ -149,6 +149,8 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 					}
 					break;
 				case TYPE_FLEX_STREAM_SEND:
+					log.trace("Marking flex stream message as originating from a Live source");
+					message.setSourceType(Constants.SOURCE_TYPE_LIVE);
 					if (stream != null) {
 						((IEventDispatcher) stream).dispatchEvent(message);
 					}

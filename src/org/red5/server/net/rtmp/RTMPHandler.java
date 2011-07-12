@@ -190,18 +190,16 @@ public class RTMPHandler extends BaseRTMPHandler {
 		log.debug("Invoke: {}", invoke);
 		// Get call
 		final IServiceCall call = invoke.getCall();
+		//log.debug("Call: {}", call);
 		// method name
 		final String action = call.getServiceMethodName();
-
 		// If it's a callback for server remote call then pass it over to
 		// callbacks handler and return
 		if ("_result".equals(action) || "_error".equals(action)) {
 			handlePendingCallResult(conn, invoke);
 			return;
 		}
-
 		boolean disconnectOnReturn = false;
-
 		// If this is not a service call then handle connection...
 		if (call.getServiceName() == null) {
 			log.debug("call: {}", call);
@@ -342,7 +340,6 @@ public class RTMPHandler extends BaseRTMPHandler {
 					log.error("Error connecting {}", e);
 					disconnectOnReturn = true;
 				}
-
 				// Evaluate request for AMF3 encoding
 				if (Integer.valueOf(3).equals(params.get("objectEncoding")) && call instanceof IPendingServiceCall) {
 					Object pcResult = ((IPendingServiceCall) call).getResult();
@@ -360,7 +357,6 @@ public class RTMPHandler extends BaseRTMPHandler {
 						result.put("objectEncoding", 3);
 						((IPendingServiceCall) call).setResult(result);
 					}
-
 					rtmp.setEncoding(Encoding.AMF3);
 				}
 			} else {
@@ -413,14 +409,12 @@ public class RTMPHandler extends BaseRTMPHandler {
 			log.warn("Not connected, closing connection");
 			conn.close();
 		}
-
 		if (invoke instanceof Invoke) {
 			if ((source.getStreamId() != 0) && (call.getStatus() == Call.STATUS_SUCCESS_VOID || call.getStatus() == Call.STATUS_SUCCESS_NULL)) {
 				// This fixes a bug in the FP on Intel Macs.
 				log.debug("Method does not have return value, do not reply");
 				return;
 			}
-
 			boolean sendResult = true;
 			if (call instanceof IPendingServiceCall) {
 				IPendingServiceCall psc = (IPendingServiceCall) call;
@@ -435,7 +429,6 @@ public class RTMPHandler extends BaseRTMPHandler {
 					sendResult = false;
 				}
 			}
-
 			if (sendResult) {
 				// The client expects a result for the method call.
 				Invoke reply = new Invoke();

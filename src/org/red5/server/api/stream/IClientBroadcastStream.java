@@ -1,5 +1,7 @@
 package org.red5.server.api.stream;
 
+import java.util.Map;
+
 import org.red5.server.api.statistics.IClientBroadcastStreamStatistics;
 
 /*
@@ -26,6 +28,7 @@ import org.red5.server.api.statistics.IClientBroadcastStreamStatistics;
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public interface IClientBroadcastStream extends IClientStream, IBroadcastStream {
 
@@ -40,5 +43,19 @@ public interface IClientBroadcastStream extends IClientStream, IBroadcastStream 
 	 * @return statistics
 	 */
 	public IClientBroadcastStreamStatistics getStatistics();
+
+	/**
+	 * Sets streaming parameters as supplied by the publishing application.
+	 * 
+	 * @param params
+	 */
+	public void setParameters(Map<String, String> params);
+	
+	/**
+	 * Returns streaming parameters.
+	 * 
+	 * @return parameters
+	 */
+	public Map<String, String> getParameters();
 	
 }
