@@ -387,13 +387,10 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			case 0:
 				//get source input without create
 				msgIn = providerService.getLiveProviderInput(thisScope, itemName, false);
-
 				//drop all frames up to the next keyframe
 				videoFrameDropper.reset(IFrameDropper.SEND_KEYFRAMES_CHECK);
-
 				if (msgIn instanceof IBroadcastScope) {
 					IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn).getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
-
 					if (stream != null && stream.getCodecInfo() != null) {
 						IVideoStreamCodec videoCodec = stream.getCodecInfo().getVideoCodec();
 						if (videoCodec != null) {
@@ -744,10 +741,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 							// throw new OperationNotSupportedException();
 							throw new RuntimeException();
 						}
-
 						releasePendingMessage();
 						clearWaitJobs();
-
 						break;
 					default:
 						throw new IllegalStateException("Cannot seek in current state");
@@ -1422,6 +1417,12 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			RTMPMessage rtmpMessage = (RTMPMessage) message;
 			IRTMPEvent body = rtmpMessage.getBody();
 			if (body instanceof IStreamData) {
+				// the subscriber paused 
+				if (subscriberStream.getState() == StreamState.PAUSED) {
+					log.debug("Dropping packet because we are paused");
+					videoFrameDropper.dropPacket(rtmpMessage);
+					return;
+				}
 				if (body instanceof VideoData) {
 					IVideoStreamCodec videoCodec = null;
 					if (msgIn instanceof IBroadcastScope) {
@@ -1432,13 +1433,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 					}
 					//dont try to drop frames if video codec is null - related to SN-77
 					if (videoCodec != null && videoCodec.canDropFrames()) {
-						if (subscriberStream.getState() == StreamState.PAUSED) {
-							// The subscriber paused the video
-							log.debug("Dropping packet because we are paused");
-							videoFrameDropper.dropPacket(rtmpMessage);
-							return;
-						}
-
 						if (!receiveVideo) {
 							// The client disabled video or the app doesn't have enough bandwidth
 							// allowed for this stream.
@@ -1446,7 +1440,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 							videoFrameDropper.dropPacket(rtmpMessage);
 							return;
 						}
-
 						// Only check for frame dropping if the codec supports it
 						long pendingVideos = pendingVideoMessages();
 						if (!videoFrameDropper.canSendPacket(rtmpMessage, pendingVideos)) {
@@ -1454,7 +1447,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 							log.debug("Dropping packet because frame dropper says we cant send it");
 							return;
 						}
-
 						// increment the number of times we had pending video frames sequentially
 						if (pendingVideos > 1) {
 							numSequentialPendingVideoFrames++;
@@ -1486,7 +1478,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 							body.setTimestamp(0);
 						}
 						rtmpMessage = RTMPMessage.build(body);
-					} else if (subscriberStream.getState() == StreamState.PAUSED || !receiveAudio) {
+					} else if (!receiveAudio) {
 						return;
 					}
 				}

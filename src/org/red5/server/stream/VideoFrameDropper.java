@@ -75,102 +75,93 @@ public class VideoFrameDropper implements IFrameDropper {
 	/** {@inheritDoc} */
 	public boolean canSendPacket(RTMPMessage message, long pending) {
 		IRTMPEvent packet = message.getBody();
-		if (!(packet instanceof VideoData)) {
-			// We currently only drop video packets.
-			return true;
-		}
-
-		VideoData video = (VideoData) packet;
-		FrameType type = video.getFrameType();
-		boolean result = false;
-		switch (state) {
-			case SEND_ALL:
-				// All packets will be sent.
-				result = true;
-				break;
-			case SEND_INTERFRAMES:
-				// Only keyframes and interframes will be sent.
-				if (type == FrameType.KEYFRAME) {
-					if (pending == 0) {
-						// Send all frames from now on.
-						state = SEND_ALL;
+		boolean result = true;
+		// We currently only drop video packets.
+		if (packet instanceof VideoData) {
+			VideoData video = (VideoData) packet;
+			FrameType type = video.getFrameType();
+			switch (state) {
+				case SEND_ALL:
+					// All packets will be sent
+					break;
+				case SEND_INTERFRAMES:
+					// Only keyframes and interframes will be sent.
+					if (type == FrameType.KEYFRAME) {
+						if (pending == 0) {
+							// Send all frames from now on.
+							state = SEND_ALL;
+						}
+					} else if (type == FrameType.INTERFRAME) {
 					}
-					result = true;
-				} else if (type == FrameType.INTERFRAME) {
-					result = true;
-				}
-				break;
-			case SEND_KEYFRAMES:
-				// Only keyframes will be sent.
-				result = (type == FrameType.KEYFRAME);
-				if (result && pending == 0) {
-					// Maybe switch back to SEND_INTERFRAMES after the next keyframe
-					state = SEND_KEYFRAMES_CHECK;
-				}
-				break;
-			case SEND_KEYFRAMES_CHECK:
-				// Only keyframes will be sent.
-				result = (type == FrameType.KEYFRAME);
-				if (result && pending == 0) {
-					// Continue with sending interframes as well
-					state = SEND_INTERFRAMES;
-				}
-				break;
-			default:
+					break;
+				case SEND_KEYFRAMES:
+					// Only keyframes will be sent.
+					result = (type == FrameType.KEYFRAME);
+					if (result && pending == 0) {
+						// Maybe switch back to SEND_INTERFRAMES after the next keyframe
+						state = SEND_KEYFRAMES_CHECK;
+					}
+					break;
+				case SEND_KEYFRAMES_CHECK:
+					// Only keyframes will be sent.
+					result = (type == FrameType.KEYFRAME);
+					if (result && pending == 0) {
+						// Continue with sending interframes as well
+						state = SEND_INTERFRAMES;
+					}
+					break;
+				default:
+			}
 		}
-
 		return result;
 	}
 
 	/** {@inheritDoc} */
 	public void dropPacket(RTMPMessage message) {
 		IRTMPEvent packet = message.getBody();
-		if (!(packet instanceof VideoData)) {
-			// Only check video packets.
-			return;
-		}
-
-		VideoData video = (VideoData) packet;
-		FrameType type = video.getFrameType();
-
-		switch (state) {
-			case SEND_ALL:
-				if (type == FrameType.DISPOSABLE_INTERFRAME) {
-					// Remain in state, packet is safe to drop.
-					return;
-				} else if (type == FrameType.INTERFRAME) {
-					// Drop all frames until the next keyframe.
-					state = SEND_KEYFRAMES;
-					return;
-				} else if (type == FrameType.KEYFRAME) {
-					// Drop all frames until the next keyframe.
-					state = SEND_KEYFRAMES;
-					return;
-				}
-				break;
-			case SEND_INTERFRAMES:
-				if (type == FrameType.INTERFRAME) {
-					// Drop all frames until the next keyframe.
-					state = SEND_KEYFRAMES_CHECK;
-					return;
-				} else if (type == FrameType.KEYFRAME) {
-					// Drop all frames until the next keyframe.
-					state = SEND_KEYFRAMES;
-					return;
-				}
-				break;
-			case SEND_KEYFRAMES:
-				// Remain in state.
-				break;
-			case SEND_KEYFRAMES_CHECK:
-				if (type == FrameType.KEYFRAME) {
-					// Switch back to sending keyframes, but don't move to
-					// SEND_INTERFRAMES afterwards.
-					state = SEND_KEYFRAMES;
-					return;
-				}
-				break;
-			default:
+		// Only check video packets.
+		if (packet instanceof VideoData) {
+			VideoData video = (VideoData) packet;
+			FrameType type = video.getFrameType();
+			switch (state) {
+				case SEND_ALL:
+					if (type == FrameType.DISPOSABLE_INTERFRAME) {
+						// Remain in state, packet is safe to drop.
+						return;
+					} else if (type == FrameType.INTERFRAME) {
+						// Drop all frames until the next keyframe.
+						state = SEND_KEYFRAMES;
+						return;
+					} else if (type == FrameType.KEYFRAME) {
+						// Drop all frames until the next keyframe.
+						state = SEND_KEYFRAMES;
+						return;
+					}
+					break;
+				case SEND_INTERFRAMES:
+					if (type == FrameType.INTERFRAME) {
+						// Drop all frames until the next keyframe.
+						state = SEND_KEYFRAMES_CHECK;
+						return;
+					} else if (type == FrameType.KEYFRAME) {
+						// Drop all frames until the next keyframe.
+						state = SEND_KEYFRAMES;
+						return;
+					}
+					break;
+				case SEND_KEYFRAMES:
+					// Remain in state.
+					break;
+				case SEND_KEYFRAMES_CHECK:
+					if (type == FrameType.KEYFRAME) {
+						// Switch back to sending keyframes, but don't move to
+						// SEND_INTERFRAMES afterwards.
+						state = SEND_KEYFRAMES;
+						return;
+					}
+					break;
+				default:
+			}
 		}
 	}
 

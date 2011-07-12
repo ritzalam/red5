@@ -93,19 +93,18 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	 * will be dropped.
 	 */
 	private long midTolerance = baseTolerance + (long) (baseTolerance * 0.3);
-	
+
 	/**
 	 * Highest tardiness level before dropping key frames
 	 */
 	private long highestTolerance = baseTolerance + (long) (baseTolerance * 0.6);
 
-	
 	/**
 	 * Indicates if we should drop live packets with future timestamp 
 	 * (i.e, when publisher bandwidth is limited) - EXPERIMENTAL
 	 * */
 	private boolean dropLiveFuture = false;
-	
+
 	/**
 	 * Encodes object with given protocol state to byte buffer
 	 * 
@@ -230,13 +229,12 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 					// client buffer cleared, make sure to reset timestamps for this stream
 					final int channel = (4 + ((pingMessage.getValue2() - 1) * 5));
 					rtmp.setLastTimestampMapping(channel, null);
-					rtmp.setLastTimestampMapping(channel+1, null);
-					rtmp.setLastTimestampMapping(channel+2, null);
+					rtmp.setLastTimestampMapping(channel + 1, null);
+					rtmp.setLastTimestampMapping(channel + 2, null);
 				}
 				// never drop pings
 				return false;
 			}
-			
 			//we only drop audio or video data
 			if ((isVideo = message instanceof VideoData) || message instanceof AudioData) {
 				if (message.getTimestamp() == 0) {
@@ -244,11 +242,9 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 					// MP4 seeking and therefore mess with the timestamp mapping
 					return false;
 				}
-				
 				//determine working type
 				boolean isLive = message.getSourceType() == Constants.SOURCE_TYPE_LIVE;
 				log.trace("Connection type: {}", (isLive ? "Live" : "VOD"));
-
 				long timestamp = (message.getTimestamp() & 0xFFFFFFFFL);
 				LiveTimestampMapping mapping = rtmp.getLastTimestampMapping(channelId);
 				// just get the current time ONCE per packet
@@ -529,7 +525,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 				call = ((Notify) message).getCall();
 				if (call == null) {
 					return encodeStreamMetadata((Notify) message);
-				} else {				
+				} else {
 					return encodeNotify((Notify) message, rtmp);
 				}
 			case TYPE_PING:
@@ -904,7 +900,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 			status.setApplication(((ClientDetailsException) error).getParameters());
 			if (((ClientDetailsException) error).includeStacktrace()) {
 				List<String> stack = new ArrayList<String>();
-				for (StackTraceElement element: error.getStackTrace()) {
+				for (StackTraceElement element : error.getStackTrace()) {
 					stack.add(element.toString());
 				}
 				status.setAdditional("stacktrace", stack);
@@ -913,7 +909,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 			status.setApplication(error.getClass().getCanonicalName());
 		}
 		return status;
-	}	
+	}
 
 	/**
 	 * Encodes Flex message event.
@@ -948,14 +944,14 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	 */
 	public void setSerializer(org.red5.io.object.Serializer serializer) {
 		this.serializer = serializer;
-	}	
-	
+	}
+
 	public void setBaseTolerance(long baseTolerance) {
 		this.baseTolerance = baseTolerance;
 		//update high and low tolerance
 		updateTolerance();
 	}
-	
+
 	/**
 	 *   Setter for dropLiveFuture
 	 * */

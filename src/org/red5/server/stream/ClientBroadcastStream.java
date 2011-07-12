@@ -147,6 +147,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	protected String publishedName;
 
 	/**
+	 * Streaming parameters
+	 */
+	protected Map<String, String> parameters;
+	
+	/**
 	 * Whether we are recording or not
 	 */
 	private volatile boolean recording;
@@ -445,6 +450,16 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		return publishedName;
 	}
 
+	/** {@inheritDoc} */
+	public void setParameters(Map<String, String> params) {
+		this.parameters = params;
+	}
+
+	/** {@inheritDoc} */
+	public Map<String, String> getParameters() {
+		return parameters;
+	}	
+	
 	/** {@inheritDoc} */
 	public String getSaveFilename() {
 		return recordingFilename;
