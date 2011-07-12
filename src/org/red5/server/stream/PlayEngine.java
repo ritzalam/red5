@@ -352,7 +352,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		boolean sendNotifications = true;
 
 		// decision: 0 for Live, 1 for File, 2 for Wait, 3 for N/A
-
 		switch (type) {
 			case -2:
 				if (isPublishedStream) {
@@ -363,7 +362,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 					playDecision = 2;
 				}
 				break;
-
 			case -1:
 				if (isPublishedStream) {
 					playDecision = 0;
@@ -371,7 +369,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 					playDecision = 2;
 				}
 				break;
-
 			default:
 				if (isFileStream) {
 					playDecision = 1;
@@ -1481,6 +1478,10 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 					} else if (!receiveAudio) {
 						return;
 					}
+				}
+				// ensure that live data is marked as coming from a live source
+				if (playDecision != 1) {
+					rtmpMessage.getBody().setSourceType(Constants.SOURCE_TYPE_LIVE);
 				}
 				sendMessage(rtmpMessage);
 			} else {

@@ -150,7 +150,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 * Streaming parameters
 	 */
 	protected Map<String, String> parameters;
-	
+
 	/**
 	 * Whether we are recording or not
 	 */
@@ -229,168 +229,175 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 * @param event          Event to dispatch
 	 */
 	public void dispatchEvent(IEvent event) {
-		if (!(event instanceof IRTMPEvent) && (event.getType() != IEvent.Type.STREAM_CONTROL) && (event.getType() != IEvent.Type.STREAM_DATA) || closed) {
-			// ignored event
-			log.debug("dispatchEvent: {}", event.getType());
-			return;
-		}
-		// get stream codec
-		IStreamCodecInfo codecInfo = getCodecInfo();
-		StreamCodecInfo info = null;
-		if (codecInfo instanceof StreamCodecInfo) {
-			info = (StreamCodecInfo) codecInfo;
-		}
-		// create the event
-		IRTMPEvent rtmpEvent;
-		try {
-			rtmpEvent = (IRTMPEvent) event;
-		} catch (ClassCastException e) {
-			log.error("Class cast exception in event dispatch", e);
-			return;
-		}
-		int eventTime = -1;
-		if (log.isTraceEnabled()) {
-			// If this is first packet save its timestamp; expect it is
-			// absolute? no matter: it's never used!
-			if (firstPacketTime == -1) {
-				firstPacketTime = rtmpEvent.getTimestamp();
-				log.trace(String.format("CBS=@%08x: rtmpEvent=%s creation=%s firstPacketTime=%d", System.identityHashCode(this), rtmpEvent.getClass().getSimpleName(),
-						creationTime, firstPacketTime));
-			} else {
-				log.trace(String.format("CBS=@%08x: rtmpEvent=%s creation=%s firstPacketTime=%d timestamp=%d", System.identityHashCode(this), rtmpEvent.getClass().getSimpleName(),
-						creationTime, firstPacketTime, rtmpEvent.getTimestamp()));
-			}
-
-		}
-		//get the buffer only once per call
-		IoBuffer buf = null;
-		if (rtmpEvent instanceof IStreamData && (buf = ((IStreamData<?>) rtmpEvent).getData()) != null) {
-			bytesReceived += buf.limit();
-		}
-		if (rtmpEvent instanceof AudioData) {
-			// SplitmediaLabs - begin AAC fix
-			IAudioStreamCodec audioStreamCodec = null;
-			if (checkAudioCodec) {
-				audioStreamCodec = AudioCodecFactory.getAudioCodec(buf);
-				if (info != null) {
-					info.setAudioCodec(audioStreamCodec);
-				}
-				checkAudioCodec = false;
-			} else if (codecInfo != null) {
-				audioStreamCodec = codecInfo.getAudioCodec();
-			}
-			if (audioStreamCodec != null) {
-				audioStreamCodec.addData(buf.asReadOnlyBuffer());
-			}
-			if (info != null) {
-				info.setHasAudio(true);
-			}
-			eventTime = rtmpEvent.getTimestamp();
-			log.trace("Audio: {}", eventTime);
-		} else if (rtmpEvent instanceof VideoData) {
-			IVideoStreamCodec videoStreamCodec = null;
-			if (checkVideoCodec) {
-				videoStreamCodec = VideoCodecFactory.getVideoCodec(buf);
-				if (info != null) {
-					info.setVideoCodec(videoStreamCodec);
-				}
-				checkVideoCodec = false;
-			} else if (codecInfo != null) {
-				videoStreamCodec = codecInfo.getVideoCodec();
-			}
-			if (videoStreamCodec != null) {
-				videoStreamCodec.addData(buf.asReadOnlyBuffer());
-			}
-			if (info != null) {
-				info.setHasVideo(true);
-			}
-			eventTime = rtmpEvent.getTimestamp();
-			log.trace("Video: {}", eventTime);
-		} else if (rtmpEvent instanceof Invoke) {
-			eventTime = rtmpEvent.getTimestamp();
-			//do we want to return from here?
-			//event / stream listeners will not be notified of invokes
-			return;
-		} else if (rtmpEvent instanceof Notify) {
-			//TDJ: store METADATA
-			Notify notifyEvent = (Notify) rtmpEvent;
-			if (metaData == null && notifyEvent.getHeader().getDataType() == Notify.TYPE_STREAM_METADATA) {
-				try {
-					metaData = notifyEvent.duplicate();
-				} catch (Exception e) {
-					log.warn("Metadata could not be duplicated for this stream", e);
-				}
-			}
-			eventTime = rtmpEvent.getTimestamp();
-		}
-		// update last event time
-		if (eventTime > latestTimeStamp) {
-			latestTimeStamp = eventTime;
-		}
-		// notify event listeners
-		checkSendNotifications(event);
-		// note this timestamp is set in event/body but not in the associated header
-		try {
-			// route to recording
-			if (recording) {
-				if (recordPipe != null) {
-					int bufferLimit = buf.limit();
-					if (bufferLimit > 0) {
-						// make a copy for the record pipe
-						buf.mark();
-						byte[] buffer = new byte[bufferLimit];
-						buf.get(buffer);
-						buf.reset();
-						// Create new RTMP message, initialize it and push through pipe
-						RTMPMessage msg = null;
-						if (rtmpEvent instanceof AudioData) {
-							AudioData audio = new AudioData(IoBuffer.wrap(buffer));
-							audio.setTimestamp(eventTime);
-							msg = RTMPMessage.build(audio);
-						} else if (rtmpEvent instanceof VideoData) {
-							VideoData video = new VideoData(IoBuffer.wrap(buffer));
-							video.setTimestamp(eventTime);
-							msg = RTMPMessage.build(video);
-						} else if (rtmpEvent instanceof Notify) {
-							Notify not = new Notify(IoBuffer.wrap(buffer));
-							not.setTimestamp(eventTime);
-							msg = RTMPMessage.build(not);
-						} else {
-							log.info("Data was not of A/V type: {}", rtmpEvent.getType());
-							msg = RTMPMessage.build(rtmpEvent, eventTime);
-						}
-						// push it down to the recorder
-						recordPipe.pushMessage(msg);
-					} else {
-						log.debug("Stream data size was 0, recording pipe will not be notified");
+		if (event instanceof IRTMPEvent && !closed) {
+			switch (event.getType()) {
+				case STREAM_CONTROL:
+				case STREAM_DATA:
+					// create the event
+					IRTMPEvent rtmpEvent;
+					try {
+						rtmpEvent = (IRTMPEvent) event;
+					} catch (ClassCastException e) {
+						log.error("Class cast exception in event dispatch", e);
+						return;
 					}
-				} else {
-					log.debug("Record pipe was null, message was not pushed");
-				}
-			} else {
-				log.trace("Recording not active");
+					int eventTime = -1;
+					if (log.isTraceEnabled()) {
+						// If this is first packet save its timestamp; expect it is
+						// absolute? no matter: it's never used!
+						if (firstPacketTime == -1) {
+							firstPacketTime = rtmpEvent.getTimestamp();
+							log.trace(String.format("CBS=@%08x: rtmpEvent=%s creation=%s firstPacketTime=%d", System.identityHashCode(this), rtmpEvent.getClass().getSimpleName(),
+									creationTime, firstPacketTime));
+						} else {
+							log.trace(String.format("CBS=@%08x: rtmpEvent=%s creation=%s firstPacketTime=%d timestamp=%d", System.identityHashCode(this), rtmpEvent.getClass()
+									.getSimpleName(), creationTime, firstPacketTime, rtmpEvent.getTimestamp()));
+						}
+
+					}
+					//get the buffer only once per call
+					IoBuffer buf = null;
+					if (rtmpEvent instanceof IStreamData && (buf = ((IStreamData<?>) rtmpEvent).getData()) != null) {
+						bytesReceived += buf.limit();
+					}
+					// get stream codec
+					IStreamCodecInfo codecInfo = getCodecInfo();
+					StreamCodecInfo info = null;
+					if (codecInfo instanceof StreamCodecInfo) {
+						info = (StreamCodecInfo) codecInfo;
+					}
+					if (rtmpEvent instanceof AudioData) {
+						// SplitmediaLabs - begin AAC fix
+						IAudioStreamCodec audioStreamCodec = null;
+						if (checkAudioCodec) {
+							audioStreamCodec = AudioCodecFactory.getAudioCodec(buf);
+							if (info != null) {
+								info.setAudioCodec(audioStreamCodec);
+							}
+							checkAudioCodec = false;
+						} else if (codecInfo != null) {
+							audioStreamCodec = codecInfo.getAudioCodec();
+						}
+						if (audioStreamCodec != null) {
+							audioStreamCodec.addData(buf.asReadOnlyBuffer());
+						}
+						if (info != null) {
+							info.setHasAudio(true);
+						}
+						eventTime = rtmpEvent.getTimestamp();
+						log.trace("Audio: {}", eventTime);
+					} else if (rtmpEvent instanceof VideoData) {
+						IVideoStreamCodec videoStreamCodec = null;
+						if (checkVideoCodec) {
+							videoStreamCodec = VideoCodecFactory.getVideoCodec(buf);
+							if (info != null) {
+								info.setVideoCodec(videoStreamCodec);
+							}
+							checkVideoCodec = false;
+						} else if (codecInfo != null) {
+							videoStreamCodec = codecInfo.getVideoCodec();
+						}
+						if (videoStreamCodec != null) {
+							videoStreamCodec.addData(buf.asReadOnlyBuffer());
+						}
+						if (info != null) {
+							info.setHasVideo(true);
+						}
+						eventTime = rtmpEvent.getTimestamp();
+						log.trace("Video: {}", eventTime);
+					} else if (rtmpEvent instanceof Invoke) {
+						eventTime = rtmpEvent.getTimestamp();
+						//do we want to return from here?
+						//event / stream listeners will not be notified of invokes
+						return;
+					} else if (rtmpEvent instanceof Notify) {
+						//TDJ: store METADATA
+						Notify notifyEvent = (Notify) rtmpEvent;
+						if (metaData == null && notifyEvent.getHeader().getDataType() == Notify.TYPE_STREAM_METADATA) {
+							try {
+								metaData = notifyEvent.duplicate();
+							} catch (Exception e) {
+								log.warn("Metadata could not be duplicated for this stream", e);
+							}
+						}
+						eventTime = rtmpEvent.getTimestamp();
+					}
+					// update last event time
+					if (eventTime > latestTimeStamp) {
+						latestTimeStamp = eventTime;
+					}
+					// notify event listeners
+					checkSendNotifications(event);
+					// note this timestamp is set in event/body but not in the associated header
+					try {
+						// route to recording
+						if (recording) {
+							if (recordPipe != null) {
+								int bufferLimit = buf.limit();
+								if (bufferLimit > 0) {
+									// make a copy for the record pipe
+									buf.mark();
+									byte[] buffer = new byte[bufferLimit];
+									buf.get(buffer);
+									buf.reset();
+									// Create new RTMP message, initialize it and push through pipe
+									RTMPMessage msg = null;
+									if (rtmpEvent instanceof AudioData) {
+										AudioData audio = new AudioData(IoBuffer.wrap(buffer));
+										audio.setTimestamp(eventTime);
+										msg = RTMPMessage.build(audio);
+									} else if (rtmpEvent instanceof VideoData) {
+										VideoData video = new VideoData(IoBuffer.wrap(buffer));
+										video.setTimestamp(eventTime);
+										msg = RTMPMessage.build(video);
+									} else if (rtmpEvent instanceof Notify) {
+										Notify not = new Notify(IoBuffer.wrap(buffer));
+										not.setTimestamp(eventTime);
+										msg = RTMPMessage.build(not);
+									} else {
+										log.info("Data was not of A/V type: {}", rtmpEvent.getType());
+										msg = RTMPMessage.build(rtmpEvent, eventTime);
+									}
+									// push it down to the recorder
+									recordPipe.pushMessage(msg);
+								} else {
+									log.debug("Stream data size was 0, recording pipe will not be notified");
+								}
+							} else {
+								log.debug("Record pipe was null, message was not pushed");
+							}
+						} else {
+							log.trace("Recording not active");
+						}
+						// route to live
+						if (livePipe != null) {
+							// create new RTMP message, initialize it and push through pipe
+							RTMPMessage msg = RTMPMessage.build(rtmpEvent, eventTime);
+							livePipe.pushMessage(msg);
+						} else {
+							log.debug("Live pipe was null, message was not pushed");
+						}
+					} catch (IOException err) {
+						sendRecordFailedNotify(err.getMessage());
+						stop();
+					}
+					// Notify listeners about received packet
+					if (rtmpEvent instanceof IStreamPacket) {
+						for (IStreamListener listener : getStreamListeners()) {
+							try {
+								listener.packetReceived(this, (IStreamPacket) rtmpEvent);
+							} catch (Exception e) {
+								log.error("Error while notifying listener {}", listener, e);
+							}
+						}
+					}
+					break;
+				default:
+					// ignored event
+					log.debug("Ignoring event: {}", event.getType());
 			}
-			// route to live
-			if (livePipe != null) {
-				// create new RTMP message, initialize it and push through pipe
-				RTMPMessage msg = RTMPMessage.build(rtmpEvent, eventTime);
-				livePipe.pushMessage(msg);
-			} else {
-				log.debug("Live pipe was null, message was not pushed");
-			}
-		} catch (IOException err) {
-			sendRecordFailedNotify(err.getMessage());
-			stop();
-		}
-		// Notify listeners about received packet
-		if (rtmpEvent instanceof IStreamPacket) {
-			for (IStreamListener listener : getStreamListeners()) {
-				try {
-					listener.packetReceived(this, (IStreamPacket) rtmpEvent);
-				} catch (Exception e) {
-					log.error("Error while notifying listener {}", listener, e);
-				}
-			}
+		} else {
+			log.debug("Event was of wrong type or stream is closed ({})", closed);
 		}
 	}
 
@@ -458,8 +465,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	/** {@inheritDoc} */
 	public Map<String, String> getParameters() {
 		return parameters;
-	}	
-	
+	}
+
 	/** {@inheritDoc} */
 	public String getSaveFilename() {
 		return recordingFilename;
@@ -864,6 +871,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		log.info("Stream start");
 		IConsumerService consumerManager = (IConsumerService) getScope().getContext().getBean(IConsumerService.KEY);
 		checkVideoCodec = true;
+		checkAudioCodec = true;
 		firstPacketTime = -1;
 		latestTimeStamp = -1;
 		connMsgOut = consumerManager.getConsumerOutput(this);
