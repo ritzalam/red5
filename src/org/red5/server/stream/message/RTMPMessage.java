@@ -78,5 +78,18 @@ public class RTMPMessage extends AbstractMessage {
 	public final static RTMPMessage build(IRTMPEvent body, int eventTime) {
 		return new RTMPMessage(body, eventTime);
 	}
+
+	/**
+	 * Builder for RTMPMessage.
+	 * 
+	 * @param body event data
+	 * @param sourceType live or vod
+	 * @return Immutable RTMPMessage
+	 */
+	public final static RTMPMessage build(IRTMPEvent body, byte sourceType) {
+		RTMPMessage msg = new RTMPMessage(body);
+		msg.body.setSourceType(sourceType);
+		return msg;
+	}
 	
 }
