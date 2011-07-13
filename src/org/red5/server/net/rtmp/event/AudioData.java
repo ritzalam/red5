@@ -96,12 +96,6 @@ public class AudioData extends BaseEvent implements IStreamData<AudioData>, IStr
 
 	/** {@inheritDoc} */
 	@Override
-	public String toString() {
-		return String.format("Audio - ts: %s length: %s", getTimestamp(), (data != null ? data.limit() : '0'));
-	}
-
-	/** {@inheritDoc} */
-	@Override
 	protected void releaseInternal() {
 		if (data != null) {
 			data.free();
@@ -129,17 +123,17 @@ public class AudioData extends BaseEvent implements IStreamData<AudioData>, IStr
 			out.writeObject(null);
 		}
 	}
-	
+
 	/**
-     * Duplicate this message / event.
-     * 
-     * @return  duplicated event
-     */
+	 * Duplicate this message / event.
+	 * 
+	 * @return  duplicated event
+	 */
 	public AudioData duplicate() throws IOException, ClassNotFoundException {
 		AudioData result = new AudioData();
 		// serialize
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ObjectOutputStream oos = new ObjectOutputStream(baos);		
+		ObjectOutputStream oos = new ObjectOutputStream(baos);
 		writeExternal(oos);
 		oos.close();
 		// convert to byte array
@@ -157,6 +151,12 @@ public class AudioData extends BaseEvent implements IStreamData<AudioData>, IStr
 			result.setHeader(header.clone());
 		}
 		return result;
-	}	
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public String toString() {
+		return String.format("Audio - ts: %s length: %s", getTimestamp(), (data != null ? data.limit() : '0'));
+	}
 	
 }
