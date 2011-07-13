@@ -99,6 +99,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	private static final Logger log = LoggerFactory.getLogger(ClientBroadcastStream.class);
 
 	/**
+	 * Whether or not to automatically record the associated stream.
+	 */
+	protected boolean automaticRecording;
+
+	/**
 	 * Total number of bytes received.
 	 */
 	protected long bytesReceived;
@@ -609,9 +614,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 */
 	public void saveAs(String name, boolean isAppend) throws IOException, ResourceNotFoundException, ResourceExistException {
 		log.debug("SaveAs - name: {} append: {}", name, isAppend);
-
 		Map<String, Object> recordParamMap = new HashMap<String, Object>(1);
-
 		//setup record objects
 		if (recordPipe == null) {
 			recordPipe = new InMemoryPushPushPipe();
@@ -620,7 +623,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			recordPipe.subscribe((IProvider) this, recordParamMap);
 			recordParamMap.clear();
 		}
-
 		// Get stream scope
 		IStreamCapableConnection conn = getConnection();
 		if (conn == null) {
@@ -630,7 +632,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		IScope scope = conn.getScope();
 		// Get stream filename generator
 		IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.class, DefaultStreamFilenameGenerator.class);
-
 		// Generate filename
 		recordingFilename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
 		// Get file for that filename
@@ -880,6 +881,15 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		closed = false;
 		bytesReceived = 0;
 		creationTime = System.currentTimeMillis();
+		// force recording
+		if (automaticRecording) {
+			log.debug("Starting automatic recording of {}", publishedName);
+			try {
+				saveAs(publishedName, false);
+			} catch (Exception e) {
+				log.warn("Start of automatic recording failed", e);
+			}
+		}
 	}
 
 	/** {@inheritDoc} */

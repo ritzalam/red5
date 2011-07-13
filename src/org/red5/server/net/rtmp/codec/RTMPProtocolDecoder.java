@@ -75,12 +75,12 @@ import org.slf4j.LoggerFactory;
 public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 
 	/**
-	 * Logger.
+	 * Logger
 	 */
 	protected static Logger log = LoggerFactory.getLogger(RTMPProtocolDecoder.class);
 
 	/**
-	 * Deserializer.
+	 * Deserializer
 	 */
 	private Deserializer deserializer;
 
@@ -539,9 +539,11 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				break;
 			case TYPE_AUDIO_DATA:
 				message = decodeAudioData(in);
+				message.setSourceType(Constants.SOURCE_TYPE_LIVE);
 				break;
 			case TYPE_VIDEO_DATA:
 				message = decodeVideoData(in);
+				message.setSourceType(Constants.SOURCE_TYPE_LIVE);
 				break;
 			case TYPE_FLEX_SHARED_OBJECT:
 				message = decodeFlexSharedObject(in, rtmp);

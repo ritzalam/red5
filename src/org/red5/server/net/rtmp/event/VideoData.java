@@ -38,62 +38,63 @@ import org.red5.server.stream.IStreamData;
 public class VideoData extends BaseEvent implements IoConstants, IStreamData<VideoData>, IStreamPacket {
 
 	private static final long serialVersionUID = 5538859593815804830L;
-    /**
-     * Videoframe type
-     */
-    public static enum FrameType {
+
+	/**
+	 * Videoframe type
+	 */
+	public static enum FrameType {
 		UNKNOWN, KEYFRAME, INTERFRAME, DISPOSABLE_INTERFRAME,
 	}
 
-    /**
-     * Video data
-     */
-    protected IoBuffer data;
+	/**
+	 * Video data
+	 */
+	protected IoBuffer data;
 
-    /**
-     * Data type
-     */
-    private byte dataType = TYPE_VIDEO_DATA;
+	/**
+	 * Data type
+	 */
+	private byte dataType = TYPE_VIDEO_DATA;
 
-    /**
-     * Frame type, unknown by default
-     */
-    protected FrameType frameType = FrameType.UNKNOWN;
+	/**
+	 * Frame type, unknown by default
+	 */
+	protected FrameType frameType = FrameType.UNKNOWN;
 
 	/** Constructs a new VideoData. */
-    public VideoData() {
+	public VideoData() {
 		this(IoBuffer.allocate(0).flip());
 	}
 
-    /**
-     * Create video data event with given data buffer
-     * @param data            Video data
-     */
-    public VideoData(IoBuffer data) {
+	/**
+	 * Create video data event with given data buffer
+	 * @param data            Video data
+	 */
+	public VideoData(IoBuffer data) {
 		super(Type.STREAM_DATA);
 		setData(data);
 	}
-
-    /**
-     * Create video data event with given data buffer
-     * @param data Video data
-     * @param copy true to use a copy of the data or false to use reference
-     */
-    public VideoData(IoBuffer data, boolean copy) {
+	
+	/**
+	 * Create video data event with given data buffer
+	 * @param data Video data
+	 * @param copy true to use a copy of the data or false to use reference
+	 */
+	public VideoData(IoBuffer data, boolean copy) {
 		super(Type.STREAM_DATA);
 		if (copy) {
 			byte[] array = new byte[data.limit()];
 			data.mark();
 			data.get(array);
 			data.reset();
-        	setData(array);
-    	} else {
-    		setData(data);
-    	}
-	}    
-    
+			setData(array);
+		} else {
+			setData(data);
+		}
+	}
+
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public byte getDataType() {
 		return dataType;
 	}
@@ -103,11 +104,11 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData<Vid
 	}
 
 	/** {@inheritDoc} */
-    public IoBuffer getData() {
+	public IoBuffer getData() {
 		return data;
 	}
-    
-    public void setData(IoBuffer data) {
+
+	public void setData(IoBuffer data) {
 		this.data = data;
 		if (data != null && data.limit() > 0) {
 			data.mark();
@@ -123,31 +124,25 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData<Vid
 			} else {
 				this.frameType = FrameType.UNKNOWN;
 			}
-		}		
+		}
 	}
 
-    public void setData(byte[] data) {
-    	this.data = IoBuffer.allocate(data.length);
+	public void setData(byte[] data) {
+		this.data = IoBuffer.allocate(data.length);
 		this.data.put(data).flip();
-    }
-
-    /** {@inheritDoc} */
-    @Override
-	public String toString() {
-		return String.format("Video - ts: %s length: %s", getTimestamp(), (data != null ? data.limit() : '0'));
 	}
 
 	/**
-     * Getter for frame type
-     *
-     * @return  Type of video frame
-     */
-    public FrameType getFrameType() {
+	 * Getter for frame type
+	 *
+	 * @return  Type of video frame
+	 */
+	public FrameType getFrameType() {
 		return frameType;
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	protected void releaseInternal() {
 		if (data != null) {
 			final IoBuffer localData = data;
@@ -181,17 +176,17 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData<Vid
 			out.writeObject(null);
 		}
 	}
-	
+
 	/**
-     * Duplicate this message / event.
-     * 
-     * @return  duplicated event
-     */
+	 * Duplicate this message / event.
+	 * 
+	 * @return  duplicated event
+	 */
 	public VideoData duplicate() throws IOException, ClassNotFoundException {
 		VideoData result = new VideoData();
 		// serialize
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ObjectOutputStream oos = new ObjectOutputStream(baos);		
+		ObjectOutputStream oos = new ObjectOutputStream(baos);
 		writeExternal(oos);
 		oos.close();
 		// convert to byte array
@@ -209,6 +204,12 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData<Vid
 			result.setHeader(header.clone());
 		}
 		return result;
-	}	
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public String toString() {
+		return String.format("Video - ts: %s length: %s", getTimestamp(), (data != null ? data.limit() : '0'));
+	}
 	
 }

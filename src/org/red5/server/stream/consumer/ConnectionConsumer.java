@@ -52,40 +52,40 @@ import org.slf4j.LoggerFactory;
 public class ConnectionConsumer implements IPushableConsumer, IPipeConnectionListener {
 
 	/**
-     * Logger
-     */
-    private static final Logger log = LoggerFactory.getLogger(ConnectionConsumer.class);
-    
-    /**
-     * Connection consumer class name
-     */
+	 * Logger
+	 */
+	private static final Logger log = LoggerFactory.getLogger(ConnectionConsumer.class);
+
+	/**
+	 * Connection consumer class name
+	 */
 	public static final String KEY = ConnectionConsumer.class.getName();
-    
+
 	/**
-     * Connection object
-     */
+	 * Connection object
+	 */
 	private RTMPConnection conn;
-    
+
 	/**
-     * Video channel
-     */
+	 * Video channel
+	 */
 	private Channel video;
-    
+
 	/**
-     * Audio channel
-     */
+	 * Audio channel
+	 */
 	private Channel audio;
-    
+
 	/**
-     * Data channel
-     */
+	 * Data channel
+	 */
 	private Channel data;
-	
-    /**
-     * Chunk size. Packets are sent chunk-by-chunk.
-     */
+
+	/**
+	 * Chunk size. Packets are sent chunk-by-chunk.
+	 */
 	private int chunkSize = 1024; //TODO: Not sure of the best value here
-	
+
 	/**
 	 * Whether or not the chunk size has been sent. This seems to be 
 	 * required for h264.
@@ -125,7 +125,7 @@ public class ConnectionConsumer implements IPushableConsumer, IPipeConnectionLis
 			IRTMPEvent msg = rtmpMsg.getBody();
 			// get timestamp
 			int eventTime = msg.getTimestamp();
-			log.debug("Message timestamp: {}", eventTime);		
+			log.debug("Message timestamp: {}", eventTime);
 			if (eventTime < 0) {
 				log.debug("Message has negative timestamp: {}", eventTime);
 				return;
@@ -148,11 +148,12 @@ public class ConnectionConsumer implements IPushableConsumer, IPipeConnectionLis
 					log.trace("Audio data");
 					buf = ((AudioData) msg).getData();
 					if (buf != null) {
-    					AudioData audioData = new AudioData(buf.asReadOnlyBuffer());
-    					audioData.setHeader(header);
-    					audioData.setTimestamp(header.getTimer());
-    					audioData.setSourceType(((AudioData)msg).getSourceType());
-    					audio.write(audioData);
+						AudioData audioData = new AudioData(buf.asReadOnlyBuffer());
+						audioData.setHeader(header);
+						audioData.setTimestamp(header.getTimer());
+						log.trace("Source type: {}", ((AudioData) msg).getSourceType());
+						audioData.setSourceType(((AudioData) msg).getSourceType());
+						audio.write(audioData);
 					} else {
 						log.warn("Audio data was not found");
 					}
@@ -161,17 +162,18 @@ public class ConnectionConsumer implements IPushableConsumer, IPipeConnectionLis
 					log.trace("Video data");
 					buf = ((VideoData) msg).getData();
 					if (buf != null) {
-    					VideoData videoData = new VideoData(buf.asReadOnlyBuffer());
-    					videoData.setHeader(header);
-    					videoData.setTimestamp(header.getTimer());
-    					videoData.setSourceType(((VideoData)msg).getSourceType());
-    					video.write(videoData);
+						VideoData videoData = new VideoData(buf.asReadOnlyBuffer());
+						videoData.setHeader(header);
+						videoData.setTimestamp(header.getTimer());
+						log.trace("Source type: {}", ((VideoData) msg).getSourceType());
+						videoData.setSourceType(((VideoData) msg).getSourceType());
+						video.write(videoData);
 					} else {
 						log.warn("Video data was not found");
 					}
 					break;
 				case Constants.TYPE_PING:
-					log.trace("Ping");	
+					log.trace("Ping");
 					Ping ping = new Ping((Ping) msg);
 					ping.setHeader(header);
 					conn.ping(ping);
@@ -202,7 +204,7 @@ public class ConnectionConsumer implements IPushableConsumer, IPipeConnectionLis
 					log.trace("Default: {}", dataType);
 					data.write(msg);
 			}
-			
+
 		} else {
 			log.debug("Unhandled push message: {}", message);
 			if (log.isTraceEnabled()) {
@@ -213,20 +215,20 @@ public class ConnectionConsumer implements IPushableConsumer, IPipeConnectionLis
 	}
 
 	/** {@inheritDoc} */
-    public void onPipeConnectionEvent(PipeConnectionEvent event) {
-    	switch (event.getType()) {
-    		case PipeConnectionEvent.PROVIDER_DISCONNECT:
-    			// XXX should put the channel release code in ConsumerService
+	public void onPipeConnectionEvent(PipeConnectionEvent event) {
+		switch (event.getType()) {
+			case PipeConnectionEvent.PROVIDER_DISCONNECT:
+				// XXX should put the channel release code in ConsumerService
 				conn.closeChannel(video.getId());
 				conn.closeChannel(audio.getId());
 				conn.closeChannel(data.getId());
-    			break;
-    		default:
-    	}
+				break;
+			default:
+		}
 	}
 
 	/** {@inheritDoc} */
-    public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
+	public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
 		if ("ConnectionConsumer".equals(oobCtrlMsg.getTarget())) {
 			String serviceName = oobCtrlMsg.getServiceName();
 			log.trace("Service name: {}", serviceName);
@@ -256,13 +258,13 @@ public class ConnectionConsumer implements IPushableConsumer, IPipeConnectionLis
 		}
 	}
 
-    /**
-     * Send the chunk size
-     */
+	/**
+	 * Send the chunk size
+	 */
 	private void sendChunkSize() {
 		log.debug("Sending chunk size: {}", chunkSize);
 		ChunkSize chunkSizeMsg = new ChunkSize(chunkSize);
-		conn.getChannel((byte) 2).write(chunkSizeMsg);		
+		conn.getChannel((byte) 2).write(chunkSizeMsg);
 		chunkSizeSent = true;
-	}    
+	}
 }

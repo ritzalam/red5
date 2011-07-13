@@ -1479,10 +1479,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 						return;
 					}
 				}
-				// ensure that live data is marked as coming from a live source
-				if (playDecision != 1) {
-					rtmpMessage.getBody().setSourceType(Constants.SOURCE_TYPE_LIVE);
-				}
 				sendMessage(rtmpMessage);
 			} else {
 				throw new RuntimeException(String.format("Expected IStreamData but got %s (type %s)", body.getClass(), body.getDataType()));
