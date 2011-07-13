@@ -268,9 +268,9 @@ public class FLVHeader {
 		// flags
 		buffer.put((byte) (FLV_HEADER_FLAG_HAS_AUDIO * (flagAudio ? 1 : 0) + FLV_HEADER_FLAG_HAS_VIDEO * (flagVideo ? 1 : 0)));
 		// data offset
-		buffer.putInt(9);
+		buffer.putInt(9 & 0xff);
 		// previous tag size 0 (this is the "first" tag)
-		buffer.putInt(0);
+		buffer.putInt(0 & 0xff);
 		buffer.flip();
 	}
 

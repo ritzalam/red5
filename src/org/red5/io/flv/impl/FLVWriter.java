@@ -196,8 +196,8 @@ public class FLVWriter implements ITagWriter {
 	 */
 	public void setFile(File file) {
 		if (this.file != null) {
-			log.debug("File was already set");
 			try {
+				log.debug("File was already set, current position: {}", this.file.getChannel().position());
 				this.file.close();
 			} catch (IOException e) {
 				log.warn("Problem closing existing file", e);
@@ -267,6 +267,7 @@ public class FLVWriter implements ITagWriter {
 		if (bodySize > 0) {
 			// ensure that the channel is still open
 			if (file != null) {
+				log.debug("Current file position: {}", file.getChannel().position());
 				// get the data type
 				byte dataType = tag.getDataType();
 				// set a var holding the entire tag size including the previous tag length
@@ -278,6 +279,8 @@ public class FLVWriter implements ITagWriter {
 				// get the current file offset
 				long fileOffset = file.getFilePointer();
 				log.debug("Current file offset: {} expected offset: {}", fileOffset, prevBytesWritten);
+				// get the timestamp
+				int timestamp = tag.getTimestamp() + offset;
 				// if we're writing non-meta tags do seeking and tag size update
 				if (dataType != ITag.TYPE_METADATA) {
 					if (fileOffset < prevBytesWritten && dataType != ITag.TYPE_METADATA) {
@@ -285,9 +288,12 @@ public class FLVWriter implements ITagWriter {
 						// it's necessary to seek to the length of the file
 						// so that we can append new tags
 						file.seek(prevBytesWritten);
+						log.debug("New file position: {}", file.getChannel().position());
 					}
+				} else {
+					// onMetaData must be ts == 0
+					timestamp = 0;
 				}
-				int timestamp = tag.getTimestamp() + offset;
 				// create an array big enough
 				byte[] bodyBuf = new byte[bodySize];
 				// put the bytes into the array
@@ -310,7 +316,8 @@ public class FLVWriter implements ITagWriter {
 				// Timestamp
 				//IOUtils.writeExtendedMediumInt(tagBuffer, timestamp); //4
 				IOUtils.writeMediumInt(tagBuffer, timestamp); //3
-				tagBuffer.put((byte) 0); //1
+				//tagBuffer.putShort((short) (timestamp >>> 8)); //3
+				tagBuffer.put((byte) (0x00 & 0xff)); //1
 				// Stream id
 				IOUtils.writeMediumInt(tagBuffer, 0); //3
 				log.trace("Tag buffer (after tag header) limit: {} remaining: {}", tagBuffer.limit(), tagBuffer.remaining());
@@ -320,7 +327,7 @@ public class FLVWriter implements ITagWriter {
 				// update previous tag size
 				previousTagSize = TAG_HEADER_LENGTH + bodySize;
 				// we add the tag size
-				tagBuffer.putInt(previousTagSize);
+				tagBuffer.putInt(previousTagSize & 0xff);
 				log.trace("Tag buffer (after prev tag size) limit: {} remaining: {}", tagBuffer.limit(), tagBuffer.remaining());
 				// flip so we can process from the beginning
 				tagBuffer.flip();

@@ -488,6 +488,20 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	}
 
 	/**
+	 * @return the automaticRecording
+	 */
+	public boolean isAutomaticRecording() {
+		return automaticRecording;
+	}
+
+	/**
+	 * @param automaticRecording the automaticRecording to set
+	 */
+	public void setAutomaticRecording(boolean automaticRecording) {
+		this.automaticRecording = automaticRecording;
+	}
+
+	/**
 	 *  Notifies handler on stream broadcast stop
 	 */
 	private void notifyBroadcastClose() {
@@ -539,11 +553,17 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 * @param oobCtrlMsg       Out-of-band control message
 	 */
 	public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
-		if ("ClientBroadcastStream".equals(oobCtrlMsg.getTarget())) {
-			if ("chunkSize".equals(oobCtrlMsg.getServiceName())) {
+		String target = oobCtrlMsg.getTarget();
+		if ("ClientBroadcastStream".equals(target)) {
+			String serviceName = oobCtrlMsg.getServiceName();
+			if ("chunkSize".equals(serviceName)) {
 				chunkSize = (Integer) oobCtrlMsg.getServiceParamMap().get("chunkSize");
 				notifyChunkSize();
+			} else {
+				log.debug("Unhandled OOB control message for service: {}", serviceName);
 			}
+		} else {
+			log.debug("Unhandled OOB control message to target: {}", target);
 		}
 	}
 
@@ -557,7 +577,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
 				log.info("Provider connect");
 				if (event.getProvider() == this && event.getSource() != connMsgOut && (event.getParamMap() == null || !event.getParamMap().containsKey("record"))) {
-
 					this.livePipe = (IPipe) event.getSource();
 					log.debug("Provider: {}", this.livePipe.getClass().getName());
 					for (IConsumer consumer : this.livePipe.getConsumers()) {

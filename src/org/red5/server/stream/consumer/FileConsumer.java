@@ -73,6 +73,7 @@ import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
  * @author Vladimir Hmelyoff (vlhm@splitmedialabs.com)
  */
 public class FileConsumer implements Constants, IPushableConsumer, IPipeConnectionListener {
+
 	/**
 	 * Logger
 	 */
@@ -81,7 +82,12 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	/**
 	 * Executor for all writer jobs
 	 */
-	private static ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(2, new CustomizableThreadFactory("FileConsumerExecutor-"));
+	private static ScheduledExecutorService scheduledExecutorService;
+
+	/**
+	 * Queue writer thread count
+	 */
+	private int schedulerThreadSize = 4;
 
 	/**
 	 * Queue to hold data for delayed writing
@@ -142,7 +148,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	 * Video decoder configuration
 	 */
 	private ITag videoConfigurationTag;
-	
+
 	/**
 	 * Audio decoder configuration
 	 */
@@ -185,6 +191,11 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	 * Default ctor
 	 */
 	public FileConsumer() {
+		if (scheduledExecutorService == null) {
+			synchronized (this) {
+				scheduledExecutorService = Executors.newScheduledThreadPool(schedulerThreadSize, new CustomizableThreadFactory("FileConsumerExecutor-"));
+			}
+		}
 	}
 
 	/**
@@ -193,6 +204,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	 * @param file         File
 	 */
 	public FileConsumer(IScope scope, File file) {
+		this();
 		this.scope = scope;
 		this.file = file;
 	}
@@ -331,12 +343,11 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 			case PipeConnectionEvent.CONSUMER_CONNECT_PUSH:
-				if (event.getConsumer() != this) {
-					break;
-				}
-				Map<String, Object> paramMap = event.getParamMap();
-				if (paramMap != null) {
-					mode = (String) paramMap.get("mode");
+				if (event.getConsumer() == this) {
+					Map<String, Object> paramMap = event.getParamMap();
+					if (paramMap != null) {
+						mode = (String) paramMap.get("mode");
+					}
 				}
 				break;
 			case PipeConnectionEvent.CONSUMER_DISCONNECT:
@@ -621,8 +632,9 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 			audioConfigurationTag.setBody(data);
 		}
 	}
+
 	// SplitmediaLabs - end AAC fix
-	
+
 	/**
 	 * Sets the scope for this consumer.
 	 * 
@@ -694,6 +706,20 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	 */
 	public void setDelayWrite(boolean delayWrite) {
 		this.delayWrite = delayWrite;
+	}
+
+	/**
+	 * @return the schedulerThreadSize
+	 */
+	public int getSchedulerThreadSize() {
+		return schedulerThreadSize;
+	}
+
+	/**
+	 * @param schedulerThreadSize the schedulerThreadSize to set
+	 */
+	public void setSchedulerThreadSize(int schedulerThreadSize) {
+		this.schedulerThreadSize = schedulerThreadSize;
 	}
 
 	/**
