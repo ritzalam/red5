@@ -48,106 +48,109 @@ import org.springframework.core.io.support.ResourcePatternResolver;
  */
 public class FilePersistence extends RamPersistence {
 
-    /**
-     * Logger
-     */
-    private Logger log = LoggerFactory.getLogger(FilePersistence.class);
-    /**
-     * Files path
-     */
+	/**
+	 * Logger
+	 */
+	private Logger log = LoggerFactory.getLogger(FilePersistence.class);
+
+	/**
+	 * Files path
+	 */
 	private String path = "persistence";
-    /**
-     * Root directory under file storage path
-     */
+
+	/**
+	 * Root directory under file storage path
+	 */
 	private String rootDir = "";
-    /**
-     * File extension for persistent objects
-     */
+
+	/**
+	 * File extension for persistent objects
+	 */
 	private String extension = ".red5";
 
-    /**
-     * Whether there's need to check for empty directories
-     */
-    // TODO: make this configurable
+	/**
+	 * Whether there's need to check for empty directories
+	 */
+	// TODO: make this configurable
 	private boolean checkForEmptyDirectories = true;
 
 	/**
 	 * Thread to serialize persistent objects.
 	 */
 	private FilePersistenceThread storeThread = null;
-	
-    /**
-     * Create file persistence object from given resource pattern resolver
-     * @param resolver            Resource pattern resolver and loader
-     */
-    public FilePersistence(ResourcePatternResolver resolver) {
+
+	/**
+	 * Create file persistence object from given resource pattern resolver
+	 * @param resolver            Resource pattern resolver and loader
+	 */
+	public FilePersistence(ResourcePatternResolver resolver) {
 		super(resolver);
 		setPath(path);
 		storeThread = FilePersistenceThread.getInstance();
 	}
 
-    /**
-     * Create file persistence object for given scope
-     * @param scope               Scope
-     */
-    public FilePersistence(IScope scope) {
+	/**
+	 * Create file persistence object for given scope
+	 * @param scope               Scope
+	 */
+	public FilePersistence(IScope scope) {
 		super(scope);
 		setPath(path);
 		storeThread = FilePersistenceThread.getInstance();
 	}
 
 	/**
-     * Setter for file path.
-     *
-     * @param path  New path
-     */
-    public void setPath(String path) {
+	 * Setter for file path.
+	 *
+	 * @param path  New path
+	 */
+	public void setPath(String path) {
 		Resource rootFile = resources.getResource(path);
 		try {
 			rootDir = rootFile.getFile().getAbsolutePath();
 			log.debug("Root dir: {} path: {}", rootDir, path);
-            this.path = path;
-        } catch (IOException err) {
-            log.error("I/O exception thrown when setting file path to " + path);
-            throw (new RuntimeException(err));
+			this.path = path;
+		} catch (IOException err) {
+			log.error("I/O exception thrown when setting file path to " + path);
+			throw (new RuntimeException(err));
 		}
 	}
 
 	/**
-     * Setter for extension.
-     *
-     * @param extension  New extension.
-     */
-    public void setExtension(String extension) {
+	 * Setter for extension.
+	 *
+	 * @param extension  New extension.
+	 */
+	public void setExtension(String extension) {
 		this.extension = extension;
 	}
 
-    /**
-     * Return file path for persistable object
-     * @param object          Object to obtain file path for
-     * @return                Path on disk
-     */
+	/**
+	 * Return file path for persistable object
+	 * @param object          Object to obtain file path for
+	 * @return                Path on disk
+	 */
 	private String getObjectFilepath(IPersistable object) {
 		return getObjectFilepath(object, false);
 	}
 
-    /**
-     * Return file path for persistable object
-     * @param object          Object to obtain file path for
-     * @param completePath    Whether it full path full path sould be returned
-     * @return                Path on disk
-     */
-    private String getObjectFilepath(IPersistable object, boolean completePath) {
+	/**
+	 * Return file path for persistable object
+	 * @param object          Object to obtain file path for
+	 * @param completePath    Whether it full path full path sould be returned
+	 * @return                Path on disk
+	 */
+	private String getObjectFilepath(IPersistable object, boolean completePath) {
 		StringBuilder result = new StringBuilder(path);
 		result.append('/');
 		result.append(object.getType());
 		result.append('/');
-		
+
 		String objectPath = object.getPath();
 		log.debug("Object path: {}", objectPath);
-		result.append(objectPath);	
+		result.append(objectPath);
 		if (!objectPath.endsWith("/")) {
-		    result.append('/');
+			result.append('/');
 		}
 
 		if (completePath) {
@@ -158,38 +161,38 @@ public class FilePersistence extends RamPersistence {
 				result.append(name.substring(0, pos));
 			}
 		}
-		
+
 		//fix up path
-        int idx = -1;
-        if (File.separatorChar != '/') {
-            while ((idx = result.indexOf(File.separator)) != -1) {
-                result.deleteCharAt(idx);
-                result.insert(idx, '/');
-            }
-        }
-        if (log.isDebugEnabled()) {
-        	log.debug("Path step 1: {}", result.toString());
-        }
-        //remove any './'
-        if ((idx = result.indexOf("./")) != -1) {
-        	result.delete(idx, idx + 2);
-        }   		
-        if (log.isDebugEnabled()) {
-        	log.debug("Path step 2: {}", result.toString());
-        }	
-        //remove any '//'
-        while ((idx = result.indexOf("//")) != -1) {
-        	result.deleteCharAt(idx);
-        }   		
-        if (log.isDebugEnabled()) {
-        	log.debug("Path step 3: {}", result.toString());
-        }	
+		int idx = -1;
+		if (File.separatorChar != '/') {
+			while ((idx = result.indexOf(File.separator)) != -1) {
+				result.deleteCharAt(idx);
+				result.insert(idx, '/');
+			}
+		}
+		if (log.isDebugEnabled()) {
+			log.debug("Path step 1: {}", result.toString());
+		}
+		//remove any './'
+		if ((idx = result.indexOf("./")) != -1) {
+			result.delete(idx, idx + 2);
+		}
+		if (log.isDebugEnabled()) {
+			log.debug("Path step 2: {}", result.toString());
+		}
+		//remove any '//'
+		while ((idx = result.indexOf("//")) != -1) {
+			result.deleteCharAt(idx);
+		}
+		if (log.isDebugEnabled()) {
+			log.debug("Path step 3: {}", result.toString());
+		}
 
 		return result.toString();
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	protected String getObjectPath(String id, String name) {
 		if (id.startsWith(path)) {
 			id = id.substring(path.length() + 1);
@@ -198,11 +201,11 @@ public class FilePersistence extends RamPersistence {
 		return super.getObjectPath(id, name);
 	}
 
-    /**
-     * Get filename for persistable object
-     * @param object          Persistable object
-     * @return                Name of file where given object is persisted to
-     */
+	/**
+	 * Get filename for persistable object
+	 * @param object          Persistable object
+	 * @return                Name of file where given object is persisted to
+	 */
 	private String getObjectFilename(IPersistable object) {
 		String path = getObjectFilepath(object);
 		String name = object.getName();
@@ -212,22 +215,22 @@ public class FilePersistence extends RamPersistence {
 		return path + name + extension;
 	}
 
-    /**
-     * Load resource with given name
-     * @param name             Resource name
-     * @return                 Persistable object
-     */
-    private IPersistable doLoad(String name) {
+	/**
+	 * Load resource with given name
+	 * @param name             Resource name
+	 * @return                 Persistable object
+	 */
+	private IPersistable doLoad(String name) {
 		return doLoad(name, null);
 	}
 
-    /**
-     * Load resource with given name and attaches to persistable object
-     * @param name             Resource name
-     * @param object           Object to attach to
-     * @return                 Persistable object
-     */
-    private IPersistable doLoad(String name, IPersistable object) {
+	/**
+	 * Load resource with given name and attaches to persistable object
+	 * @param name             Resource name
+	 * @param object           Object to attach to
+	 * @return                 Persistable object
+	 */
+	private IPersistable doLoad(String name, IPersistable object) {
 		IPersistable result = object;
 		Resource data = resources.getResource(name);
 		if (data == null || !data.exists()) {
@@ -335,7 +338,7 @@ public class FilePersistence extends RamPersistence {
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public IPersistable load(String name) {
 		IPersistable result = super.load(name);
 		if (result != null) {
@@ -347,7 +350,7 @@ public class FilePersistence extends RamPersistence {
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public boolean load(IPersistable object) {
 		if (object.isPersistent()) {
 			// Already loaded
@@ -357,13 +360,13 @@ public class FilePersistence extends RamPersistence {
 		return (doLoad(getObjectFilename(object), object) != null);
 	}
 
-    /**
-     * Save persistable object
-     * @param object           Persistable object
-     * @return                 <code>true</code> on success, <code>false</code> otherwise
-     */
-    protected boolean saveObject(IPersistable object) {
-        boolean result = true;
+	/**
+	 * Save persistable object
+	 * @param object           Persistable object
+	 * @return                 <code>true</code> on success, <code>false</code> otherwise
+	 */
+	protected boolean saveObject(IPersistable object) {
+		boolean result = true;
 		String path = getObjectFilepath(object, true);
 		log.debug("Path: {}", path);
 		Resource resPath = resources.getResource(path);
@@ -371,66 +374,64 @@ public class FilePersistence extends RamPersistence {
 		log.debug("Resource (dir) check #1 - file name: {} exists: {}", resPath.getFilename(), exists);
 		File dir = null;
 		try {
-		    if (!exists) {
-		        resPath = resources.getResource("classpath:" + path);
-		        exists = resPath.exists();
-		        log.debug("Resource (dir) check #2 - file name: {} exists: {}", resPath.getFilename(), exists);
-		        if (!exists) {
-		            StringBuilder root = new StringBuilder(rootDir);
-		            //fix up path
-                    int idx = -1;
-                    if (File.separatorChar != '/') {
-                        while ((idx = root.indexOf(File.separator)) != -1) {
-                            root.deleteCharAt(idx);
-                            root.insert(idx, '/');
-                        }
-                    }		            
-		            resPath = resources.getResource("file://" + root.toString() + path.substring(11));
-		            exists = resPath.exists();
-		            log.debug("Resource (dir) check #3 - file name: {} exists: {}", resPath.getFilename(), exists);
-    		    }
-		    }
+			if (!exists) {
+				resPath = resources.getResource("classpath:" + path);
+				exists = resPath.exists();
+				log.debug("Resource (dir) check #2 - file name: {} exists: {}", resPath.getFilename(), exists);
+				if (!exists) {
+					StringBuilder root = new StringBuilder(rootDir);
+					//fix up path
+					int idx = -1;
+					if (File.separatorChar != '/') {
+						while ((idx = root.indexOf(File.separator)) != -1) {
+							root.deleteCharAt(idx);
+							root.insert(idx, '/');
+						}
+					}
+					resPath = resources.getResource("file://" + root.toString() + path.substring(11));
+					exists = resPath.exists();
+					log.debug("Resource (dir) check #3 - file name: {} exists: {}", resPath.getFilename(), exists);
+				}
+			}
 			dir = resPath.getFile();
-		    if (!dir.isDirectory() && !dir.mkdirs()) {
-			    log.error("Could not create directory {}", dir.getAbsolutePath());
-			    result = false;
-		    }
+			if (!dir.isDirectory() && !dir.mkdirs()) {
+				log.error("Could not create directory {}", dir.getAbsolutePath());
+				result = false;
+			}
 		} catch (IOException err) {
 			log.error("Could not create resource file for path {}", path, err);
 			err.printStackTrace();
 			result = false;
 		}
-        
-        //if we made it this far and everything seems ok
-        if (result) {
-//        	Here we go. If it's a persistent SharedObject and it's empty,
-//        	don't write it to disk. APPSERVER-364
-        	if (object instanceof SharedObject) {
-        		SharedObject soRef = (SharedObject)object;
-        		if (soRef.getAttributes().size() == 0) {
-//        			Just return true to trick the server into thinking everything is just fine :P
-        			return true;
-        		}
-        	}
-        	
-    		String filename = getObjectFilename(object);
-    		log.debug("File name: {}", filename);
-    		//strip path
-    		if (filename.indexOf('/') != -1) {
-    		    filename = filename.substring(filename.lastIndexOf('/'));
-    		    log.debug("New file name: {}", filename);
-    		}
-    		File file = new File(dir, filename);
-    		//Resource resFile = resources.getResource(filename);
-    		//log.debug("Resource (file) check #1 - file name: {} exists: {}", resPath.getFilename(), exists);
-    		IoBuffer buf = null;
-    		try {
-    			int initialSize = 8192;
-    			if (file.exists()) {
-   					// We likely also need the original file size when writing object
-   					initialSize += (int) file.length();
-    			}
-    			buf = IoBuffer.allocate(initialSize);
+
+		//if we made it this far and everything seems ok
+		if (result) {
+			// if it's a persistent SharedObject and it's empty don't write it to disk. APPSERVER-364
+			if (object instanceof SharedObject) {
+				SharedObject soRef = (SharedObject) object;
+				if (soRef.getAttributes().size() == 0) {
+					// return true to trick the server into thinking everything is just fine :P
+					return true;
+				}
+			}
+			String filename = getObjectFilename(object);
+			log.debug("File name: {}", filename);
+			//strip path
+			if (filename.indexOf('/') != -1) {
+				filename = filename.substring(filename.lastIndexOf('/'));
+				log.debug("New file name: {}", filename);
+			}
+			File file = new File(dir, filename);
+			//Resource resFile = resources.getResource(filename);
+			//log.debug("Resource (file) check #1 - file name: {} exists: {}", resPath.getFilename(), exists);
+			IoBuffer buf = null;
+			try {
+				int initialSize = 8192;
+				if (file.exists()) {
+					// We likely also need the original file size when writing object
+					initialSize += (int) file.length();
+				}
+				buf = IoBuffer.allocate(initialSize);
 				buf.setAutoExpand(true);
 				Output out = new Output(buf);
 				out.writeString(object.getClass().getName());
@@ -440,47 +441,43 @@ public class FilePersistence extends RamPersistence {
 				FileOutputStream output = new FileOutputStream(file.getAbsolutePath());
 				ServletUtils.copy(buf.asInputStream(), output);
 				output.close();
-    			log.debug("Stored persistent object {} at {}", object, filename);
-    		} catch (IOException e) {
-    			log.error("Could not create / write file {}", filename, e);
-    			log.warn("Exception {}", e);
-    			result = false;
-   			} finally {
-   			    if (buf != null) {
-   				    buf.free();
-   				    buf = null;
-   				}
-   				file = null;
-   				dir = null;
-   			}
+				log.debug("Stored persistent object {} at {}", object, filename);
+			} catch (IOException e) {
+				log.error("Could not create / write file {}", filename, e);
+				log.warn("Exception {}", e);
+				result = false;
+			} finally {
+				if (buf != null) {
+					buf.free();
+					buf = null;
+				}
+				file = null;
+				dir = null;
+			}
 		}
 		return result;
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public boolean save(IPersistable object) {
 		if (!super.save(object)) {
 			return false;
 		}
-
 		storeThread.modified(object, this);
-		object.setPersistent(true);
 		return true;
 	}
 
-    /**
-     * Remove empty dirs
-     * @param base             Base directory
-     */
-    protected void checkRemoveEmptyDirectories(String base) {
+	/**
+	 * Remove empty dirs
+	 * @param base             Base directory
+	 */
+	protected void checkRemoveEmptyDirectories(String base) {
 		if (!checkForEmptyDirectories) {
 			return;
 		}
-
 		String dir;
-		Resource resFile = resources.getResource(base.substring(0, base
-				.lastIndexOf('/')));
+		Resource resFile = resources.getResource(base.substring(0, base.lastIndexOf('/')));
 		try {
 			dir = resFile.getFile().getAbsolutePath();
 		} catch (IOException err) {
@@ -493,24 +490,21 @@ public class FilePersistence extends RamPersistence {
 				// This should never happen
 				break;
 			}
-
 			if (fp.list().length != 0) {
 				// Directory is not empty
 				break;
 			}
-
 			if (!fp.delete()) {
 				// Could not remove directory
 				break;
 			}
-
 			// Move up one directory
 			dir = fp.getParent();
 		}
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public boolean remove(String name) {
 		super.remove(name);
 		String filename = path + '/' + name + extension;
@@ -519,7 +513,6 @@ public class FilePersistence extends RamPersistence {
 			// File already deleted
 			return true;
 		}
-
 		try {
 			boolean result = resFile.getFile().delete();
 			if (result) {
@@ -532,15 +525,15 @@ public class FilePersistence extends RamPersistence {
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public boolean remove(IPersistable object) {
 		return remove(getObjectId(object));
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public void notifyClose() {
-    	// Write any pending objects
+		// Write any pending objects
 		storeThread.notifyClose(this);
 		super.notifyClose();
 	}

@@ -43,19 +43,19 @@ public class FLVHeader {
 	/**
 	 * Signature
 	 */
-	public static byte[] signature = "FLV".getBytes();
+	public final static byte[] signature = new byte[] { (byte) (0x46 & 0xff), (byte) (0x4C & 0xff), (byte) (0x56 & 0xff) };
 
 	/**
 	 * FLV version
 	 */
-	public static byte version = 0x01; //version 1
+	public final static byte version = 0x01 & 0xff; //version 1
 
 	// TYPES
 
 	/**
 	 * Reserved flag, one
 	 */
-	public static byte flagReserved01 = 0x00;
+	public static byte flagReserved01 = 0x00 & 0xff;
 
 	/**
 	 * Audio flag
@@ -65,7 +65,7 @@ public class FLVHeader {
 	/**
 	 * Reserved flag, two
 	 */
-	public static byte flagReserved02 = 0x00;
+	public static byte flagReserved02 = 0x00 & 0xff;
 
 	/**
 	 * Video flag
@@ -76,7 +76,7 @@ public class FLVHeader {
 	/**
 	 * reserved for data up to 4,294,967,295
 	 */
-	public int dataOffset = 0x00;
+	public int dataOffset = 0x00 & 0xff;
 
 	/**
 	 * Returns the data offset bytes
@@ -120,18 +120,7 @@ public class FLVHeader {
 		ret += "TYPE FLAGS VIDEO: \t" + getFlagVideo() + "\n";
 		ret += "TYPE FLAGS AUDIO: \t" + getFlagAudio() + "\n";
 		ret += "DATA OFFSET: \t\t" + getDataOffset() + "\n";
-		//byte b = 0x01;
 		return ret;
-	}
-
-	/**
-	 * Sets the signature bytes
-	 *
-	 * @param signature     Signature
-	 */
-	@SuppressWarnings("static-access")
-	public void setSignature(byte[] signature) {
-		this.signature = signature;
 	}
 
 	/**
@@ -232,16 +221,6 @@ public class FLVHeader {
 	}
 
 	/**
-	 * Sets the version byte
-	 *
-	 * @param version           FLV version byte
-	 */
-	@SuppressWarnings("static-access")
-	public void setVersion(byte version) {
-		this.version = version;
-	}
-
-	/**
 	 * Writes the FLVHeader to IoBuffer.
 	 *
 	 * @param buffer           IoBuffer to write
@@ -268,9 +247,9 @@ public class FLVHeader {
 		// flags
 		buffer.put((byte) (FLV_HEADER_FLAG_HAS_AUDIO * (flagAudio ? 1 : 0) + FLV_HEADER_FLAG_HAS_VIDEO * (flagVideo ? 1 : 0)));
 		// data offset
-		buffer.putInt(9 & 0xff);
+		buffer.putInt(9);
 		// previous tag size 0 (this is the "first" tag)
-		buffer.putInt(0 & 0xff);
+		buffer.putInt(0);
 		buffer.flip();
 	}
 

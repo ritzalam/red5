@@ -262,12 +262,11 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 		log.debug("getSharedObject name: {} persistent {}", new Object[] { name, persistent });
 		ClientSharedObject result = sharedObjects.get(name);
 		if (result != null) {
-			if (result.isPersistentObject() != persistent) {
+			if (result.isPersistent() != persistent) {
 				throw new RuntimeException("Already connected to a shared object with this name, but with different persistence.");
 			}
 			return result;
 		}
-
 		result = new ClientSharedObject(name, persistent);
 		sharedObjects.put(name, result);
 		return result;
@@ -346,7 +345,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 			log.error("Ignoring request for non-existend SO: {}", object);
 			return;
 		}
-		if (so.isPersistentObject() != object.isPersistent()) {
+		if (so.isPersistent() != object.isPersistent()) {
 			log.error("Ignoring request for wrong-persistent SO: {}", object);
 			return;
 		}

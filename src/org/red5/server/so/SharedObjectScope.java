@@ -91,7 +91,6 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 	 */
 	public SharedObjectScope(IScope parent, String name, boolean persistent, IPersistenceStore store) {
 		super(parent, TYPE, name, persistent);
-
 		// Create shared object wrapper around the attributes
 		String path = parent.getContextPath();
 		if ("".equals(path) || path.charAt(0) != '/') {
@@ -163,8 +162,8 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 	}
 
 	/** {@inheritDoc} */
-	public boolean isPersistentObject() {
-		return so.isPersistentObject();
+	public boolean isPersistent() {
+		return so.isPersistent();
 	}
 
 	/** {@inheritDoc} */
@@ -252,8 +251,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 				try {
 					method.invoke(soHandler, params);
 				} catch (Exception err) {
-					log.error("Error while invoking method {} on shared object handler {}", new Object[] {
-							serviceMethod, handler }, err);
+					log.error("Error while invoking method {} on shared object handler {}", new Object[] { serviceMethod, handler }, err);
 				}
 			}
 		}
@@ -324,15 +322,18 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 		//part 1 of the fix for TRAC #360 - if we have not been released by all that acquired then 
 		//keep on disconnection of the last listener
 		if (so.isAcquired()) {
+			log.debug("Shared object has been aquired so setting keep on disconnect");
 			keepOnDisconnect = true;
 		}
 		//remove the listener
 		super.removeEventListener(listener);
 		//part 2 of the fix for TRAC #360 - check acquire
-		if (!so.isPersistentObject() && (so.getListeners() == null || so.getListeners().isEmpty()) && !so.isAcquired()) {
+		if (!so.isPersistent() && !so.isAcquired() && so.getListeners().isEmpty()) {
+			log.debug("Removing scope: {}", this);
 			getParent().removeChildScope(this);
+		} else {
+			log.debug("Shared object has listeners: {}", !so.getListeners().isEmpty());
 		}
-
 		for (ISharedObjectListener soListener : serverListeners) {
 			soListener.onSharedObjectDisconnect(this);
 		}
@@ -384,8 +385,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 	 * @return
 	 */
 	private Set<ISharedObjectSecurity> getSecurityHandlers() {
-		ISharedObjectSecurityService security = (ISharedObjectSecurityService) ScopeUtils.getScopeService(getParent(),
-				ISharedObjectSecurityService.class);
+		ISharedObjectSecurityService security = (ISharedObjectSecurityService) ScopeUtils.getScopeService(getParent(), ISharedObjectSecurityService.class);
 		if (security == null) {
 			return null;
 		}
@@ -513,76 +513,77 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 	/** {@inheritDoc} */
 	@Override
 	public void dispatchEvent(IEvent e) {
-		if (e.getType() != IEvent.Type.SHARED_OBJECT || !(e instanceof ISharedObjectMessage)) {
+		if (e instanceof ISharedObjectMessage || e.getType() == IEvent.Type.SHARED_OBJECT) {
+			ISharedObjectMessage msg = (ISharedObjectMessage) e;
+			if (msg.hasSource()) {
+				beginUpdate(msg.getSource());
+			} else {
+				beginUpdate();
+			}
+			try {
+				for (ISharedObjectEvent event : msg.getEvents()) {
+					switch (event.getType()) {
+						case SERVER_CONNECT:
+							if (!isConnectionAllowed()) {
+								so.returnError(SO_NO_READ_ACCESS);
+							} else if (msg.hasSource()) {
+								IEventListener source = msg.getSource();
+								if (source instanceof BaseConnection) {
+									((BaseConnection) source).registerBasicScope(this);
+								} else {
+									addEventListener(source);
+								}
+							}
+							break;
+						case SERVER_DISCONNECT:
+							if (msg.hasSource()) {
+								IEventListener source = msg.getSource();
+								if (source instanceof BaseConnection) {
+									((BaseConnection) source).unregisterBasicScope(this);
+								} else {
+									removeEventListener(source);
+								}
+							}
+							break;
+						case SERVER_SET_ATTRIBUTE:
+							final String key = event.getKey();
+							final Object value = event.getValue();
+							if (!isWriteAllowed(key, value)) {
+								so.returnAttributeValue(key);
+								so.returnError(SO_NO_WRITE_ACCESS);
+							} else {
+								setAttribute(key, value);
+							}
+							break;
+						case SERVER_DELETE_ATTRIBUTE:
+							final String property = event.getKey();
+							if (!isDeleteAllowed(property)) {
+								so.returnAttributeValue(property);
+								so.returnError(SO_NO_WRITE_ACCESS);
+							} else {
+								removeAttribute(property);
+							}
+							break;
+						case SERVER_SEND_MESSAGE:
+							final String message = event.getKey();
+							final List<?> arguments = (List<?>) event.getValue();
+							// Ignore request silently if not allowed
+							if (isSendAllowed(message, arguments)) {
+								sendMessage(message, arguments);
+							} else {
+								log.debug("Send is not allowed for {}", message);
+							}
+							break;
+						default:
+							log.warn("Unknown SO event: {}", event.getType());
+					}
+				}
+			} finally {
+				endUpdate();
+			}			
+		} else {
 			// Don't know how to handle this event.
 			super.dispatchEvent(e);
-			return;
-		}
-
-		ISharedObjectMessage msg = (ISharedObjectMessage) e;
-		if (msg.hasSource()) {
-			beginUpdate(msg.getSource());
-		} else {
-			beginUpdate();
-		}
-		try {
-			for (ISharedObjectEvent event : msg.getEvents()) {
-				switch (event.getType()) {
-					case SERVER_CONNECT:
-						if (!isConnectionAllowed()) {
-							so.returnError(SO_NO_READ_ACCESS);
-						} else if (msg.hasSource()) {
-							IEventListener source = msg.getSource();
-							if (source instanceof BaseConnection) {
-								((BaseConnection) source).registerBasicScope(this);
-							} else {
-								addEventListener(source);
-							}
-						}
-						break;
-					case SERVER_DISCONNECT:
-						if (msg.hasSource()) {
-							IEventListener source = msg.getSource();
-							if (source instanceof BaseConnection) {
-								((BaseConnection) source).unregisterBasicScope(this);
-							} else {
-								removeEventListener(source);
-							}
-						}
-						break;
-					case SERVER_SET_ATTRIBUTE:
-						final String key = event.getKey();
-						final Object value = event.getValue();
-						if (!isWriteAllowed(key, value)) {
-							so.returnAttributeValue(key);
-							so.returnError(SO_NO_WRITE_ACCESS);
-						} else {
-							setAttribute(key, value);
-						}
-						break;
-					case SERVER_DELETE_ATTRIBUTE:
-						final String property = event.getKey();
-						if (!isDeleteAllowed(property)) {
-							so.returnAttributeValue(property);
-							so.returnError(SO_NO_WRITE_ACCESS);
-						} else {
-							removeAttribute(property);
-						}
-						break;
-					case SERVER_SEND_MESSAGE:
-						final String message = event.getKey();
-						final List<?> arguments = (List<?>) event.getValue();
-						// Ignore request silently if not allowed
-						if (isSendAllowed(message, arguments)) {
-							sendMessage(message, arguments);
-						}
-						break;
-					default:
-						log.warn("Unknown SO event: {}", event.getType());
-				}
-			}
-		} finally {
-			endUpdate();
 		}
 	}
 
@@ -596,7 +597,6 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 		} finally {
 			endUpdate();
 		}
-
 		if (success) {
 			for (ISharedObjectListener listener : serverListeners) {
 				listener.onSharedObjectUpdate(this, name, value);
@@ -614,7 +614,6 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 		} finally {
 			endUpdate();
 		}
-
 		for (ISharedObjectListener listener : serverListeners) {
 			listener.onSharedObjectUpdate(this, values);
 		}
@@ -629,7 +628,6 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 		} finally {
 			endUpdate();
 		}
-
 		for (ISharedObjectListener listener : serverListeners) {
 			listener.onSharedObjectUpdate(this, values);
 		}
@@ -723,7 +721,6 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 		} finally {
 			endUpdate();
 		}
-
 		if (success) {
 			for (ISharedObjectListener listener : serverListeners) {
 				listener.onSharedObjectClear(this);

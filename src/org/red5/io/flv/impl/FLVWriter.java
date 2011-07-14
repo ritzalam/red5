@@ -72,6 +72,11 @@ public class FLVWriter implements ITagWriter {
 	private final static int META_POSITION = 13;
 
 	/**
+	 * For now all recorded streams carry a stream id of 0.
+	 */
+	private final static byte[] DEFAULT_STREAM_ID = new byte[] { (byte) (0 & 0xff), (byte) (0 & 0xff), (byte) (0 & 0xff) };
+
+	/**
 	 * FLV object
 	 */
 	private IFLV flv;
@@ -309,17 +314,16 @@ public class FLVWriter implements ITagWriter {
 					log.debug("Video codec id: {}", videoCodecId);
 				}
 				// Data Type
-				tagBuffer.put(dataType); //1
+				IOUtils.wrtieUnsignedByte(tagBuffer, dataType); //1
 				// Body Size - Length of the message. Number of bytes after StreamID to end of tag 
 				// (Equal to length of the tag - 11) 
 				IOUtils.writeMediumInt(tagBuffer, bodySize); //3
 				// Timestamp
 				//IOUtils.writeExtendedMediumInt(tagBuffer, timestamp); //4
 				IOUtils.writeMediumInt(tagBuffer, timestamp); //3
-				//tagBuffer.putShort((short) (timestamp >>> 8)); //3
-				tagBuffer.put((byte) (0x00 & 0xff)); //1
+				tagBuffer.put((byte) ((timestamp >>> 24) & 0xff)); //1
 				// Stream id
-				IOUtils.writeMediumInt(tagBuffer, 0); //3
+				tagBuffer.put(DEFAULT_STREAM_ID); //3
 				log.trace("Tag buffer (after tag header) limit: {} remaining: {}", tagBuffer.limit(), tagBuffer.remaining());
 				// get the body
 				tagBuffer.put(bodyBuf);
@@ -327,7 +331,7 @@ public class FLVWriter implements ITagWriter {
 				// update previous tag size
 				previousTagSize = TAG_HEADER_LENGTH + bodySize;
 				// we add the tag size
-				tagBuffer.putInt(previousTagSize & 0xff);
+				tagBuffer.putInt(previousTagSize);
 				log.trace("Tag buffer (after prev tag size) limit: {} remaining: {}", tagBuffer.limit(), tagBuffer.remaining());
 				// flip so we can process from the beginning
 				tagBuffer.flip();
@@ -394,7 +398,7 @@ public class FLVWriter implements ITagWriter {
 				log.debug("Updated file offset: {} expected offset: {}", fileOffset, META_POSITION);
 			}
 			log.debug("In the metadata writing (close) method - duration:{}", duration);
-			writeMetadataTag(duration * 0.001, videoCodecId, audioCodecId);
+			writeMetadataTag(duration * 0.001d, videoCodecId, audioCodecId);
 			// seek to the end of the data
 			file.seek(tail);
 		} catch (IOException e) {
@@ -439,7 +443,7 @@ public class FLVWriter implements ITagWriter {
 		Map<Object, Object> params = new HashMap<Object, Object>();
 		params.put("server", Red5.getVersion().replaceAll("\\$", "").trim());
 		params.put("creationdate", GregorianCalendar.getInstance().getTime().toString());
-		params.put("duration", duration);
+		params.put("duration", (Number) duration);
 		if (videoCodecId != -1) {
 			params.put("videocodecid", videoCodecId);
 		} else {
@@ -452,6 +456,7 @@ public class FLVWriter implements ITagWriter {
 			// place holder
 			params.put("noaudiocodec", 0);
 		}
+		// this is actual only supposed to be true if the last video frame is a keyframe
 		params.put("canSeekToEnd", true);
 		out.writeMap(params, new Serializer());
 		buf.flip();

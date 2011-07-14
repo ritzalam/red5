@@ -90,14 +90,6 @@ public class IOUtils {
 	public static void writeExtendedMediumInt(IoBuffer out, int value) {
 		value = ((value & 0xff000000) >> 24) | (value << 8);
 		out.putInt(value);
-		/*
-		byte[] bytes = new byte[4];
-		bytes[0] = (byte) ((value >>> 16) & 0xff);
-		bytes[1] = (byte) ((value >>> 8) & 0xff);
-		bytes[2] = (byte) (value & 0xff); // least significant byte
-		bytes[3] = (byte) ((value >>> 24) & 0xff); // most significant byte	
-		out.put(bytes);
-		*/
 	}
 	
 	/**
@@ -112,6 +104,16 @@ public class IOUtils {
 		out.putInt(value);
 	}	
 
+	/**
+	 * Writes an unsigned byte value to the supplied buffer.
+	 * 
+	 * @param out           Output buffer
+	 * @param value			Byte to write
+	 */
+	public static void wrtieUnsignedByte(ByteBuffer out, byte value) {
+		out.put((byte) (value & 0xff));		
+	}	
+	
 	/**
 	 * Reads unsigned medium integer
 	 * @param in              Unsigned medium int source

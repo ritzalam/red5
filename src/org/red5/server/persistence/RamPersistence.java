@@ -129,10 +129,8 @@ public class RamPersistence implements IPersistenceStore {
 
 	/** {@inheritDoc} */
     public boolean save(IPersistable object) {
-        final String key = getObjectId(object);
-        
+        final String key = getObjectId(object);        
         objects.put(key, object);
-        object.setPersistent(true);
         return true;
     }
 
@@ -156,9 +154,7 @@ public class RamPersistence implements IPersistenceStore {
 		if (!objects.containsKey(name)) {
 			return false;
 		}
-	
-		IPersistable object = objects.remove(name);
-		object.setPersistent(false);
+		objects.remove(name);
 		return true;
 	}
 

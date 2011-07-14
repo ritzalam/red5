@@ -457,8 +457,7 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		fillBuffer(9);
 		header = new FLVHeader();
 		// skip signature
-		in.skip(3);
-		header.setVersion(in.get());
+		in.skip(4);
 		header.setTypeFlags(in.get());
 		header.setDataOffset(in.getInt());
 		if (log.isDebugEnabled()) {

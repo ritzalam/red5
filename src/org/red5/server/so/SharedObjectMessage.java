@@ -134,7 +134,7 @@ public class SharedObjectMessage extends BaseEvent implements ISharedObjectMessa
 	 * @param persistent
 	 *            Persistence flag
 	 */
-	protected void setIsPersistent(boolean persistent) {
+	protected void setPersistent(boolean persistent) {
 		this.persistent = persistent;
 	}
 
