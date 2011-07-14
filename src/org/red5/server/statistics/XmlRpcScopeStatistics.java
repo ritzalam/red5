@@ -42,31 +42,31 @@ import org.red5.server.exception.ScopeNotFoundException;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class XmlRpcScopeStatistics {
-    /**
-     * Global scope
-     */
+	/**
+	 * Global scope
+	 */
 	private IScope globalScope;
 
 	/** Constructs a new XmlScopeStatistics. */
-    public XmlRpcScopeStatistics() {
+	public XmlRpcScopeStatistics() {
 
 	}
 
-    /**
-     * Create new scope statistic.
+	/**
+	 * Create new scope statistic.
 	 *
-     * @param globalScope        Global scope ref
-     */
-    public XmlRpcScopeStatistics(IScope globalScope) {
+	 * @param globalScope        Global scope ref
+	 */
+	public XmlRpcScopeStatistics(IScope globalScope) {
 		this.globalScope = globalScope;
 	}
 
 	/**
-     * Setter for global scope.
-     *
-     * @param scope Value to set for property 'globalScope'.
-     */
-    public void setGlobalScope(IScope scope) {
+	 * Setter for global scope.
+	 *
+	 * @param scope Value to set for property 'globalScope'.
+	 */
+	public void setGlobalScope(IScope scope) {
 		globalScope = scope;
 	}
 
@@ -141,9 +141,7 @@ public class XmlRpcScopeStatistics {
 		}
 
 		Class<?> type = value.getClass();
-		if (type.equals(Integer.class) || type.equals(Double.class)
-				|| type.equals(Boolean.class) || type.equals(String.class)
-				|| type.equals(Date.class)) {
+		if (type.equals(Integer.class) || type.equals(Double.class) || type.equals(Boolean.class) || type.equals(String.class) || type.equals(Date.class)) {
 			return value;
 		} else if (type.equals(Long.class)) {
 			// XXX: long values are not supported by XML-RPC, convert to string
@@ -158,9 +156,9 @@ public class XmlRpcScopeStatistics {
 				res.add(getXMLRPCValue(Array.get(value, i)));
 			}
 			return res;
-		} else if (value instanceof Map<?,?>) {
+		} else if (value instanceof Map<?, ?>) {
 			Hashtable<Object, Object> res = new Hashtable<Object, Object>();
-			for (Map.Entry<?, ?> entry: ((Map<?, ?>) value).entrySet()) {
+			for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
 				res.put(entry.getKey(), getXMLRPCValue(entry.getValue()));
 			}
 			return res;
@@ -204,9 +202,7 @@ public class XmlRpcScopeStatistics {
 	 */
 	public Map<String, Object> getSharedObjects(String path) {
 		IScope scope = getScope(path);
-		ISharedObjectService service = (ISharedObjectService) ScopeUtils
-				.getScopeService(scope,
-						ISharedObjectService.class, false);
+		ISharedObjectService service = (ISharedObjectService) ScopeUtils.getScopeService(scope, ISharedObjectService.class, false);
 		if (service == null) {
 			return new Hashtable<String, Object>();
 		}
@@ -215,12 +211,10 @@ public class XmlRpcScopeStatistics {
 		for (String name : service.getSharedObjectNames(scope)) {
 			ISharedObject so = service.getSharedObject(scope, name);
 			try {
-				result.put(name, new Object[] { so.isPersistentObject(),
-						getXMLRPCValue(so.getData()) });
+				result.put(name, new Object[] { so.isPersistent(), getXMLRPCValue(so.getData()) });
 			} catch (RuntimeException err) {
 				// Could not convert attribute for XML-RPC serialization.
-				result.put(name, "--- Error while serializing \""
-						+ so.getData().toString() + "\" ---");
+				result.put(name, "--- Error while serializing \"" + so.getData().toString() + "\" ---");
 			}
 		}
 		return result;

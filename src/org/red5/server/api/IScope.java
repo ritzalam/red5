@@ -100,8 +100,7 @@ public interface IScope extends IBasicScope, ResourcePatternResolver, IServiceHa
 	public boolean addChildScope(IBasicScope scope);
 
 	/**
-	 * Removes scope from the children scope list. Returns <code>false</code>
-	 * if given scope isn't a child of the current scope.
+	 * Removes scope from the children scope list.
 	 * 
 	 * @param scope Scope given
 	 */

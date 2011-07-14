@@ -64,8 +64,7 @@ public class FilePersistenceThread implements Runnable {
 	 * Each FilePersistenceThread has its own scheduler and the executor is
 	 * guaranteed to only run a single task at a time.
 	 */
-	private final ScheduledExecutorService scheduler = Executors
-			.newSingleThreadScheduledExecutor();
+	private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
 	/**
 	 * Return singleton instance of the thread.
@@ -85,9 +84,7 @@ public class FilePersistenceThread implements Runnable {
 		}
 		instance = this;
 		@SuppressWarnings("unused")
-		final ScheduledFuture<?> instanceHandle = scheduler
-				.scheduleAtFixedRate(this, storeInterval, storeInterval,
-						java.util.concurrent.TimeUnit.MILLISECONDS);
+		final ScheduledFuture<?> instanceHandle = scheduler.scheduleAtFixedRate(this, storeInterval, storeInterval, java.util.concurrent.TimeUnit.MILLISECONDS);
 	}
 
 	/**
@@ -99,8 +96,7 @@ public class FilePersistenceThread implements Runnable {
 	protected void modified(IPersistable object, FilePersistence store) {
 		FilePersistence previous = objects.put(new UpdateEntry(object, store), store);
 		if (previous != null && !previous.equals(store)) {
-			log.warn("Object {} was also modified in {}, saving instantly",
-					new Object[] { object, previous });
+			log.warn("Object {} was also modified in {}, saving instantly", new Object[] { object, previous });
 			previous.saveObject(object);
 		}
 	}
@@ -117,13 +113,11 @@ public class FilePersistenceThread implements Runnable {
 				// Object is from different store
 				continue;
 			}
-			
 			try {
 				objects.remove(entry);
 				store.saveObject(entry.object);
 			} catch (Throwable e) {
-				log.error("Error while saving {} in {}. {}", new Object[] {
-						entry.object, store, e });
+				log.error("Error while saving {} in {}. {}", new Object[] { entry.object, store, e });
 			}
 		}
 	}
@@ -132,18 +126,14 @@ public class FilePersistenceThread implements Runnable {
 	 * Write modified objects to the file system periodically.
 	 */
 	public void run() {
-		if (objects.isEmpty()) {
-			// No objects to store
-			return;
-		}
-		
-		for (UpdateEntry entry : objects.keySet()) {
-			try {
-				objects.remove(entry);
-				entry.store.saveObject(entry.object);
-			} catch (Throwable e) {
-				log.error("Error while saving {} in {}. {}", new Object[] {
-						entry.object, entry.store, e });
+		if (!objects.isEmpty()) {
+			for (UpdateEntry entry : objects.keySet()) {
+				try {
+					objects.remove(entry);
+					entry.store.saveObject(entry.object);
+				} catch (Throwable e) {
+					log.error("Error while saving {} in {}. {}", new Object[] { entry.object, entry.store, e });
+				}
 			}
 		}
 	}
@@ -159,12 +149,13 @@ public class FilePersistenceThread implements Runnable {
 	 * Informations about one entry to object.
 	 */
 	private static class UpdateEntry {
-		
+
 		/** Object to store. */
 		IPersistable object;
+
 		/** Store the object should be serialized to. */
 		FilePersistence store;
-		
+
 		/**
 		 * Create new update entry.
 		 * 
@@ -175,7 +166,7 @@ public class FilePersistenceThread implements Runnable {
 			this.object = object;
 			this.store = store;
 		}
-		
+
 		/**
 		 * Compare with another entry.
 		 * 
@@ -187,10 +178,10 @@ public class FilePersistenceThread implements Runnable {
 			if (!(other instanceof UpdateEntry)) {
 				return false;
 			}
-			
+
 			return (object.equals(((UpdateEntry) other).object) && store.equals(((UpdateEntry) other).store));
 		}
-		
+
 		/**
 		 * Return hash value for entry.
 		 * 
@@ -200,7 +191,7 @@ public class FilePersistenceThread implements Runnable {
 		public int hashCode() {
 			return object.hashCode() + store.hashCode();
 		}
-		
+
 	}
-	
+
 }

@@ -42,23 +42,18 @@ public class Deserializer {
 	 * @param <T> type
 	 * @param in input
 	 * @param target target
-     * @return Object object
+	 * @return Object object
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public <T> T deserialize(Input in, Type target) {
-		
 		byte type = in.readDataType();
 		log.trace("Type: {} target: {}", type, (target != null ? target.toString() : "Target not specified"));
-
 		while (type == DataTypes.CORE_SKIP) {
 			type = in.readDataType();
 			log.trace("Type (skip): {}", type);
 		}
-
 		log.trace("Datatype: {}", DataTypes.toStringValue(type));
-
 		Object result;
-
 		switch (type) {
 			case DataTypes.CORE_NULL:
 				result = in.readNull(target);
@@ -72,7 +67,7 @@ public class Deserializer {
 			case DataTypes.CORE_STRING:
 				if (target != null && ((Class) target).isEnum()) {
 					log.warn("Enum target specified");
-					String name = in.readString(target);		
+					String name = in.readString(target);
 					result = Enum.valueOf((Class) target, name);
 				} else {
 					result = in.readString(target);
@@ -115,16 +110,16 @@ public class Deserializer {
 				result = in.readCustom(target);
 				break;
 		}
-        return (T) postProcessExtension(result, target);
+		return (T) postProcessExtension(result, target);
 	}
 
 	/**
 	 * Post processes the result
 	 * TODO Extension Point
-     * @param result result
-     * @param target target
-     * @return object
-     */
+	 * @param result result
+	 * @param target target
+	 * @return object
+	 */
 	protected Object postProcessExtension(Object result, Type target) {
 		// does nothing at the moment, but will later!
 		return result;

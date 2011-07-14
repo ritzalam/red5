@@ -273,6 +273,8 @@
 		<property name="underrunTrigger" value="100"/>
 	</bean>
 	
-	<bean id="clientBroadcastStream" scope="prototype" lazy-init="true" class="org.red5.server.stream.ClientBroadcastStream"/>
+	<bean id="clientBroadcastStream" scope="prototype" lazy-init="true" class="org.red5.server.stream.ClientBroadcastStream">
+        <property name="automaticRecording" value="false"/>
+	</bean>
 
 </beans>

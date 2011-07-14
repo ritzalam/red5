@@ -39,7 +39,7 @@ public interface ISharedObjectStatistics extends IStatisticsBase {
 	 * 
 	 * @return <code>True</code> if the shared object is persistent, otherwise <code>False</code>
 	 */
-	public boolean isPersistentObject();
+	public boolean isPersistent();
 	
 	/**
 	 * Return the version number of the shared object.

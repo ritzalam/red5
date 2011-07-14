@@ -85,10 +85,8 @@ public class SharedObjectService implements ISharedObjectService {
 				scope.setAttribute(SO_TRANSIENT_STORE, store);
 				return store;
 			}
-
 			return (IPersistenceStore) scope.getAttribute(SO_TRANSIENT_STORE);
 		}
-
 		// Evaluate configuration for persistent shared objects
 		if (!scope.hasAttribute(SO_PERSISTENCE_STORE)) {
 			try {
@@ -111,10 +109,11 @@ public class SharedObjectService implements ISharedObjectService {
 		if (hasSharedObject(scope, name)) {
 			// The shared object already exists.
 			return true;
-		}
-		synchronized (scope) {
-			final IBasicScope soScope = new SharedObjectScope(scope, name, persistent, getStore(scope, persistent));
-			return scope.addChildScope(soScope);
+		} else {
+			synchronized (scope) {
+				final IBasicScope soScope = new SharedObjectScope(scope, name, persistent, getStore(scope, persistent));
+				return scope.addChildScope(soScope);
+			}
 		}
 	}
 
@@ -125,12 +124,10 @@ public class SharedObjectService implements ISharedObjectService {
 
 	/** {@inheritDoc} */
 	public ISharedObject getSharedObject(IScope scope, String name, boolean persistent) {
-		synchronized (scope) {
-			if (!hasSharedObject(scope, name)) {
-				createSharedObject(scope, name, persistent);
-			}
-			return getSharedObject(scope, name);
+		if (!hasSharedObject(scope, name)) {
+			createSharedObject(scope, name, persistent);
 		}
+		return getSharedObject(scope, name);
 	}
 
 	/** {@inheritDoc} */
@@ -155,8 +152,7 @@ public class SharedObjectService implements ISharedObjectService {
 		boolean result = false;
 		synchronized (scope) {
 			if (hasSharedObject(scope, name)) {
-				// '/' clears all local and persistent shared objects associated
-				// with the instance
+				// '/' clears all local and persistent shared objects associated with the instance
 				// if (name.equals('/')) {
 				// /foo/bar clears the shared object /foo/bar; if bar is a
 				// directory name, no shared objects are deleted.
@@ -169,8 +165,6 @@ public class SharedObjectService implements ISharedObjectService {
 				// followed by any two characters. If a directory name matches
 				// this specification, all the shared objects within this directory
 				// are cleared.
-				// if (name.equals('/')) {
-				// }
 				result = ((ISharedObject) scope.getBasicScope(TYPE, name)).clear();
 			}
 		}

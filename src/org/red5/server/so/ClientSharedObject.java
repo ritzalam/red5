@@ -81,7 +81,7 @@ public class ClientSharedObject extends SharedObject implements IClientSharedObj
 	public ClientSharedObject(String name, boolean persistent) {
 		super();
 		this.name = name;
-		persistentSO = persistent;
+		this.persistent = persistent;
 	}
 
 	/**
@@ -90,14 +90,14 @@ public class ClientSharedObject extends SharedObject implements IClientSharedObj
 	 * @param conn Attach SO to given connection
 	 */
 	public void connect(IConnection conn) {
-		if (!(conn instanceof RTMPConnection))
+		if (!(conn instanceof RTMPConnection)) {
 			throw new RuntimeException("can only connect through RTMP connections");
-
-		if (isConnected())
+		}
+		if (isConnected()) {
 			throw new RuntimeException("already connected");
-
+		}
 		source = conn;
-		SharedObjectMessage msg = new SharedObjectMessage(name, 0, isPersistentObject());
+		SharedObjectMessage msg = new SharedObjectMessage(name, 0, isPersistent());
 		msg.addEvent(new SharedObjectEvent(Type.SERVER_CONNECT, null, null));
 		Channel c = ((RTMPConnection) conn).getChannel((byte) 3);
 		c.write(msg);
@@ -105,7 +105,7 @@ public class ClientSharedObject extends SharedObject implements IClientSharedObj
 
 	/** {@inheritDoc} */
 	public void disconnect() {
-		SharedObjectMessage msg = new SharedObjectMessage(name, 0, isPersistentObject());
+		SharedObjectMessage msg = new SharedObjectMessage(name, 0, isPersistent());
 		msg.addEvent(new SharedObjectEvent(Type.SERVER_DISCONNECT, null, null));
 		Channel c = ((RTMPConnection) source).getChannel((byte) 3);
 		c.write(msg);
@@ -130,56 +130,53 @@ public class ClientSharedObject extends SharedObject implements IClientSharedObj
 
 	/** {@inheritDoc} */
 	public void dispatchEvent(IEvent e) {
-		if (e.getType() != IEvent.Type.SHARED_OBJECT || !(e instanceof ISharedObjectMessage)) {
-			// Don't know how to handle this event.
-			return;
-		}
-
-		ISharedObjectMessage msg = (ISharedObjectMessage) e;
-		if (msg.hasSource()) {
-			beginUpdate(msg.getSource());
-		} else {
-			beginUpdate();
-		}
-		try {
-			for (ISharedObjectEvent event : msg.getEvents()) {
-				switch (event.getType()) {
-					case CLIENT_INITIAL_DATA:
-						initialSyncReceived = true;
-						notifyConnect();
-						break;
-
-					case CLIENT_CLEAR_DATA:
-						attributes.clear();
-						notifyClear();
-						break;
-
-					case CLIENT_DELETE_DATA:
-					case CLIENT_DELETE_ATTRIBUTE:
-						attributes.remove(event.getKey());
-						notifyDelete(event.getKey());
-						break;
-
-					case CLIENT_SEND_MESSAGE:
-						notifySendMessage(event.getKey(), (List<?>) event.getValue());
-						break;
-
-					case CLIENT_UPDATE_DATA:
-						attributes.putAll((Map<String, Object>) event.getValue());
-						notifyUpdate(event.getKey(), (Map<String, Object>) event.getValue());
-						break;
-
-					case CLIENT_UPDATE_ATTRIBUTE:
-						attributes.put(event.getKey(), event.getValue());
-						notifyUpdate(event.getKey(), event.getValue());
-						break;
-
-					default:
-						log.warn("Unknown SO event: {}", event.getType());
-				}
+		if (e instanceof ISharedObjectMessage || e.getType() == IEvent.Type.SHARED_OBJECT) {
+			ISharedObjectMessage msg = (ISharedObjectMessage) e;
+			if (msg.hasSource()) {
+				beginUpdate(msg.getSource());
+			} else {
+				beginUpdate();
 			}
-		} finally {
-			endUpdate();
+			try {
+				for (ISharedObjectEvent event : msg.getEvents()) {
+					switch (event.getType()) {
+						case CLIENT_INITIAL_DATA:
+							initialSyncReceived = true;
+							notifyConnect();
+							break;
+
+						case CLIENT_CLEAR_DATA:
+							attributes.clear();
+							notifyClear();
+							break;
+
+						case CLIENT_DELETE_DATA:
+						case CLIENT_DELETE_ATTRIBUTE:
+							attributes.remove(event.getKey());
+							notifyDelete(event.getKey());
+							break;
+
+						case CLIENT_SEND_MESSAGE:
+							notifySendMessage(event.getKey(), (List<?>) event.getValue());
+							break;
+
+						case CLIENT_UPDATE_DATA:
+							attributes.putAll((Map<String, Object>) event.getValue());
+							notifyUpdate(event.getKey(), (Map<String, Object>) event.getValue());
+							break;
+
+						case CLIENT_UPDATE_ATTRIBUTE:
+							attributes.put(event.getKey(), event.getValue());
+							notifyUpdate(event.getKey(), event.getValue());
+							break;
+
+						default:
+							log.warn("Unknown SO event: {}", event.getType());
+					}
+				}
+			} finally {
+				endUpdate();
+			}
 		}
 	}
 

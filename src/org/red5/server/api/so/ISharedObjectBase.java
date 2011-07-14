@@ -65,7 +65,7 @@ public interface ISharedObjectBase extends ISharedObjectHandlerProvider,
 	 * 
 	 * @return true if the shared object is persistent, false otherwise
 	 */
-	public boolean isPersistentObject();
+	public boolean isPersistent();
 
 	/**
 	 * Return a map containing all attributes of the shared object. <br />

@@ -29,8 +29,7 @@ import org.red5.server.api.statistics.ISharedObjectStatistics;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 
-public interface ISharedObject extends IBasicScope,
-		ISharedObjectBase, ISharedObjectSecurityService {
+public interface ISharedObject extends IBasicScope, ISharedObjectBase, ISharedObjectSecurityService {
 
 	public static final String TYPE = "SharedObject";
 
@@ -43,26 +42,26 @@ public interface ISharedObject extends IBasicScope,
 	 * and they can be released without losing their contents.
 	 */
 	public void acquire();
-	
+
 	/**
 	 * Check if shared object currently is acquired.
 	 * 
 	 * @return <code>true</code> if the SO is acquired, otherwise <code>false</code>
 	 */
 	public boolean isAcquired();
-	
+
 	/**
 	 * Release previously acquired shared object. If the SO is non-persistent,
 	 * no more clients are connected the SO isn't acquired any more, the data
 	 * is released. 
 	 */
 	public void release();
-	
+
 	/**
 	 * Return statistics about the shared object.
 	 * 
 	 * @return statistics
 	 */
 	public ISharedObjectStatistics getStatistics();
-	
+
 }
