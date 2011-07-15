@@ -532,7 +532,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 			ISharedObject so = sharedObjectService.getSharedObject(scope, name);
 			so.dispatchEvent(object);
 			if (so.isPersistent() != persistent) {
-				log.debug("Shared object persistence mismatch - current: {} incoming: {}", so.isPersistent(), persistent);
+				log.warn("Shared object persistence mismatch - current: {} incoming: {}", so.isPersistent(), persistent);
 				/*
 				SharedObjectMessage msg = new SharedObjectMessage(name, 0, persistent);
 				msg.addEvent(new SharedObjectEvent(ISharedObjectEvent.Type.CLIENT_STATUS, "error", SO_PERSISTENCE_MISMATCH));

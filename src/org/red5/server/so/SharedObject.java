@@ -363,6 +363,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 	 * Send notification about modification of SO
 	 */
 	protected void notifyModified() {
+		log.debug("notifyModified");
 		if (updateCounter.get() == 0) {
 			if (modified) {
 				// The client sent at least one update -> increase version of SO
@@ -373,10 +374,14 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 						log.error("Could not store shared object.");
 					}
 				}
+			} else {
+				log.debug("Not modified");
 			}
 			sendUpdates();
 			//APPSERVER-291
 			modified = false;
+		} else {
+			log.debug("Update counter: {}", updateCounter.get());
 		}
 	}
 
@@ -406,6 +411,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 	 */
 	@Override
 	public Object getAttribute(String name, Object value) {
+		log.debug("getAttribute - name: {} value: {}", name, value);
 		Object result = null;
 		if (name != null) {
 			result = attributes.putIfAbsent(name, value);
@@ -430,6 +436,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 	 */
 	@Override
 	public boolean setAttribute(String name, Object value) {
+		log.debug("setAttribute - name: {} value: {}", name, value);
 		boolean result = true;
 		ownerMessage.addEvent(Type.CLIENT_UPDATE_ATTRIBUTE, name, null);
 		if (value == null && super.removeAttribute(name)) {
