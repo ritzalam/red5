@@ -241,19 +241,15 @@ public class MetaService implements IMetaService {
 	 * @return New tag with injected metadata
 	 */
 	private ITag injectMetaData(IMetaData<?, ?> meta, ITag tag) {
-
 		IoBuffer bb = IoBuffer.allocate(1000);
 		bb.setAutoExpand(true);
-
 		Output out = new Output(bb);
 		Serializer ser = new Serializer();
 		ser.serialize(out, "onMetaData");
 		ser.serialize(out, meta);
-
 		IoBuffer tmpBody = out.buf().flip();
 		int tmpBodySize = out.buf().limit();
 		int tmpPreviousTagSize = tag.getPreviousTagSize();
-
 		return new Tag(IoConstants.TYPE_METADATA, 0, tmpBodySize, tmpBody, tmpPreviousTagSize);
 	}
 
@@ -267,7 +263,6 @@ public class MetaService implements IMetaService {
 	 * @return ITag tag New tag with injected metadata
 	 */
 	private ITag injectMetaCue(IMetaCue meta, ITag tag) {
-
 		// IMeta meta = (MetaCue) cue;
 		Output out = new Output(IoBuffer.allocate(1000));
 		Serializer ser = new Serializer();
@@ -280,7 +275,6 @@ public class MetaService implements IMetaService {
 		int tmpTimestamp = getTimeInMilliseconds(meta);
 
 		return new Tag(IoConstants.TYPE_METADATA, tmpTimestamp, tmpBodySize, tmpBody, tmpPreviousTagSize);
-
 	}
 
 	/**
@@ -292,7 +286,6 @@ public class MetaService implements IMetaService {
 	 */
 	private int getTimeInMilliseconds(IMetaCue metaCue) {
 		return (int) (metaCue.getTime() * 1000.00);
-
 	}
 
 	/**

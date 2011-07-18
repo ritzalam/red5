@@ -162,6 +162,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	private volatile boolean recording;
 
 	/**
+	 * Whether we are appending or not
+	 */
+	private volatile boolean appending;
+	
+	/**
 	 * FileConsumer used to output recording to disk
 	 */
 	private FileConsumer recordingFile;
@@ -673,7 +678,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 				}
 			}
 		} else {
-			if (!file.exists()) {
+			if (file.exists()) {
+				appending = true;
+			} else {
 				// Per livedoc of FCS/FMS:
 				// If a recorded stream at the same URI does not already exist,
 				// "append" creates the stream as though "record" was passed.
@@ -900,15 +907,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		closed = false;
 		bytesReceived = 0;
 		creationTime = System.currentTimeMillis();
-		// force recording
-		if (automaticRecording) {
-			log.debug("Starting automatic recording of {}", publishedName);
-			try {
-				saveAs(publishedName, false);
-			} catch (Exception e) {
-				log.warn("Start of automatic recording failed", e);
-			}
-		}
 	}
 
 	/** {@inheritDoc} */
@@ -916,6 +914,15 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		// We send the start messages before the first packet is received.
 		// This is required so FME actually starts publishing.
 		sendStartNotifications(Red5.getConnectionLocal());
+		// force recording
+		if (automaticRecording && !appending) {
+			log.debug("Starting automatic recording of {}", publishedName);
+			try {
+				saveAs(publishedName, false);
+			} catch (Exception e) {
+				log.warn("Start of automatic recording failed", e);
+			}
+		}
 	}
 
 	/** {@inheritDoc} */
@@ -930,6 +937,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	public void stopRecording() {
 		if (recording) {
 			recording = false;
+			appending = false;
 			recordingFilename = null;
 			recordPipe.unsubscribe(recordingFile);
 			sendRecordStopNotify();

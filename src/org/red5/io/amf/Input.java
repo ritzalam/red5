@@ -259,6 +259,22 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		buf.limit(limit); // Reset the limit
 		return string;
 	}
+	
+	/**
+	 * Returns a string based on the buffer
+	 *
+	 * @param buf       Byte buffer with data
+	 * @return String   Decoded string
+	 */
+	public static String getString(java.nio.ByteBuffer buf) {
+		int len = buf.getShort() & 0xff;
+		log.debug("Length: {}", len);
+		int limit = buf.limit();
+		log.debug("Limit: {}", limit);
+		String string = bufferToString(buf, len);
+		buf.limit(limit); // Reset the limit
+		return string;
+	}	
 
 	/**
 	 * Converts the bytes into a string.

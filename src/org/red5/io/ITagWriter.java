@@ -19,7 +19,6 @@ package org.red5.io;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.File;
 import java.io.IOException;
 
 import org.apache.mina.core.buffer.IoBuffer;
@@ -88,7 +87,5 @@ public interface ITagWriter {
 	 * Closes a Writer
 	 */
 	public void close();
-
-	public void setFile(File file);
 
 }

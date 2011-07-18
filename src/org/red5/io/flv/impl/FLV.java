@@ -97,7 +97,7 @@ public class FLV implements IFLV {
 					tag = reader.readTag();
 					if (tag.getDataType() == IoConstants.TYPE_METADATA) {
 						if (metaService == null) {
-							metaService = new MetaService(this.file);
+							metaService = new MetaService();
 						}
 						metaData = metaService.readMetaData(tag.getBody());
 					}

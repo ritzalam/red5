@@ -110,7 +110,7 @@ public class IOUtils {
 	 * @param out           Output buffer
 	 * @param value			Byte to write
 	 */
-	public static void wrtieUnsignedByte(ByteBuffer out, byte value) {
+	public static void writeUnsignedByte(ByteBuffer out, byte value) {
 		out.put((byte) (value & 0xff));		
 	}	
 	
@@ -121,6 +121,15 @@ public class IOUtils {
 	 */
 	public static int readUnsignedMediumInt(IoBuffer in) {
 		return ((in.get() & 0xff) << 16) + ((in.get() & 0xff) << 8) + ((in.get() & 0xff));
+	}
+
+	/**
+	 * Reads medium int
+	 * @param in       Source
+	 * @return         int value
+	 */
+	public static int readMediumInt(ByteBuffer in) {
+		return ((in.get() & 0x000000ff) << 16) + ((in.get() & 0x000000ff) << 8) + ((in.get() & 0x000000ff));
 	}
 
 	/**
