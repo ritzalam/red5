@@ -349,7 +349,6 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 		if (log == null) {
 			log = Red5LoggerFactory.getLogger(this.getClass());
 		}
-
 		//setup plug-ins
 		log.trace("Plugins: {}", plugins);
 		if (plugins != null) {
@@ -402,12 +401,20 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 				}
 			}
 		}
-
+		// verify that we can start
 		if (!super.start(scope)) {
 			return false;
 		}
 		if (isApp(scope)) {
-			return appStart(scope);
+			boolean started = appStart(scope);
+			// fix for issue 91
+			if (started) {
+    			// we dont allow connections until we are started
+    			super.setCanConnect(true);
+    			// we also dont allow service calls until started
+    			super.setCanCallService(true);
+			}
+			return started;
 		} else {
 			return isRoom(scope) && roomStart(scope);
 		}
@@ -458,6 +465,10 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	public void stop(IScope scope) {
 		if (isApp(scope)) {
 			appStop(scope);
+			// we dont allow connections after we stop
+			super.setCanConnect(false);
+			// we also dont allow service calls 
+			super.setCanCallService(false);			
 		} else if (isRoom(scope)) {
 			roomStop(scope);
 		}
@@ -529,7 +540,6 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 				return false;
 			}
 		}
-
 		return true;
 	}
 

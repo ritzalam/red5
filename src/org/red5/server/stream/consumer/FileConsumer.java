@@ -41,7 +41,6 @@ import org.red5.io.IStreamableFileService;
 import org.red5.io.ITag;
 import org.red5.io.ITagWriter;
 import org.red5.io.StreamableFileFactory;
-import org.red5.io.flv.impl.FLVReader;
 import org.red5.io.flv.impl.Tag;
 import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
@@ -130,19 +129,15 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	private String mode;
 
 	/**
-	 * Offset
+	 * Start timestamp
 	 */
-	private int offset;
+	private int startTimestamp = -1;
 
 	/**
 	 * Last write timestamp
 	 */
+	@SuppressWarnings("unused")
 	private int lastTimestamp;
-
-	/**
-	 * Start timestamp
-	 */
-	private int startTimestamp = -1;
 
 	/**
 	 * Video decoder configuration
@@ -322,7 +317,6 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 			}
 		} else if (message instanceof ResetMessage) {
 			startTimestamp = -1;
-			offset += lastTimestamp;
 		}
 	}
 
@@ -379,15 +373,6 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 			writeLock = reentrantLock.writeLock();
 			readLock = reentrantLock.readLock();
 		}
-		// if the file exists get the duration, otherwise skip this
-		if (file.exists() && file.length() > 0) {
-			// get the duration from the existing file
-			long duration = FLVReader.getDuration(file);
-			log.debug("Duration: {}", duration);
-			if (duration > 0) {
-				offset = (int) duration + 1;
-			}
-		}
 		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils.getScopeService(scope, IStreamableFileFactory.class, StreamableFileFactory.class);
 		File folder = file.getParentFile();
 		if (!folder.exists()) {
@@ -405,7 +390,6 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		IStreamableFile flv = service.getStreamableFile(file);
 		if (mode == null || mode.equals(IClientStream.MODE_RECORD)) {
 			writer = flv.getWriter();
-			writer.setFile(file);
 			//write the decoder config tag if it exists
 			if (videoConfigurationTag != null) {
 				writer.writeTag(videoConfigurationTag);
@@ -417,7 +401,6 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 			}
 		} else if (mode.equals(IClientStream.MODE_APPEND)) {
 			writer = flv.getAppendWriter();
-			writer.setFile(file);
 		} else {
 			throw new IllegalStateException("Illegal mode type: " + mode);
 		}
@@ -510,10 +493,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		// create a tag
 		ITag tag = new Tag();
 		tag.setDataType(dataType);
-		//Always add offset since it's needed for "append" publish mode
-		//It adds on disk flv file duration
-		//Search for "offset" in this class constructor
-		tag.setTimestamp(timestamp + offset);
+		tag.setTimestamp(timestamp);
 		// get data bytes
 		IoBuffer data = ((IStreamData<?>) msg).getData().duplicate();
 		if (data != null) {
@@ -559,10 +539,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 			// create a tag
 			ITag tag = new Tag();
 			tag.setDataType(queued.getDataType());
-			//Always add offset since it's needed for "append" publish mode
-			//It adds on disk flv file duration
-			//Search for "offset" in this class constructor
-			tag.setTimestamp(timestamp + offset);
+			tag.setTimestamp(timestamp);
 			// get queued
 			IoBuffer data = queued.getData();
 			if (data != null) {

@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,9 +37,11 @@ import org.red5.io.IStreamableFile;
 import org.red5.io.ITag;
 import org.red5.io.ITagReader;
 import org.red5.io.IoConstants;
+import org.red5.io.amf.Input;
 import org.red5.io.amf.Output;
 import org.red5.io.flv.FLVHeader;
 import org.red5.io.flv.IKeyFrameDataAnalyzer;
+import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.IOUtils;
 import org.slf4j.Logger;
@@ -809,34 +812,70 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		return new Tag(dataType, timestamp, bodySize, null, previousTagSize);
 	}
 
-	public static long getDuration(File flvFile) {
+	/**
+	 * Returns the last tag's timestamp as the files duration.
+	 * 
+	 * @param flvFile
+	 * @return duration
+	 */
+	public static int getDuration(File flvFile) {
+		int duration = 0;
 		RandomAccessFile flv = null;
 		try {
 			flv = new RandomAccessFile(flvFile, "r");
-			long flvLength = flv.length();
-			if (flvLength < 13) {
-				return 0;
+			long flvLength = Math.max(flvFile.length(), flv.length());
+			log.debug("File length: {}", flvLength);
+			if (flvLength > 13) {
+				flv.seek(flvLength - (4 + 1));
+				int lastTagSize = flv.readInt();
+				log.debug("Last tag size: {}", lastTagSize);
+				if (lastTagSize > 0 && (lastTagSize < flvLength)) {
+					// jump right to where tag timestamp would be
+					flv.seek(flvLength - (lastTagSize + 1));
+					// grab timestamp as a regular int
+					duration = flv.readInt();
+					// adjust value to match extended timestamp
+					duration = (duration >>> 8) | ((duration & 0x000000ff) << 24);
+				} else {
+					// attempt to read the metadata
+					flv.seek(13);
+					byte tagType = flv.readByte();
+					if (tagType == ITag.TYPE_METADATA) {
+						ByteBuffer buf = ByteBuffer.allocate(3);
+						flv.getChannel().read(buf);
+						int bodySize = IOUtils.readMediumInt(buf);
+						log.debug("Metadata body size: {}", bodySize);
+						flv.skipBytes(4); // timestamp
+						flv.skipBytes(3); // stream id
+						buf.clear();
+						buf = ByteBuffer.allocate(bodySize);
+						flv.getChannel().read(buf);
+						// construct the meta
+						IoBuffer ioBuf = IoBuffer.wrap(buf);
+						Input input = new Input(ioBuf);
+						Deserializer deserializer = new Deserializer();
+						String metaType = deserializer.deserialize(input, String.class);
+						log.debug("Metadata type: {}", metaType);
+						Map<String, ?> meta = deserializer.deserialize(input, Map.class);
+						Object tmp = meta.get("duration");
+						if (tmp != null) {
+							if (tmp instanceof Double) {
+								duration = ((Double) tmp).intValue();
+							} else {
+								duration = Integer.valueOf((String) tmp);
+							}
+						}
+						input = null;
+						meta.clear();
+						meta = null;
+						ioBuf.clear();
+						ioBuf.free();
+						ioBuf = null;
+					}
+				}
 			}
-			flv.seek(flvLength - 4);
-			byte[] buf = new byte[4];
-			flv.read(buf);
-			long lastTagSize = 0;
-			for (int i = 0; i < 4; i++) {
-				lastTagSize += (buf[i] & 0x0ff) << ((3 - i) * 8);
-			}
-			if (lastTagSize == 0) {
-				return 0;
-			}
-			flv.seek(flvLength - lastTagSize);
-			flv.read(buf);
-			long duration = 0;
-			for (int i = 0; i < 3; i++) {
-				duration += (buf[i] & 0x0ff) << ((2 - i) * 8);
-			}
-			duration += (buf[3] & 0x0ff) << 24; // extension byte
-			return duration;
 		} catch (IOException e) {
-			return 0;
+			log.warn("Exception getting file duration", e);
 		} finally {
 			try {
 				if (flv != null) {
@@ -846,5 +885,6 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			}
 			flv = null;
 		}
+		return duration;
 	}
 }
