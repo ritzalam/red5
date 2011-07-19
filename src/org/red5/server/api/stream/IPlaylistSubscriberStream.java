@@ -49,6 +49,15 @@ public interface IPlaylistSubscriberStream extends ISubscriberStream, IPlaylist 
 	 * @param state stream state that we are changing to or notifying of
 	 * @param changed changed items
 	 */	
-	public void onChange(StreamState state, Object... changed);	
+	public void onChange(StreamState state, Object... changed);
+
+	/**
+	 * Replaces an item in the list with another item.
+	 * 
+	 * @param oldItem
+	 * @param newItem
+	 * @return true if successful and false otherwise
+	 */
+	public boolean replace(IPlayItem oldItem, IPlayItem newItem);	
 	
 }

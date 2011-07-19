@@ -74,6 +74,21 @@ public class StreamService implements IStreamService {
 	};
 
 	/** {@inheritDoc} */
+	public int createStream() {
+		IConnection conn = Red5.getConnectionLocal();
+		if (conn instanceof IStreamCapableConnection) {
+			return ((IStreamCapableConnection) conn).reserveStreamId();
+		} else {
+			return -1;
+		}
+	}
+
+	/** {@inheritDoc} */
+	public void initStream(int streamId) {
+		// XXX: what to do here?
+	}
+
+	/** {@inheritDoc} */
 	public void closeStream() {
 		IConnection conn = Red5.getConnectionLocal();
 		if (conn instanceof IStreamCapableConnection) {
@@ -147,13 +162,8 @@ public class StreamService implements IStreamService {
 	}
 
 	/** {@inheritDoc} */
-	public int createStream() {
-		IConnection conn = Red5.getConnectionLocal();
-		if (conn instanceof IStreamCapableConnection) {
-			return ((IStreamCapableConnection) conn).reserveStreamId();
-		} else {
-			return -1;
-		}
+	public void releaseStream(String streamName) {
+		// XXX: what to do here?
 	}
 
 	/** {@inheritDoc} */
@@ -179,16 +189,6 @@ public class StreamService implements IStreamService {
 			stream.close();
 		}
 		conn.unreserveStreamId(streamId);
-	}
-
-	/** {@inheritDoc} */
-	public void initStream(int streamId) {
-		// XXX: what to do here?
-	}
-
-	/** {@inheritDoc} */
-	public void releaseStream(String streamName) {
-		// XXX: what to do here?
 	}
 
 	/** {@inheritDoc} */
@@ -282,7 +282,7 @@ public class StreamService implements IStreamService {
 			IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
 			int streamId = getCurrentStreamId();
 			if (StringUtils.isEmpty(name)) {
-				sendNSFailed(streamConn, "The stream name may not be empty.", name, streamId);
+				sendNSFailed(streamConn, StatusCodes.NS_FAILED, "The stream name may not be empty.", name, streamId);
 				return;
 			}
 			IStreamSecurityService security = (IStreamSecurityService) ScopeUtils.getScopeService(scope, IStreamSecurityService.class);
@@ -290,7 +290,7 @@ public class StreamService implements IStreamService {
 				Set<IStreamPlaybackSecurity> handlers = security.getStreamPlaybackSecurity();
 				for (IStreamPlaybackSecurity handler : handlers) {
 					if (!handler.isPlaybackAllowed(scope, name, start, length, flushPlaylist)) {
-						sendNSFailed(streamConn, "You are not allowed to play the stream.", name, streamId);
+						sendNSFailed(streamConn, StatusCodes.NS_FAILED, "You are not allowed to play the stream.", name, streamId);
 						return;
 					}
 				}
@@ -329,7 +329,7 @@ public class StreamService implements IStreamService {
 						stream.close();
 						streamConn.deleteStreamById(streamId);
 					}
-					sendNSFailed(streamConn, err.getMessage(), name, streamId);
+					sendNSFailed(streamConn, StatusCodes.NS_FAILED, err.getMessage(), name, streamId);
 				}
 			}
 		} else {
@@ -433,20 +433,21 @@ public class StreamService implements IStreamService {
 	 */
 	public void play2(Map<String, ?> playOptions) {
 		logger.debug("play2 options: {}", playOptions.toString());
-		/* { streamName=streams/new.flv,
-		    oldStreamName=streams/old.flv, 
-			start=0, len=-1,
-			offset=12.195, 
-			transition=switch } */
+		/* { streamName=streams/new.flv, oldStreamName=streams/old.flv, 
+			start=0, len=-1, offset=12.195, transition=switch } */
 		// get the transition type
 		String transition = (String) playOptions.get("transition");
 		String streamName = (String) playOptions.get("streamName");
+		String oldStreamName = (String) playOptions.get("oldStreamName");
+		// now initiate new playback
+		int start = (Integer) playOptions.get("start");
+		int length = (Integer) playOptions.get("len");
 		// get the stream id
 		int streamId = getCurrentStreamId();
 		// get the clients connection
 		IConnection conn = Red5.getConnectionLocal();
 		if (conn != null && conn instanceof IStreamCapableConnection) {
-			//IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
+			IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
 			if ("stop".equals(transition)) {
 				play(Boolean.FALSE);
 			} else if ("reset".equals(transition)) {
@@ -456,19 +457,36 @@ public class StreamService implements IStreamService {
 				// set the playback type
 				simplePlayback.set(Boolean.TRUE);
 				// send the "start" of transition
-				sendNSStatus(conn, StatusCodes.NS_PLAY_TRANSITION, String.format("Transitioning from %s to %s.", playOptions.get("oldStreamName"), streamName), streamName,
-						streamId);
-				// now initiate new playback
-				int start = (Integer) playOptions.get("start");
-				int length = (Integer) playOptions.get("len");
+				sendNSStatus(conn, StatusCodes.NS_PLAY_TRANSITION, String.format("Transitioning from %s to %s.", oldStreamName, streamName), streamName, streamId);
 				// support offset?
 				//playOptions.get("offset")
 				play(streamName, start, length);
 				// clean up
 				simplePlayback.remove();
+			} else if ("append".equals(transition) || "appendAndWait".equals(transition)) {
+				IPlaylistSubscriberStream playlistStream = (IPlaylistSubscriberStream) streamConn.getStreamById(streamId);
+				IPlayItem item = SimplePlayItem.build(streamName);
+				playlistStream.addItem(item);
+				if ("append".equals(transition)) {
+					play(streamName, start, length, false);
+				}
+			} else if ("swap".equals(transition)) {
+				IPlaylistSubscriberStream playlistStream = (IPlaylistSubscriberStream) streamConn.getStreamById(streamId);
+				IPlayItem item = SimplePlayItem.build(streamName);
+				int itemCount = playlistStream.getItemSize();
+				for (int i = 0; i < itemCount; i++) {
+					IPlayItem tmpItem = playlistStream.getItem(i);
+					if (tmpItem.getName().equals(oldStreamName)) {
+						if (!playlistStream.replace(tmpItem, item)) {
+							logger.warn("Playlist item replacement failed");
+							sendNSFailed(streamConn, StatusCodes.NS_PLAY_FAILED, "Playlist swap failed.", streamName, streamId);
+						}
+						break;
+					}
+				}
 			} else {
 				logger.warn("Unhandled transition: {}", transition);
-				sendNSFailed(conn, "Transition type not supported", streamName, streamId);
+				sendNSFailed(conn, StatusCodes.NS_FAILED, "Transition type not supported", streamName, streamId);
 			}
 		} else {
 			logger.info("Connection was null ?");
@@ -530,7 +548,7 @@ public class StreamService implements IStreamService {
 			IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
 			int streamId = getCurrentStreamId();
 			if (StringUtils.isEmpty(name)) {
-				sendNSFailed(streamConn, "The stream name may not be empty.", name, streamId);
+				sendNSFailed(streamConn, StatusCodes.NS_FAILED, "The stream name may not be empty.", name, streamId);
 				return;
 			}
 			IStreamSecurityService security = (IStreamSecurityService) ScopeUtils.getScopeService(scope, IStreamSecurityService.class);
@@ -538,21 +556,15 @@ public class StreamService implements IStreamService {
 				Set<IStreamPublishSecurity> handlers = security.getStreamPublishSecurity();
 				for (IStreamPublishSecurity handler : handlers) {
 					if (!handler.isPublishAllowed(scope, name, mode)) {
-						sendNSFailed(streamConn, "You are not allowed to publish the stream.", name, streamId);
+						sendNSFailed(streamConn, StatusCodes.NS_FAILED, "You are not allowed to publish the stream.", name, streamId);
 						return;
 					}
 				}
 			}
 			IBroadcastScope bsScope = getBroadcastScope(scope, name);
 			if (bsScope != null && !bsScope.getProviders().isEmpty()) {
-				// Another stream with that name is already published.
-				Status badName = new Status(StatusCodes.NS_PUBLISH_BADNAME);
-				badName.setClientid(streamId);
-				badName.setDetails(name);
-				badName.setLevel("error");
-				// FIXME: there should be a direct way to send the status
-				Channel channel = ((RTMPConnection) streamConn).getChannel((byte) (4 + ((streamId - 1) * 5)));
-				channel.sendStatus(badName);
+				// another stream with that name is already published			
+				sendNSFailed(streamConn, StatusCodes.NS_PUBLISH_BADNAME, name, name, streamId);
 				return;
 			}
 			IClientStream stream = streamConn.getStreamById(streamId);
@@ -594,14 +606,7 @@ public class StreamService implements IStreamService {
 				}
 				bs.startPublishing();
 			} catch (IOException e) {
-				Status accessDenied = new Status(StatusCodes.NS_RECORD_NOACCESS);
-				accessDenied.setClientid(streamId);
-				accessDenied.setDesciption("The file could not be created/written to.");
-				accessDenied.setDetails(name);
-				accessDenied.setLevel("error");
-				// FIXME: there should be a direct way to send the status
-				Channel channel = ((RTMPConnection) streamConn).getChannel((byte) (4 + ((streamId - 1) * 5)));
-				channel.sendStatus(accessDenied);
+				sendNSFailed(streamConn, StatusCodes.NS_RECORD_NOACCESS, "The file could not be created/written to.", name, streamId);
 				bs.close();
 				if (created) {
 					streamConn.deleteStreamById(streamId);
@@ -630,13 +635,7 @@ public class StreamService implements IStreamService {
 				try {
 					subscriberStream.seek(position);
 				} catch (OperationNotSupportedException err) {
-					Status seekFailed = new Status(StatusCodes.NS_SEEK_FAILED);
-					seekFailed.setClientid(streamId);
-					seekFailed.setDesciption("The stream doesn't support seeking.");
-					seekFailed.setLevel("error");
-					// FIXME: there should be a direct way to send the status
-					Channel channel = ((RTMPConnection) streamConn).getChannel((byte) (4 + ((streamId - 1) * 5)));
-					channel.sendStatus(seekFailed);
+					sendNSFailed(streamConn, StatusCodes.NS_SEEK_FAILED, "The stream doesn't support seeking.", stream.getName(), streamId);
 				}
 			}
 		}
@@ -695,15 +694,16 @@ public class StreamService implements IStreamService {
 	}
 
 	/**
-	 * Send a <code>NetStream.Failed</code> message to the client.
+	 * Send a <code>NetStream.Play.Failed</code> message to the client.
 	 * 
 	 * @param conn
+	 * @param errorCode
 	 * @param description
 	 * @param name
 	 * @param streamId
 	 */
-	private void sendNSFailed(IConnection conn, String description, String name, int streamId) {
-		StreamService.sendNetStreamStatus(conn, StatusCodes.NS_FAILED, description, name, Status.ERROR, streamId);
+	private void sendNSFailed(IConnection conn, String errorCode, String description, String name, int streamId) {
+		StreamService.sendNetStreamStatus(conn, errorCode, description, name, Status.ERROR, streamId);
 	}
 
 	/**
