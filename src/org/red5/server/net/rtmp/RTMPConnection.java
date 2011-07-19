@@ -736,8 +736,6 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 			if (bytesRead >= nextBytesRead) {
 				BytesRead sbr = new BytesRead((int) bytesRead);
 				getChannel(2).write(sbr);
-				// @todo: what do we want to see printed here?
-				// log.info(sbr);
 				nextBytesRead += bytesReadInterval;
 			}
 		} finally {

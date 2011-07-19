@@ -86,7 +86,6 @@ public class ServiceInvoker implements IServiceInvoker {
 			// No service requested, return application scope handler
 			return service;
 		}
-
 		// Search service resolver that knows about service name
 		for (IServiceResolver resolver : serviceResolvers) {
 			service = resolver.resolveService(scope, serviceName);
@@ -94,7 +93,6 @@ public class ServiceInvoker implements IServiceInvoker {
 				return service;
 			}
 		}
-
 		// Requested service does not exist.
 		return null;
 	}
@@ -120,45 +118,44 @@ public class ServiceInvoker implements IServiceInvoker {
 
 	/** {@inheritDoc} */
 	public boolean invoke(IServiceCall call, Object service) {
-		IConnection conn = Red5.getConnectionLocal();		
+		IConnection conn = Red5.getConnectionLocal();
 		String methodName = call.getServiceMethodName();
-		log.debug("Service: {} method name: {}", call.getServiceName(), methodName);
+		log.debug("Service: {} name: {} method: {}", new Object[] { service, call.getServiceName(), methodName });
 		//pull off the prefixes since java doesnt allow this on a method name
 		if (methodName.charAt(0) == '@') {
 			log.debug("Method name contained an illegal prefix, it will be removed: {}", methodName);
 			methodName = methodName.substring(1);
 		}
-
+		// build an array with the incoming args and the current connection as the first element
 		Object[] args = call.getArguments();
 		Object[] argsWithConnection;
 		if (args != null) {
 			argsWithConnection = new Object[args.length + 1];
 			argsWithConnection[0] = conn;
 			for (int i = 0; i < args.length; i++) {
-				log.debug("\t{} => {}", i, args[i]);
+				log.debug("{} => {}", i, args[i]);
+				log.trace("Arg type: {}", args[i].getClass().getName());
 				argsWithConnection[i + 1] = args[i];
 			}
 		} else {
 			argsWithConnection = new Object[] { conn };
 		}
-
+		// find the method
 		Object[] methodResult = null;
 		// First, search for method with the connection as first parameter.
 		methodResult = ServiceUtils.findMethodWithExactParameters(service, methodName, argsWithConnection);
 		if (methodResult.length == 0 || methodResult[0] == null) {
-			// Second, search for method without the connection as first
-			// parameter.
+			// Second, search for method without the connection as first parameter.
 			methodResult = ServiceUtils.findMethodWithExactParameters(service, methodName, args);
 			if (methodResult.length == 0 || methodResult[0] == null) {
-				// Third, search for method with the connection as first
-				// parameter in a list argument.
+				// Third, search for method with the connection as first parameter in a list argument.
 				methodResult = ServiceUtils.findMethodWithListParameters(service, methodName, argsWithConnection);
 				if (methodResult.length == 0 || methodResult[0] == null) {
-					// Fourth, search for method without the connection as first
-					// parameter in a list argument.
+					// Fourth, search for method without the connection as first parameter in a list argument.
 					methodResult = ServiceUtils.findMethodWithListParameters(service, methodName, args);
 					if (methodResult.length == 0 || methodResult[0] == null) {
-						log.error("Method {} with parameters {} not found in {}", new Object[]{methodName, (args == null ? Collections.EMPTY_LIST : Arrays.asList(args)), service});
+						log.error("Method {} with parameters {} not found in {}",
+								new Object[] { methodName, (args == null ? Collections.EMPTY_LIST : Arrays.asList(args)), service });
 						call.setStatus(Call.STATUS_METHOD_NOT_FOUND);
 						if (args != null && args.length > 0) {
 							call.setException(new MethodNotFoundException(methodName, args));
@@ -181,16 +178,16 @@ public class ServiceInvoker implements IServiceInvoker {
 				log.debug("Method {} is declared private.", method);
 				throw new NotAllowedException("you are not allowed to execute this method");
 			}
-			
+
 			final DeclareProtected annotation = method.getAnnotation(DeclareProtected.class);
 			if (annotation != null) {
 				if (!conn.getClient().hasPermission(conn, annotation.permission())) {
 					// Client doesn't have required permission
-					log.debug("Client {} doesn't have required permission {} to call {}", new Object[]{conn.getClient(), annotation.permission(), method});
+					log.debug("Client {} doesn't have required permission {} to call {}", new Object[] { conn.getClient(), annotation.permission(), method });
 					throw new NotAllowedException("you are not allowed to execute this method");
 				}
 			}
-			
+
 			log.debug("Invoking method: {}", method.toString());
 
 			if (method.getReturnType() == Void.class) {

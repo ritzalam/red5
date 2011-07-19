@@ -373,9 +373,9 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 			conn.invoke(method, callback);
 		} else {
 			log.info("Connection was null");
-            PendingCall result = new PendingCall(method);
-            result.setStatus(Call.STATUS_NOT_CONNECTED);
-            callback.resultReceived(result);
+			PendingCall result = new PendingCall(method);
+			result.setStatus(Call.STATUS_NOT_CONNECTED);
+			callback.resultReceived(result);
 		}
 	}
 
@@ -389,12 +389,12 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	public void invoke(String method, Object[] params, IPendingServiceCallback callback) {
 		log.debug("invoke method: {} params {} callback {}", new Object[] { method, params, callback });
 		if (conn != null) {
-            conn.invoke(method, params, callback);
+			conn.invoke(method, params, callback);
 		} else {
 			log.info("Connection was null");
-            PendingCall result = new PendingCall(method, params);
-            result.setStatus(Call.STATUS_NOT_CONNECTED);
-            callback.resultReceived(result);
+			PendingCall result = new PendingCall(method, params);
+			result.setStatus(Call.STATUS_NOT_CONNECTED);
+			callback.resultReceived(result);
 		}
 	}
 
@@ -443,7 +443,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 
 	public void publishStreamData(int streamId, IMessage message) {
 		NetStreamPrivateData streamData = streamDataMap.get(streamId);
-		log.debug("publishStreamData - stream data map: {}",	streamDataMap);
+		log.debug("publishStreamData - stream data map: {}", streamDataMap);
 		if (streamData != null) {
 			if (streamData.connConsumer != null) {
 				streamData.connConsumer.pushMessage(null, message);
@@ -464,6 +464,73 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 			params[2] = length;
 			PendingCall pendingCall = new PendingCall("play", params);
 			conn.invoke(pendingCall, getChannelForStreamId(streamId));
+		} else {
+			log.info("Connection was null ?");
+		}
+	}
+
+	/**
+	 * Dynamic streaming play method.
+	 * 
+	 * The following properties are supported on the play options:
+	 * <pre>
+		streamName: String. The name of the stream to play or the new stream to switch to.
+		oldStreamName: String. The name of the initial stream that needs to be switched out. This is not needed and ignored 
+		               when play2 is used for just playing the stream and not switching to a new stream.
+		start: Number. The start time of the new stream to play, just as supported by the existing play API. and it has the 
+		               same defaults. This is ignored when the method is called for switching (in other words, the transition 
+		               is either NetStreamPlayTransition.SWITCH or NetStreamPlayTransitions.SWAP)
+		len: Number. The duration of the playback, just as supported by the existing play API and has the same defaults.
+		transition: String. The transition mode for the playback command. It could be one of the following:
+							NetStreamPlayTransitions.RESET
+							NetStreamPlayTransitions.APPEND
+							NetStreamPlayTransitions.SWITCH
+							NetStreamPlayTransitions.SWAP
+		</pre>
+		NetStreamPlayTransitions:
+		<pre>					
+			APPEND : String = "append" - Adds the stream to a playlist and begins playback with the first stream.
+ 	 		APPEND_AND_WAIT : String = "appendAndWait" - Builds a playlist without starting to play it from the first stream.
+ 	 		RESET : String = "reset" - Clears any previous play calls and plays the specified stream immediately.
+ 	 		RESUME : String = "resume" - Requests data from the new connection starting from the point at which the previous connection ended.
+ 	 		STOP : String = "stop" - Stops playing the streams in a playlist.
+ 	 		SWAP : String = "swap" - Replaces a content stream with a different content stream and maintains the rest of the playlist.
+ 	 		SWITCH : String = "switch" - Switches from playing one stream to another stream, typically with streams of the same content.			
+	   </pre>
+	   @see <a href="http://www.adobe.com/devnet/flashmediaserver/articles/dynstream_actionscript.html">ActionScript guide to dynamic streaming</a>
+	   @see <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/net/NetStreamPlayTransitions.html">NetStreamPlayTransitions</a>
+	 */
+	public void play2(int streamId, Map<String, ?> playOptions) {
+		log.debug("play2 options: {}", playOptions.toString());
+		/* { streamName=streams/new.flv,
+		    oldStreamName=streams/old.flv, 
+			start=0, len=-1,
+			offset=12.195, 
+			transition=switch } */
+		// get the transition type
+		String transition = (String) playOptions.get("transition");
+		if (conn != null) {
+			if ("NetStreamPlayTransitions.STOP".equals(transition)) {
+				PendingCall pendingCall = new PendingCall("play", new Object[] { Boolean.FALSE });
+				conn.invoke(pendingCall, getChannelForStreamId(streamId));
+			} else if ("NetStreamPlayTransitions.RESET".equals(transition)) {
+				// just reset the currently playing stream
+				
+			} else {
+    			Object[] params = new Object[6];
+    			params[0] = playOptions.get("streamName").toString();
+    			Object o = playOptions.get("start");
+    			params[1] = o instanceof Integer ? (Integer) o : Integer.valueOf((String) o);
+    			o = playOptions.get("len");
+    			params[2] = o instanceof Integer ? (Integer) o : Integer.valueOf((String) o);
+    			// new parameters for playback
+    			params[3] = transition;
+    			params[4] = playOptions.get("offset");
+    			params[5] = playOptions.get("oldStreamName");
+    			// do call
+    			PendingCall pendingCall = new PendingCall("play2", params);
+    			conn.invoke(pendingCall, getChannelForStreamId(streamId));
+			}
 		} else {
 			log.info("Connection was null ?");
 		}
@@ -627,7 +694,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	public void setConnection(RTMPConnection conn) {
 		this.conn = conn;
 	}
-	
+
 	/**
 	 * Returns the connection associated with this client.
 	 * 

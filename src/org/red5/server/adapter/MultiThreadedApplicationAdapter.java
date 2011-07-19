@@ -1278,8 +1278,19 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 			long playItemSize = -1;
 			String playItemName = "";
 			if (item != null) {
-				playItemSize = item.getSize();
 				playItemName = item.getName();
+				//get file size in bytes if available
+				IProviderService providerService = (IProviderService) scope.getContext().getBean(IProviderService.BEAN_NAME);
+				if (providerService != null) {
+					File file = providerService.getVODProviderFile(scope, playItemName);
+					if (file != null) {
+						playItemSize = file.length();
+					} else {
+						log.debug("File was null, this is ok for live streams");
+					}
+				} else {
+					log.debug("ProviderService was null");
+				}
 			}
 			log.info("W3C x-category:stream x-event:stop c-ip:{} cs-bytes:{} sc-bytes:{} x-sname:{} x-file-length:{} x-file-size:{} x-name:{}", new Object[] { remoteAddress,
 					readBytes, writtenBytes, stream.getName(), playDuration, playItemSize, playItemName });

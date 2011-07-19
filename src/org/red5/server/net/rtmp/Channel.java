@@ -39,11 +39,12 @@ import org.slf4j.LoggerFactory;
  * Identified connection that transfers packets.
  */
 public class Channel {
-    /**
-     * Logger
-     */
+    
 	protected static Logger log = LoggerFactory.getLogger(Channel.class);
-    /**
+
+	private final static String CALL_ON_STATUS = "onStatus";
+	
+	/**
      * RTMP connection used to transfer packets.
      */
 	private RTMPConnection connection;
@@ -99,7 +100,6 @@ public class Channel {
 			log.info("Stream doesn't exist any longer, discarding message {}", event);
 			return;
 		}
-
 		final int streamId = (stream == null) ? 0 : stream.getStreamId();
 		write(event, streamId);
 	}
@@ -111,18 +111,14 @@ public class Channel {
      * @param streamId        Stream id
      */
     private void write(IRTMPEvent event, int streamId) {
-
 		final Header header = new Header();
 		final Packet packet = new Packet(header, event);
-
 		header.setChannelId(id);
 		header.setTimer(event.getTimestamp());
 		header.setStreamId(streamId);
 		header.setDataType(event.getDataType());
-
 		// should use RTMPConnection specific method.. 
 		connection.write(packet);
-
 	}
 
     /**
@@ -134,7 +130,7 @@ public class Channel {
 		final boolean andReturn = !status.getCode().equals(StatusCodes.NS_DATA_START);
 		final Notify event;
 		if (andReturn) {
-			final PendingCall call = new PendingCall(null, "onStatus", new Object[] { status });
+			final PendingCall call = new PendingCall(null, CALL_ON_STATUS, new Object[] { status });
 			event = new Invoke();
 			if (status.getCode().equals(StatusCodes.NS_PLAY_START)) {	
 				IScope scope = connection.getScope();
@@ -145,19 +141,19 @@ public class Channel {
 					if (videoAccess || audioAccess) {
 						final Call call2 = new Call(null, "|RtmpSampleAccess", null);
 						Notify notify = new Notify();
-						notify.setInvokeId(1);
+						notify.setInvokeId(connection.getInvokeId()); 
 						notify.setCall(call2);
 						notify.setData(IoBuffer.wrap(new byte[] { 0x01, (byte) (audioAccess ? 0x01 : 0x00), 0x01, (byte) (videoAccess ? 0x01 : 0x00) }));
 						write(notify, connection.getStreamIdForChannel(id));
 					}
 				}
 			}
-			event.setInvokeId(1);
+			event.setInvokeId(connection.getInvokeId()); 
 			event.setCall(call);
 		} else {
-			final Call call = new Call(null, "onStatus", new Object[] { status });
+			final Call call = new Call(null, CALL_ON_STATUS, new Object[] { status });
 			event = new Notify();
-			event.setInvokeId(1);
+			event.setInvokeId(connection.getInvokeId()); 
 			event.setCall(call);
 		}
 		// We send directly to the corresponding stream as for

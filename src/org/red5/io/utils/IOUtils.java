@@ -35,14 +35,14 @@ public class IOUtils {
 	/**
 	 * UTF-8 is used
 	 */
-	public static final Charset CHARSET = Charset.forName("UTF-8");
+	public final static Charset CHARSET = Charset.forName("UTF-8");
 
 	/**
 	 * Writes integer in reverse order
 	 * @param out         Data buffer to fill
 	 * @param value       Integer
 	 */
-	public static void writeReverseInt(IoBuffer out, int value) {
+	public final static void writeReverseInt(IoBuffer out, int value) {
 		byte[] bytes = new byte[4];
 		IoBuffer rev = IoBuffer.allocate(4);
 		rev.putInt(value);
@@ -61,24 +61,24 @@ public class IOUtils {
 	 * @param out           Output buffer
 	 * @param value         Integer to write
 	 */
-	public static void writeMediumInt(IoBuffer out, int value) {
+	public final static void writeMediumInt(IoBuffer out, int value) {
 		byte[] bytes = new byte[3];
 		bytes[0] = (byte) ((value >>> 16) & 0xff);
 		bytes[1] = (byte) ((value >>> 8) & 0xff);
 		bytes[2] = (byte) (value & 0xff);
 		out.put(bytes);
 	}
-	
+
 	/**
 	 * Writes medium integer
 	 * @param out           Output buffer
 	 * @param value         Integer to write
 	 */
-	public static void writeMediumInt(ByteBuffer out, int value) {
+	public final static void writeMediumInt(ByteBuffer out, int value) {
 		out.put((byte) ((value >>> 16) & 0xff));
 		out.put((byte) ((value >>> 8) & 0xff));
 		out.put((byte) (value & 0xff));
-	}	
+	}
 
 	/**
 	 * Writes extended medium integer (equivalent to a regular integer whose
@@ -87,11 +87,11 @@ public class IOUtils {
 	 * @param out           Output buffer
 	 * @param value         Integer to write
 	 */
-	public static void writeExtendedMediumInt(IoBuffer out, int value) {
+	public final static void writeExtendedMediumInt(IoBuffer out, int value) {
 		value = ((value & 0xff000000) >> 24) | (value << 8);
 		out.putInt(value);
 	}
-	
+
 	/**
 	 * Writes extended medium integer (equivalent to a regular integer whose
 	 * most significant byte has been moved to its end, past its least significant
@@ -99,10 +99,10 @@ public class IOUtils {
 	 * @param out           Output buffer
 	 * @param value         Integer to write
 	 */
-	public static void writeExtendedMediumInt(ByteBuffer out, int value) {
+	public final static void writeExtendedMediumInt(ByteBuffer out, int value) {
 		value = ((value & 0xff000000) >> 24) | (value << 8);
 		out.putInt(value);
-	}	
+	}
 
 	/**
 	 * Writes an unsigned byte value to the supplied buffer.
@@ -110,16 +110,16 @@ public class IOUtils {
 	 * @param out           Output buffer
 	 * @param value			Byte to write
 	 */
-	public static void writeUnsignedByte(ByteBuffer out, byte value) {
-		out.put((byte) (value & 0xff));		
-	}	
-	
+	public final static void writeUnsignedByte(ByteBuffer out, byte value) {
+		out.put((byte) (value & 0xff));
+	}
+
 	/**
 	 * Reads unsigned medium integer
 	 * @param in              Unsigned medium int source
 	 * @return                int value
 	 */
-	public static int readUnsignedMediumInt(IoBuffer in) {
+	public final static int readUnsignedMediumInt(IoBuffer in) {
 		return ((in.get() & 0xff) << 16) + ((in.get() & 0xff) << 8) + ((in.get() & 0xff));
 	}
 
@@ -128,7 +128,7 @@ public class IOUtils {
 	 * @param in       Source
 	 * @return         int value
 	 */
-	public static int readMediumInt(ByteBuffer in) {
+	public final static int readMediumInt(ByteBuffer in) {
 		return ((in.get() & 0x000000ff) << 16) + ((in.get() & 0x000000ff) << 8) + ((in.get() & 0x000000ff));
 	}
 
@@ -137,7 +137,7 @@ public class IOUtils {
 	 * @param in       Source
 	 * @return         int value
 	 */
-	public static int readMediumInt(IoBuffer in) {
+	public final static int readMediumInt(IoBuffer in) {
 		return ((in.get() & 0x000000ff) << 16) + ((in.get() & 0x000000ff) << 8) + ((in.get() & 0x000000ff));
 	}
 
@@ -146,29 +146,29 @@ public class IOUtils {
 	 * @param in       Source
 	 * @return         int value
 	 */
-	public static int readExtendedMediumInt(IoBuffer in) {
+	public final static int readExtendedMediumInt(IoBuffer in) {
 		int result = in.getInt();
 		result = (result >>> 8) | ((result & 0x000000ff) << 24);
 		return result;
-	}	
-	
+	}
+
 	/**
 	 * Reads extended medium int
 	 * @param in       Source
 	 * @return         int value
 	 */
-	public static int readExtendedMediumInt(ByteBuffer in) {
+	public final static int readExtendedMediumInt(ByteBuffer in) {
 		int result = in.getInt();
 		result = (result >>> 8) | ((result & 0x000000ff) << 24);
 		return result;
-	}		
-	
+	}
+
 	/**
 	 * Reads reverse int
 	 * @param in       Source
 	 * @return         int
 	 */
-	public static int readReverseInt(IoBuffer in) {
+	public final static int readReverseInt(IoBuffer in) {
 		byte[] bytes = new byte[4];
 		in.get(bytes);
 		int val = 0;
@@ -185,7 +185,7 @@ public class IOUtils {
 	 * @param msg          Message
 	 * @param buf          Byte buffer to debug
 	 */
-	public static void debug(Logger log, String msg, IoBuffer buf) {
+	public final static void debug(Logger log, String msg, IoBuffer buf) {
 		if (log.isDebugEnabled()) {
 			log.debug(msg);
 			log.debug("Size: {}", buf.remaining());
@@ -199,7 +199,7 @@ public class IOUtils {
 	 * @param buf           Byte buffer
 	 * @return              String representation
 	 */
-	public static String toString(IoBuffer buf) {
+	public final static String toString(IoBuffer buf) {
 		int pos = buf.position();
 		int limit = buf.limit();
 		final java.nio.ByteBuffer strBuf = buf.buf();
@@ -215,5 +215,5 @@ public class IOUtils {
 		buf.flip();
 		System.out.println("Result: " + IOUtils.readExtendedMediumInt(buf));
 	}
-	
+
 }

@@ -69,7 +69,6 @@ public class FLVWriter implements ITagWriter {
 	/**
 	 * Position of the meta data tag in our file.
 	 */
-	@SuppressWarnings("unused")
 	private final static int META_POSITION = 13;
 
 	/**
@@ -163,7 +162,7 @@ public class FLVWriter implements ITagWriter {
 				// if duration is 0 then we probably have larger issues with this file
 				if (duration == 0) {
 					// seek to where metadata would normally start
-					dataFile.seek(13);
+					dataFile.seek(META_POSITION);
 				}
 			} else {
 				// temporary data file for storage of stream data
@@ -461,7 +460,25 @@ public class FLVWriter implements ITagWriter {
 					// run a test on the flv if debugging is on
 					if (log.isDebugEnabled()) {
 						// debugging
-						//testFLV();
+						try {
+							ITagReader reader = null;
+							if (flv != null) {
+								reader = flv.getReader();
+							}
+							if (reader == null) {
+								file.seek(0);
+								reader = new FLVReader(file.getChannel());
+							}
+							log.trace("reader: {}", reader);
+							log.debug("Has more tags: {}", reader.hasMoreTags());
+							ITag tag = null;
+							while (reader.hasMoreTags()) {
+								tag = reader.readTag();
+								log.debug("\n{}", tag);
+							}
+						} catch (IOException e) {
+							log.warn("", e);
+						}
 					}
 					// close the file
 					file.close();
@@ -469,29 +486,6 @@ public class FLVWriter implements ITagWriter {
 			} catch (IOException e) {
 				log.error("", e);
 			}
-		}
-	}
-
-	public void testFLV() {
-		log.debug("testFLV");
-		try {
-			ITagReader reader = null;
-			if (flv != null) {
-				reader = flv.getReader();
-			}
-			if (reader == null) {
-				file.seek(0);
-				reader = new FLVReader(file.getChannel());
-			}
-			log.trace("reader: {}", reader);
-			log.debug("Has more tags: {}", reader.hasMoreTags());
-			ITag tag = null;
-			while (reader.hasMoreTags()) {
-				tag = reader.readTag();
-				log.debug("\n{}", tag);
-			}
-		} catch (IOException e) {
-			log.warn("", e);
 		}
 	}
 

@@ -44,7 +44,7 @@ public class StreamUtilsTest {
 		public void runTest() throws Throwable {
 			for (int i = 0; i < callsPerThread; i++) {
 				// set item
-				stream.addItem(new SimplePlayItem());
+				stream.addItem(SimplePlayItem.build("stream" + i));
 				// get item
 				stream.getItem(1);
 				// next item
@@ -66,7 +66,7 @@ public class StreamUtilsTest {
 		public void runTest() throws Throwable {
 			for (int i = 0; i < callsPerThread; i++) {
 				// set item
-				stream.addItem(new SimplePlayItem());
+				stream.addItem(SimplePlayItem.build("stream" + i));
 				// get item
 				stream.getItem(1);
 				// next item

@@ -64,9 +64,7 @@ public class ServiceUtils {
 	 */
 	public static Object[] findMethodWithExactParameters(Object service, String methodName, Object[] args) {
 		int numParams = (args == null) ? 0 : args.length;
-
 		Method method = null;
-
 		try {
 			//try to skip the listing of all the methods by checking for exactly what
 			//we want first
@@ -76,7 +74,6 @@ public class ServiceUtils {
 		} catch (NoSuchMethodException nsme) {
 			log.debug("Method not found using exact parameter types");
 		}
-
 		List<Method> methods = ConversionUtils.findMethodsByNameAndNumParams(service, methodName, numParams);
 		log.debug("Found {} methods", methods.size());
 		if (methods.isEmpty()) {
@@ -87,27 +84,22 @@ public class ServiceUtils {
 			log.debug("Multiple methods found with same name and parameter count.");
 			log.debug("Parameter conversion will be attempted in order.");
 		}
-
 		Object[] params = null;
-
 		// First search for method with exact parameters
 		for (int i = 0; i < methods.size(); i++) {
 			method = methods.get(i);
 			boolean valid = true;
 			Class<?>[] paramTypes = method.getParameterTypes();
 			for (int j = 0; j < args.length; j++) {
-				if ((args[j] == null && paramTypes[j].isPrimitive())
-						|| (args[j] != null && !args[j].getClass().equals(paramTypes[j]))) {
+				if ((args[j] == null && paramTypes[j].isPrimitive()) || (args[j] != null && !args[j].getClass().equals(paramTypes[j]))) {
 					valid = false;
 					break;
 				}
 			}
-
 			if (valid) {
 				return new Object[] { method, args };
 			}
 		}
-
 		// Then try to convert parameters
 		for (int i = 0; i < methods.size(); i++) {
 			try {
@@ -117,13 +109,11 @@ public class ServiceUtils {
 					// Don't convert first IConnection parameter
 					continue;
 				}
-
 				return new Object[] { method, params };
 			} catch (Exception ex) {
 				log.debug("Parameter conversion failed for {}", method);
 			}
 		}
-
 		return new Object[] { null, null };
 	}
 
@@ -155,9 +145,7 @@ public class ServiceUtils {
 	 * @return                 Method/params pairs
 	 */
 	public static Object[] findMethodWithListParameters(Object service, String methodName, Object[] args) {
-
 		Method method = null;
-
 		try {
 			//try to skip the listing of all the methods by checking for exactly what
 			//we want first
@@ -190,8 +178,7 @@ public class ServiceUtils {
 			try {
 				method = methods.get(i);
 				params = ConversionUtils.convertParams(args, method.getParameterTypes());
-				if (argsList.size() > 0 && (argsList.get(0) instanceof IConnection)
-						&& (!(params[0] instanceof IConnection))) {
+				if (argsList.size() > 0 && (argsList.get(0) instanceof IConnection) && (!(params[0] instanceof IConnection))) {
 					// Don't convert first IConnection parameter
 					continue;
 				}

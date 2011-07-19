@@ -26,10 +26,10 @@ import org.red5.server.messaging.IMessageInput;
  * message input source.
  */
 public interface IPlayItem {
+
 	/**
 	 * Get name of item.
-	 * The VOD or Live stream provider is found according
-	 * to this name.
+	 * The VOD or Live stream provider is found according to this name.
 	 * @return the name
 	 */
 	String getName();
@@ -49,18 +49,10 @@ public interface IPlayItem {
 	long getLength();
 
 	/**
-	 * Size in bytes.
-	 * 
-	 * @return size in bytes
-	 */
-	long getSize();
-	
-	
-	/**
 	 * Get a message input for play.
-	 * This object overrides the default algorithm for finding
-	 * the appropriate VOD or Live stream provider according to
+	 * This object overrides the default algorithm for finding the appropriate VOD or Live stream provider according to
 	 * the item name.
+	 * 
 	 * @return message input
 	 */
 	IMessageInput getMessageInput();
