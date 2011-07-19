@@ -43,6 +43,7 @@ import org.red5.server.api.stream.ISubscriberStream;
 import org.red5.server.api.stream.IVideoStreamCodec;
 import org.red5.server.api.stream.OperationNotSupportedException;
 import org.red5.server.api.stream.StreamState;
+import org.red5.server.api.stream.support.DynamicPlayItem;
 import org.red5.server.messaging.AbstractMessage;
 import org.red5.server.messaging.IFilter;
 import org.red5.server.messaging.IMessage;
@@ -467,6 +468,10 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			sendStartStatus(item);
 			if (!withReset) {
 				sendSwitchStatus();
+			}
+			// if its dynamic playback send the complete status
+			if (item instanceof DynamicPlayItem) {
+				sendTransitionStatus();
 			}
 		}
 		if (msg != null) {
@@ -1180,8 +1185,15 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		doPushMessage(stop);
 	}
 
+	/**
+	 * Sends an onPlayStatus message.
+	 * 
+	 * @param code
+	 * @param duration
+	 * @param bytes
+	 */
 	private void sendOnPlayStatus(String code, int duration, long bytes) {
-		IoBuffer buf = IoBuffer.allocate(1024);
+		IoBuffer buf = IoBuffer.allocate(255);
 		buf.setAutoExpand(true);
 		Output out = new Output(buf);
 		out.writeString("onPlayStatus");
@@ -1190,6 +1202,12 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		props.put("level", "status");
 		props.put("duration", duration);
 		props.put("bytes", bytes);
+		if (StatusCodes.NS_PLAY_TRANSITION_COMPLETE.equals(code)) {
+			props.put("details", currentItem.getName());
+			props.put("description", String.format("Transitioned to %s", currentItem.getName()));
+			props.put("clientId", streamId);
+			props.put("isFastPlay", false);
+		}
 		out.writeMap(props, new Serializer());
 		buf.flip();
 
@@ -1208,9 +1226,15 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 */
 	private void sendSwitchStatus() {
 		// TODO: find correct duration to send
-		int duration = 1;
-		sendOnPlayStatus(StatusCodes.NS_PLAY_SWITCH, duration, bytesSent.get());
+		sendOnPlayStatus(StatusCodes.NS_PLAY_SWITCH, 1, bytesSent.get());
 	}
+	
+	/**
+	 * Send transition status notification
+	 */
+	private void sendTransitionStatus() {
+		sendOnPlayStatus(StatusCodes.NS_PLAY_TRANSITION_COMPLETE, 0, bytesSent.get());
+	}	
 
 	/**
 	 * Send playlist complete status notification
@@ -1218,8 +1242,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 */
 	private void sendCompleteStatus() {
 		// TODO: find correct duration to send
-		int duration = 1;
-		sendOnPlayStatus(StatusCodes.NS_PLAY_COMPLETE, duration, bytesSent.get());
+		sendOnPlayStatus(StatusCodes.NS_PLAY_COMPLETE, 1, bytesSent.get());
 	}
 
 	/**

@@ -89,8 +89,7 @@ public class PlaylistSubscriberStreamTest extends AbstractDependencyInjectionSpr
 	@Test
 	public void testStart() {
 		System.out.println("testStart");
-		SimplePlayItem item = new SimplePlayItem();
-		item.setName("DarkKnight.flv");
+		SimplePlayItem item = SimplePlayItem.build("DarkKnight.flv");
 		pss.addItem(item);
 		pss.start();
 	}
@@ -129,8 +128,7 @@ public class PlaylistSubscriberStreamTest extends AbstractDependencyInjectionSpr
 	@Test
 	public void testAddItemIPlayItem() {
 		System.out.println("testAddItemIPlayItem");
-		SimplePlayItem item = new SimplePlayItem();
-		item.setName("IronMan.flv");
+		SimplePlayItem item = SimplePlayItem.build("IronMan.flv");
 		pss.addItem(item);
 	}
 

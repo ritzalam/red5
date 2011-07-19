@@ -19,13 +19,13 @@ package org.red5.server.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.red5.io.utils.ObjectMap;
 import org.red5.server.BaseConnection;
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IConnection;
@@ -36,6 +36,7 @@ import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IClientStream;
+import org.red5.server.api.stream.IPlayItem;
 import org.red5.server.api.stream.IPlaylistSubscriberStream;
 import org.red5.server.api.stream.ISingleItemSubscriberStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
@@ -45,6 +46,7 @@ import org.red5.server.api.stream.IStreamSecurityService;
 import org.red5.server.api.stream.IStreamService;
 import org.red5.server.api.stream.ISubscriberStream;
 import org.red5.server.api.stream.OperationNotSupportedException;
+import org.red5.server.api.stream.support.DynamicPlayItem;
 import org.red5.server.api.stream.support.SimplePlayItem;
 import org.red5.server.net.rtmp.BaseRTMPHandler;
 import org.red5.server.net.rtmp.Channel;
@@ -60,6 +62,16 @@ import org.slf4j.LoggerFactory;
 public class StreamService implements IStreamService {
 
 	private static Logger logger = LoggerFactory.getLogger(StreamService.class);
+
+	/**
+	 * Use to determine playback type.
+	 */
+	private ThreadLocal<Boolean> simplePlayback = new ThreadLocal<Boolean>() {
+		@Override
+		protected Boolean initialValue() {
+			return Boolean.FALSE;
+		}
+	};
 
 	/** {@inheritDoc} */
 	public void closeStream() {
@@ -84,8 +96,7 @@ public class StreamService implements IStreamService {
 	 * Close stream.
 	 * This method can close both IClientBroadcastStream (coming from Flash Player to Red5)
 	 * and ISubscriberStream (from Red5 to Flash Player).
-	 * Corresponding application handlers (streamSubscriberClose, etc.) are called as if
-	 * close was initiated by Flash Player.
+	 * Corresponding application handlers (streamSubscriberClose, etc.) are called as if close was initiated by Flash Player.
 	 * 
 	 * It is recommended to remember stream id in application handlers, ex.:
 	 * <pre>
@@ -109,32 +120,29 @@ public class StreamService implements IStreamService {
 	 * @param streamId stream ID (number: 1,2,...)
 	 */
 	public static void closeStream(IConnection connection, int streamId) {
-		if (!(connection instanceof IStreamCapableConnection)) {
-			logger.warn("Connection is not instance of IStreamCapableConnection: {}", connection);
-			return;
-		}
-
-		IStreamCapableConnection scConnection = (IStreamCapableConnection) connection;
-		IClientStream stream = scConnection.getStreamById(streamId);
-		if (stream == null) {
-			logger.info("Stream not found: streamId={}, connection={}", streamId, connection);
-			return;
-		}
-
-		if (stream instanceof IClientBroadcastStream) {
-			// this is a broadcasting stream (from Flash Player to Red5)
-			IClientBroadcastStream bs = (IClientBroadcastStream) stream;
-			IBroadcastScope bsScope = (IBroadcastScope) connection.getScope().getBasicScope(IBroadcastScope.TYPE, bs.getPublishedName());
-			if (bsScope != null && connection instanceof BaseConnection) {
-				((BaseConnection) connection).unregisterBasicScope(bsScope);
+		if (connection instanceof IStreamCapableConnection) {
+			IStreamCapableConnection scConnection = (IStreamCapableConnection) connection;
+			IClientStream stream = scConnection.getStreamById(streamId);
+			if (stream != null) {
+				if (stream instanceof IClientBroadcastStream) {
+					// this is a broadcasting stream (from Flash Player to Red5)
+					IClientBroadcastStream bs = (IClientBroadcastStream) stream;
+					IBroadcastScope bsScope = (IBroadcastScope) connection.getScope().getBasicScope(IBroadcastScope.TYPE, bs.getPublishedName());
+					if (bsScope != null && connection instanceof BaseConnection) {
+						((BaseConnection) connection).unregisterBasicScope(bsScope);
+					}
+				}
+				stream.close();
+				scConnection.deleteStreamById(streamId);
+				// in case of broadcasting stream, status is sent automatically by Red5
+				if (!(stream instanceof IClientBroadcastStream)) {
+					StreamService.sendNetStreamStatus(connection, StatusCodes.NS_PLAY_STOP, "Stream closed by server", stream.getName(), Status.STATUS, streamId);
+				}
+			} else {
+				logger.info("Stream not found: streamId={}, connection={}", streamId, connection);
 			}
-		}
-		stream.close();
-		scConnection.deleteStreamById(streamId);
-
-		// in case of broadcasting stream, status is sent automatically by Red5
-		if (!(stream instanceof IClientBroadcastStream)) {
-			StreamService.sendNetStreamStatus(connection, StatusCodes.NS_PLAY_STOP, "Stream closed by server", stream.getName(), Status.STATUS, streamId);
+		} else {
+			logger.warn("Connection is not instance of IStreamCapableConnection: {}", connection);
 		}
 	}
 
@@ -243,8 +251,7 @@ public class StreamService implements IStreamService {
 						//adds the stream to a playlist
 						IStreamCapableConnection streamConn = (IStreamCapableConnection) Red5.getConnectionLocal();
 						IPlaylistSubscriberStream playlistStream = (IPlaylistSubscriberStream) streamConn.getStreamById(getCurrentStreamId());
-						SimplePlayItem item = new SimplePlayItem();
-						item.setName(name);
+						IPlayItem item = SimplePlayItem.build(name);
 						playlistStream.addItem(item);
 						play(name, start, length, false);
 						break;
@@ -275,7 +282,7 @@ public class StreamService implements IStreamService {
 			IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
 			int streamId = getCurrentStreamId();
 			if (StringUtils.isEmpty(name)) {
-				sendNSFailed((RTMPConnection) streamConn, "The stream name may not be empty.", name, streamId);
+				sendNSFailed(streamConn, "The stream name may not be empty.", name, streamId);
 				return;
 			}
 			IStreamSecurityService security = (IStreamSecurityService) ScopeUtils.getScopeService(scope, IStreamSecurityService.class);
@@ -283,7 +290,7 @@ public class StreamService implements IStreamService {
 				Set<IStreamPlaybackSecurity> handlers = security.getStreamPlaybackSecurity();
 				for (IStreamPlaybackSecurity handler : handlers) {
 					if (!handler.isPlaybackAllowed(scope, name, start, length, flushPlaylist)) {
-						sendNSFailed((RTMPConnection) streamConn, "You are not allowed to play the stream.", name, streamId);
+						sendNSFailed(streamConn, "You are not allowed to play the stream.", name, streamId);
 						return;
 					}
 				}
@@ -300,24 +307,7 @@ public class StreamService implements IStreamService {
 			}
 			if (stream != null && stream instanceof ISubscriberStream) {
 				ISubscriberStream subscriberStream = (ISubscriberStream) stream;
-				SimplePlayItem item = new SimplePlayItem();
-				item.setName(name);
-				item.setStart(start);
-				item.setLength(length);
-
-				//get file size in bytes if available
-				IProviderService providerService = (IProviderService) scope.getContext().getBean(IProviderService.BEAN_NAME);
-				if (providerService != null) {
-					File file = providerService.getVODProviderFile(scope, name);
-					if (file != null) {
-						item.setSize(file.length());
-					} else {
-						logger.debug("File was null, this is ok for live streams");
-					}
-				} else {
-					logger.debug("ProviderService was null");
-				}
-
+				IPlayItem item = simplePlayback.get() ? SimplePlayItem.build(name, start, length) : DynamicPlayItem.build(name, start, length);
 				if (subscriberStream instanceof IPlaylistSubscriberStream) {
 					IPlaylistSubscriberStream playlistStream = (IPlaylistSubscriberStream) subscriberStream;
 					if (flushPlaylist) {
@@ -339,7 +329,7 @@ public class StreamService implements IStreamService {
 						stream.close();
 						streamConn.deleteStreamById(streamId);
 					}
-					sendNSFailed((RTMPConnection) streamConn, err.getMessage(), name, streamId);
+					sendNSFailed(streamConn, err.getMessage(), name, streamId);
 				}
 			}
 		} else {
@@ -375,6 +365,113 @@ public class StreamService implements IStreamService {
 					stream.stop();
 				}
 			}
+		}
+	}
+
+	/**
+	 * Dynamic streaming play method. This is a convenience method.
+	 * 
+	 * @param playOptions
+	 */
+	public void play2(String oldStreamName, int start, String transition, int length, double offset, String streamName) {
+		Map<String, Object> playOptions = new HashMap<String, Object>();
+		playOptions.put("oldStreamName", oldStreamName);
+		playOptions.put("streamName", streamName);
+		playOptions.put("start", start);
+		playOptions.put("len", length);
+		playOptions.put("offset", offset);
+		play2(playOptions);
+	}
+
+	/**
+	 * Dynamic streaming play method. This is a convenience method.
+	 * 
+	 * @param params
+	 */
+	@SuppressWarnings("rawtypes")
+	public void play2(ObjectMap params) {
+		logger.debug("play2 options: {}", params);
+		Map<String, Object> playOptions = new HashMap<String, Object>();
+		for (Object key : params.keySet()) {
+			String k = key.toString();
+			logger.trace("Parameter: {}", k);
+			playOptions.put(k, params.get(k));
+		}
+		play2(playOptions);
+	}
+
+	/**
+	 * Dynamic streaming play method.
+	 * 
+	 * The following properties are supported on the play options:
+	 * <pre>
+		streamName: String. The name of the stream to play or the new stream to switch to.
+		oldStreamName: String. The name of the initial stream that needs to be switched out. This is not needed and ignored 
+		               when play2 is used for just playing the stream and not switching to a new stream.
+		start: Number. The start time of the new stream to play, just as supported by the existing play API. and it has the 
+		               same defaults. This is ignored when the method is called for switching (in other words, the transition 
+		               is either NetStreamPlayTransition.SWITCH or NetStreamPlayTransitions.SWAP)
+		len: Number. The duration of the playback, just as supported by the existing play API and has the same defaults.
+		transition: String. The transition mode for the playback command. It could be one of the following:
+							NetStreamPlayTransitions.RESET
+							NetStreamPlayTransitions.APPEND
+							NetStreamPlayTransitions.SWITCH
+							NetStreamPlayTransitions.SWAP
+		</pre>
+		NetStreamPlayTransitions:
+		<pre>					
+			APPEND : String = "append" - Adds the stream to a playlist and begins playback with the first stream.
+	 		APPEND_AND_WAIT : String = "appendAndWait" - Builds a playlist without starting to play it from the first stream.
+	 		RESET : String = "reset" - Clears any previous play calls and plays the specified stream immediately.
+	 		RESUME : String = "resume" - Requests data from the new connection starting from the point at which the previous connection ended.
+	 		STOP : String = "stop" - Stops playing the streams in a playlist.
+	 		SWAP : String = "swap" - Replaces a content stream with a different content stream and maintains the rest of the playlist.
+	 		SWITCH : String = "switch" - Switches from playing one stream to another stream, typically with streams of the same content.			
+	   </pre>
+	   @see <a href="http://www.adobe.com/devnet/flashmediaserver/articles/dynstream_actionscript.html">ActionScript guide to dynamic streaming</a>
+	   @see <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/net/NetStreamPlayTransitions.html">NetStreamPlayTransitions</a>
+	 */
+	public void play2(Map<String, ?> playOptions) {
+		logger.debug("play2 options: {}", playOptions.toString());
+		/* { streamName=streams/new.flv,
+		    oldStreamName=streams/old.flv, 
+			start=0, len=-1,
+			offset=12.195, 
+			transition=switch } */
+		// get the transition type
+		String transition = (String) playOptions.get("transition");
+		String streamName = (String) playOptions.get("streamName");
+		// get the stream id
+		int streamId = getCurrentStreamId();
+		// get the clients connection
+		IConnection conn = Red5.getConnectionLocal();
+		if (conn != null && conn instanceof IStreamCapableConnection) {
+			//IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
+			if ("stop".equals(transition)) {
+				play(Boolean.FALSE);
+			} else if ("reset".equals(transition)) {
+				// just reset the currently playing stream
+				play(streamName);
+			} else if ("switch".equals(transition)) {
+				// set the playback type
+				simplePlayback.set(Boolean.TRUE);
+				// send the "start" of transition
+				sendNSStatus(conn, StatusCodes.NS_PLAY_TRANSITION, String.format("Transitioning from %s to %s.", playOptions.get("oldStreamName"), streamName), streamName,
+						streamId);
+				// now initiate new playback
+				int start = (Integer) playOptions.get("start");
+				int length = (Integer) playOptions.get("len");
+				// support offset?
+				//playOptions.get("offset")
+				play(streamName, start, length);
+				// clean up
+				simplePlayback.remove();
+			} else {
+				logger.warn("Unhandled transition: {}", transition);
+				sendNSFailed(conn, "Transition type not supported", streamName, streamId);
+			}
+		} else {
+			logger.info("Connection was null ?");
 		}
 	}
 
@@ -423,7 +520,7 @@ public class StreamService implements IStreamService {
 			for (String kv : kvs) {
 				String[] split = kv.split("=");
 				params.put(split[0], split[1]);
-			}			
+			}
 			// grab the streams name
 			name = name.substring(0, name.indexOf("?"));
 		}
@@ -433,7 +530,7 @@ public class StreamService implements IStreamService {
 			IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
 			int streamId = getCurrentStreamId();
 			if (StringUtils.isEmpty(name)) {
-				sendNSFailed((RTMPConnection) streamConn, "The stream name may not be empty.", name, streamId);
+				sendNSFailed(streamConn, "The stream name may not be empty.", name, streamId);
 				return;
 			}
 			IStreamSecurityService security = (IStreamSecurityService) ScopeUtils.getScopeService(scope, IStreamSecurityService.class);
@@ -441,7 +538,7 @@ public class StreamService implements IStreamService {
 				Set<IStreamPublishSecurity> handlers = security.getStreamPublishSecurity();
 				for (IStreamPublishSecurity handler : handlers) {
 					if (!handler.isPublishAllowed(scope, name, mode)) {
-						sendNSFailed((RTMPConnection) streamConn, "You are not allowed to publish the stream.", name, streamId);
+						sendNSFailed(streamConn, "You are not allowed to publish the stream.", name, streamId);
 						return;
 					}
 				}
@@ -465,7 +562,7 @@ public class StreamService implements IStreamService {
 			boolean created = false;
 			if (stream == null) {
 				stream = streamConn.newBroadcastStream(streamId);
-				created = true;				
+				created = true;
 			}
 			IClientBroadcastStream bs = (IClientBroadcastStream) stream;
 			try {
@@ -605,7 +702,7 @@ public class StreamService implements IStreamService {
 	 * @param name
 	 * @param streamId
 	 */
-	private void sendNSFailed(RTMPConnection conn, String description, String name, int streamId) {
+	private void sendNSFailed(IConnection conn, String description, String name, int streamId) {
 		StreamService.sendNetStreamStatus(conn, StatusCodes.NS_FAILED, description, name, Status.ERROR, streamId);
 	}
 
@@ -617,7 +714,6 @@ public class StreamService implements IStreamService {
 	 * @param name
 	 * @param streamId
 	 */
-	@SuppressWarnings("unused")
 	private void sendNSStatus(IConnection conn, String statusCode, String description, String name, int streamId) {
 		StreamService.sendNetStreamStatus(conn, statusCode, description, name, Status.STATUS, streamId);
 	}
@@ -639,12 +735,12 @@ public class StreamService implements IStreamService {
 			s.setDesciption(description);
 			s.setDetails(name);
 			s.setLevel(status);
-
+			// get the channel
 			Channel channel = ((RTMPConnection) conn).getChannel((byte) (4 + ((streamId - 1) * 5)));
 			channel.sendStatus(s);
 		} else {
 			throw new RuntimeException("Connection is not RTMPConnection: " + conn);
 		}
 	}
-	
+
 }

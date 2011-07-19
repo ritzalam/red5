@@ -44,8 +44,7 @@ import org.slf4j.Logger;
 /**
  * Stream of playlist subscriber
  */
-public class PlaylistSubscriberStream extends AbstractClientStream implements IPlaylistSubscriberStream,
-		IPlaylistSubscriberStreamStatistics {
+public class PlaylistSubscriberStream extends AbstractClientStream implements IPlaylistSubscriberStream, IPlaylistSubscriberStreamStatistics {
 
 	private static final Logger log = Red5LoggerFactory.getLogger(PlaylistSubscriberStream.class);
 
@@ -132,8 +131,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 	 * Creates a play engine based on current services (scheduling service, consumer service, and provider service).
 	 * This method is useful during unit testing.
 	 */
-	PlayEngine createEngine(ISchedulingService schedulingService, IConsumerService consumerService,
-			IProviderService providerService) {
+	PlayEngine createEngine(ISchedulingService schedulingService, IConsumerService consumerService, IProviderService providerService) {
 		engine = new PlayEngine.Builder(this, schedulingService, consumerService, providerService).build();
 		return engine;
 	}
@@ -746,6 +744,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 				break;
 			default:
 				//there is no "default" handling
+				log.warn("Unhandled change: {}", state);
 		}
 		if (notifier != null) {
 			IConnection conn = Red5.getConnectionLocal();
@@ -820,7 +819,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 		IPlaylistSubscriberStream stream;
 
 		IStreamAwareScopeHandler handler;
-		
+
 		IConnection conn;
 
 		public Notifier(IPlaylistSubscriberStream stream, IStreamAwareScopeHandler handler) {
@@ -828,7 +827,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 			this.stream = stream;
 			this.handler = handler;
 		}
-		
+
 		public void setConnection(IConnection conn) {
 			this.conn = conn;
 		}

@@ -22,6 +22,7 @@ package org.red5.server.service;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,20 +51,17 @@ public class ConversionUtils {
 
 	private static final Logger log = LoggerFactory.getLogger(ConversionUtils.class);
 
-	private static final Class<?>[] PRIMITIVES = { boolean.class, byte.class, char.class, short.class, int.class,
-			long.class, float.class, double.class };
+	private static final Class<?>[] PRIMITIVES = { boolean.class, byte.class, char.class, short.class, int.class, long.class, float.class, double.class };
 
-	private static final Class<?>[] WRAPPERS = { Boolean.class, Byte.class, Character.class, Short.class,
-			Integer.class, Long.class, Float.class, Double.class };
+	private static final Class<?>[] WRAPPERS = { Boolean.class, Byte.class, Character.class, Short.class, Integer.class, Long.class, Float.class, Double.class };
 
 	private static final String NUMERIC_TYPE = "[-]?\\b\\d+\\b|[-]?\\b[0-9]*\\.?[0-9]+(?:[eE][-+]?[0-9]+)?\\b";
-	
+
 	/**
 	 * Parameter chains
 	 */
-	private static final Class<?>[][] PARAMETER_CHAINS = { { boolean.class, null }, { byte.class, Short.class },
-			{ char.class, Integer.class }, { short.class, Integer.class }, { int.class, Long.class },
-			{ long.class, Float.class }, { float.class, Double.class }, { double.class, null } };
+	private static final Class<?>[][] PARAMETER_CHAINS = { { boolean.class, null }, { byte.class, Short.class }, { char.class, Integer.class }, { short.class, Integer.class },
+			{ int.class, Long.class }, { long.class, Float.class }, { float.class, Double.class }, { double.class, null } };
 
 	/** Mapping of primitives to wrappers */
 	private static Map<Class<?>, Class<?>> primitiveMap = new HashMap<Class<?>, Class<?>>();
@@ -104,8 +102,7 @@ public class ConversionUtils {
 				throw new ConversionException(String.format("Unable to convert null to primitive value of %s", target));
 			}
 			return source;
-		} else if ((source instanceof Float && ((Float) source).isNaN())
-				|| (source instanceof Double && ((Double) source).isNaN())) {
+		} else if ((source instanceof Float && ((Float) source).isNaN()) || (source instanceof Double && ((Double) source).isNaN())) {
 			// Don't convert NaN values
 			return source;
 		}
@@ -217,7 +214,7 @@ public class ConversionUtils {
 			//NumberFormatException
 			if (Number.class.isAssignableFrom(wrapper)) {
 				//test for int or fp number
-				if (!source.toString().matches(NUMERIC_TYPE)) {					
+				if (!source.toString().matches(NUMERIC_TYPE)) {
 					throw new ConversionException(String.format("Unable to convert string %s its not a number type: %s", source, wrapper));
 				}
 			}
@@ -342,6 +339,9 @@ public class ConversionUtils {
 		} else {
 			converted = new Class<?>[0];
 		}
+		if (log.isTraceEnabled()) {
+			log.trace("Converted parameters: {}", Arrays.toString(converted));
+		}
 		return converted;
 	}
 
@@ -411,7 +411,7 @@ public class ConversionUtils {
 	 * @return            Instance of given class
 	 */
 	protected static Object newInstance(String className) {
-		ClassLoader cl =  Thread.currentThread().getContextClassLoader();
+		ClassLoader cl = Thread.currentThread().getContextClassLoader();
 		log.debug("Conversion utils classloader: {}", cl);
 		Object instance = null;
 		try {

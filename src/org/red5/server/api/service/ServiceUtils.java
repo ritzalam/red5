@@ -97,8 +97,7 @@ public class ServiceUtils {
 	 * @return <code>true</code> if the connection supports method calls,
 	 *         otherwise <code>false</code>
 	 */
-	public static boolean invokeOnConnection(IConnection conn, String method, Object[] params,
-			IPendingServiceCallback callback) {
+	public static boolean invokeOnConnection(IConnection conn, String method, Object[] params, IPendingServiceCallback callback) {
 		if (conn instanceof IServiceCapableConnection) {
 			if (callback == null) {
 				((IServiceCapableConnection) conn).invoke(method, params);
@@ -160,8 +159,7 @@ public class ServiceUtils {
 	 * @param params parameters to pass to the method
 	 * @param callback object to notify when result is received
 	 */
-	public static void invokeOnAllConnections(IScope scope, String method, Object[] params,
-			IPendingServiceCallback callback) {
+	public static void invokeOnAllConnections(IScope scope, String method, Object[] params, IPendingServiceCallback callback) {
 		invokeOnClient(null, scope, method, params, callback);
 	}
 
@@ -187,8 +185,7 @@ public class ServiceUtils {
 	 * @param params parameters to pass to the method
 	 * @param callback object to notify when result is received
 	 */
-	public static void invokeOnClient(IClient client, IScope scope, String method, Object[] params,
-			IPendingServiceCallback callback) {
+	public static void invokeOnClient(IClient client, IScope scope, String method, Object[] params, IPendingServiceCallback callback) {
 		Set<IConnection> connections;
 		if (client == null) {
 			connections = new HashSet<IConnection>();
@@ -203,7 +200,6 @@ public class ServiceUtils {
 				return;
 			}
 		}
-
 		if (callback == null) {
 			for (IConnection conn : connections) {
 				invokeOnConnection(conn, method, params);
@@ -213,7 +209,6 @@ public class ServiceUtils {
 				invokeOnConnection(conn, method, params, callback);
 			}
 		}
-
 		if (connections != null) {
 			connections.clear();
 			connections = null;
@@ -306,16 +301,13 @@ public class ServiceUtils {
 		} else {
 			connections = scope.lookupConnections(client);
 		}
-
 		for (IConnection conn : connections) {
 			notifyOnConnection(conn, method, params);
 		}
-
 		if (connections != null) {
 			connections.clear();
 			connections = null;
 		}
-
 	}
 
 }

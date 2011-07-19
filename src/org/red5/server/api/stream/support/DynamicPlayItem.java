@@ -1,5 +1,8 @@
 package org.red5.server.api.stream.support;
 
+import org.red5.server.api.stream.IPlayItem;
+import org.red5.server.messaging.IMessageInput;
+
 /*
  * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
@@ -19,13 +22,10 @@ package org.red5.server.api.stream.support;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.server.api.stream.IPlayItem;
-import org.red5.server.messaging.IMessageInput;
-
 /**
- * Simple playlist item implementation
+ * Dynamic playlist item implementation
  */
-public class SimplePlayItem implements IPlayItem {
+public class DynamicPlayItem implements IPlayItem {
 
 	/**
 	 * Playlist item name
@@ -41,22 +41,33 @@ public class SimplePlayItem implements IPlayItem {
 	 * Length - amount to play
 	 */
 	protected final long length;
-	
+
+	/**
+	 * Size - for VOD items this will be the file size
+	 */
+	protected long size = -1;
+
+	/**
+	 * Offset
+	 */
+	protected double offset;
+
 	/**
 	 * Message source
 	 */
 	protected IMessageInput msgInput;
-	
-	private SimplePlayItem(String name) {
-		this.name = name;
-		this.start = -2L;
-		this.length = -1L;
-	}
-	
-	private SimplePlayItem(String name, long start, long length) {
+
+	private DynamicPlayItem(String name, long start, long length) {
 		this.name = name;
 		this.start = start;
 		this.length = length;
+	}
+
+	private DynamicPlayItem(String name, long start, long length, double offset) {
+		this.name = name;
+		this.start = start;
+		this.length = length;
+		this.offset = offset;
 	}
 
 	/**
@@ -112,11 +123,28 @@ public class SimplePlayItem implements IPlayItem {
 		this.msgInput = msgInput;
 	}
 
+	/**
+	 * Returns size in bytes
+	 */
+	public long getSize() {
+		return size;
+	}
+
+	/**
+	 * Set the size in bytes
+	 * 
+	 * @param size size in bytes
+	 */
+	public void setSize(long size) {
+		this.size = size;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + (int) (size ^ (size >>> 32));
 		result = prime * result + (int) (start ^ (start >>> 32));
 		return result;
 	}
@@ -129,11 +157,13 @@ public class SimplePlayItem implements IPlayItem {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		SimplePlayItem other = (SimplePlayItem) obj;
+		DynamicPlayItem other = (DynamicPlayItem) obj;
 		if (name == null) {
 			if (other.name != null)
 				return false;
 		} else if (!name.equals(other.name))
+			return false;
+		if (size != other.size)
 			return false;
 		if (start != other.start)
 			return false;
@@ -141,27 +171,30 @@ public class SimplePlayItem implements IPlayItem {
 	}
 
 	/**
-	 * Builder for SimplePlayItem
-	 * 
-	 * @param name
-	 * @return play item instance
-	 */
-	public static SimplePlayItem build(String name) {
-		SimplePlayItem playItem = new SimplePlayItem(name);
-		return playItem;
-	}	
-	
-	/**
-	 * Builder for SimplePlayItem
+	 * Builder for DynamicPlayItem
 	 * 
 	 * @param name
 	 * @param start
 	 * @param length
 	 * @return play item instance
 	 */
-	public static SimplePlayItem build(String name, long start, long length) {
-		SimplePlayItem playItem = new SimplePlayItem(name, start, length);
+	public static DynamicPlayItem build(String name, long start, long length) {
+		DynamicPlayItem playItem = new DynamicPlayItem(name, start, length);
 		return playItem;
 	}
-	
+
+	/**
+	 * Builder for DynamicPlayItem
+	 * 
+	 * @param name
+	 * @param start
+	 * @param length
+	 * @param offset
+	 * @return play item instance
+	 */
+	public static DynamicPlayItem build(String name, long start, long length, double offset) {
+		DynamicPlayItem playItem = new DynamicPlayItem(name, start, length, offset);
+		return playItem;
+	}
+
 }

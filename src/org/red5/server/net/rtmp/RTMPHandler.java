@@ -374,6 +374,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 					case DELETE_STREAM:
 					case PUBLISH:
 					case PLAY:
+					case PLAY2:
 					case SEEK:
 					case PAUSE:
 					case PAUSE_RAW:

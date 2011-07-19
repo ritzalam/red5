@@ -31,9 +31,6 @@ import java.util.HashMap;
  */
 public class ObjectMap<K, V> extends HashMap<K, V> {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 5146266119400305646L;
 
 }
