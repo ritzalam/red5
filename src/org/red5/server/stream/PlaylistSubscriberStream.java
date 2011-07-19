@@ -20,8 +20,7 @@ package org.red5.server.stream;
  */
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -67,7 +66,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 	/**
 	 * Playlist items
 	 */
-	private final List<IPlayItem> items;
+	private final LinkedList<IPlayItem> items;
 
 	/**
 	 * Current item index
@@ -124,7 +123,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 	/** Constructs a new PlaylistSubscriberStream. */
 	public PlaylistSubscriberStream() {
 		defaultController = new SimplePlaylistController();
-		items = new ArrayList<IPlayItem>();
+		items = new LinkedList<IPlayItem>();
 	}
 
 	/**
@@ -572,6 +571,23 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 		}
 	}
 
+	/** {@inheritDoc} */
+	public boolean replace(IPlayItem oldItem, IPlayItem newItem) {
+		boolean result = false;
+		read.lock();
+		try {
+			int index = items.indexOf(oldItem);
+			items.remove(index);
+			items.set(index, newItem);
+			result = true;
+		} catch (Exception e) {
+			
+		} finally {
+			read.unlock();
+		}		
+		return result;
+	}
+	
 	/**
 	 * Move the current item to the next in list.
 	 */
