@@ -180,6 +180,21 @@ public interface StatusCodes {
 	 * Transition to another stream has been initiated.
 	 */
 	public static final String NS_PLAY_TRANSITION = "NetStream.Play.Transition";
+
+	/**
+	 * Transition to another stream is processing normally. This is set as the "reason" property of the NetStatusEvent.
+	 */
+	public static final String NS_TRANSITION_SUCCESS = "NetStream.Transition.Success";
+	
+	/**
+	 * Transition to another stream has been forced.
+	 * 
+	 * If streams that are being switched do not have aligned content/timelines, or if the keyframes are not aligned between
+	 * the two streams, it is possible that the server will have to force a hard transition. This can also happen with 
+	 * broadcast (live) dynamic streaming if the server cannot find a synchronization point within the two streams.
+	 * This is set as the "reason" property of the NetStatusEvent.
+	 */
+	public static final String NS_TRANSITION_FORCED = "NetStream.Transition.Forced";
 	
 	/**
 	 * Transition to another stream is complete.

@@ -180,7 +180,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 * Eg. A stream is played at timestamp 5s on 1:00:05. The
 	 * playbackStart is 1:00:00.
 	 */
-	private long playbackStart;
+	private volatile long playbackStart;
 
 	/**
 	 * Scheduled future job that makes sure messages are sent to the client.
@@ -492,7 +492,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 * Performs the processes needed for live streams.
 	 * The following items are sent if they exist:
 	 * - Metadata
-	 * - Decoder configuration (ie. AVC codec)
+	 * - Decoder configurations (ie. AVC codec)
 	 * - Most recent keyframe
 	 * 
 	 * @throws IOException
@@ -727,9 +727,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 * @throws OperationNotSupportedException If this object doesn't support the operation.
 	 */
 	public synchronized void seek(final int position) throws IllegalStateException, OperationNotSupportedException {
-		Runnable seekRunnable = null;
-
-		seekRunnable = new Runnable() {
+		Runnable seekRunnable = new Runnable() {
 			public void run() {
 				log.trace("Seek: {}", position);
 				boolean startPullPushThread = false;
@@ -795,7 +793,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 							} while (msg != null);
 						}
 				}
-				//seeked past end of stream
+				// seeked past end of stream
 				if (currentItem.getLength() >= 0 && (position - streamOffset) >= currentItem.getLength()) {
 					stop();
 				}
@@ -850,10 +848,9 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				}
 			}
 		};
-
 		// Add this pending seek operation to the list
-		synchronized (this.pendingOperations) {
-			this.pendingOperations.addLast(seekRunnable);
+		synchronized (pendingOperations) {
+			pendingOperations.addLast(seekRunnable);
 		}
 	}
 
