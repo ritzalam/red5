@@ -428,7 +428,7 @@
 			</manifest>
 		</war>
 	</target>
-	<target name="javadoc" description="Generate JavaDoc">
+	<target name="javadoc" depends="-java6.check" description="Generate JavaDoc">
 		<condition property="available.envpath" value="Path: ${env.Path}" else="Not using env.Path">
 			<isset property="env.Path"/>
 		</condition>
@@ -437,6 +437,9 @@
 		<condition property="javadoc.loc" value="javase/6">
 			<equals arg1="${java6.installed}" arg2="true"/>
 		</condition>
+		<delete>
+			<fileset dir="${lib.dir}" includes="**/*sources*.jar"/>
+		</delete>
 		<javadoc useexternalfile="true" failonerror="false" verbose="false" classpathref="full.classpath"
 			 destdir="${javadoc.dir}" author="true" version="true" use="true" splitindex="true"
 			 windowtitle="${documentation.title}" stylesheetfile="${javadoc.style}">
@@ -453,11 +456,11 @@
 			<group title="Streaming" packages="org.red5.server.stream:org.red5.server.stream.*"/>
 			<group title="IO Packages" packages="org.red5.io:org.red5.io.*"/>
 			<group title="Scripting" packages="org.red5.server.script:org.red5.server.script.*"/>
-			<link href="http://java.sun.com/${javadoc.loc}/docs/api"/>
+			<link href="http://download.oracle.com/${javadoc.loc}/docs/api"/>
 			<link href="http://jetty.codehaus.org/jetty/jetty-6/apidocs"/>
 			<link href="http://mina.apache.org/report/trunk/apidocs"/>
 			<link href="http://static.springsource.org/spring/docs/2.5.x/api"/>
-			<link href="http://www.quartz-scheduler.org/docs/api"/>
+			<!-- <link href="http://www.quartz-scheduler.org/docs/api"/> -->
 			<link href="http://www.slf4j.org/api"/>
 			<link href="http://logging.apache.org/log4j/1.2/apidocs"/>
 			<link href="http://groovy.codehaus.org/api"/>

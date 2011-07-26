@@ -161,7 +161,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		// list of string values found in the input stream
 		private List<String> stringReferences = new ArrayList<String>();
 
-		private Map<Integer, Object> refMap = new HashMap<Integer, Object>();
+		private Map<Integer, Object> refMap = new HashMap<Integer, Object>(4);
 	}
 
 	/**
@@ -174,8 +174,11 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 */
 	private int amf3_mode;
 
+	/**
+	 * Stores references declared in this input of previous ones in the same message body
+	 */
 	private RefStorage refStorage;
-
+	
 	/**
 	 * Creates Input object for AMF3 from byte buffer
 	 * 
@@ -885,6 +888,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	}
 
 	/**
+
 	 * Parser of AMF3 "compressed" integer data type
 	 * 
 	 * @return a converted integer value

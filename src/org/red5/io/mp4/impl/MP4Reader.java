@@ -1015,7 +1015,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 
 		if (hasVideo) {
 			//video tag #1
-			//TODO: this data is only for backcountry bombshells - make this dynamic
 			body = IoBuffer.allocate(41);
 			body.setAutoExpand(true);
 			body.put(PREFIX_VIDEO_CONFIG_FRAME); //prefix
@@ -1037,7 +1036,8 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			//add tag
 			firstTags.add(tag);
 		}
-
+		// TODO: Handle other mp4 container audio codecs like mp3
+		// mp3 header magic number ((int & 0xffe00000) == 0xffe00000) 
 		if (hasAudio) {
 			//audio tag #1
 			//TODO: this data is only for backcountry bombshells - make this dynamic

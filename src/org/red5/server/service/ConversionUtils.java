@@ -289,7 +289,7 @@ public class ConversionUtils {
 		LinkedList<Method> list = new LinkedList<Method>();
 		Method[] methods = object.getClass().getMethods();
 		for (Method m : methods) {
-			log.debug("Method name: {}", m.getName());
+			log.trace("Method name: {}", m.getName());
 			//check parameter length first since this should speed things up
 			if (m.getParameterTypes().length != numParam) {
 				log.debug("Param length not the same");
@@ -297,7 +297,7 @@ public class ConversionUtils {
 			}
 			//now try to match the name
 			if (!m.getName().equals(method)) {
-				log.debug("Method name not the same");
+				log.trace("Method name not the same");
 				continue;
 			}
 			list.add(m);

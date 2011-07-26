@@ -71,9 +71,6 @@ import org.slf4j.LoggerFactory;
  */
 public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 
-	/**
-	 * Logger.
-	 */
 	protected static Logger log = LoggerFactory.getLogger(RTMPProtocolEncoder.class);
 
 	/**
@@ -537,11 +534,9 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 				return encodeAggregate((Aggregate) message);
 			case TYPE_AUDIO_DATA:
 				log.trace("Encode audio message");
-
 				return encodeAudioData((AudioData) message);
 			case TYPE_VIDEO_DATA:
 				log.trace("Encode video message");
-
 				return encodeVideoData((VideoData) message);
 			case TYPE_FLEX_SHARED_OBJECT:
 				return encodeFlexSharedObject((ISharedObjectMessage) message, rtmp);
@@ -619,8 +614,12 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	 * @param out output buffer
 	 */
 	public void doEncodeSharedObject(ISharedObjectMessage so, RTMP rtmp, IoBuffer out) {
-		final Output output = new org.red5.io.amf.Output(out);
-
+		final Output output;
+		if (rtmp.getEncoding() == Encoding.AMF3) {
+			output = new org.red5.io.amf3.Output(out);
+		} else {
+			output = new org.red5.io.amf.Output(out);
+		}
 		output.putString(so.getName());
 		// SO version
 		out.putInt(so.getVersion());
@@ -628,12 +627,9 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 		out.putInt(so.isPersistent() ? 2 : 0);
 		// unknown field
 		out.putInt(0);
-
 		int mark, len;
-
 		for (ISharedObjectEvent event : so.getEvents()) {
 			byte type = SharedObjectTypeMapping.toByte(event.getType());
-
 			switch (event.getType()) {
 				case SERVER_CONNECT:
 				case CLIENT_INITIAL_DATA:
@@ -659,15 +655,12 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 						// Update multiple attributes in one request
 						Map<?, ?> initialData = (Map<?, ?>) event.getValue();
 						for (Object o : initialData.keySet()) {
-
 							out.put(type);
 							mark = out.position();
 							out.skip(4); // we will be back
-
 							String key = (String) o;
 							output.putString(key);
 							serializer.serialize(output, initialData.get(key));
-
 							len = out.position() - mark - 4;
 							out.putInt(mark, len);
 						}
@@ -675,10 +668,8 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 						out.put(type);
 						mark = out.position();
 						out.skip(4); // we will be back
-
 						output.putString(event.getKey());
 						serializer.serialize(output, event.getValue());
-
 						len = out.position() - mark - 4;
 						out.putInt(mark, len);
 					}

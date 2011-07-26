@@ -19,6 +19,7 @@ package org.red5.io.amf3;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
@@ -131,9 +132,14 @@ public class DataOutput implements IDataOutput {
 
     /** {@inheritDoc} */
 	public void writeUTF(String value) {
-		buffer.putShort((short) value.length());
-		final ByteBuffer strBuf = AMF3.CHARSET.encode(value);
-		buffer.put(strBuf);
+		// fix from issue #97
+		try {
+			byte[] strBuf = value.getBytes(AMF3.CHARSET.name());
+	        buffer.putShort((short) strBuf.length);
+	        buffer.put(strBuf);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 	}
 
     /** {@inheritDoc} */

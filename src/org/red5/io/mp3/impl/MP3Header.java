@@ -104,7 +104,6 @@ public class MP3Header {
 		if ((data & 0xffe00000) != 0xffe00000) {
 			throw new Exception("invalid frame sync word");
 		}
-
 		this.data = data;
 		// Strip signed bit
 		data &= 0x1fffff;
