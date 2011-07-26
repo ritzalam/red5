@@ -63,7 +63,8 @@ public class HttpConnectionUtil {
 
 	/**
 	 * Returns a client with all our selected properties / params.
-	 * @return
+	 * 
+	 * @return client
 	 */
 	public static final DefaultHttpClient getClient() {
 		// create a singular HttpClient object
@@ -90,7 +91,6 @@ public class HttpConnectionUtil {
 	 * Logs details about the request error.
 	 * 
 	 * @param response
-	 * @param entity
 	 * @throws IOException 
 	 * @throws ParseException 
 	 */

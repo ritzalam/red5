@@ -92,7 +92,7 @@ public interface IMetaService {
 	/**
 	 * Returns the file being accessed
 	 * 
-	 * @return
+	 * @return file
 	 */
 	public File getFile();
 

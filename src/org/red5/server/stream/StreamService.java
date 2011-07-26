@@ -369,9 +369,14 @@ public class StreamService implements IStreamService {
 	}
 
 	/**
-	 * Dynamic streaming play method. This is a convenience method.
-	 * 
-	 * @param playOptions
+ 	 * Dynamic streaming play method. This is a convenience method.
+ 	 * 
+	 * @param oldStreamName
+	 * @param start
+	 * @param transition
+	 * @param length
+	 * @param offset
+	 * @param streamName
 	 */
 	public void play2(String oldStreamName, int start, String transition, int length, double offset, String streamName) {
 		Map<String, Object> playOptions = new HashMap<String, Object>();
@@ -429,6 +434,7 @@ public class StreamService implements IStreamService {
 	 		SWITCH : String = "switch" - Switches from playing one stream to another stream, typically with streams of the same content.			
 	   </pre>
 	   @see <a href="http://www.adobe.com/devnet/flashmediaserver/articles/dynstream_actionscript.html">ActionScript guide to dynamic streaming</a>
+	   @see <a href="http://www.adobe.com/devnet/flashmediaserver/articles/dynstream_advanced_pt1.html">Dynamic streaming in Flash Media Server 3.5 – Part 1: Overview of the new capabilities</a>
 	   @see <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/net/NetStreamPlayTransitions.html">NetStreamPlayTransitions</a>
 	 */
 	public void play2(Map<String, ?> playOptions) {
