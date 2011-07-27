@@ -62,10 +62,8 @@ public class Header implements Constants, Cloneable, Externalizable {
 	private int streamId;
 
 	/**
-	 * Flash player occasionally sends garbage audio that
-	 * as far as I can tell exists only to make folks who
-	 * don't know about it slowly get out-of-sync audio
-	 * and video.  We now detect that.
+	 * Flash player occasionally sends garbage audio that as far as I can tell exists only to make folks who
+	 * don't know about it slowly get out-of-sync audio and video. We now detect that.
 	 */
 	private boolean isGarbage = false;
 
@@ -160,6 +158,30 @@ public class Header implements Constants, Cloneable, Externalizable {
 		this.timerDelta = 0;
 	}
 
+	public void setTimerDelta(int timerDelta) {
+		this.timerDelta = timerDelta;
+	}
+
+	public int getTimerDelta() {
+		return timerDelta;
+	}
+
+	public void setTimerBase(int timerBase) {
+		this.timerBase = timerBase;
+	}
+
+	public int getTimerBase() {
+		return timerBase;
+	}
+
+	public void setIsGarbage(boolean isGarbage) {
+		this.isGarbage = isGarbage;
+	}
+
+	public boolean isGarbage() {
+		return isGarbage;
+	}
+
 	/** {@inheritDoc} */
 	@Override
 	public boolean equals(Object other) {
@@ -167,17 +189,7 @@ public class Header implements Constants, Cloneable, Externalizable {
 			return false;
 		}
 		final Header header = (Header) other;
-		return (header.getChannelId() == channelId && header.getDataType() == dataType && header.getSize() == size
-				&& header.getTimer() == this.getTimer() && header.getStreamId() == streamId);
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return "Header [channelId=" + channelId + ", dataType=" + dataType + ", timerBase=" + timerBase + ", timerDelta=" + timerDelta + ", size=" + size + ", streamId="
-				+ streamId + ", isGarbage=" + isGarbage + "]";
+		return (header.getChannelId() == channelId && header.getDataType() == dataType && header.getSize() == size && header.getTimer() == this.getTimer() && header.getStreamId() == streamId);
 	}
 
 	/** {@inheritDoc} */
@@ -214,27 +226,13 @@ public class Header implements Constants, Cloneable, Externalizable {
 		out.writeBoolean(isGarbage);
 	}
 
-	public void setTimerDelta(int timerDelta) {
-		this.timerDelta = timerDelta;
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "Header [channelId=" + channelId + ", dataType=" + dataType + ", timerBase=" + timerBase + ", timerDelta=" + timerDelta + ", size=" + size + ", streamId="
+				+ streamId + ", isGarbage=" + isGarbage + "]";
 	}
 
-	public int getTimerDelta() {
-		return timerDelta;
-	}
-
-	public void setTimerBase(int timerBase) {
-		this.timerBase = timerBase;
-	}
-
-	public int getTimerBase() {
-		return timerBase;
-	}
-
-	public void setIsGarbage(boolean isGarbage) {
-		this.isGarbage = isGarbage;
-	}
-
-	public boolean isGarbage() {
-		return isGarbage;
-	}
 }

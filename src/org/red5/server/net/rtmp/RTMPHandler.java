@@ -341,21 +341,23 @@ public class RTMPHandler extends BaseRTMPHandler {
 					disconnectOnReturn = true;
 				}
 				// Evaluate request for AMF3 encoding
-				if (Integer.valueOf(3).equals(params.get("objectEncoding")) && call instanceof IPendingServiceCall) {
-					Object pcResult = ((IPendingServiceCall) call).getResult();
-					Map<String, Object> result;
-					if (pcResult instanceof Map) {
-						result = (Map<String, Object>) pcResult;
-						result.put("objectEncoding", 3);
-					} else if (pcResult instanceof StatusObject) {
-						result = new HashMap<String, Object>();
-						StatusObject status = (StatusObject) pcResult;
-						result.put("code", status.getCode());
-						result.put("description", status.getDescription());
-						result.put("application", status.getApplication());
-						result.put("level", status.getLevel());
-						result.put("objectEncoding", 3);
-						((IPendingServiceCall) call).setResult(result);
+				if (Integer.valueOf(3).equals(params.get("objectEncoding"))) {
+					if (call instanceof IPendingServiceCall) {
+						Object pcResult = ((IPendingServiceCall) call).getResult();
+						Map<String, Object> result;
+						if (pcResult instanceof Map) {
+							result = (Map<String, Object>) pcResult;
+							result.put("objectEncoding", 3);
+						} else if (pcResult instanceof StatusObject) {
+							result = new HashMap<String, Object>();
+							StatusObject status = (StatusObject) pcResult;
+							result.put("code", status.getCode());
+							result.put("description", status.getDescription());
+							result.put("application", status.getApplication());
+							result.put("level", status.getLevel());
+							result.put("objectEncoding", 3);
+							((IPendingServiceCall) call).setResult(result);
+						}
 					}
 					rtmp.setEncoding(Encoding.AMF3);
 				}
@@ -493,7 +495,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 	 * @param persistent
 	 */
 	private void sendSOCreationFailed(RTMPConnection conn, String name, boolean persistent) {
-		log.warn("sendSOCreationFailed - name: {} persistent: {} conn: {}", new Object[]{name, persistent, conn});
+		log.warn("sendSOCreationFailed - name: {} persistent: {} conn: {}", new Object[] { name, persistent, conn });
 		SharedObjectMessage msg = new SharedObjectMessage(name, 0, persistent);
 		msg.addEvent(new SharedObjectEvent(ISharedObjectEvent.Type.CLIENT_STATUS, "error", SO_CREATION_FAILED));
 		conn.getChannel(3).write(msg);
