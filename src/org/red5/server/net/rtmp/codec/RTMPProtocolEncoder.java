@@ -592,8 +592,14 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	public IoBuffer encodeFlexSharedObject(ISharedObjectMessage so, RTMP rtmp) {
 		final IoBuffer out = IoBuffer.allocate(128);
 		out.setAutoExpand(true);
-		// TODO: also support sending of AMF3 encoded data
-		out.put((byte) 0x00);
+		// use the originators so.objectEncoding setting
+		if (rtmp.getEncoding() == Encoding.AMF3) {
+			log.debug("Setting encoding as AMF3");
+			out.put((byte) 0x03);
+		} else {
+			log.debug("Setting encoding as AMF0");
+			out.put((byte) 0x00);
+		}
 		doEncodeSharedObject(so, rtmp, out);
 		return out;
 	}
@@ -614,12 +620,8 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	 * @param out output buffer
 	 */
 	public void doEncodeSharedObject(ISharedObjectMessage so, RTMP rtmp, IoBuffer out) {
-		final Output output;
-		if (rtmp.getEncoding() == Encoding.AMF3) {
-			output = new org.red5.io.amf3.Output(out);
-		} else {
-			output = new org.red5.io.amf.Output(out);
-		}
+		final Output output = new org.red5.io.amf.Output(out);
+		final Output amf3output = new org.red5.io.amf3.Output(out);
 		output.putString(so.getName());
 		// SO version
 		out.putInt(so.getVersion());
@@ -660,7 +662,11 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 							out.skip(4); // we will be back
 							String key = (String) o;
 							output.putString(key);
-							serializer.serialize(output, initialData.get(key));
+							if (rtmp.getEncoding() == Encoding.AMF3) {
+								serializer.serialize(amf3output, initialData.get(key));
+							} else {
+								serializer.serialize(output, initialData.get(key));
+							}
 							len = out.position() - mark - 4;
 							out.putInt(mark, len);
 						}
@@ -669,7 +675,11 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 						mark = out.position();
 						out.skip(4); // we will be back
 						output.putString(event.getKey());
-						serializer.serialize(output, event.getValue());
+						if (rtmp.getEncoding() == Encoding.AMF3) {
+							serializer.serialize(amf3output, event.getValue());
+						} else {
+							serializer.serialize(output, event.getValue());
+						}
 						len = out.position() - mark - 4;
 						out.putInt(mark, len);
 					}
@@ -683,9 +693,16 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 					out.skip(4);
 					// Serialize name of the handler to call...
 					serializer.serialize(output, event.getKey());
-					// ...and the arguments
-					for (Object arg : (List<?>) event.getValue()) {
-						serializer.serialize(output, arg);
+					if (rtmp.getEncoding() == Encoding.AMF3) {
+						// ...and the arguments
+						for (Object arg : (List<?>) event.getValue()) {
+							serializer.serialize(amf3output, arg);
+						}
+					} else {
+						// ...and the arguments
+						for (Object arg : (List<?>) event.getValue()) {
+							serializer.serialize(output, arg);
+						}
 					}
 					len = out.position() - mark - 4;
 					//log.debug(len);
@@ -703,15 +720,17 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 					break;
 
 				default:
-					//log.error("Unknown event " + event.getType());
-					// XXX: come back here, need to make this work in server or client mode
-					// talk to joachim about this part.
+					log.warn("Unknown event: {}", event.getType());
+					// XXX: need to make this work in server or client mode
 					out.put(type);
 					mark = out.position();
-					//out.putInt(0);
 					out.skip(4); // we will be back
 					output.putString(event.getKey());
-					serializer.serialize(output, event.getValue());
+					if (rtmp.getEncoding() == Encoding.AMF3) {
+						serializer.serialize(amf3output, event.getValue());
+					} else {
+						serializer.serialize(output, event.getValue());
+					}
 					len = out.position() - mark - 4;
 					out.putInt(mark, len);
 					break;

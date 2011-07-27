@@ -374,7 +374,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		log.debug("readString - limit: {}", limit);
 		final ByteBuffer strBuf = buf.buf();
 		strBuf.limit(strBuf.position() + len);
-		final String string = AMF3.CHARSET.decode(strBuf).toString();
+		final String string = AMF.CHARSET.decode(strBuf).toString();
 		log.debug("String: {}", string);
 		buf.limit(limit); // reset the limit
 		refStorage.stringReferences.add(string);
@@ -393,7 +393,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		int limit = buf.limit();
 		final ByteBuffer strBuf = buf.buf();
 		strBuf.limit(strBuf.position() + length);
-		final String string = AMF3.CHARSET.decode(strBuf).toString();
+		final String string = AMF.CHARSET.decode(strBuf).toString();
 		log.debug("String: {}", string);
 		buf.limit(limit);
 		//check for null termination
@@ -959,7 +959,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		int limit = buf.limit();
 		final ByteBuffer strBuf = buf.buf();
 		strBuf.limit(strBuf.position() + len);
-		final String xmlString = AMF3.CHARSET.decode(strBuf).toString();
+		final String xmlString = AMF.CHARSET.decode(strBuf).toString();
 		buf.limit(limit); // Reset the limit
 		Document doc = null;
 		try {

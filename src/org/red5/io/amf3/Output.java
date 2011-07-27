@@ -149,7 +149,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		Element element = getStringCache().get(string);
 		byte[] encoded = (element == null ? null : (byte[]) element.getObjectValue());
 		if (encoded == null) {
-			ByteBuffer buf = AMF3.CHARSET.encode(string);
+			ByteBuffer buf = AMF.CHARSET.encode(string);
 			encoded = new byte[buf.limit()];
 			buf.get(encoded);
 			getStringCache().put(new Element(string, encoded));
@@ -374,26 +374,22 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	@Override
 	protected void writeArbitraryObject(Object object, Serializer serializer) {
 		Class<?> objectClass = object.getClass();
-
 		// If we need to serialize class information...
 		if (!objectClass.isAnnotationPresent(Anonymous.class)) {
 			putString(serializer.getClassName(objectClass));
 		} else {
 			putString("");
 		}
-
 		// Store key/value pairs
 		amf3_mode += 1;
 		// Iterate thru fields of an object to build "name-value" map from it
 		for (Field field : objectClass.getFields()) {
 			String fieldName = field.getName();
-
 			log.debug("Field: {} class: {}", field, objectClass);
 			// Check if the Field corresponding to the getter/setter pair is transient
 			if (!serializeField(serializer, objectClass, fieldName, field, null)) {
 				continue;
 			}
-
 			Object value;
 			try {
 				// Get field value
@@ -402,7 +398,6 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 				// Swallow on private and protected properties access exception
 				continue;
 			}
-
 			// Write out prop name
 			putString(fieldName);
 			// Write out
@@ -548,7 +543,6 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			putInteger(getReferenceId(array) << 1);
 			return;
 		}
-
 		storeReference(array);
 		IoBuffer data = array.getData();
 		putInteger(data.limit() << 1 | 1);

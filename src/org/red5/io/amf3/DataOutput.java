@@ -25,6 +25,7 @@ import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 
 import org.apache.mina.core.buffer.IoBuffer;
+import org.red5.io.amf.AMF;
 import org.red5.io.object.Serializer;
 
 /**
@@ -134,7 +135,7 @@ public class DataOutput implements IDataOutput {
 	public void writeUTF(String value) {
 		// fix from issue #97
 		try {
-			byte[] strBuf = value.getBytes(AMF3.CHARSET.name());
+			byte[] strBuf = value.getBytes(AMF.CHARSET.name());
 	        buffer.putShort((short) strBuf.length);
 	        buffer.put(strBuf);
 		} catch (UnsupportedEncodingException e) {
@@ -144,7 +145,7 @@ public class DataOutput implements IDataOutput {
 
     /** {@inheritDoc} */
 	public void writeUTFBytes(String value) {
-		final java.nio.ByteBuffer strBuf = AMF3.CHARSET.encode(value);
+		final java.nio.ByteBuffer strBuf = AMF.CHARSET.encode(value);
 		buffer.put(strBuf);
 	}
 

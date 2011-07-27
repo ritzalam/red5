@@ -56,7 +56,7 @@ public class SharedObjectMessage extends BaseEvent implements ISharedObjectMessa
 	 * Whether SO persistent
 	 */
 	private boolean persistent;
-
+	
 	public SharedObjectMessage() {
 	}
 
@@ -186,7 +186,6 @@ public class SharedObjectMessage extends BaseEvent implements ISharedObjectMessa
 	/** {@inheritDoc} */
 	@Override
 	protected void releaseInternal() {
-
 	}
 
 	/** {@inheritDoc} */
@@ -226,4 +225,5 @@ public class SharedObjectMessage extends BaseEvent implements ISharedObjectMessa
 		out.writeBoolean(persistent);
 		out.writeObject(events);
 	}
+
 }

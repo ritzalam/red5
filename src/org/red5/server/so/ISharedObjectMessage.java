@@ -49,7 +49,7 @@ public interface ISharedObjectMessage extends IRTMPEvent {
 	 *         false
 	 */
 	public boolean isPersistent();
-
+	
 	/**
 	 * Returns a set of ISharedObjectEvent objects containing informations what
 	 * to change.

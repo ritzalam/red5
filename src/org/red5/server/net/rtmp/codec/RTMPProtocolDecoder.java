@@ -130,8 +130,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				}
 			}
 		} catch (HandshakeFailedException hfe) {
-			// patched by Victor to clear buffer if something is wrong in
-			// protocol decoding.
+			// patched by Victor to clear buffer if something is wrong in protocol decoding.
 			buffer.clear();
 			// get the connection and close it
 			IConnection conn = Red5.getConnectionLocal();
@@ -261,13 +260,11 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	public Packet decodePacket(RTMP rtmp, IoBuffer in) {
 		log.debug("decodePacket - rtmp: {} buffer: {}", rtmp, in);
 		final int remaining = in.remaining();
-
 		// We need at least one byte
 		if (remaining < 1) {
 			rtmp.bufferDecoding(1);
 			return null;
 		}
-
 		final int position = in.position();
 		byte headerByte = in.get();
 		int headerValue;
@@ -299,18 +296,15 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		if (channelId < 0) {
 			throw new ProtocolException("Bad channel id: " + channelId);
 		}
-
 		// Get the header size and length
 		int headerLength = RTMPUtils.getHeaderLength(RTMPUtils.decodeHeaderSize(headerValue, byteCount));
 		headerLength += byteCount - 1;
-
 		if (headerLength + byteCount - 1 > remaining) {
 			log.debug("Header too small, buffering. remaining: {}", remaining);
 			in.position(position);
 			rtmp.bufferDecoding(headerLength + byteCount - 1);
 			return null;
 		}
-
 		// Move the position back to the start
 		in.position(position);
 
@@ -346,12 +340,10 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 			rtmp.continueDecoding();
 			return null;
 		}
-
 		// Check workaround for SN-19 to find cause for BufferOverflowException
 		if (buf.position() > header.getSize()) {
 			log.warn("Packet size expanded from {} to {} ({})", new Object[] { (header.getSize()), buf.position(), header });
 		}
-
 		buf.flip();
 
 		try {
@@ -385,8 +377,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				packet = null;
 			}
 			if (packet != null && packet.getHeader().isGarbage()) {
-				// discard this packet; this gets rid of the garbage
-				// audio data FP inserts
+				// discard this packet; this gets rid of the garbage audio data FP inserts
 				log.trace("Dropping garbage packet: {}, {}", packet, packet.getHeader());
 				packet = null;
 			} else {
@@ -399,7 +390,6 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 			rtmp.setLastReadPacket(channelId, null);
 		}
 		return packet;
-
 	}
 
 	/**
@@ -545,7 +535,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				message = decodeVideoData(in);
 				message.setSourceType(Constants.SOURCE_TYPE_LIVE);
 				break;
-			case TYPE_FLEX_SHARED_OBJECT:
+			case TYPE_FLEX_SHARED_OBJECT: // represents an SO in an AMF3 container
 				message = decodeFlexSharedObject(in, rtmp);
 				break;
 			case TYPE_SHARED_OBJECT:
@@ -632,7 +622,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		boolean persistent = in.getInt() == 2;
 		// Skip unknown bytes
 		in.skip(4);
-
+		// create our shared object message
 		final SharedObjectMessage so = new FlexSharedObjectMessage(null, name, version, persistent);
 		doDecodeSharedObject(so, in, input);
 		return so;
@@ -648,7 +638,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		boolean persistent = in.getInt() == 2;
 		// Skip unknown bytes
 		in.skip(4);
-
+		// create our shared object message
 		final SharedObjectMessage so = new FlexSharedObjectMessage(null, name, version, persistent);
 		doDecodeSharedObject(so, in, input);
 		return so;
@@ -697,7 +687,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				if (length > 0) {
 					key = input.getString();
 					if (length > key.length() + 2) {
-						// FIXME workaround for player version >= 9.0.115.0
+						// determine if the object is encoded with amf3
 						byte objType = in.get();
 						in.position(in.position() - 1);
 						Input propertyInput;
@@ -716,14 +706,13 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				// the "send" event seems to encode the handler name
 				// as complete AMF string including the string type byte
 				key = deserializer.deserialize(input, String.class);
-
 				// read parameters
 				final List<Object> list = new LinkedList<Object>();
 				// while loop changed for JIRA CODECS-9
 				while (in.position() - start < length) {
 					byte objType = in.get();
 					in.position(in.position() - 1);
-					// FIXME workaround for player version >= 9.0.115.0
+					// determine if the object is encoded with amf3
 					Input propertyInput;
 					if (objType == AMF.TYPE_AMF3_OBJECT && !(input instanceof org.red5.io.amf3.Input)) {
 						// The next parameter is encoded using AMF3
@@ -880,7 +869,6 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		if (serviceMethod.startsWith("@") || serviceMethod.startsWith("|")) {
 			serviceMethod = serviceMethod.substring(1);
 		}
-
 		if (notify instanceof Invoke) {
 			PendingCall call = new PendingCall(serviceName, serviceMethod, params);
 			((Invoke) notify).setCall(call);
@@ -888,7 +876,6 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 			Call call = new Call(serviceName, serviceMethod, params);
 			notify.setCall(call);
 		}
-
 		return notify;
 	}
 

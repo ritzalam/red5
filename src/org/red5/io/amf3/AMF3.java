@@ -19,7 +19,6 @@ package org.red5.io.amf3;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.nio.charset.Charset;
 
 /**
  * AMF3 data type definitions.
@@ -35,10 +34,6 @@ import java.nio.charset.Charset;
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public class AMF3 {
-    /**
-     * UTF-8 is used
-     */
-	public static final Charset CHARSET = Charset.forName("UTF-8");
 
 	/**
 	 * Minimum possible value for integer number encoding.
