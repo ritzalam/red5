@@ -55,12 +55,19 @@ public class MetaServiceTest extends TestCase {
 	 * @throws IOException if io exception
 	 */
 	public void testWrite() throws IOException {
+		String path = "fixtures/test.flv";
+		File f = new File(path);
+		System.out.println("Path: " + f.getAbsolutePath());
+		if (!f.exists()) {
+			// try test subdirectory
+			path = "test/fixtures/test.flv";
+			f = new File(path);
+			System.out.println("Path: " + f.getAbsolutePath());
+		}				
 		// Get MetaData to embed
 		MetaData<?, ?> meta = createMeta();
 		// Read in a FLV file for reading tags
-		File tmp = new File("fixtures/test.flv");
-		System.out.println("Path: "+ tmp.getAbsolutePath());
-		IFLV flv = (IFLV) service.getStreamableFile(tmp);
+		IFLV flv = (IFLV) service.getStreamableFile(f);
 		flv.setCache(NoCacheImpl.getInstance());
 		// set the MetaService
 		flv.setMetaService(metaService);
