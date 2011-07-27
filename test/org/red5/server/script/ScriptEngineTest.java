@@ -45,14 +45,13 @@ public class ScriptEngineTest {
 
 	// ScriptEngine manager
 	private static boolean java15;
+
 	private static ScriptEngineManager mgr;
 
-	public ScriptEngineTest()
-	{
+	public ScriptEngineTest() {
 		String javaVersion = System.getProperty("java.version");
-		String javaMajorRev = javaVersion.substring(0,3);
-		if (javaVersion != null && javaMajorRev.compareTo("1.5") == 0)
-		{
+		String javaMajorRev = javaVersion.substring(0, 3);
+		if (javaVersion != null && javaMajorRev.compareTo("1.5") == 0) {
 			//should disable tests
 			java15 = true;
 		} else {
@@ -60,16 +59,16 @@ public class ScriptEngineTest {
 			mgr = new ScriptEngineManager();
 		}
 	}
+
 	// Javascript
 	@Test
 	public void testJavascriptHelloWorld() {
-		if (java15)
+		if (java15) {
 			return;
-		
+		}
 		ScriptEngine jsEngine = null;
 		for (ScriptEngineFactory factory : mgr.getEngineFactories()) {
-			if (factory.getEngineName().toLowerCase().matches(
-					".*(rhino|javascript|ecma).*")) {
+			if (factory.getEngineName().toLowerCase().matches(".*(rhino|javascript|ecma).*")) {
 				jsEngine = factory.getScriptEngine();
 			}
 		}
@@ -85,24 +84,31 @@ public class ScriptEngineTest {
 
 	// Ruby
 	@Test
+	@Ignore
 	public void testRubyHelloWorld() {
-		if (java15)
+		if (java15) {
 			return;
+		}
 		ScriptEngine rbEngine = mgr.getEngineByName("ruby");
+		if (rbEngine == null) {
+			rbEngine = mgr.getEngineByExtension("rb");
+		}
 		try {
 			rbEngine.eval("puts 'Ruby - Hello, world!'");
 		} catch (Exception ex) {
-			//ex.printStackTrace();
+			ex.printStackTrace();
 			assertFalse(true);
 		}
 	}
 
 	// Python
 	@Test
-	@Ignore // Python support seems to not be in tree anymore; aclarke 2008-10-01
+	@Ignore
+	// Python support seems to not be in tree anymore; aclarke 2008-10-01
 	public void testPythonHelloWorld() {
-		if (java15)
+		if (java15) {
 			return;
+		}
 		ScriptEngine pyEngine = mgr.getEngineByName("python");
 		try {
 			pyEngine.eval("print \"Python - Hello, world!\"");
@@ -115,8 +121,9 @@ public class ScriptEngineTest {
 	// Groovy
 	@Test
 	public void testGroovyHelloWorld() {
-		if (java15)
+		if (java15) {
 			return;
+		}
 		ScriptEngine gvyEngine = mgr.getEngineByName("groovy");
 		try {
 			gvyEngine.eval("println  \"Groovy - Hello, world!\"");
@@ -192,22 +199,22 @@ public class ScriptEngineTest {
 	// }
 
 	// E4X
-    //	@Test
-    //	public void testE4XHelloWorld() {
-    //		ScriptEngine eEngine = mgr.getEngineByName("rhino");
-    //		try {
-    //			//Compilable compiler = (Compilable) eEngine;
-    //			//CompiledScript script = compiler.compile("var d = new XML('<d><item>Hello</item><item>World!</item></d>');print(d..item);");
-    //			//Namespace ns = eEngine.createNamespace();
-    //			//ns.put('d', "new XML('<d><item>Hello</item><item>World!</item></d>');");
-    //			//System.out.println("E4X - " + script.eval(ns));
-    //			eEngine
-    //					.eval("var d = new XML('<d><item>Hello</item><item>World!</item></d>');print('E4X - ' + d..item);");
-    //		} catch (Exception ex) {
-    //			//ex.printStackTrace();
-    //			assertFalse(true);
-    //		}
-    //	}
+	//	@Test
+	//	public void testE4XHelloWorld() {
+	//		ScriptEngine eEngine = mgr.getEngineByName("rhino");
+	//		try {
+	//			//Compilable compiler = (Compilable) eEngine;
+	//			//CompiledScript script = compiler.compile("var d = new XML('<d><item>Hello</item><item>World!</item></d>');print(d..item);");
+	//			//Namespace ns = eEngine.createNamespace();
+	//			//ns.put('d', "new XML('<d><item>Hello</item><item>World!</item></d>');");
+	//			//System.out.println("E4X - " + script.eval(ns));
+	//			eEngine
+	//					.eval("var d = new XML('<d><item>Hello</item><item>World!</item></d>');print('E4X - ' + d..item);");
+	//		} catch (Exception ex) {
+	//			//ex.printStackTrace();
+	//			assertFalse(true);
+	//		}
+	//	}
 
 	// PHP
 	// @Test
@@ -286,20 +293,17 @@ public class ScriptEngineTest {
 	public void testEngines() {
 		if (java15)
 			return;
-		Map<String, ScriptEngineFactory> engineFactories = new HashMap<String, ScriptEngineFactory>(
-				7);
+		Map<String, ScriptEngineFactory> engineFactories = new HashMap<String, ScriptEngineFactory>(7);
 		//List<ScriptEngineFactory> factories = mgr.getEngineFactories(); //jdk6
 		//ScriptEngineFactory[] factories = mgr.getEngineFactories(); //jdk5
 		for (ScriptEngineFactory factory : mgr.getEngineFactories()) {
 			try {
-				System.out
-						.println("\n--------------------------------------------------------------");
+				System.out.println("\n--------------------------------------------------------------");
 				String engName = factory.getEngineName();
 				String engVersion = factory.getEngineVersion();
 				String langName = factory.getLanguageName();
 				String langVersion = factory.getLanguageVersion();
-				System.out.printf("Script Engine: %s (%s) Language: %s (%s)",
-						engName, engVersion, langName, langVersion);
+				System.out.printf("Script Engine: %s (%s) Language: %s (%s)", engName, engVersion, langName, langVersion);
 				engineFactories.put(engName, factory);
 				System.out.print("\nEngine Alias(es):");
 				for (String name : factory.getNames()) {

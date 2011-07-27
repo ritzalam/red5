@@ -66,12 +66,20 @@ public class MetaDataInjectionTest extends TestCase {
 	 * @throws IOException if io exception
 	 */
 	public void testMetaDataInjection() throws IOException {
-		File f = new File("fixtures/test_cue1.flv");
-
-		if(f.exists()) {
+		String path = "fixtures/test_cue1.flv";
+		File f = new File(path);
+		System.out.println("Path: " + f.getAbsolutePath());
+		if (f.exists()) {
 			f.delete();
+		} else {
+			// try test subdirectory
+			path = "test/fixtures/test_cue1.flv";
+			f = new File(path);
+			System.out.println("Path: " + f.getAbsolutePath());
+			if (f.exists()) {
+				f.delete();
+			}			
 		}
-
 		// Create new file
 		f.createNewFile();
 
@@ -82,7 +90,7 @@ public class MetaDataInjectionTest extends TestCase {
 		ITagWriter writer = flv.getWriter();
 
 		// Create a reader for testing
-		File readfile = new File("fixtures/test_cue.flv");
+		File readfile = new File(path);
 		IFLV readflv = (IFLV) service.getStreamableFile(readfile);
 		readflv.setCache(NoCacheImpl.getInstance());
 

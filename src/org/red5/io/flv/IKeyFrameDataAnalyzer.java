@@ -26,33 +26,47 @@ import java.io.Serializable;
  */
 public interface IKeyFrameDataAnalyzer {
 
-    /**
-     * Analyze and return keyframe metadata.
+	/**
+	 * Analyze and return keyframe metadata.
 	 *
-     * @return           Metadata object
-     */
-    public KeyFrameMeta analyzeKeyFrames();
+	 * @return           Metadata object
+	 */
+	public KeyFrameMeta analyzeKeyFrames();
 
-    /**
-     * Keyframe metadata.
-     */
-    public static class KeyFrameMeta implements Serializable {
+	/**
+	 * Keyframe metadata.
+	 */
+	public static class KeyFrameMeta implements Serializable {
 		private static final long serialVersionUID = 5436632873705625365L;
+
+		/**
+		 * Video codec id.
+		 */
+		public int videoCodecId = -1;
+		
+		/**
+		 * Audio codec id.
+		 */
+		public int audioCodecId = -1;
+		
 		/**
 		 * Duration in milliseconds
 		 */
 		public long duration;
+
 		/**
 		 * Only audio frames?
 		 */
 		public boolean audioOnly;
-        /**
-         * Keyframe timestamps
-         */
+
+		/**
+		 * Keyframe timestamps
+		 */
 		public int timestamps[];
-        /**
-         * Keyframe positions
-         */
+
+		/**
+		 * Keyframe positions
+		 */
 		public long positions[];
 	}
 }

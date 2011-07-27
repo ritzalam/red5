@@ -496,31 +496,17 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	}
 
 	public int getVideoCodecId() {
-		KeyFrameMeta meta = analyzeKeyFrames();
-		if (meta == null) {
-			return -1;
+		if (keyframeMeta != null) {
+			return keyframeMeta.videoCodecId;
 		}
-		long old = getCurrentPosition();
-		setCurrentPosition(firstVideoTag);
-		readTagHeader();
-		fillBuffer(1);
-		byte frametype = in.get();
-		setCurrentPosition(old);
-		return frametype & MASK_VIDEO_CODEC;
+		return -1;
 	}
 
 	public int getAudioCodecId() {
-		KeyFrameMeta meta = analyzeKeyFrames();
-		if (meta == null) {
-			return -1;
+		if (keyframeMeta != null) {
+			return keyframeMeta.audioCodecId;
 		}
-		long old = getCurrentPosition();
-		setCurrentPosition(firstAudioTag);
-		readTagHeader();
-		fillBuffer(1);
-		byte frametype = in.get();
-		setCurrentPosition(old);
-		return frametype & MASK_SOUND_FORMAT;
+		return -1;
 	}
 
 	/** {@inheritDoc}
@@ -660,6 +646,8 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 				return keyframeMeta;
 			}
 		}
+		// create a holder for the metadata
+		keyframeMeta = new KeyFrameMeta();
 		// Lists of video positions and timestamps
 		List<Long> positionList = new ArrayList<Long>();
 		List<Integer> timestampList = new ArrayList<Integer>();
@@ -695,6 +683,9 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 				// Grab Frame type
 				fillBuffer(1);
 				byte frametype = in.get();
+				if (keyframeMeta.videoCodecId == -1) {
+					keyframeMeta.videoCodecId = frametype & MASK_VIDEO_CODEC;
+				}
 				if (((frametype & MASK_VIDEO_FRAMETYPE) >> 4) == FLAG_FRAMETYPE_KEYFRAME) {
 					positionList.add(pos);
 					timestampList.add(tmpTag.getTimestamp());
@@ -702,6 +693,12 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			} else if (tmpTag.getDataType() == IoConstants.TYPE_AUDIO) {
 				if (firstAudioTag == -1) {
 					firstAudioTag = pos;
+				}
+				// Grab Frame type
+				fillBuffer(1);
+				byte frametype = in.get();
+				if (keyframeMeta.audioCodecId == -1) {
+					keyframeMeta.audioCodecId = frametype & MASK_SOUND_FORMAT;
 				}
 				if (audioOnly) {
 					audioPositionList.add(pos);
@@ -733,10 +730,7 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		}
 		// restore the pos
 		setCurrentPosition(origPos);
-
 		log.debug("Total valid tags found: {}", totalValidTags);
-
-		keyframeMeta = new KeyFrameMeta();
 		keyframeMeta.duration = duration;
 		posTimeMap = new HashMap<Long, Long>();
 		if (audioOnly) {

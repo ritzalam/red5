@@ -232,7 +232,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 				len = buf.getInt();
 				break;
 			case AMF.TYPE_STRING:
-				len = buf.getUnsignedShort();
+				len = buf.getShort() & 0xff; //buf.getUnsignedShort();
 				break;
 			default:
 				log.debug("Unknown AMF type: {}", currentDataType);
@@ -251,7 +251,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @return String   Decoded string
 	 */
 	public static String getString(IoBuffer buf) {
-		int len = buf.getUnsignedShort();
+		int len = buf.getShort() & 0xff; //buf.getUnsignedShort(); XXX is appears to be broken in mina at 2.0.4
 		log.debug("Length: {}", len);
 		int limit = buf.limit();
 		log.debug("Limit: {}", limit);
@@ -687,7 +687,8 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @return Object       Read reference to object
 	 */
 	public Object readReference(Type target) {
-		return getReference(buf.getUnsignedShort());
+		//return getReference(buf.getUnsignedShort());
+		return getReference(buf.getShort() & 0xff);
 	}
 
 	/**
