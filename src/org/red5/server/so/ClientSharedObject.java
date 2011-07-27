@@ -166,8 +166,13 @@ public class ClientSharedObject extends SharedObject implements IClientSharedObj
 							break;
 
 						case CLIENT_UPDATE_ATTRIBUTE:
-							attributes.put(event.getKey(), event.getValue());
-							notifyUpdate(event.getKey(), event.getValue());
+							Object val = event.getValue();
+							// null values are not allowed in concurrent hash maps
+							if (val != null) {
+								attributes.put(event.getKey(), val);
+							}
+							// we will however send the null out to the subscribers
+							notifyUpdate(event.getKey(), val);
 							break;
 
 						default:

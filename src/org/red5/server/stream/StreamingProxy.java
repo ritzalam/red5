@@ -50,8 +50,7 @@ import org.slf4j.LoggerFactory;
  * @author Steven Gong (steven.gong@gmail.com)
  * @author Andy Shaules (bowljoman@hotmail.com)
  */
-public class StreamingProxy implements IPushableConsumer, IPipeConnectionListener, INetStreamEventHandler,
-		IPendingServiceCallback {
+public class StreamingProxy implements IPushableConsumer, IPipeConnectionListener, INetStreamEventHandler, IPendingServiceCallback {
 
 	private static Logger log = LoggerFactory.getLogger(StreamingProxy.class);
 
@@ -114,7 +113,7 @@ public class StreamingProxy implements IPushableConsumer, IPipeConnectionListene
 		// nothing to do
 	}
 
-	synchronized public void pushMessage(IPipe pipe, IMessage message) throws IOException {
+	public synchronized void pushMessage(IPipe pipe, IMessage message) throws IOException {
 		if (state >= PUBLISHED && message instanceof RTMPMessage) {
 			RTMPMessage rtmpMsg = (RTMPMessage) message;
 			rtmpClient.publishStreamData(streamId, rtmpMsg);
