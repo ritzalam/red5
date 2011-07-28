@@ -115,8 +115,7 @@ public class JMXAgent implements NotificationListener {
 				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
 			}
 			log.debug("Register name: {}", cName);
-			mbs.registerMBean(new StandardMBean(instance, interfaceClass), new ObjectName(JMXFactory.getDefaultDomain()
-					+ ":type=" + cName));
+			mbs.registerMBean(new StandardMBean(instance, interfaceClass), new ObjectName(JMXFactory.getDefaultDomain() + ":type=" + cName));
 			status = true;
 		} catch (InstanceAlreadyExistsException iaee) {
 			log.debug("Already registered: {}", className);
@@ -154,8 +153,7 @@ public class JMXAgent implements NotificationListener {
 				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
 			}
 			log.debug("Register name: {}", cName);
-			mbs.registerMBean(new StandardMBean(instance, interfaceClass), new ObjectName(JMXFactory.getDefaultDomain()
-					+ ":type=" + cName + ",name=" + name));
+			mbs.registerMBean(new StandardMBean(instance, interfaceClass), new ObjectName(JMXFactory.getDefaultDomain() + ":type=" + cName + ",name=" + name));
 			status = true;
 		} catch (InstanceAlreadyExistsException iaee) {
 			log.debug("Already registered: {}", className);
@@ -271,19 +269,16 @@ public class JMXAgent implements NotificationListener {
 		log.debug("handleNotification {}", notification.getMessage());
 	}
 
-	public void init() {		
+	public void init() {
 		//environmental var holder
 		HashMap<String, Object> env = null;
 
 		if (enableRmiAdapter) {
 			// Create an RMI connector server
 			log.debug("Create an RMI connector server");
-
 			// bind the rmi hostname for systems with nat and multiple binded addresses !
 			System.setProperty("java.rmi.server.hostname", rmiAdapterHost);
-
 			try {
-
 				Registry r = null;
 				try {
 					//lookup the registry
@@ -303,26 +298,19 @@ public class JMXAgent implements NotificationListener {
 						r = LocateRegistry.createRegistry(Integer.valueOf(rmiAdapterPort));
 					}
 				}
-
 				JMXServiceURL url = null;
-
 				// Configure the remote objects exported port for firewalls !!
 				if (StringUtils.isNotEmpty(rmiAdapterRemotePort)) {
-					url = new JMXServiceURL("service:jmx:rmi://" + rmiAdapterHost + ":" + rmiAdapterRemotePort
-							+ "/jndi/rmi://" + rmiAdapterHost + ":" + rmiAdapterPort + "/red5");
+					url = new JMXServiceURL("service:jmx:rmi://" + rmiAdapterHost + ":" + rmiAdapterRemotePort + "/jndi/rmi://" + rmiAdapterHost + ":" + rmiAdapterPort + "/red5");
 				} else {
-					url = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://:" + rmiAdapterPort + "/red5");
+					url = new JMXServiceURL("service:jmx:rmi://" + rmiAdapterHost + ":" + rmiAdapterPort + "/jndi/rmi://" + rmiAdapterHost + ":" + rmiAdapterPort + "/red5");
 				}
-
 				log.info("JMXServiceUrl is: {}", url);
-
 				//if SSL is requested to secure rmi connections
 				if (enableSsl) {
-
 					// Setup keystore for SSL transparently
 					System.setProperty("javax.net.ssl.keyStore", remoteSSLKeystore);
 					System.setProperty("javax.net.ssl.keyStorePassword", remoteSSLKeystorePass);
-
 					// Environment map
 					log.debug("Initialize the environment map");
 					env = new HashMap<String, Object>();
@@ -332,7 +320,6 @@ public class JMXAgent implements NotificationListener {
 					env.put(RMIConnectorServer.RMI_CLIENT_SOCKET_FACTORY_ATTRIBUTE, csf);
 					env.put(RMIConnectorServer.RMI_SERVER_SOCKET_FACTORY_ATTRIBUTE, ssf);
 				}
-
 				//if authentication is requested
 				if (StringUtils.isNotBlank(remoteAccessProperties)) {
 					//if ssl is not used this will be null
@@ -346,14 +333,12 @@ public class JMXAgent implements NotificationListener {
 						log.debug("Access file was not found on path, will prepend config_root");
 						//pre-pend the system property set in war startup
 						remoteAccessProperties = System.getProperty("red5.config_root") + '/' + remoteAccessProperties;
-						remotePasswordProperties = System.getProperty("red5.config_root") + '/'
-								+ remotePasswordProperties;
+						remotePasswordProperties = System.getProperty("red5.config_root") + '/' + remotePasswordProperties;
 					}
 					//strip "file:" prefixing
 					env.put("jmx.remote.x.access.file", remoteAccessProperties.replace("file:", ""));
 					env.put("jmx.remote.x.password.file", remotePasswordProperties.replace("file:", ""));
 				}
-
 				// create the connector server
 				cs = JMXConnectorServerFactory.newJMXConnectorServer(url, env, mbs);
 				// add a listener for shutdown
@@ -363,8 +348,7 @@ public class JMXAgent implements NotificationListener {
 				cs.start();
 				log.info("JMX RMI connector server successfully started");
 			} catch (ConnectException e) {
-				log.warn("Could not establish RMI connection to port " + rmiAdapterPort
-						+ ", please make sure \"rmiregistry\" is running and configured to listen on this port.");
+				log.warn("Could not establish RMI connection to port " + rmiAdapterPort + ", please make sure \"rmiregistry\" is running and configured to listen on this port.");
 			} catch (IOException e) {
 				String errMsg = e.getMessage();
 				if (errMsg.indexOf("NameAlreadyBoundException") != -1) {

@@ -2,7 +2,7 @@
 
 SETLOCAL
 
-if NOT DEFINED RED5_HOME set RED5_HOME=%CD%
+if NOT DEFINED RED5_HOME set RED5_HOME=%~dp0
 
 if NOT DEFINED RED5_MAINCLASS set RED5_MAINCLASS=org.red5.server.Bootstrap
 
@@ -13,7 +13,7 @@ REM You can set JAVA_OPTS to add additional options if you want
 REM Set up logging options
 set LOGGING_OPTS=-Dlogback.ContextSelector=org.red5.logging.LoggingContextSelector -Dcatalina.useNaming=true
 REM Set up security options
-REM set SECURITY_OPTS= -Djava.security.debug=failure -Djava.security.manager -Djava.security.policy=%RED5_HOME%/conf/red5.policy
+REM set SECURITY_OPTS= -Djava.security.debug=failure -Djava.security.manager -Djava.security.policy="%RED5_HOME%/conf/red5.policy"
 set SECURITY_OPTS=-Djava.security.debug=failure
 set JAVA_OPTS=%LOGGING_OPTS% %SECURITY_OPTS% %JAVA_OPTS%
 

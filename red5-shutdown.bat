@@ -2,7 +2,7 @@
 
 SETLOCAL
 
-if NOT DEFINED RED5_HOME set RED5_HOME=%CD%
+if NOT DEFINED RED5_HOME set RED5_HOME=%~dp0
 
 set JAVA_OPTS=-Djavax.net.ssl.keyStore="%RED5_HOME%\conf\keystore.jmx" -Djavax.net.ssl.keyStorePassword=password
 set RED5_MAINCLASS=org.red5.server.Shutdown
