@@ -61,7 +61,7 @@ import org.slf4j.LoggerFactory;
  */
 public class StreamService implements IStreamService {
 
-	private static Logger logger = LoggerFactory.getLogger(StreamService.class);
+	private static Logger log = LoggerFactory.getLogger(StreamService.class);
 
 	/**
 	 * Use to determine playback type.
@@ -154,10 +154,10 @@ public class StreamService implements IStreamService {
 					StreamService.sendNetStreamStatus(connection, StatusCodes.NS_PLAY_STOP, "Stream closed by server", stream.getName(), Status.STATUS, streamId);
 				}
 			} else {
-				logger.info("Stream not found: streamId={}, connection={}", streamId, connection);
+				log.info("Stream not found: streamId={}, connection={}", streamId, connection);
 			}
 		} else {
-			logger.warn("Connection is not instance of IStreamCapableConnection: {}", connection);
+			log.warn("Connection is not instance of IStreamCapableConnection: {}", connection);
 		}
 	}
 
@@ -193,6 +193,7 @@ public class StreamService implements IStreamService {
 
 	/** {@inheritDoc} */
 	public void pauseRaw(Boolean pausePlayback, int position) {
+		log.trace("pauseRaw - pausePlayback:{} position:{}", pausePlayback, position);
 		pause(pausePlayback, position);
 	}
 
@@ -275,7 +276,7 @@ public class StreamService implements IStreamService {
 
 	/** {@inheritDoc} */
 	public void play(String name, int start, int length, boolean flushPlaylist) {
-		logger.debug("Play called - name: {} start: {} length: {} flush playlist: {}", new Object[] { name, start, length, flushPlaylist });
+		log.debug("Play called - name: {} start: {} length: {} flush playlist: {}", new Object[] { name, start, length, flushPlaylist });
 		IConnection conn = Red5.getConnectionLocal();
 		if (conn instanceof IStreamCapableConnection) {
 			IScope scope = conn.getScope();
@@ -319,7 +320,7 @@ public class StreamService implements IStreamService {
 					singleStream.setPlayItem(item);
 				} else {
 					// not supported by this stream service
-					logger.warn("Stream instance type: {} is not supported", subscriberStream.getClass().getName());
+					log.warn("Stream instance type: {} is not supported", subscriberStream.getClass().getName());
 					return;
 				}
 				try {
@@ -333,7 +334,7 @@ public class StreamService implements IStreamService {
 				}
 			}
 		} else {
-			logger.debug("Connection was not stream capable");
+			log.debug("Connection was not stream capable");
 		}
 	}
 
@@ -354,7 +355,7 @@ public class StreamService implements IStreamService {
 
 	/** {@inheritDoc} */
 	public void play(Boolean dontStop) {
-		logger.debug("Play called. Dont stop param: {}", dontStop);
+		log.debug("Play called. Dont stop param: {}", dontStop);
 		if (!dontStop) {
 			IConnection conn = Red5.getConnectionLocal();
 			if (conn instanceof IStreamCapableConnection) {
@@ -395,11 +396,11 @@ public class StreamService implements IStreamService {
 	 */
 	@SuppressWarnings("rawtypes")
 	public void play2(ObjectMap params) {
-		logger.debug("play2 options: {}", params);
+		log.debug("play2 options: {}", params);
 		Map<String, Object> playOptions = new HashMap<String, Object>();
 		for (Object key : params.keySet()) {
 			String k = key.toString();
-			logger.trace("Parameter: {}", k);
+			log.trace("Parameter: {}", k);
 			playOptions.put(k, params.get(k));
 		}
 		play2(playOptions);
@@ -438,7 +439,7 @@ public class StreamService implements IStreamService {
 	   @see <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/net/NetStreamPlayTransitions.html">NetStreamPlayTransitions</a>
 	 */
 	public void play2(Map<String, ?> playOptions) {
-		logger.debug("play2 options: {}", playOptions.toString());
+		log.debug("play2 options: {}", playOptions.toString());
 		/* { streamName=streams/new.flv, oldStreamName=streams/old.flv, 
 			start=0, len=-1, offset=12.195, transition=switch } */
 		// get the transition type
@@ -484,18 +485,18 @@ public class StreamService implements IStreamService {
 					IPlayItem tmpItem = playlistStream.getItem(i);
 					if (tmpItem.getName().equals(oldStreamName)) {
 						if (!playlistStream.replace(tmpItem, item)) {
-							logger.warn("Playlist item replacement failed");
+							log.warn("Playlist item replacement failed");
 							sendNSFailed(streamConn, StatusCodes.NS_PLAY_FAILED, "Playlist swap failed.", streamName, streamId);
 						}
 						break;
 					}
 				}
 			} else {
-				logger.warn("Unhandled transition: {}", transition);
+				log.warn("Unhandled transition: {}", transition);
 				sendNSFailed(conn, StatusCodes.NS_FAILED, "Transition type not supported", streamName, streamId);
 			}
 		} else {
-			logger.info("Connection was null ?");
+			log.info("Connection was null ?");
 		}
 	}
 
@@ -600,7 +601,7 @@ public class StreamService implements IStreamService {
 						((BaseConnection) conn).registerBasicScope(bsScope);
 					}
 				}
-				logger.debug("Mode: {}", mode);
+				log.debug("Mode: {}", mode);
 				if (IClientStream.MODE_RECORD.equals(mode)) {
 					bs.start();
 					bs.saveAs(name, false);
@@ -619,7 +620,7 @@ public class StreamService implements IStreamService {
 				}
 				return;
 			} catch (Exception e) {
-				logger.warn("Exception on publish", e);
+				log.warn("Exception on publish", e);
 			}
 		}
 	}
@@ -631,6 +632,7 @@ public class StreamService implements IStreamService {
 
 	/** {@inheritDoc} */
 	public void seek(int position) {
+		log.trace("seek - position:{}", position);
 		IConnection conn = Red5.getConnectionLocal();
 		if (conn instanceof IStreamCapableConnection) {
 			IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;

@@ -174,11 +174,9 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 
 	/**
 	 * Start time of stream playback.
-	 * It's not a time when the stream is being played but
-	 * the time when the stream should be played if it's played
+	 * It's not a time when the stream is being played but the time when the stream should be played if it's played
 	 * from the very beginning.
-	 * Eg. A stream is played at timestamp 5s on 1:00:05. The
-	 * playbackStart is 1:00:00.
+	 * Eg. A stream is played at timestamp 5s on 1:00:05. The playbackStart is 1:00:00.
 	 */
 	private volatile long playbackStart;
 
@@ -199,7 +197,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	private Object doingPullMonitor = new Object();
 
 	/**
-	 * Offset in ms the stream started.
+	 * Offset in milliseconds where the stream started.
 	 */
 	private int streamOffset;
 
@@ -726,131 +724,10 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 * @throws IllegalStateException    If stream is in stopped state
 	 * @throws OperationNotSupportedException If this object doesn't support the operation.
 	 */
-	public synchronized void seek(final int position) throws IllegalStateException, OperationNotSupportedException {
-		Runnable seekRunnable = new Runnable() {
-			public void run() {
-				log.trace("Seek: {}", position);
-				boolean startPullPushThread = false;
-				switch (subscriberStream.getState()) {
-					case PLAYING:
-						startPullPushThread = true;
-					case PAUSED:
-					case STOPPED:
-						//allow seek if playing, paused, or stopped
-						if (!pullMode) {
-							// throw new OperationNotSupportedException();
-							throw new RuntimeException();
-						}
-						releasePendingMessage();
-						clearWaitJobs();
-						break;
-					default:
-						throw new IllegalStateException("Cannot seek in current state");
-				}
-
-				sendClearPing();
-				sendReset();
-				sendSeekStatus(currentItem, position);
-				sendStartStatus(currentItem);
-				int seekPos = sendVODSeekCM(msgIn, position);
-				// We seeked to the nearest keyframe so use real timestamp now
-				if (seekPos == -1) {
-					seekPos = position;
-				}
-				//what should our start be?
-				log.trace("Current playback start: {}", playbackStart);
-				playbackStart = System.currentTimeMillis() - seekPos;
-				log.trace("Playback start: {} seek pos: {}", playbackStart, seekPos);
-				subscriberStream.onChange(StreamState.SEEK, currentItem, seekPos);
-				// start off with not having sent any message
-				boolean messageSent = false;
-				// read our client state
-				switch (subscriberStream.getState()) {
-					case PAUSED:
-					case STOPPED:
-						// we send a single snapshot on pause
-						if (sendCheckVideoCM(msgIn)) {
-							IMessage msg = null;
-							do {
-								try {
-									msg = msgIn.pullMessage();
-								} catch (Throwable err) {
-									log.error("Error while pulling message", err);
-									msg = null;
-								}
-								if (msg instanceof RTMPMessage) {
-									RTMPMessage rtmpMessage = (RTMPMessage) msg;
-									IRTMPEvent body = rtmpMessage.getBody();
-									if (body instanceof VideoData && ((VideoData) body).getFrameType() == FrameType.KEYFRAME) {
-										//body.setTimestamp(seekPos);
-										doPushMessage(rtmpMessage);
-										rtmpMessage.getBody().release();
-										messageSent = true;
-										lastMessageTs = body.getTimestamp();
-										break;
-									}
-								}
-							} while (msg != null);
-						}
-				}
-				// seeked past end of stream
-				if (currentItem.getLength() >= 0 && (position - streamOffset) >= currentItem.getLength()) {
-					stop();
-				}
-				// if no message has been sent by this point send an audio packet
-				if (!messageSent) {
-					// Send blank audio packet to notify client about new position
-					log.debug("Sending blank audio packet");
-					AudioData audio = new AudioData();
-					audio.setTimestamp(seekPos);
-					audio.setHeader(new Header());
-					audio.getHeader().setTimer(seekPos);
-					RTMPMessage audioMessage = RTMPMessage.build(audio);
-					lastMessageTs = seekPos;
-					doPushMessage(audioMessage);
-					audioMessage.getBody().release();
-				}
-				if (!messageSent && subscriberStream.getState() == StreamState.PLAYING) {
-					// send all frames from last keyframe up to requested position and fill client buffer
-					if (sendCheckVideoCM(msgIn)) {
-						final long clientBuffer = subscriberStream.getClientBufferDuration();
-						IMessage msg = null;
-						do {
-							try {
-								msg = msgIn != null ? msgIn.pullMessage() : null;
-								if (msg instanceof RTMPMessage) {
-									RTMPMessage rtmpMessage = (RTMPMessage) msg;
-									IRTMPEvent body = rtmpMessage.getBody();
-									if (body.getTimestamp() >= position + (clientBuffer * 2)) {
-										// client buffer should be full by now, continue regular pull/push
-										releasePendingMessage();
-										if (checkSendMessageEnabled(rtmpMessage)) {
-											pendingMessage = rtmpMessage;
-										}
-										break;
-									}
-									if (!checkSendMessageEnabled(rtmpMessage)) {
-										continue;
-									}
-									sendMessage(rtmpMessage);
-								}
-							} catch (Throwable err) {
-								log.error("Error while pulling message", err);
-								msg = null;
-							}
-						} while (msg != null);
-						playbackStart = System.currentTimeMillis() - lastMessageTs;
-					}
-				}
-				// start pull-push
-				if (startPullPushThread) {
-					ensurePullAndPushRunning();
-				}
-			}
-		};
+	public void seek(int position) throws IllegalStateException, OperationNotSupportedException {
 		// Add this pending seek operation to the list
 		synchronized (pendingOperations) {
-			pendingOperations.addLast(seekRunnable);
+			pendingOperations.addLast(new SeekRunnable(position));
 		}
 	}
 
@@ -1655,6 +1532,137 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	}
 
 	/**
+	 * Runnable worker to handle seek operations.
+	 */
+	private final class SeekRunnable implements Runnable {
+	
+		private final int position;
+		
+		SeekRunnable(int position) {
+			this.position = position;
+		}
+
+		public void run() {
+			log.trace("Seek: {}", position);
+			boolean startPullPushThread = false;
+			switch (subscriberStream.getState()) {
+				case PLAYING:
+					startPullPushThread = true;
+				case PAUSED:
+				case STOPPED:
+					//allow seek if playing, paused, or stopped
+					if (!pullMode) {
+						// throw new OperationNotSupportedException();
+						throw new RuntimeException();
+					}
+					releasePendingMessage();
+					clearWaitJobs();
+					break;
+				default:
+					throw new IllegalStateException("Cannot seek in current state");
+			}
+			sendClearPing();
+			sendReset();
+			sendSeekStatus(currentItem, position);
+			sendStartStatus(currentItem);
+			int seekPos = sendVODSeekCM(msgIn, position);
+			// We seeked to the nearest keyframe so use real timestamp now
+			if (seekPos == -1) {
+				seekPos = position;
+			}
+			//what should our start be?
+			log.trace("Current playback start: {}", playbackStart);
+			playbackStart = System.currentTimeMillis() - seekPos;
+			log.trace("Playback start: {} seek pos: {}", playbackStart, seekPos);
+			subscriberStream.onChange(StreamState.SEEK, currentItem, seekPos);
+			// start off with not having sent any message
+			boolean messageSent = false;
+			// read our client state
+			switch (subscriberStream.getState()) {
+				case PAUSED:
+				case STOPPED:
+					// we send a single snapshot on pause
+					if (sendCheckVideoCM(msgIn)) {
+						IMessage msg = null;
+						do {
+							try {
+								msg = msgIn.pullMessage();
+							} catch (Throwable err) {
+								log.error("Error while pulling message", err);
+								msg = null;
+							}
+							if (msg instanceof RTMPMessage) {
+								RTMPMessage rtmpMessage = (RTMPMessage) msg;
+								IRTMPEvent body = rtmpMessage.getBody();
+								if (body instanceof VideoData && ((VideoData) body).getFrameType() == FrameType.KEYFRAME) {
+									//body.setTimestamp(seekPos);
+									doPushMessage(rtmpMessage);
+									rtmpMessage.getBody().release();
+									messageSent = true;
+									lastMessageTs = body.getTimestamp();
+									break;
+								}
+							}
+						} while (msg != null);
+					}
+			}
+			// seeked past end of stream
+			if (currentItem.getLength() >= 0 && (position - streamOffset) >= currentItem.getLength()) {
+				stop();
+			}
+			// if no message has been sent by this point send an audio packet
+			if (!messageSent) {
+				// Send blank audio packet to notify client about new position
+				log.debug("Sending blank audio packet");
+				AudioData audio = new AudioData();
+				audio.setTimestamp(seekPos);
+				audio.setHeader(new Header());
+				audio.getHeader().setTimer(seekPos);
+				RTMPMessage audioMessage = RTMPMessage.build(audio);
+				lastMessageTs = seekPos;
+				doPushMessage(audioMessage);
+				audioMessage.getBody().release();
+			}
+			if (!messageSent && subscriberStream.getState() == StreamState.PLAYING) {
+				// send all frames from last keyframe up to requested position and fill client buffer
+				if (sendCheckVideoCM(msgIn)) {
+					final long clientBuffer = subscriberStream.getClientBufferDuration();
+					IMessage msg = null;
+					do {
+						try {
+							msg = msgIn != null ? msgIn.pullMessage() : null;
+							if (msg instanceof RTMPMessage) {
+								RTMPMessage rtmpMessage = (RTMPMessage) msg;
+								IRTMPEvent body = rtmpMessage.getBody();
+								if (body.getTimestamp() >= position + (clientBuffer * 2)) {
+									// client buffer should be full by now, continue regular pull/push
+									releasePendingMessage();
+									if (checkSendMessageEnabled(rtmpMessage)) {
+										pendingMessage = rtmpMessage;
+									}
+									break;
+								}
+								if (!checkSendMessageEnabled(rtmpMessage)) {
+									continue;
+								}
+								sendMessage(rtmpMessage);
+							}
+						} catch (Throwable err) {
+							log.error("Error while pulling message", err);
+							msg = null;
+						}
+					} while (msg != null);
+					playbackStart = System.currentTimeMillis() - lastMessageTs;
+				}
+			}
+			// start pull-push
+			if (startPullPushThread) {
+				ensurePullAndPushRunning();
+			}
+		}
+	}	
+	
+	/**
 	 * Periodically triggered by executor to send messages to the client.
 	 */
 	private final class PullAndPushRunnable implements Runnable {
@@ -1665,16 +1673,30 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		public void run() {
 			synchronized (doingPullMonitor) {
 				try {
-					// Are there any pending operations?
+					// handle any pending operations
+					Runnable worker = null;
 					while (pendingOperations.size() > 0) {
+						log.debug("Pending operations: {}", pendingOperations.size());
 						synchronized (pendingOperations) {
-							// Remove the first operation and execute it 
+							// remove the first operation and execute it 
+							worker = pendingOperations.removeFirst();
+							log.debug("Worker: {}", worker);
+							// if the operation is seek, ensure it is the last request in the set
+							while (worker instanceof SeekRunnable) {
+								Runnable tmp = pendingOperations.peek();
+								if (tmp != null && tmp instanceof SeekRunnable) {
+									worker = pendingOperations.removeFirst();
+								} else {
+									break;
+								}
+							}
+						}
+						if (worker != null) {
 							log.debug("Executing pending operation");
-							pendingOperations.removeFirst().run();
+							worker.run();
 						}
 					}
-
-					//Receive then send if message is data (not audio or video)
+					// receive then send if message is data (not audio or video)
 					if (subscriberStream.getState() == StreamState.PLAYING && pullMode) {
 						if (pendingMessage != null) {
 							IRTMPEvent body = pendingMessage.getBody();
@@ -1698,7 +1720,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 										if (!checkSendMessageEnabled(rtmpMessage)) {
 											continue;
 										}
-
 										// Adjust timestamp when playing lists
 										IRTMPEvent body = rtmpMessage.getBody();
 										body.setTimestamp(body.getTimestamp() + timestampOffset);
@@ -1716,7 +1737,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 							}
 						}
 					}
-
 				} catch (IOException err) {
 					// We couldn't get more data, stop stream.
 					log.error("Error while getting message", err);
