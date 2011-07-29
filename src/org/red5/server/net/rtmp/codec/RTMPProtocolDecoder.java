@@ -1031,10 +1031,15 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				log.warn("Object encoding: {}", objectEncodingType);
 				switch (objectEncodingType) {
 					case AMF.TYPE_AMF3_OBJECT:
-					case AMF3.TYPE_VECTOR_INT:
-					case AMF3.TYPE_VECTOR_UINT:
 					case AMF3.TYPE_VECTOR_NUMBER:
 					case AMF3.TYPE_VECTOR_OBJECT:
+						// The next parameter is encoded using AMF3
+						input = new org.red5.io.amf3.Input(in, refStorage);
+						// Vectors with number and object have to have AMF3 forced
+						((org.red5.io.amf3.Input) input).enforceAMF3();
+						break;
+					case AMF3.TYPE_VECTOR_INT:
+					case AMF3.TYPE_VECTOR_UINT:
 						// The next parameter is encoded using AMF3
 						input = new org.red5.io.amf3.Input(in, refStorage);
 						break;
