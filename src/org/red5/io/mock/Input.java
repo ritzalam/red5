@@ -22,6 +22,7 @@ package org.red5.io.mock;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 import java.lang.reflect.Type;
 
 import org.red5.io.amf3.ByteArray;
@@ -134,23 +135,23 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<Integer> readVectorInt() {
-		return (List<Integer>) getNext();
+	public Vector<Integer> readVectorInt() {
+		return (Vector<Integer>) getNext();
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<Long> readVectorUInt() {
-		return (List<Long>) getNext();
+	public Vector<Long> readVectorUInt() {
+		return (Vector<Long>) getNext();
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<Double> readVectorNumber() {
-		return (List<Double>) getNext();
+	public Vector<Double> readVectorNumber() {
+		return (Vector<Double>) getNext();
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<Object> readVectorObject() {
-		return (List<Object>) getNext();
+	public Vector<Object> readVectorObject() {
+		return (Vector<Object>) getNext();
 	}
 
 	/** {@inheritDoc} */

@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import org.apache.commons.beanutils.BeanMap;
 import org.red5.annotations.DontSerialize;
@@ -48,9 +49,6 @@ import org.w3c.dom.Document;
  */
 public class Serializer {
 
-	/**
-	 * Logger
-	 */
 	protected static Logger log = LoggerFactory.getLogger(Serializer.class);
 
 	/**
@@ -72,14 +70,28 @@ public class Serializer {
 	 * @param object Parent object
 	 * @param value Object to serialize
 	 */
+	@SuppressWarnings("unchecked")
 	public void serialize(Output out, Field field, Method getter, Object object, Object value) {
 		log.trace("serialize");
 		if (value instanceof IExternalizable) {
-			// Make sure all IExternalizable objects are serialized as objects
+			// make sure all IExternalizable objects are serialized as objects
 			out.writeObject(value, this);
 		} else if (value instanceof ByteArray) {
-			// Write ByteArray objects directly
+			// write ByteArray objects directly
 			out.writeByteArray((ByteArray) value);
+		} else if (value instanceof Vector) {
+			log.warn("Serialize Vector");
+			// write Vector objects directly
+			Object o = ((Vector<?>) value).firstElement();
+			if (o instanceof Integer) {
+				out.writeVectorInt((Vector<Integer>) value);
+			} else if (o instanceof Long) {
+				out.writeVectorUInt((Vector<Long>) value);
+			} else if (o instanceof Number || o instanceof Double) {
+				out.writeVectorNumber((Vector<Double>) value);
+			} else {
+				out.writeVectorObject((Vector<Object>) value);
+			}
 		} else {
 			if (writeBasic(out, value)) {
 				log.trace("Wrote as basic");
@@ -174,27 +186,27 @@ public class Serializer {
 	 */
 	protected void writeList(Output out, List<?> list) {
 		if (!list.isEmpty()) {
-    		int size = list.size();
-    		// if its a small list, write it as an array
-    		if (size < 100) {
-    			out.writeArray(list, this);
-    			return;
-    		}
-    		// else we should check for lots of null values,
-    		// if there are over 80% then its probably best to do it as a map
-    		int nullCount = 0;
-    		for (int i = 0; i < size; i++) {
-    			if (list.get(i) == null) {
-    				nullCount++;
-    			}
-    		}
-    		if (nullCount > (size * 0.8)) {
-    			out.writeMap(list, this);
-    		} else {
-    			out.writeArray(list, this);
-    		}
+			int size = list.size();
+			// if its a small list, write it as an array
+			if (size < 100) {
+				out.writeArray(list, this);
+				return;
+			}
+			// else we should check for lots of null values,
+			// if there are over 80% then its probably best to do it as a map
+			int nullCount = 0;
+			for (int i = 0; i < size; i++) {
+				if (list.get(i) == null) {
+					nullCount++;
+				}
+			}
+			if (nullCount > (size * 0.8)) {
+				out.writeMap(list, this);
+			} else {
+				out.writeArray(list, this);
+			}
 		} else {
-			out.writeArray(new Object[]{}, this);
+			out.writeArray(new Object[] {}, this);
 		}
 	}
 
@@ -377,7 +389,6 @@ public class Serializer {
 				className = "DSK";
 			}
 		}
-
 		return className;
 	}
 }

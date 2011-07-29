@@ -39,6 +39,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.Vector;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.BeanUtilsBean;
@@ -178,7 +179,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * Stores references declared in this input of previous ones in the same message body
 	 */
 	private RefStorage refStorage;
-	
+
 	/**
 	 * Creates Input object for AMF3 from byte buffer
 	 * 
@@ -781,48 +782,59 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		return result;
 	}
 
+	/**
+	 * Read ByteArray object. 
+	 *
+	 * @return	ByteArray object
+	 */
 	public ByteArray readByteArray(Type target) {
 		int type = readAMF3Integer();
 		if ((type & 1) == 0) {
-			// Reference
 			return (ByteArray) getReference(type >> 1);
 		}
-
 		type >>= 1;
 		ByteArray result = new ByteArray(buf, type);
 		storeReference(result);
 		return result;
 	}
 
+	/**
+	 * Read Vector<Integer> object.
+	 *
+	 * @return	Vector<Integer> object
+	 */
 	@SuppressWarnings("unchecked")
-	public List<Integer> readVectorInt() {
+	public Vector<Integer> readVectorInt() {
+		log.warn("readVectorInt");
 		int type = readAMF3Integer();
 		if ((type & 1) == 0) {
-			return (List<Integer>) getReference(type >> 1);
+			return (Vector<Integer>) getReference(type >> 1);
 		}
-
 		int len = type >> 1;
-		List<Integer> array = new ArrayList<Integer>(len);
-
+		Vector<Integer> array = new Vector<Integer>(len);
 		storeReference(array);
-
 		@SuppressWarnings("unused")
 		int ref2 = readAMF3Integer();
 		for (int j = 0; j < len; ++j) {
 			array.add(buf.getInt());
 		}
-
 		return array;
 	}
 
+	/**
+	 * Read Vector<uint> object.
+	 *
+	 * @return	Vector<Long> object
+	 */
 	@SuppressWarnings("unchecked")
-	public List<Long> readVectorUInt() {
+	public Vector<Long> readVectorUInt() {
+		log.warn("readVectorUInt");
 		int type = readAMF3Integer();
 		if ((type & 1) == 0) {
-			return (List<Long>) getReference(type >> 1);
+			return (Vector<Long>) getReference(type >> 1);
 		}
 		int len = type >> 1;
-		List<Long> array = new ArrayList<Long>(len);
+		Vector<Long> array = new Vector<Long>(len);
 		storeReference(array);
 		@SuppressWarnings("unused")
 		int ref2 = readAMF3Integer();
@@ -836,14 +848,20 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		return array;
 	}
 
+	/**
+	 * Read Vector<Number> object.
+	 *
+	 * @return	Vector<Double> object
+	 */
 	@SuppressWarnings("unchecked")
-	public List<Double> readVectorNumber() {
+	public Vector<Double> readVectorNumber() {
+		log.warn("readVectorNumber");
 		int type = readAMF3Integer();
 		if ((type & 1) == 0) {
-			return (List<Double>) getReference(type >> 1);
+			return (Vector<Double>) getReference(type >> 1);
 		}
 		int len = type >> 1;
-		List<Double> array = new ArrayList<Double>(len);
+		Vector<Double> array = new Vector<Double>(len);
 		storeReference(array);
 		@SuppressWarnings("unused")
 		int ref2 = readAMF3Integer();
@@ -853,14 +871,20 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		return array;
 	}
 
+	/**
+	 * Read Vector<Object> object.
+	 *
+	 * @return	Vector<Object> object
+	 */
 	@SuppressWarnings("unchecked")
-	public List<Object> readVectorObject() {
+	public Vector<Object> readVectorObject() {
+		log.warn("readVectorObject");
 		int type = readAMF3Integer();
 		if ((type & 1) == 0) {
-			return (List<Object>) getReference(type >> 1);
+			return (Vector<Object>) getReference(type >> 1);
 		}
 		int len = type >> 1;
-		List<Object> array = new ArrayList<Object>(len);
+		Vector<Object> array = new Vector<Object>(len);
 		storeReference(array);
 		Deserializer deserializer = new Deserializer();
 		Object object;
@@ -909,13 +933,12 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			result <<= 7;
 			result |= b;
 		} else {
-			/* Use all 8 bits from the 4th byte */
+			// use all 8 bits from the 4th byte
 			result <<= 8;
 			result |= b & 0x0ff;
-
-			/* Check if the integer should be negative */
+			// check if the integer should be negative
 			if ((result & 0x10000000) != 0) {
-				/* and extend the sign bit */
+				// extend the sign bit
 				result |= 0xe0000000;
 			}
 		}

@@ -19,10 +19,10 @@ package org.red5.io.object;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
 import java.lang.reflect.Type;
+import java.util.Date;
+import java.util.Map;
+import java.util.Vector;
 
 import org.red5.io.amf3.ByteArray;
 import org.w3c.dom.Document;
@@ -90,7 +90,6 @@ public interface Input {
 	 * 
 	 * @param deserializer deserializer
 	 * @param target target type
-	 * 
 	 * @return		   array
 	 */
 	Object readArray(Deserializer deserializer, Type target);
@@ -99,9 +98,9 @@ public interface Input {
 	 * Read a map containing key - value pairs. This can result
 	 * in a List or Map being deserialized depending on the
 	 * map type found.
+	 * 
 	 * @param deserializer deserializer
 	 * @param target target type
-	 * 
 	 * @return		   Map
 	 */
 	Object readMap(Deserializer deserializer, Type target);
@@ -111,13 +110,13 @@ public interface Input {
 	 * 
 	 * @param deserializer deserializer
 	 * @param target target type
-	 * 
 	 * @return		   object
 	 */
 	Object readObject(Deserializer deserializer, Type target);
 
 	/**
 	 * Read XML document
+	 * 
 	 * @param target target type
 	 * @return       XML DOM document
 	 */
@@ -125,6 +124,7 @@ public interface Input {
 
 	/**
 	 * Read custom object
+	 * 
 	 * @param target target type
 	 * @return          Custom object
 	 */
@@ -141,6 +141,7 @@ public interface Input {
 	/**
 	 * Read reference to Complex Data Type. Objects that are collaborators (properties) of other
 	 * objects must be stored as references in map of id-reference pairs.
+	 * 
 	 * @param target target type
 	 * @return object
 	 */
@@ -152,8 +153,8 @@ public interface Input {
 	void clearReferences();
 
 	/**
-	 * Read key - value pairs. This is required for the RecordSet
-	 * deserializer.
+	 * Read key - value pairs. This is required for the RecordSet deserializer.
+	 * 
 	 * @param deserializer deserializer
 	 * @return key-value pairs
 	 */
@@ -162,29 +163,29 @@ public interface Input {
 	/**
 	 * Read Vector<int> object.
 	 * 
-	 * @return List<Integer>
+	 * @return Vector<Integer>
 	 */
-	List<Integer> readVectorInt();
+	Vector<Integer> readVectorInt();
 
 	/**
 	 * Read Vector<uint> object.
 	 * 
-	 * @return List<Long>
+	 * @return Vector<Long>
 	 */
-	List<Long> readVectorUInt();
+	Vector<Long> readVectorUInt();
 
 	/**
 	 * Read Vector<Number> object.
 	 * 
-	 * @return List<Double>
+	 * @return Vector<Double>
 	 */
-	List<Double> readVectorNumber();
+	Vector<Double> readVectorNumber();
 
 	/**
 	 * Read Vector<Object> object.
 	 * 
-	 * @return List<Object>
+	 * @return Vector<Object>
 	 */
-	List<Object> readVectorObject();
+	Vector<Object> readVectorObject();
 
 }

@@ -28,6 +28,7 @@ import java.util.Map;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.amf.AMF;
 import org.red5.io.amf.Output;
+import org.red5.io.amf3.AMF3;
 import org.red5.io.object.DataTypes;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Input;
@@ -1027,12 +1028,19 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				// Check for AMF3 encoding of parameters
 				byte objectEncodingType = in.get();
 				in.position(in.position() - 1);
-				if (objectEncodingType == AMF.TYPE_AMF3_OBJECT) {
-					// The next parameter is encoded using AMF3
-					input = new org.red5.io.amf3.Input(in, refStorage);
-				} else {
-					// The next parameter is encoded using AMF0
-					input = new org.red5.io.amf.Input(in);
+				log.warn("Object encoding: {}", objectEncodingType);
+				switch (objectEncodingType) {
+					case AMF.TYPE_AMF3_OBJECT:
+					case AMF3.TYPE_VECTOR_INT:
+					case AMF3.TYPE_VECTOR_UINT:
+					case AMF3.TYPE_VECTOR_NUMBER:
+					case AMF3.TYPE_VECTOR_OBJECT:
+						// The next parameter is encoded using AMF3
+						input = new org.red5.io.amf3.Input(in, refStorage);
+						break;
+					default:
+						// The next parameter is encoded using AMF0
+						input = new org.red5.io.amf.Input(in);
 				}
 				paramList.add(deserializer.deserialize(input, Object.class));
 			}

@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import org.red5.io.amf3.ByteArray;
 import org.red5.io.object.BaseOutput;
@@ -45,18 +46,18 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	}
 
 	/** {@inheritDoc} */
-    public boolean isCustom(Object custom) {
+	public boolean isCustom(Object custom) {
 		// No custom types supported
 		return false;
 	}
 
-    /** {@inheritDoc} */
-    public void putString(String string) {
+	/** {@inheritDoc} */
+	public void putString(String string) {
 		list.add(string);
 	}
 
 	/** {@inheritDoc} */
-    public boolean supportsDataType(byte type) {
+	public boolean supportsDataType(byte type) {
 		// does not yet support references
 		return type <= DataTypes.OPT_REFERENCE;
 	}
@@ -68,41 +69,43 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	}
 
 	/** {@inheritDoc} */
-    public void writeCustom(Object custom) {
+	public void writeCustom(Object custom) {
 		// Customs not supported by this version
 	}
 
 	/** {@inheritDoc} */
-    public void writeDate(Date date) {
+	public void writeDate(Date date) {
 		list.add(Byte.valueOf(DataTypes.CORE_DATE));
 		list.add(date);
 	}
 
-	/** {@inheritDoc} */ // DONE
+	/** {@inheritDoc} */
+	// DONE
 	public void writeNull() {
 		list.add(Byte.valueOf(DataTypes.CORE_NULL));
 	}
 
-	/** {@inheritDoc} */ // DONE
+	/** {@inheritDoc} */
+	// DONE
 	public void writeNumber(Number num) {
 		list.add(Byte.valueOf(DataTypes.CORE_NUMBER));
 		list.add(num);
 	}
 
 	/** {@inheritDoc} */
-    public void writeReference(Object obj) {
+	public void writeReference(Object obj) {
 		list.add(Byte.valueOf(DataTypes.OPT_REFERENCE));
 		list.add(Short.valueOf(getReferenceId(obj)));
 	}
 
-    /** {@inheritDoc} */
+	/** {@inheritDoc} */
 	public void writeString(String string) {
 		list.add(Byte.valueOf(DataTypes.CORE_STRING));
 		list.add(string);
 	}
 
 	/** {@inheritDoc} */
-    public void writeXML(Document xml) {
+	public void writeXML(Document xml) {
 		list.add(Byte.valueOf(DataTypes.CORE_XML));
 		list.add(xml);
 	}
@@ -160,5 +163,29 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		list.add(Byte.valueOf(DataTypes.CORE_BYTEARRAY));
 		list.add(array);
 	}
-	
+
+	/** {@inheritDoc} */
+	public void writeVectorInt(Vector<Integer> vector) {
+		list.add(Byte.valueOf(DataTypes.CORE_VECTOR_INT));
+		list.add(vector);
+	}
+
+	/** {@inheritDoc} */
+	public void writeVectorUInt(Vector<Long> vector) {
+		list.add(Byte.valueOf(DataTypes.CORE_VECTOR_UINT));
+		list.add(vector);
+	}
+
+	/** {@inheritDoc} */
+	public void writeVectorNumber(Vector<Double> vector) {
+		list.add(Byte.valueOf(DataTypes.CORE_VECTOR_NUMBER));
+		list.add(vector);
+	}
+
+	/** {@inheritDoc} */
+	public void writeVectorObject(Vector<Object> vector) {
+		list.add(Byte.valueOf(DataTypes.CORE_VECTOR_OBJECT));
+		list.add(vector);
+	}
+
 }
