@@ -113,7 +113,6 @@ public class AMF3IOTest extends AbstractIOTest {
 		resetOutput();
 	}
 
-/*
 	@Test
 	public void testVectorNumberInput() {
 		log.debug("Testing Vector<Number>");
@@ -128,8 +127,8 @@ public class AMF3IOTest extends AbstractIOTest {
 				(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00 };
 
 		in = new Input(IoBuffer.wrap(v));
-
-		List<Object> vectorOut = deserializer.deserialize(in, List.class);
+		((org.red5.io.amf3.Input) in).enforceAMF3();
+		List<Double> vectorOut = deserializer.deserialize(in, null);
 		//[1.1, -1.1, 1.7976931348623157E308, 4.9E-324, NaN, -Infinity, Infinity]
 		Assert.assertNotNull(vectorOut);
 		Assert.assertEquals(vectorOut.size(), 7);
@@ -140,32 +139,83 @@ public class AMF3IOTest extends AbstractIOTest {
 	}
 
 	@Test
-	public void testVectorStringInput() {
-		log.debug("Testing Vector<String>");
-		//10090001060D666F6F5265660106000609666F6F33
-		byte[] v = new byte[] { (byte) 0x10, (byte) 0x09, (byte) 0x00, (byte) 0x01, (byte) 0x06, (byte) 0x0D,
-				(byte) 0x66, (byte) 0x6F, (byte) 0x6F, (byte) 0x52, (byte) 0x65, (byte) 0x66, (byte) 0x01, (byte) 0x06,
-				(byte) 0x00, (byte) 0x06, (byte) 0x09, (byte) 0x66, (byte) 0x6F, (byte) 0x6F, (byte) 0x33 };
+	public void testVectorMixedInput() {
+		log.debug("Testing Vector<Object>");
+		//100700010607666f6f010a13256f72672e726564352e74673742e466f6f33000403
+		//[foo, null, org.red5.test.Foo3[foo=0]] // Foo3 is a class instance
+		byte[] v2 = new byte[] { (byte) 0x10, (byte) 0x07, (byte) 0x00, (byte) 0x01,
+				(byte) 0x06, (byte) 0x07, (byte) 0x66, (byte) 0x6f, (byte) 0x6f, 
+				(byte) 0x01, 
+				(byte) 0x0a, (byte) 0x13, (byte) 0x25, (byte) 0x6f, (byte) 0x72, (byte) 0x67, (byte) 0x2e, (byte) 0x72, (byte) 0x65, (byte) 0x64, (byte) 0x35, (byte) 0x2e, (byte) 0x74, (byte) 0x65, (byte) 0x73, (byte) 0x74, (byte) 0x2e, (byte) 0x46, (byte) 0x6f, (byte) 0x6f, (byte) 0x33, (byte) 0x00, (byte) 0x04, (byte) 0x03
+		};
 
-		in = new Input(IoBuffer.wrap(v));
-
+		in = new Input(IoBuffer.wrap(v2));
+		((org.red5.io.amf3.Input) in).enforceAMF3();
 		List<Object> vectorOut = deserializer.deserialize(in, null);
-		//[foo, null, fooRef, foo3]
 		Assert.assertNotNull(vectorOut);
-		Assert.assertEquals(vectorOut.size(), 4);
+		Assert.assertEquals(vectorOut.size(), 3);
 		for (int i = 0; i < vectorOut.size(); i++) {
 			System.err.println("Vector: " + vectorOut.get(i));
 		}
 		resetOutput();
 	}
-*/
+
+	@SuppressWarnings("unused")
+	@Test
+	public void testVectorStringInput() {
+		log.debug("Testing Vector<String>");
+		//[Paul, ]
+		byte[] v = new byte[] { (byte) 0x10, (byte) 0x05, (byte) 0x00, (byte) 0x01, 
+				(byte) 0x06, (byte) 0x09, (byte) 0x50, (byte) 0x61, (byte) 0x75, (byte) 0x6c,
+				(byte) 0x06, (byte) 0x01
+				};
+		//[Paul, Paul]
+		byte[] v1 = new byte[] { (byte) 0x10, (byte) 0x05, (byte) 0x00, (byte) 0x01, 
+				(byte) 0x06, (byte) 0x09, (byte) 0x50, (byte) 0x61, (byte) 0x75, (byte) 0x6c,
+				(byte) 0x06, (byte) 0x00
+				};
+		//[Paul, Paul, Paul]
+		byte[] v2 = new byte[] { (byte) 0x10, (byte) 0x07, (byte) 0x00, (byte) 0x01, 
+				(byte) 0x06, (byte) 0x09, (byte) 0x50, (byte) 0x61, (byte) 0x75, (byte) 0x6c,
+				(byte) 0x06, (byte) 0x00,
+				(byte) 0x06, (byte) 0x00
+				};		
+		//[Paul, Tawnya]
+		byte[] v3 = new byte[] { (byte) 0x10, (byte) 0x05, (byte) 0x00, (byte) 0x01, 
+				(byte) 0x06, (byte) 0x09, (byte) 0x50, (byte) 0x61, (byte) 0x75, (byte) 0x6c,
+				(byte) 0x06, (byte) 0x0d, (byte) 0x54, (byte) 0x61, (byte) 0x77, (byte) 0x6e, (byte) 0x79, (byte) 0x61
+				};
+
+		//[1.0, 3.0, aaa, 5.0, aaa, aaa, 5.0, bb, bb]
+		byte[] v4 = new byte[] { (byte) 0x10, (byte) 0x13, (byte) 0x00, (byte) 0x01, 
+				(byte) 0x04, (byte) 0x01,
+				(byte) 0x04, (byte) 0x03,
+				(byte) 0x06, (byte) 0x07, (byte) 0x61, (byte) 0x61, (byte) 0x61,
+				(byte) 0x04, (byte) 0x05,
+				(byte) 0x06, (byte) 0x00,
+				(byte) 0x06, (byte) 0x00,
+				(byte) 0x04, (byte) 0x05,
+				(byte) 0x06, (byte) 0x05, (byte) 0x62, (byte) 0x62,
+				(byte) 0x06, (byte) 0x02
+		};
+		//[1.0, 3.0, aaa, [1, 2]]
+		byte[] v5 = new byte[] { (byte) 0x10, (byte) 0x09, (byte) 0x00, (byte) 0x01, 
+				(byte) 0x04, (byte) 0x01, 
+				(byte) 0x04, (byte) 0x03, 
+				(byte) 0x06, (byte) 0x07, (byte) 0x61, (byte) 0x61, (byte) 0x61, 
+				(byte) 0x0d, (byte) 0x05, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x01, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x02
+		};
+		
+		in = new Input(IoBuffer.wrap(v5));
+		((org.red5.io.amf3.Input) in).enforceAMF3();
+		List<Object> vectorOut = deserializer.deserialize(in, null);
+		//[Paul, ]
+		Assert.assertNotNull(vectorOut);
+		//Assert.assertEquals(vectorOut.size(), 4);
+		for (int i = 0; i < vectorOut.size(); i++) {
+			System.err.println("Vector: " + vectorOut.get(i));
+		}
+		resetOutput();
+	}	
 	
-	//Vector.<Vector.<int>>
-	//100500010D07000000004E00000000000000150D030000000022
-	//[[78, 0, 21], [34]]
-
-	//Vector.<com.test>
-	//10070011636F6D2E74657374010A130007666F6F04020A010403
-	//[com.test@1027b4d, com.test@1ed2ae8, com.test@19c26f5]
-
 }

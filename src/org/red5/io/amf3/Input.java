@@ -155,7 +155,6 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * In AMF3 references should be collected through the whole "body" (across several Input objects).
 	 */
 	public static class RefStorage {
-
 		// informations about previously deserialized classes
 		private List<ClassReference> classReferences = new ArrayList<ClassReference>();
 
@@ -227,6 +226,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 */
 	@Override
 	public byte readDataType() {
+		log.trace("readDataType");
 		byte coreType = AMF3.TYPE_UNDEFINED;
 		if (buf != null) {
 			currentDataType = buf.get();
@@ -357,6 +357,8 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	public String readString(Type target) {
 		int len = readAMF3Integer();
 		log.debug("readString - length: {}", len);
+		// get the length of the string (0x03 = 1, 0x05 = 2, 0x07 = 3 etc..)
+		// 0x01 is special and it means "empty"
 		if (len == 1) {
 			// Empty string
 			return "";
@@ -674,7 +676,6 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 					}
 					refStorage.classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_VALUE, attributes));
 				}
-
 				properties = new ObjectMap<String, Object>();
 				for (String key : attributes) {
 					log.debug("Looking for property: {}", key);
@@ -714,7 +715,6 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				((IExternalizable) result).readExternal(new DataInput(this, deserializer));
 		}
 		amf3_mode -= 1;
-
 		if (result == null) {
 			// Create result object based on classname
 			if ("".equals(className)) {
@@ -725,7 +725,6 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 						entry.setValue(properties);
 					}
 				}
-
 				storeReference(tempRefId, properties);
 				result = properties;
 			} else if ("RecordSet".equals(className)) {
@@ -805,7 +804,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 */
 	@SuppressWarnings("unchecked")
 	public Vector<Integer> readVectorInt() {
-		log.warn("readVectorInt");
+		log.debug("readVectorInt");
 		int type = readAMF3Integer();
 		if ((type & 1) == 0) {
 			return (Vector<Integer>) getReference(type >> 1);
@@ -828,7 +827,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 */
 	@SuppressWarnings("unchecked")
 	public Vector<Long> readVectorUInt() {
-		log.warn("readVectorUInt");
+		log.debug("readVectorUInt");
 		int type = readAMF3Integer();
 		if ((type & 1) == 0) {
 			return (Vector<Long>) getReference(type >> 1);
@@ -855,18 +854,22 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 */
 	@SuppressWarnings("unchecked")
 	public Vector<Double> readVectorNumber() {
-		log.warn("readVectorNumber");
+		log.debug("readVectorNumber");
 		int type = readAMF3Integer();
+		log.debug("Type: {}", type);
 		if ((type & 1) == 0) {
 			return (Vector<Double>) getReference(type >> 1);
 		}
 		int len = type >> 1;
+		log.debug("Length: {}", len);
 		Vector<Double> array = new Vector<Double>(len);
 		storeReference(array);
-		@SuppressWarnings("unused")
 		int ref2 = readAMF3Integer();
+		log.debug("Ref2: {}", ref2);
 		for (int j = 0; j < len; ++j) {
-			array.add(buf.getDouble());
+			Double d = buf.getDouble();
+			log.debug("Double: {}", d);
+			array.add(d);
 		}
 		return array;
 	}
@@ -878,20 +881,57 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 */
 	@SuppressWarnings("unchecked")
 	public Vector<Object> readVectorObject() {
-		log.warn("readVectorObject");
+		log.debug("readVectorObject");
 		int type = readAMF3Integer();
+		log.debug("Type: {}", type);
 		if ((type & 1) == 0) {
 			return (Vector<Object>) getReference(type >> 1);
 		}
 		int len = type >> 1;
+		log.debug("Length: {}", len);
 		Vector<Object> array = new Vector<Object>(len);
 		storeReference(array);
+		int ref2 = readAMF3Integer();
+		log.debug("Ref2: {}", ref2);
+		buf.skip(1);
 		Deserializer deserializer = new Deserializer();
-		Object object;
+		Object object = null;
 		for (int j = 0; j < len; ++j) {
-			object = readObject(deserializer, null);
+			byte objectType = buf.get();
+			log.debug("Object type: {}", objectType);
+			switch (objectType) {
+				case AMF3.TYPE_UNDEFINED:
+				case AMF3.TYPE_NULL:
+					object = null;
+					break;
+				case AMF3.TYPE_STRING:
+					object = readString(null);
+					break;
+				case AMF3.TYPE_NUMBER:
+				case AMF3.TYPE_INTEGER:
+					object = readNumber(null);
+					break;
+				case AMF3.TYPE_BYTEARRAY:
+					object = readByteArray(null);
+					break;
+				case AMF3.TYPE_VECTOR_INT:
+					object = readVectorInt();
+					break;
+				case AMF3.TYPE_VECTOR_UINT:
+					object = readVectorUInt();
+					break;
+				case AMF3.TYPE_VECTOR_NUMBER:
+					object = readVectorNumber();
+					break;
+				case AMF3.TYPE_VECTOR_OBJECT:
+					object = readVectorObject();
+					break;
+				default:
+					object = readObject(deserializer, null);
+			}
 			array.add(object);
 		}
+		log.debug("Vector: {}", array);
 		return array;
 	}
 

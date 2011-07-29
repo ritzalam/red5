@@ -132,20 +132,16 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	 * @return            Encoded data
 	 */
 	public IoBuffer encodePacket(RTMP rtmp, Packet packet) {
-
 		IoBuffer out = null;
 		IoBuffer data = null;
-
 		final Header header = packet.getHeader();
 		final int channelId = header.getChannelId();
 		log.debug("Channel id: {}", channelId);
 		final IRTMPEvent message = packet.getMessage();
-
 		if (message instanceof ChunkSize) {
 			ChunkSize chunkSizeMsg = (ChunkSize) message;
 			rtmp.setWriteChunkSize(chunkSizeMsg.getSize());
 		}
-
 		//normally the message is expected not to be dropped
 		if (!dropMessage(rtmp, channelId, message)) {
 			data = encodeMessage(rtmp, header, message);
@@ -159,10 +155,8 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 
 				Header lastHeader = rtmp.getLastWriteHeader(channelId);
 				int headerSize = calculateHeaderSize(rtmp, header, lastHeader);
-
 				rtmp.setLastWriteHeader(channelId, header);
 				rtmp.setLastWritePacket(channelId, packet);
-
 				int chunkSize = rtmp.getWriteChunkSize();
 				int chunkHeaderSize = 1;
 				if (header.getChannelId() > 320) {
@@ -175,7 +169,6 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 				out = IoBuffer.allocate(bufSize, false);
 
 				encodeHeader(rtmp, header, lastHeader, out);
-
 				if (numChunks == 1) {
 					// we can do it with a single copy
 					BufferUtils.put(out, data, out.remaining());
@@ -186,14 +179,12 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 					}
 					BufferUtils.put(out, data, out.remaining());
 				}
-
 				data.free();
 				out.flip();
 				data = null;
 			}
 		}
 		message.release();
-
 		return out;
 	}
 
@@ -253,9 +244,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 					rtmp.setLastTimestampMapping(channelId, mapping);
 				}
 				mapping.setLastStreamTime(timestamp);
-
 				long clockTimeOfMessage = mapping.getClockStartTime() + timestamp - mapping.getStreamStartTime();
-
 				//determine tardiness / how late it is
 				long tardiness = clockTimeOfMessage - now;
 				//TDJ: EXPERIMENTAL dropping for LIVE packets in future (default false)
@@ -294,12 +283,10 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 
 				log.debug("Packet timestamp: {}; tardiness: {}; now: {}; message clock time: {}, dropLiveFuture: {}", new Object[] { timestamp, tardiness, now, clockTimeOfMessage,
 						dropLiveFuture });
-
 				//anything coming in less than the base will be allowed to pass, it will not be
 				//dropped or manipulated
 				if (tardiness < baseTolerance) {
 					//frame is below lowest bounds, let it go
-
 				} else if (tardiness > highestTolerance) {
 					//frame is really late, drop it no matter what type
 					log.debug("Dropping late message: {}", message);
@@ -414,7 +401,6 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	public void encodeHeader(final RTMP rtmp, final Header header, final Header lastHeader, final IoBuffer buf) {
 		final byte headerType = getHeaderType(rtmp, header, lastHeader);
 		RTMPUtils.encodeHeaderByte(buf, headerType, header.getChannelId());
-
 		final int timer;
 		switch (headerType) {
 			case HEADER_NEW:
@@ -823,12 +809,10 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 				}
 			}
 		}
-
 		if (invoke.getData() != null) {
 			out.setAutoExpand(true);
 			out.put(invoke.getData());
 		}
-
 	}
 
 	/** {@inheritDoc} */

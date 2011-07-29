@@ -167,7 +167,6 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			putInteger(pos << 1);
 			return;
 		}
-
 		putInteger(len << 1 | 1);
 		buf.put(encoded);
 		stringReferences.put(str, stringReferences.size());
@@ -181,7 +180,6 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			putInteger(1);
 			return;
 		}
-
 		final byte[] encoded = encodeString(string);
 		putString(string, encoded);
 	}
@@ -618,6 +616,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		}
 		storeReference(vector);
 		putInteger(vector.size() << 1 | 1);
+		buf.put((byte) 0x01);
 		Serializer serializer = new Serializer();
 		for (Object v : vector) {
 			serializer.serialize(this, v);

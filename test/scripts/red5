@@ -51,7 +51,7 @@ red5_start()
 {
   echo -n `date` "Starting Red5"
   init_env "red5.sh"
-  setup_tomcat
+# setup_tomcat
   echo `date` "START to shutdown Red5" 1>log/stdout.log
 # red5.sh will read JAVA_OPTS; we increase the red5 jvm memory here
   export JAVA_OPTS="-Xms64M -Xmx256M"
