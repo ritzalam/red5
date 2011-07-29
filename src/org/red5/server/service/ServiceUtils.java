@@ -48,7 +48,6 @@ public class ServiceUtils {
 		for (int i = 0; i < args.size(); i++) {
 			arguments[i] = args.get(i);
 		}
-
 		return findMethodWithExactParameters(service, methodName, arguments);
 	}
 
@@ -68,7 +67,13 @@ public class ServiceUtils {
 		try {
 			//try to skip the listing of all the methods by checking for exactly what
 			//we want first
-			method = service.getClass().getMethod(methodName, ConversionUtils.convertParams(args));
+			Class<?>[] params = ConversionUtils.convertParams(args);
+			if (log.isDebugEnabled()) {
+				for (Class<?> clazz : params) {
+					log.debug("Parameter: {}", clazz);
+				}
+			}
+			method = service.getClass().getMethod(methodName, params);
 			log.debug("Exact method found (skipping list): {}", methodName);
 			return new Object[] { method, args };
 		} catch (NoSuchMethodException nsme) {
@@ -131,7 +136,6 @@ public class ServiceUtils {
 		for (int i = 0; i < args.size(); i++) {
 			arguments[i] = args.get(i);
 		}
-
 		return findMethodWithListParameters(service, methodName, arguments);
 	}
 
@@ -155,7 +159,6 @@ public class ServiceUtils {
 		} catch (NoSuchMethodException nsme) {
 			log.debug("Method not found using exact parameter types");
 		}
-
 		List<Method> methods = ConversionUtils.findMethodsByNameAndNumParams(service, methodName, 1);
 		log.debug("Found {} methods", methods.size());
 		if (methods.isEmpty()) {
@@ -164,7 +167,6 @@ public class ServiceUtils {
 			log.debug("Multiple methods found with same name and parameter count.");
 			log.debug("Parameter conversion will be attempted in order.");
 		}
-
 		ArrayList<Object> argsList = new ArrayList<Object>();
 		if (args != null) {
 			for (Object element : args) {
@@ -172,7 +174,6 @@ public class ServiceUtils {
 			}
 		}
 		args = new Object[] { argsList };
-
 		Object[] params = null;
 		for (int i = 0; i < methods.size(); i++) {
 			try {
@@ -182,13 +183,11 @@ public class ServiceUtils {
 					// Don't convert first IConnection parameter
 					continue;
 				}
-
 				return new Object[] { method, params };
 			} catch (Exception ex) {
 				log.debug("Parameter conversion failed", ex);
 			}
 		}
-
 		return nullReturn;
 	}
 

@@ -46,6 +46,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public class ConversionUtils {
 
@@ -289,7 +290,13 @@ public class ConversionUtils {
 		LinkedList<Method> list = new LinkedList<Method>();
 		Method[] methods = object.getClass().getMethods();
 		for (Method m : methods) {
-			log.trace("Method name: {}", m.getName());
+			if (log.isDebugEnabled()) {
+				Class<?>[] params = m.getParameterTypes();
+				log.debug("Method name: {} parameter count: {}", m.getName(), params.length);
+				for (Class<?> param : params) {
+					log.debug("Parameter: {}", param);
+				}
+			}
 			//check parameter length first since this should speed things up
 			if (m.getParameterTypes().length != numParam) {
 				log.debug("Param length not the same");
@@ -321,7 +328,9 @@ public class ConversionUtils {
 	}
 
 	/**
-	 * Convert parameters using methods of this utility class
+	 * Convert parameters using methods of this utility class. Special handling is afforded to
+	 * classes that implement IConnection.
+	 * 
 	 * @param source                Array of source object
 	 * @return                      Array of converted objects
 	 */
@@ -331,7 +340,13 @@ public class ConversionUtils {
 			converted = new Class<?>[source.length];
 			for (int i = 0; i < source.length; i++) {
 				if (source[i] != null) {
-					converted[i] = source[i].getClass();
+					// if the class is not an instance of IConnection use its class
+					if (!IConnection.class.isInstance(source[i])) {
+						converted[i] = source[i].getClass();
+					} else {
+						// if it does implement IConnection use the interface
+						converted[i] = IConnection.class;
+					}
 				} else {
 					converted[i] = null;
 				}
