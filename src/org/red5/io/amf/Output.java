@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.Vector;
 
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheException;
@@ -78,8 +79,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 			if (System.getProperty("red5.root") != null) {
 				//    			we're running Red5 as a server.
 				try {
-					cacheManager = new CacheManager(System.getProperty("red5.root") + File.separator + "conf"
-							+ File.separator + "ehcache.xml");
+					cacheManager = new CacheManager(System.getProperty("red5.root") + File.separator + "conf" + File.separator + "ehcache.xml");
 				} catch (CacheException e) {
 					cacheManager = constructDefault();
 				}
@@ -363,8 +363,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected boolean serializeField(Serializer serializer, Class<?> objectClass, String keyName, Field field,
-			Method getter) {
+	protected boolean serializeField(Serializer serializer, Class<?> objectClass, String keyName, Field field, Method getter) {
 		//		to prevent, NullPointerExceptions, get the element first and check if it's null. 
 		Element element = getSerializeCache().get(objectClass);
 		Map<String, Boolean> serializeMap = (element == null ? null : (Map<String, Boolean>) element.getObjectValue());
@@ -524,6 +523,26 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	/** {@inheritDoc} */
 	public void writeByteArray(ByteArray array) {
 		throw new RuntimeException("ByteArray objects not supported with AMF0");
+	}
+
+	/** {@inheritDoc} */
+	public void writeVectorInt(Vector<Integer> vector) {
+		throw new RuntimeException("Vector objects not supported with AMF0");
+	}
+
+	/** {@inheritDoc} */
+	public void writeVectorUInt(Vector<Long> vector) {
+		throw new RuntimeException("Vector objects not supported with AMF0");
+	}
+
+	/** {@inheritDoc} */
+	public void writeVectorNumber(Vector<Double> vector) {
+		throw new RuntimeException("Vector objects not supported with AMF0");
+	}
+
+	/** {@inheritDoc} */
+	public void writeVectorObject(Vector<Object> vector) {
+		throw new RuntimeException("Vector objects not supported with AMF0");
 	}
 
 	/**

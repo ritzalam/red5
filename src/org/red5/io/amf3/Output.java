@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
 
 import net.sf.ehcache.Element;
 
@@ -38,6 +39,7 @@ import org.red5.compatibility.flex.messaging.io.ObjectProxy;
 import org.red5.io.amf.AMF;
 import org.red5.io.object.RecordSet;
 import org.red5.io.object.Serializer;
+import org.red5.io.object.UnsignedInt;
 import org.red5.io.utils.XMLUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -277,7 +279,6 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			putInteger(getReferenceId(array) << 1);
 			return;
 		}
-
 		storeReference(array);
 		amf3_mode += 1;
 		int count = Array.getLength(array);
@@ -297,7 +298,6 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			putInteger(getReferenceId(map) << 1);
 			return;
 		}
-
 		storeReference(map);
 		// Search number of starting integer keys
 		int count = 0;
@@ -311,7 +311,6 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			}
 			count++;
 		}
-
 		amf3_mode += 1;
 		if (count == map.size()) {
 			// All integer keys starting from zero: serialize as regular array
@@ -323,7 +322,6 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			amf3_mode -= 1;
 			return;
 		}
-
 		putInteger(count << 1 | 1);
 		// Serialize key-value pairs first
 		for (Map.Entry<Object, Object> entry : map.entrySet()) {
@@ -352,7 +350,6 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			putInteger(getReferenceId(array) << 1);
 			return;
 		}
-
 		storeReference(array);
 		// TODO: we could optimize this by storing the first integer
 		//       keys after the key-value pairs
@@ -417,9 +414,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			putInteger(getReferenceId(object) << 1);
 			return;
 		}
-
 		storeReference(object);
-
 		if (object instanceof IExternalizable) {
 			// The object knows how to serialize itself.
 			int type = 1 << 1 | 1;
@@ -435,12 +430,10 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			amf3_mode -= 1;
 			return;
 		}
-
 		// We have an inline class that is not a reference.
 		// We store the properties using key/value pairs
 		int type = AMF3.TYPE_OBJECT_VALUE << 2 | 1 << 1 | 1;
 		putInteger(type);
-
 		// Create new map out of bean properties
 		BeanMap beanMap = new BeanMap(object);
 		// Set of bean attributes
@@ -450,7 +443,6 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			writeArbitraryObject(object, serializer);
 			return;
 		}
-
 		// Write out either start of object marker for class name or "empty" start of object marker
 		Class<?> objectClass = object.getClass();
 		if (!objectClass.isAnnotationPresent(Anonymous.class)) {
@@ -459,26 +451,21 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		} else {
 			putString("");
 		}
-
 		// Store key/value pairs
 		amf3_mode += 1;
 		for (Object key : set) {
 			String fieldName = key.toString();
 			log.debug("Field name: {} class: {}", fieldName, objectClass);
-
 			Field field = getField(objectClass, fieldName);
 			Method getter = getGetter(objectClass, beanMap, fieldName);
-
 			// Check if the Field corresponding to the getter/setter pair is transient
 			if (!serializeField(serializer, objectClass, fieldName, field, getter)) {
 				continue;
 			}
-
 			putString(fieldName);
 			serializer.serialize(this, field, getter, object, beanMap.get(key));
 		}
 		amf3_mode -= 1;
-
 		// End of object marker
 		putString("");
 	}
@@ -492,16 +479,13 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			putInteger(getReferenceId(map) << 1);
 			return;
 		}
-
 		storeReference(map);
 		// We have an inline class that is not a reference.
 		// We store the properties using key/value pairs
 		int type = AMF3.TYPE_OBJECT_VALUE << 2 | 1 << 1 | 1;
 		putInteger(type);
-
 		// No classname
 		putString("");
-
 		// Store key/value pairs
 		amf3_mode += 1;
 		for (Map.Entry<Object, Object> entry : map.entrySet()) {
@@ -509,7 +493,6 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			serializer.serialize(this, entry.getValue());
 		}
 		amf3_mode -= 1;
-
 		// End of object marker
 		putString("");
 	}
@@ -555,6 +538,90 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		} finally {
 			data.position(old);
 		}
+	}
+
+    /**
+     * Write a Vector<int>.
+     * 
+     * @param vector
+     */
+	@Override
+	public void writeVectorInt(Vector<Integer> vector) {
+		log.warn("writeVectorInt: {}", vector);
+		buf.put(AMF3.TYPE_VECTOR_INT);
+		if (hasReference(vector)) {
+			putInteger(getReferenceId(vector) << 1);
+			return;
+		}
+		storeReference(vector);
+		putInteger(vector.size() << 1 | 1);
+		for (Integer v : vector) {
+			buf.putInt(v);
+		}
+	}
+
+    /**
+     * Write a Vector<uint>.
+     * 
+     * @param vector
+     */
+	@Override
+	public void writeVectorUInt(Vector<Long> vector) {
+		log.warn("writeVectorUInt: {}", vector);
+		buf.put(AMF3.TYPE_VECTOR_UINT);
+		if (hasReference(vector)) {
+			putInteger(getReferenceId(vector) << 1);
+			return;
+		}
+		storeReference(vector);
+		putInteger(vector.size() << 1 | 1);
+		for (Long v : vector) {
+			// update this class to implement valueOf like Long.valueOf
+			UnsignedInt uint = new UnsignedInt(v);
+			byte[] arr = uint.getBytes();
+			buf.put(arr);
+		}
+	}
+
+    /**
+     * Write a Vector<Number>.
+     * 
+     * @param vector
+     */
+	@Override
+	public void writeVectorNumber(Vector<Double> vector) {
+		log.warn("writeVectorNumber: {}", vector);
+		buf.put(AMF3.TYPE_VECTOR_NUMBER);
+		if (hasReference(vector)) {
+			putInteger(getReferenceId(vector) << 1);
+			return;
+		}
+		storeReference(vector);
+		putInteger(vector.size() << 1 | 1);
+		for (Double v : vector) {
+			buf.putDouble(v);
+		}		
+	}
+
+    /**
+     * Write a Vector<Object>.
+     * 
+     * @param vector
+     */
+	@Override
+	public void writeVectorObject(Vector<Object> vector) {
+		log.warn("writeVectorObject: {}", vector);
+		buf.put(AMF3.TYPE_VECTOR_OBJECT);
+		if (hasReference(vector)) {
+			putInteger(getReferenceId(vector) << 1);
+			return;
+		}
+		storeReference(vector);
+		putInteger(vector.size() << 1 | 1);
+		Serializer serializer = new Serializer();
+		for (Object v : vector) {
+			serializer.serialize(this, v);
+		}	
 	}
 
 }

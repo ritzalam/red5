@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.BeanUtilsBean;
@@ -259,7 +260,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		buf.limit(limit); // Reset the limit
 		return string;
 	}
-	
+
 	/**
 	 * Returns a string based on the buffer
 	 *
@@ -274,7 +275,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		String string = bufferToString(buf, len);
 		buf.limit(limit); // Reset the limit
 		return string;
-	}	
+	}
 
 	/**
 	 * Converts the bytes into a string.
@@ -456,9 +457,9 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 			try {
 				//check for default ctor
 				clazz.getConstructor(null);
-				log.error("Error loading class: {}", className);			
+				log.error("Error loading class: {}", className);
 			} catch (NoSuchMethodException nse) {
-				log.error("Error loading class: {}; this can be resolved by adding a default constructor to your class", className);							
+				log.error("Error loading class: {}; this can be resolved by adding a default constructor to your class", className);
 			}
 			log.debug("Exception was: {}", iex);
 		} catch (Exception ex) {
@@ -648,36 +649,36 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	/**
 	 * Read Vector<int> object. This is not supported by the AMF0 deserializer.
 	 *
-	 * @return	List<Integer> object
+	 * @return	Vector<Integer> object
 	 */
-	public List<Integer> readVectorInt() {
+	public Vector<Integer> readVectorInt() {
 		throw new RuntimeException("Vector objects not supported with AMF0");
 	}
 
 	/**
 	 * Read Vector<Long> object. This is not supported by the AMF0 deserializer.
 	 *
-	 * @return	List<Long> object
+	 * @return	Vector<Long> object
 	 */
-	public List<Long> readVectorUInt() {
+	public Vector<Long> readVectorUInt() {
 		throw new RuntimeException("Vector objects not supported with AMF0");
 	}
 
 	/**
 	 * Read Vector<Number> object. This is not supported by the AMF0 deserializer.
 	 *
-	 * @return	List<Double> object
+	 * @return	Vector<Double> object
 	 */
-	public List<Double> readVectorNumber() {
+	public Vector<Double> readVectorNumber() {
 		throw new RuntimeException("Vector objects not supported with AMF0");
 	}
 
 	/**
 	 * Read Vector<Object> object. This is not supported by the AMF0 deserializer.
 	 *
-	 * @return	List<Object> object
+	 * @return	Vector<Object> object
 	 */
-	public List<Object> readVectorObject() {
+	public Vector<Object> readVectorObject() {
 		throw new RuntimeException("Vector objects not supported with AMF0");
 	}
 

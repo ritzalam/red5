@@ -1,4 +1,5 @@
 package org.red5.io.object;
+
 /*
  * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  *
@@ -54,10 +55,9 @@ public final class UnsignedInt extends UnsignedNumber {
 
 	public static UnsignedInt fromBytes(byte[] c, int idx) {
 		UnsignedInt number = new UnsignedInt();
-		if ((c.length - idx) < 4)
-			throw new IllegalArgumentException(
-					"An UnsignedInt number is composed of 4 bytes.");
-
+		if ((c.length - idx) < 4) {
+			throw new IllegalArgumentException("An UnsignedInt number is composed of 4 bytes.");
+		}
 		number.value = (c[0] << 24 | c[1] << 16 | c[2] << 8 | c[3]);
 		return number;
 	}
@@ -112,7 +112,7 @@ public final class UnsignedInt extends UnsignedNumber {
 			return -1;
 		return 0;
 	}
-	
+
 	@Override
 	public boolean equals(Object other) {
 		if (!(other instanceof Number))
@@ -124,26 +124,24 @@ public final class UnsignedInt extends UnsignedNumber {
 	public String toString() {
 		return Long.toString(value & 0xFFFFFFFFL);
 	}
-	
+
 	@Override
 	public int hashCode() {
-		return (int)(value ^ (value >>> 32));
+		return (int) (value ^ (value >>> 32));
 	}
-	
+
 	@Override
 	public void shiftRight(int nBits) {
 		if (Math.abs(nBits) > 32)
-			throw new IllegalArgumentException("Cannot right shift " + nBits
-					+ " an UnsignedInt.");
+			throw new IllegalArgumentException("Cannot right shift " + nBits + " an UnsignedInt.");
 
 		value >>>= nBits;
 	}
-	
+
 	@Override
 	public void shiftLeft(int nBits) {
 		if (Math.abs(nBits) > 32)
-			throw new IllegalArgumentException("Cannot left shift " + nBits
-					+ " an UnsignedInt.");
+			throw new IllegalArgumentException("Cannot left shift " + nBits + " an UnsignedInt.");
 
 		value <<= nBits;
 	}
