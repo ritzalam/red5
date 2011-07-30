@@ -29,8 +29,7 @@ import org.red5.io.amf.AMF;
 import org.red5.io.object.Serializer;
 
 /**
- * Implementation of the IDataOutput interface. Can be used to store an
- * IExternalizable object.
+ * Implementation of the IDataOutput interface. Can be used to store an IExternalizable object.
  *  
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)

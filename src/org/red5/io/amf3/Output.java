@@ -40,6 +40,7 @@ import org.red5.io.amf.AMF;
 import org.red5.io.object.RecordSet;
 import org.red5.io.object.Serializer;
 import org.red5.io.object.UnsignedInt;
+import org.red5.io.utils.HexDump;
 import org.red5.io.utils.XMLUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,8 +102,6 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	public boolean supportsDataType(byte type) {
 		return true;
 	}
-
-	// Basic Data Types
 
 	protected void writeAMF3() {
 		if (amf3_mode == 0) {
@@ -223,7 +222,6 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			putInteger(getReferenceId(date) << 1);
 			return;
 		}
-
 		storeReference(date);
 		putInteger(1);
 		buf.putDouble(date.getTime());
@@ -237,7 +235,6 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			putInteger(getReferenceId(array) << 1);
 			return;
 		}
-
 		storeReference(array);
 		amf3_mode += 1;
 		int count = array.size();
@@ -257,7 +254,6 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			putInteger(getReferenceId(array) << 1);
 			return;
 		}
-
 		storeReference(array);
 		amf3_mode += 1;
 		int count = array.length;
@@ -324,8 +320,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		// Serialize key-value pairs first
 		for (Map.Entry<Object, Object> entry : map.entrySet()) {
 			Object key = entry.getKey();
-			if ((key instanceof Number) && !(key instanceof Float) && !(key instanceof Double)
-					&& ((Number) key).longValue() >= 0 && ((Number) key).longValue() < count) {
+			if ((key instanceof Number) && !(key instanceof Float) && !(key instanceof Double) && ((Number) key).longValue() >= 0 && ((Number) key).longValue() < count) {
 				// Entry will be serialized later
 				continue;
 			}
@@ -538,14 +533,15 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		}
 	}
 
-    /**
-     * Write a Vector<int>.
-     * 
-     * @param vector
-     */
+	/**
+	 * Write a Vector<int>.
+	 * 
+	 * @param vector
+	 */
 	@Override
 	public void writeVectorInt(Vector<Integer> vector) {
-		log.warn("writeVectorInt: {}", vector);
+		log.debug("writeVectorInt: {}", vector);
+		writeAMF3();
 		buf.put(AMF3.TYPE_VECTOR_INT);
 		if (hasReference(vector)) {
 			putInteger(getReferenceId(vector) << 1);
@@ -553,19 +549,28 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		}
 		storeReference(vector);
 		putInteger(vector.size() << 1 | 1);
+		buf.put((byte) 0x00);
 		for (Integer v : vector) {
 			buf.putInt(v);
 		}
+		// debug
+		int pos = buf.position();
+		buf.position(0);
+		StringBuilder sb = new StringBuilder();
+		HexDump.dumpHex(sb, buf.array());
+		log.debug("\n{}", sb);
+		buf.position(pos);
 	}
 
-    /**
-     * Write a Vector<uint>.
-     * 
-     * @param vector
-     */
+	/**
+	 * Write a Vector<uint>.
+	 * 
+	 * @param vector
+	 */
 	@Override
 	public void writeVectorUInt(Vector<Long> vector) {
-		log.warn("writeVectorUInt: {}", vector);
+		log.debug("writeVectorUInt: {}", vector);
+		writeAMF3();
 		buf.put(AMF3.TYPE_VECTOR_UINT);
 		if (hasReference(vector)) {
 			putInteger(getReferenceId(vector) << 1);
@@ -573,6 +578,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		}
 		storeReference(vector);
 		putInteger(vector.size() << 1 | 1);
+		buf.put((byte) 0x00);
 		for (Long v : vector) {
 			// update this class to implement valueOf like Long.valueOf
 			UnsignedInt uint = new UnsignedInt(v);
@@ -581,14 +587,14 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		}
 	}
 
-    /**
-     * Write a Vector<Number>.
-     * 
-     * @param vector
-     */
+	/**
+	 * Write a Vector<Number>.
+	 * 
+	 * @param vector
+	 */
 	@Override
 	public void writeVectorNumber(Vector<Double> vector) {
-		log.warn("writeVectorNumber: {}", vector);
+		log.debug("writeVectorNumber: {}", vector);
 		buf.put(AMF3.TYPE_VECTOR_NUMBER);
 		if (hasReference(vector)) {
 			putInteger(getReferenceId(vector) << 1);
@@ -596,19 +602,21 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		}
 		storeReference(vector);
 		putInteger(vector.size() << 1 | 1);
+		putInteger(0);
+		buf.put((byte) 0x00);
 		for (Double v : vector) {
 			buf.putDouble(v);
-		}		
+		}
 	}
 
-    /**
-     * Write a Vector<Object>.
-     * 
-     * @param vector
-     */
+	/**
+	 * Write a Vector<Object>.
+	 * 
+	 * @param vector
+	 */
 	@Override
 	public void writeVectorObject(Vector<Object> vector) {
-		log.warn("writeVectorObject: {}", vector);
+		log.debug("writeVectorObject: {}", vector);
 		buf.put(AMF3.TYPE_VECTOR_OBJECT);
 		if (hasReference(vector)) {
 			putInteger(getReferenceId(vector) << 1);
@@ -616,11 +624,12 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		}
 		storeReference(vector);
 		putInteger(vector.size() << 1 | 1);
+		putInteger(0);
 		buf.put((byte) 0x01);
 		Serializer serializer = new Serializer();
 		for (Object v : vector) {
 			serializer.serialize(this, v);
-		}	
+		}
 	}
 
 }

@@ -80,18 +80,40 @@ public class Serializer {
 			// write ByteArray objects directly
 			out.writeByteArray((ByteArray) value);
 		} else if (value instanceof Vector) {
-			log.warn("Serialize Vector");
-			// write Vector objects directly
-			Object o = ((Vector<?>) value).firstElement();
-			if (o instanceof Integer) {
-				out.writeVectorInt((Vector<Integer>) value);
-			} else if (o instanceof Long) {
-				out.writeVectorUInt((Vector<Long>) value);
-			} else if (o instanceof Number || o instanceof Double) {
-				out.writeVectorNumber((Vector<Double>) value);
-			} else {
-				out.writeVectorObject((Vector<Object>) value);
+			log.trace("Serialize Vector");
+			// scan the vector to determine the generic type
+			Vector<?> vector = (Vector<?>) value;
+			int ints = 0;
+			int longs = 0;
+			int dubs = 0;
+			int nans = 0;
+			for (Object o : vector) {
+				if (o instanceof Integer) {
+					ints++;
+				} else if (o instanceof Long) {
+					longs++;
+				} else if (o instanceof Number || o instanceof Double) {
+					dubs++;
+				} else {
+					nans++;
+				}
 			}
+			// look at the type counts
+			if (nans > 0) {
+				// if we have non-number types, use object
+				((org.red5.io.amf3.Output) out).enforceAMF3();
+				out.writeVectorObject((Vector<Object>) value);				
+			} else if (dubs == 0 && longs == 0) {
+				// no doubles or longs
+				out.writeVectorInt((Vector<Integer>) value);				
+			} else if (dubs == 0 && ints == 0) {
+				// no doubles or ints
+				out.writeVectorUInt((Vector<Long>) value);
+			} else {
+				// handle any other types of numbers
+				((org.red5.io.amf3.Output) out).enforceAMF3();
+				out.writeVectorNumber((Vector<Double>) value);
+			}			
 		} else {
 			if (writeBasic(out, value)) {
 				log.trace("Wrote as basic");

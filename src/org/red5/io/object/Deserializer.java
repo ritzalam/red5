@@ -25,8 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The Deserializer class reads data input and handles the data
- * according to the core data types
+ * The Deserializer class reads data input and handles the data according to the core data types
  *
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
@@ -37,8 +36,8 @@ public class Deserializer {
 	private static final Logger log = LoggerFactory.getLogger(Deserializer.class);
 
 	/**
-	 * Deserializes the input parameter and returns an Object
-	 * which must then be cast to a core data type
+	 * Deserializes the input parameter and returns an Object which must then be cast to a core data type
+	 * 
 	 * @param <T> type
 	 * @param in input
 	 * @param target target
