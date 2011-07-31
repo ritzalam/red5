@@ -269,8 +269,7 @@ public class Serializer {
 	 */
 	protected void writeIterator(Output out, Iterator<Object> it) {
 		log.trace("writeIterator");
-		// Create LinkedList of collection we iterate thru and write it out
-		// later
+		// Create LinkedList of collection we iterate thru and write it out later
 		LinkedList<Object> list = new LinkedList<Object>();
 		while (it.hasNext()) {
 			list.addLast(it.next());

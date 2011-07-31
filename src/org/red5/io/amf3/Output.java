@@ -554,12 +554,14 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			buf.putInt(v);
 		}
 		// debug
-		int pos = buf.position();
-		buf.position(0);
-		StringBuilder sb = new StringBuilder();
-		HexDump.dumpHex(sb, buf.array());
-		log.debug("\n{}", sb);
-		buf.position(pos);
+		if (log.isDebugEnabled()) {
+			int pos = buf.position();
+			buf.position(0);
+			StringBuilder sb = new StringBuilder();
+			HexDump.dumpHex(sb, buf.array());
+			log.debug("\n{}", sb);
+			buf.position(pos);
+		}
 	}
 
 	/**
