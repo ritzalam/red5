@@ -112,7 +112,6 @@
 	<target name="-library.check">
 		<echo message="Java: java.home is ${java.home} and the target version is ${java.target_version}"/>
 		<echo message="Ant: ant.home is ${ant.home} and the target version is ${ant.version}"/>
-		<echo message="Ivy conf name: ${ivy.conf.name}"/>
 		<!-- May want to add repository availability checking
         	<condition property="repository.offline.googlecode" value="true">
             		<isreachable host="red5.googlecode.com" timeout="30" />
@@ -171,11 +170,12 @@
 				<isset property="ivy.conf.name"/>
 			</not>
 		</condition>
-		<ivy:resolve file="ivy.xml" conf="${ivy.conf.name}"/>
+		<echo message="Ivy conf name: ${ivy.conf.name}"/>
+		<ivy:resolve file="ivy.xml" conf="${ivy.conf.name}" checkIfChanged="false" transitive="false" />
 		<ivy:retrieve conf="${ivy.conf.name}"/>
 	</target>
 	<target name="ivyclear" description="Clears out the Ivy cache">
-		<delete dir="${user.home}/.ivy2/cache"/>
+		<delete dir="${user.home}/.ivy2/cache/red5"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${lib.dir}" excludes="**/ivy*.jar"/>
 		</delete>
