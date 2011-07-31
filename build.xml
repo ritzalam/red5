@@ -112,6 +112,7 @@
 	<target name="-library.check">
 		<echo message="Java: java.home is ${java.home} and the target version is ${java.target_version}"/>
 		<echo message="Ant: ant.home is ${ant.home} and the target version is ${ant.version}"/>
+		<echo message="Ivy conf name: ${ivy.conf.name}"/>
 		<!-- May want to add repository availability checking
         	<condition property="repository.offline.googlecode" value="true">
             		<isreachable host="red5.googlecode.com" timeout="30" />
@@ -124,14 +125,7 @@
 				<available property="logging.installed" classpathref="project.classpath" classname="org.slf4j.Logger"/>
 				<available property="catalina.installed" classpathref="project.classpath" classname="org.apache.catalina.Server"/>
 				<available property="mina.installed" classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
-				<available property="minajmx.installed" classpathref="project.classpath" classname="org.apache.mina.integration.jmx.IoServiceManager"/>
-				<available property="acegi.installed" classpathref="project.classpath" classname="org.acegisecurity.SecurityConfig"/>
 				<isset property="ivy.conf.name"/>
-				<!-- check for the test jars -->
-				<available property="junit.installed" classpathref="project.classpath" classname="org.junit.Test"/>
-				<available property="groboutils.installed" classpathref="project.classpath" classname="net.sourceforge.groboutils.junit.v1.TestRunnable"/>
-				<available property="spring-mock.installed" classpathref="project.classpath" classname="org.springframework.mock.web.MockServletConfig"/>
-				<equals arg1="ivy.conf.name" arg2="test"/>
 			</and>
 		</condition>
 	</target>
@@ -177,18 +171,8 @@
 				<isset property="ivy.conf.name"/>
 			</not>
 		</condition>
-		<echo message="Ivy conf name: ${ivy.conf.name}"/>
 		<ivy:resolve file="ivy.xml" conf="${ivy.conf.name}"/>
 		<ivy:retrieve conf="${ivy.conf.name}"/>
-		<!-- install locally 
-		<ivy:install organisation="javax" module="javaee-api" revision="5.1.2" from="googlecode" to="local_cache"/>
-		<ivy:install organisation="*" module="jaudiotagger" revision="1.0.8" from="googlecode" to="local_cache"/>
-		<ivy:install organisation="org.apache.commons" module="com.springsource.org.apache.commons.codec" revision="latest" from="com.springsource.repository.bundles.external" to="local_cache"/>
-		<ivy:install organisation="org.apache.commons" module="com.springsource.org.apache.commons.collections" revision="latest" from="com.springsource.repository.bundles.external" to="local_cache"/>
-		<ivy:install organisation="org.apache.commons" module="com.springsource.org.apache.commons.httpclient" revision="latest" from="com.springsource.repository.bundles.external" to="local_cache"/>
-		<ivy:install organisation="org.apache.commons" module="com.springsource.org.apache.commons.lang" revision="latest" from="com.springsource.repository.bundles.external" to="local_cache"/>
-		<ivy:install organisation="org.apache.xerces" module="com.springsource.org.apache.xerces" revision="latest" from="com.springsource.repository.bundles.external" to="local_cache"/>
-		-->
 	</target>
 	<target name="ivyclear" description="Clears out the Ivy cache">
 		<delete dir="${user.home}/.ivy2/cache"/>
@@ -298,7 +282,9 @@
 				<exclude name="**/*.swf"/>
 				<exclude name="**/*.png"/>
 				<exclude name="**/*.jpg"/>
+				<!--
 				<exclude name="demos"/>
+				-->
 			</fileset>
 		</copy>
 		<!-- copy SWF without filtering as it causes corruption -->
@@ -307,7 +293,9 @@
 				<include name="**/*.swf"/>
 				<include name="**/*.png"/>
 				<include name="**/*.jpg"/>
+				<!--
 				<exclude name="demos"/>
+				-->
 			</fileset>
 		</copy>
 		<!-- vod -->

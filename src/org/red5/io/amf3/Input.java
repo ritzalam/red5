@@ -247,12 +247,10 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				case AMF3.TYPE_NUMBER:
 					coreType = DataTypes.CORE_NUMBER;
 					break;
-
 				case AMF3.TYPE_BOOLEAN_TRUE:
 				case AMF3.TYPE_BOOLEAN_FALSE:
 					coreType = DataTypes.CORE_BOOLEAN;
 					break;
-
 				case AMF3.TYPE_STRING:
 					coreType = DataTypes.CORE_STRING;
 					break;
@@ -264,20 +262,16 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				case AMF3.TYPE_OBJECT:
 					coreType = DataTypes.CORE_OBJECT;
 					break;
-
 				case AMF3.TYPE_ARRAY:
 					// should we map this to list or array?
 					coreType = DataTypes.CORE_ARRAY;
 					break;
-
 				case AMF3.TYPE_DATE:
 					coreType = DataTypes.CORE_DATE;
 					break;
-
 				case AMF3.TYPE_BYTEARRAY:
 					coreType = DataTypes.CORE_BYTEARRAY;
 					break;
-
 				case AMF3.TYPE_VECTOR_INT:
 					coreType = DataTypes.CORE_VECTOR_INT;
 					break;
@@ -290,7 +284,6 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				case AMF3.TYPE_VECTOR_OBJECT:
 					coreType = DataTypes.CORE_VECTOR_OBJECT;
 					break;
-
 				default:
 					log.info("Unknown datatype: {}", currentDataType);
 					// End of object, and anything else lets just skip
@@ -956,8 +949,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * Parser of AMF3 "compressed" integer data type
 	 * 
 	 * @return a converted integer value
-	 * @see <a href="http://osflash.org/amf3/parsing_integers">parsing AMF3
-	 *      integers (external)</a>
+	 * @see <a href="http://osflash.org/amf3/parsing_integers">parsing AMF3 integers (external)</a>
 	 */
 	private int readAMF3Integer() {
 		int n = 0;
