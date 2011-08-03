@@ -153,10 +153,20 @@ public class WebScope extends Scope implements ServletContextAware {
 	 * Setter for context path
 	 * 
 	 * @param contextPath Context path
-	 */
+	 */	
 	public void setContextPath(String contextPath) {
 		this.contextPath = contextPath;
 		super.setName(contextPath.substring(1));
+	}
+	
+	/**
+	 * Return scope context path
+	 * 
+	 * @return Scope context path
+	 */
+	@Override
+	public String getContextPath() {
+		return contextPath;
 	}
 
 	/**
