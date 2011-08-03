@@ -33,6 +33,7 @@ import org.red5.server.stream.message.RTMPMessage;
  * @author m.j.milicevic <marijan at info.nl>
  */
 public class PlayBufferTest extends TestCase {
+	
 	public static Test suite() {
 		return new JUnit4TestAdapter(PlayBufferTest.class);
 	}

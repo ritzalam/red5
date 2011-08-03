@@ -35,6 +35,27 @@ public class HeaderTest {
 		System.out.printf("Free mem diff at end: %s\n", Math.abs(startFreeMem - rt.freeMemory()));
 	}
 	
+	@Test
+	public void testExtendedTimestamp() throws Throwable {
+		int threads = 10;		
+		TestRunnable[] trs = new TestRunnable[threads];
+		for (int t = 0; t < threads; t++) {
+			trs[t] = new HeaderWorker();
+		}
+		// update the timer to extended time
+		timer.set(16777215); //16777215, or 4hrs 39 minutes 37.215 seconds
+		MultiThreadedTestRunner mttr = new MultiThreadedTestRunner(trs);
+		long start = System.nanoTime();
+		mttr.runTestRunnables();
+		System.out.printf("Runtime: %s ns\n", (System.nanoTime() - start));
+		for (TestRunnable r : trs) {
+			Header hdr = ((HeaderWorker) r).getHeader();
+			Assert.assertTrue(hdr == null);
+		}		
+		System.gc();
+		Thread.sleep(1000);
+	}	
+	
 	private Header newHeader() {
 		Header header = new Header();
 		header.setChannelId(1);
@@ -44,7 +65,6 @@ public class HeaderTest {
 		header.setTimer(timer.incrementAndGet());
 		return header;
 	}
-	
 	
 	@Test
 	public void testReadExternal() {

@@ -146,4 +146,20 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		}
 	}
 
+	/**
+	 * Test for Issue 73
+	 * http://code.google.com/p/red5/issues/detail?id=73
+	 * 
+	 */
+	@Test
+	public void testGetContextPath() throws Exception {
+		log.debug("testGetContextPath");
+		if (appScope == null) {
+			appScope = (WebScope) applicationContext.getBean("web.scope");
+			log.debug("Application / web scope: {}", appScope);
+			assertTrue(appScope.getDepth() == 1);
+		}
+		log.debug("Context path: {}", appScope.getContextPath());
+	}
+
 }

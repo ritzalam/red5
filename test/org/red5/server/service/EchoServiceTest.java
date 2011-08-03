@@ -54,14 +54,14 @@ public class EchoServiceTest extends TestCase {
 	private EchoService echoService;
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
 		echoService = new EchoService();
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	protected void tearDown() throws Exception {
 		super.tearDown();
 		echoService = null;
@@ -99,8 +99,7 @@ public class EchoServiceTest extends TestCase {
 
 	public void testEchoNumber() {
 		double num = 100;
-		assertEquals(200, echoService.echoNumber(num), echoService
-				.echoNumber(num));
+		assertEquals(200, echoService.echoNumber(num), echoService.echoNumber(num));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -120,8 +119,7 @@ public class EchoServiceTest extends TestCase {
 		assertEquals("This is a test.", echoService.echoString(str));
 	}
 
-	public void testEchoXML() throws SAXException, IOException,
-			ParserConfigurationException {
+	public void testEchoXML() throws SAXException, IOException, ParserConfigurationException {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = factory.newDocumentBuilder();
 		String xmlStr = "<root testAttribute=\"test value\">this is a test</root>";
@@ -129,22 +127,20 @@ public class EchoServiceTest extends TestCase {
 		InputSource source = new InputSource(reader);
 		Document xml = builder.parse(source);
 		Document resultXML = echoService.echoXML(xml);
-		assertEquals(xml.getFirstChild().getNodeValue(), resultXML
-				.getFirstChild().getNodeValue());
+		assertEquals(xml.getFirstChild().getNodeValue(), resultXML.getFirstChild().getNodeValue());
 	}
-	
-	public void testEchoMultibyteStrings()
-	{
+
+	public void testEchoMultibyteStrings() {
 		java.nio.ByteBuffer buf = ByteBuffer.allocate(7);
-		buf.put((byte)0xE4);
-		buf.put((byte)0xF6);
-		buf.put((byte)0xFC);
-		buf.put((byte)0xC4);
-		buf.put((byte)0xD6);
-		buf.put((byte)0xDC);
-		buf.put((byte)0xDF);
+		buf.put((byte) 0xE4);
+		buf.put((byte) 0xF6);
+		buf.put((byte) 0xFC);
+		buf.put((byte) 0xC4);
+		buf.put((byte) 0xD6);
+		buf.put((byte) 0xDC);
+		buf.put((byte) 0xDF);
 		buf.flip();
-		
+
 		final Charset cs = Charset.forName("iso-8859-1");
 		assertNotNull(cs);
 		final String inputStr = cs.decode(buf).toString();
@@ -152,12 +148,11 @@ public class EchoServiceTest extends TestCase {
 		final String outputStr = echoService.echoString(inputStr);
 		assertEquals("unequal strings", inputStr, outputStr);
 		log.debug("got output string: {}", outputStr);
-		
+
 		java.nio.ByteBuffer outputBuf = cs.encode(outputStr);
-		
-		for(int i = 0; i < 7; i++)
-			assertEquals("unexpected byte",
-					buf.get(i),
-					outputBuf.get(i));
+
+		for (int i = 0; i < 7; i++) {
+			assertEquals("unexpected byte", buf.get(i), outputBuf.get(i));
+		}
 	}
 }

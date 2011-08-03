@@ -41,7 +41,7 @@ public class EchoService {
 
 	private Logger log = LoggerFactory.getLogger(EchoService.class);
 
-    public void startUp() {
+	public void startUp() {
 		log.info("The Echo Service has started...");
 	}
 
@@ -91,9 +91,8 @@ public class EchoService {
 		result[0] = team;
 		result[1] = words;
 		result[2] = str;
-		log.info("echoMultiParam: {}, {}, {}",
-				new Object[]{team,words,str});
-	return result;
+		log.info("echoMultiParam: {}, {}, {}", new Object[] { team, words, str });
+		return result;
 	}
 
 	public Object echoAny(Object any) {
