@@ -106,32 +106,31 @@ public class RTMPMinaTransport {
 
 	public void start() throws Exception {
 		initIOHandler();
-
 		IoBuffer.setUseDirectBuffer(!useHeapBuffers); // this is global, oh well
 		if (useHeapBuffers) {
 			// dont pool for heap buffers
 			IoBuffer.setAllocator(new SimpleBufferAllocator());
 		}
-
 		log.info("RTMP Mina Transport Settings");
-		log.info("Connection Threads: {}", connectionThreads);
+		//log.info("Connection Threads: {}", connectionThreads);
 		log.info("I/O Threads: {}", ioThreads);
-
+		
+		// XXX Paul: come back and review why the separate executors didnt work as expected
+		// ref: http://stackoverflow.com/questions/5088850/multi-threading-in-red5
+		
 		//use default parameters, and given number of NioProcessor for multithreading I/O operations
-		//acceptor = new NioSocketAcceptor(ioThreads);
-		
+		acceptor = new NioSocketAcceptor(ioThreads);
 		//create separate executors to handle connections and i/o
-		Executor connectionExecutor = Executors.newFixedThreadPool(connectionThreads);
-		Executor ioExecutor = Executors.newFixedThreadPool(ioThreads);
-		acceptor = new NioSocketAcceptor(connectionExecutor, new NioProcessor(ioExecutor));
+		//Executor connectionExecutor = Executors.newFixedThreadPool(connectionThreads);
+		//Executor ioExecutor = Executors.newFixedThreadPool(ioThreads);
+		//acceptor = new NioSocketAcceptor(connectionExecutor, new NioProcessor(ioExecutor));
 		
+		// set acceptor props
 		acceptor.setHandler(ioHandler);
 		acceptor.setBacklog(50);
-
 		log.info("TCP No Delay: {}", tcpNoDelay);
 		log.info("Receive Buffer Size: {}", receiveBufferSize);
 		log.info("Send Buffer Size: {}", sendBufferSize);
-
 		//get the current session config that would be used during create
 		SocketSessionConfig sessionConf = acceptor.getSessionConfig();
 		//reuse the addresses
@@ -139,14 +138,11 @@ public class RTMPMinaTransport {
 		sessionConf.setTcpNoDelay(tcpNoDelay);
 		sessionConf.setReceiveBufferSize(receiveBufferSize);
 		sessionConf.setSendBufferSize(sendBufferSize);
-
 		//set reuse address on the socket acceptor as well
 		acceptor.setReuseAddress(true);
-
 		String addrStr = addresses.toString();
 		log.debug("Binding to {}", addrStr);
 		acceptor.bind(addresses);
-
 		//create a new mbean for this instance
 		// RTMPMinaTransport
 		String cName = this.getClass().getName();
