@@ -36,11 +36,10 @@ import org.apache.mina.core.buffer.IoBuffer;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.mp3.MP3AudioHeader;
 import org.jaudiotagger.audio.mp3.MP3File;
+import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.TagException;
-import org.jaudiotagger.tag.TagField;
-import org.jaudiotagger.tag.TagFieldKey;
+import org.jaudiotagger.tag.datatype.Artwork;
 import org.jaudiotagger.tag.datatype.DataTypes;
-import org.jaudiotagger.tag.id3.AbstractID3v2Frame;
 import org.jaudiotagger.tag.id3.ID3v24Tag;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyAPIC;
 import org.red5.io.IKeyFrameMetaCache;
@@ -149,7 +148,6 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 	 */
 	public MP3Reader(File file) throws FileNotFoundException {
 		this.file = file;
-
 		// parse the id3 info
 		try {
 			MP3File mp3file = (MP3File) AudioFileIO.read(file);
@@ -174,43 +172,42 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 			if (idTag != null) {
 				// create meta data holder
 				metaData = new MetaData();
-				metaData.setAlbum(idTag.getFirstAlbum());
-				metaData.setArtist(idTag.getFirstArtist());
-				metaData.setComment(idTag.getFirstComment());
-				metaData.setGenre(idTag.getFirstGenre());
-				metaData.setSongName(idTag.getFirstTitle());
-				metaData.setTrack(idTag.getFirstTrack());
-				metaData.setYear(idTag.getFirstYear());
+				metaData.setAlbum(idTag.getFirst(FieldKey.ALBUM));
+				metaData.setArtist(idTag.getFirst(FieldKey.ARTIST));
+				metaData.setComment(idTag.getFirst(FieldKey.COMMENT));
+				metaData.setGenre(idTag.getFirst(FieldKey.GENRE));
+				metaData.setSongName(idTag.getFirst(FieldKey.TITLE));
+				metaData.setTrack(idTag.getFirst(FieldKey.TRACK));
+				metaData.setYear(idTag.getFirst(FieldKey.YEAR));
 				//send album image if included
-				List<TagField> tagFieldList = mp3file.getTag().get(TagFieldKey.COVER_ART);
-				//fix for APPSERVER-310
+				List<Artwork> tagFieldList = idTag.getArtworkList();
 				if (tagFieldList == null || tagFieldList.isEmpty()) {
 					log.debug("No cover art was found");
 				} else {
-					TagField imageField = tagFieldList.get(0);
-					if (imageField instanceof AbstractID3v2Frame) {
-						FrameBodyAPIC imageFrameBody = (FrameBodyAPIC) ((AbstractID3v2Frame) imageField).getBody();
-						if (!imageFrameBody.isImageUrl()) {
-							byte[] imageBuffer = (byte[]) imageFrameBody.getObjectValue(DataTypes.OBJ_PICTURE_DATA);
-							//set the cover image on the metadata
-							metaData.setCovr(imageBuffer);
-							// Create tag for onImageData event
-							IoBuffer buf = IoBuffer.allocate(imageBuffer.length);
-							buf.setAutoExpand(true);
-							Output out = new Output(buf);
-							out.writeString("onImageData");
-							Map<Object, Object> props = new HashMap<Object, Object>();
-							props.put("trackid", 1);
-							props.put("data", imageBuffer);
-							out.writeMap(props, new Serializer());
-							buf.flip();
-							//Ugh i hate flash sometimes!!
-							//Error #2095: flash.net.NetStream was unable to invoke callback onImageData.
-							ITag result = new Tag(IoConstants.TYPE_METADATA, 0, buf.limit(), null, 0);
-							result.setBody(buf);
-							//add to first frames
-							firstTags.add(result);
-						}
+					Artwork imageField = tagFieldList.get(0);
+					log.debug("Picture type: {}", imageField.getPictureType());
+					FrameBodyAPIC imageFrameBody = new FrameBodyAPIC();
+					imageFrameBody.setImageData(imageField.getBinaryData());
+					if (!imageFrameBody.isImageUrl()) {
+						byte[] imageBuffer = (byte[]) imageFrameBody.getObjectValue(DataTypes.OBJ_PICTURE_DATA);
+						//set the cover image on the metadata
+						metaData.setCovr(imageBuffer);
+						// Create tag for onImageData event
+						IoBuffer buf = IoBuffer.allocate(imageBuffer.length);
+						buf.setAutoExpand(true);
+						Output out = new Output(buf);
+						out.writeString("onImageData");
+						Map<Object, Object> props = new HashMap<Object, Object>();
+						props.put("trackid", 1);
+						props.put("data", imageBuffer);
+						out.writeMap(props, new Serializer());
+						buf.flip();
+						//Ugh i hate flash sometimes!!
+						//Error #2095: flash.net.NetStream was unable to invoke callback onImageData.
+						ITag result = new Tag(IoConstants.TYPE_METADATA, 0, buf.limit(), null, 0);
+						result.setBody(buf);
+						//add to first frames
+						firstTags.add(result);
 					}
 				}
 			} else {
@@ -222,27 +219,22 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		} catch (Exception e) {
 			log.error("MP3Reader {}", e);
 		}
-
 		fis = new FileInputStream(file);
-		// Grab file channel and map it to memory-mapped byte buffer in
-		// read-only mode
+		// grab file channel and map it to memory-mapped byte buffer in read-only mode
 		channel = fis.getChannel();
 		try {
 			mappedFile = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
 		} catch (IOException e) {
 			log.error("MP3Reader {}", e);
 		}
-
 		// Use Big Endian bytes order
 		mappedFile.order(ByteOrder.BIG_ENDIAN);
 		// Wrap mapped byte buffer to MINA buffer
 		in = IoBuffer.wrap(mappedFile);
 		// Analyze keyframes data
 		analyzeKeyFrames();
-
 		// Create file metadata object
 		firstTags.addFirst(createFileMeta());
-
 		// MP3 header is length of 32 bits, that is, 4 bytes
 		// Read further if there's still data
 		if (in.remaining() > 4) {
@@ -349,7 +341,6 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 			if (ch != 0xff) {
 				continue;
 			}
-
 			if ((in.get() & 0xe0) == 0xe0) {
 				// Found it
 				in.position(in.position() - 2);
@@ -400,23 +391,16 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 				searchNextFrame();
 			}
 		}
-
-		if (header == null) {
-			return false;
-		}
-
-		if (header.frameSize() == 0) {
+		if (header == null || header.frameSize() == 0) {
 			// TODO find better solution how to deal with broken files...
 			// See APPSERVER-62 for details
 			return false;
 		}
-
 		if (in.position() + header.frameSize() - 4 > in.limit()) {
 			// Last frame is incomplete
 			in.position(in.limit());
 			return false;
 		}
-
 		in.position(in.position() - 4);
 		return true;
 	}
@@ -491,9 +475,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		body.put(in);
 		body.flip();
 		in.limit(limit);
-
 		tag.setBody(body);
-
 		return tag;
 	}
 
@@ -546,7 +528,6 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		if (frameMeta != null) {
 			return frameMeta;
 		}
-
 		// check for cached frame informations
 		if (frameCache != null) {
 			frameMeta = frameCache.loadKeyFrameMeta(file);
@@ -561,7 +542,6 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 				return frameMeta;
 			}
 		}
-
 		List<Integer> positionList = new ArrayList<Integer>();
 		List<Double> timestampList = new ArrayList<Double>();
 		dataRate = 0;
@@ -570,27 +550,19 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		int origPos = in.position();
 		double time = 0;
 		in.position(0);
-		// processID3v2Header();
 		searchNextFrame();
 		while (this.hasMoreTags()) {
 			MP3Header header = readHeader();
-			if (header == null) {
-				// No more tags
-				break;
-			}
-
-			if (header.frameSize() == 0) {
+			if (header == null || header.frameSize() == 0) {
 				// TODO find better solution how to deal with broken files...
 				// See APPSERVER-62 for details
 				break;
 			}
-
 			int pos = in.position() - 4;
 			if (pos + header.frameSize() > in.limit()) {
 				// Last frame is incomplete
 				break;
 			}
-
 			positionList.add(pos);
 			timestampList.add(time);
 			rate += header.getBitRate() / 1000;
@@ -600,7 +572,6 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		}
 		// restore the pos
 		in.position(origPos);
-
 		duration = (long) time;
 		dataRate = (int) (rate / count);
 		posTimeMap = new HashMap<Integer, Double>();
