@@ -499,6 +499,9 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		if (data != null) {
 			tag.setBodySize(data.limit());
 			tag.setBody(data);
+		}
+		// only allow blank tags if they are of audio type
+		if (tag.getBodySize() > 0 || dataType == ITag.TYPE_AUDIO) {
 			try {
 				if (timestamp >= 0) {
 					if (!writer.writeTag(tag)) {
@@ -514,9 +517,9 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 					data.clear();
 					data.free();
 				}
-			}
-			data = null;
+			}		
 		}
+		data = null;
 	}
 
 	/**
@@ -536,15 +539,20 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 			} else {
 				timestamp -= startTimestamp;
 			}
+			// get the type
+			byte dataType = queued.getDataType();
 			// create a tag
 			ITag tag = new Tag();
-			tag.setDataType(queued.getDataType());
+			tag.setDataType(dataType);
 			tag.setTimestamp(timestamp);
 			// get queued
 			IoBuffer data = queued.getData();
 			if (data != null) {
 				tag.setBodySize(data.limit());
 				tag.setBody(data);
+			}
+			// only allow blank tags if they are of audio type
+			if (tag.getBodySize() > 0 || dataType == ITag.TYPE_AUDIO) {
 				try {
 					if (timestamp >= 0) {
 						if (!writer.writeTag(tag)) {
@@ -567,9 +575,9 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 						data.clear();
 						data.free();
 					}
-				}
-				data = null;
+				}		
 			}
+			data = null;				
 			queued.dispose();
 			queued = null;
 		} else {
