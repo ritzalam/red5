@@ -90,7 +90,7 @@
 		<dependency name="bcprov-jdk16" rev="145" conf="java6->*" /> 
         <!-- <dependency org="org.bouncycastle" name="com.springsource.org.bouncycastle.jce" rev="1.45.0" /> -->
         <!-- MP3 -->
-        <dependency name="jaudiotagger" rev="1.0.8" />           
+        <dependency name="jaudiotagger" rev="2.0.4-SNAPSHOT" />           
         <!-- Testing support -->
         <!-- until Eclipse updates their junit version, we have to use this -->
         <dependency org="org.junit" name="com.springsource.org.junit" rev="4.8.1" conf="eclipse->*" transitive="false" />
