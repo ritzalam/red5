@@ -165,7 +165,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 * Whether we are appending or not
 	 */
 	private volatile boolean appending;
-	
+
 	/**
 	 * FileConsumer used to output recording to disk
 	 */
@@ -343,6 +343,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 						// route to recording
 						if (recording) {
 							if (recordPipe != null) {
+								// get the current size of the buffer / data
 								int bufferLimit = buf.limit();
 								if (bufferLimit > 0) {
 									// make a copy for the record pipe
@@ -368,6 +369,14 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 										log.info("Data was not of A/V type: {}", rtmpEvent.getType());
 										msg = RTMPMessage.build(rtmpEvent, eventTime);
 									}
+									// push it down to the recorder
+									recordPipe.pushMessage(msg);
+								} else if (bufferLimit == 0 && rtmpEvent instanceof AudioData) {
+									log.debug("Stream data size was 0, sending empty audio message");
+									// allow for 0 byte audio packets
+									AudioData audio = new AudioData(IoBuffer.allocate(0));
+									audio.setTimestamp(eventTime);
+									RTMPMessage msg = RTMPMessage.build(audio);
 									// push it down to the recorder
 									recordPipe.pushMessage(msg);
 								} else {

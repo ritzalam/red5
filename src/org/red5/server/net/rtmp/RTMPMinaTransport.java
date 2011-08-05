@@ -24,8 +24,6 @@ import java.net.SocketAddress;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 import javax.management.ObjectName;
 
@@ -37,7 +35,6 @@ import org.apache.mina.core.service.IoServiceStatistics;
 import org.apache.mina.integration.jmx.IoServiceMBean;
 import org.apache.mina.transport.socket.SocketAcceptor;
 import org.apache.mina.transport.socket.SocketSessionConfig;
-import org.apache.mina.transport.socket.nio.NioProcessor;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
