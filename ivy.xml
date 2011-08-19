@@ -18,12 +18,12 @@
 		-->
         <dependency org="javax" name="javaee-api" rev="5.1.2" />
         <!-- Spring --> 
-        <dependency org="org.springframework" name="org.springframework.asm" rev="3.0.5.RELEASE" transitive="false" />
-        <dependency org="org.springframework" name="org.springframework.beans" rev="3.0.5.RELEASE" transitive="false" />
-        <dependency org="org.springframework" name="org.springframework.context" rev="3.0.5.RELEASE" transitive="false" />
-        <dependency org="org.springframework" name="org.springframework.core" rev="3.0.5.RELEASE" transitive="false" />
-        <dependency org="org.springframework" name="org.springframework.expression" rev="3.0.5.RELEASE" transitive="false" />
-        <dependency org="org.springframework" name="org.springframework.web" rev="3.0.5.RELEASE" transitive="false" />
+        <dependency org="org.springframework" name="org.springframework.asm" rev="3.0.5.RELEASE" />
+        <dependency org="org.springframework" name="org.springframework.beans" rev="3.0.5.RELEASE" />
+        <dependency org="org.springframework" name="org.springframework.context" rev="3.0.5.RELEASE" />
+        <dependency org="org.springframework" name="org.springframework.core" rev="3.0.5.RELEASE" />
+        <dependency org="org.springframework" name="org.springframework.expression" rev="3.0.5.RELEASE" />
+        <dependency org="org.springframework" name="org.springframework.web" rev="3.0.5.RELEASE" />
         <!-- Logging --> 
         <dependency org="org.slf4j" name="com.springsource.slf4j.api" rev="1.6.1" transitive="false" />
         <dependency org="org.slf4j" name="com.springsource.slf4j.bridge" rev="1.6.1" transitive="false" />
@@ -85,7 +85,7 @@
 		<!-- <dependency org="org.python" name="com.springsource.org.python" rev="2.5.0" /> -->
         <dependency org="org.mozilla.javascript" name="com.springsource.org.mozilla.javascript" rev="1.7.0.R2" transitive="false" />
         <dependency org="javax.xml.stream" name="com.springsource.javax.xml.stream" rev="1.0.1" transitive="false" />
-        <dependency org="org.springframework" name="org.springframework.context.support" rev="3.0.5.RELEASE" transitive="false" />
+        <dependency org="org.springframework" name="org.springframework.context.support" rev="3.0.5.RELEASE" />
         <!-- Crypto -->
 		<dependency name="bcprov-jdk16" rev="145" conf="java6->*" /> 
         <!-- <dependency org="org.bouncycastle" name="com.springsource.org.bouncycastle.jce" rev="1.45.0" /> -->
