@@ -29,17 +29,17 @@
                 <artifact pattern="http://xuggle.googlecode.com/svn/trunk/repo/share/java/[organisation]/[artifact](-[revision]).[ext]" />
                 <artifact pattern="http://xuggle.googlecode.com/svn/trunk/repo/share/java/[artifact](-[revision]).[ext]" />
             </url>
-            <ibiblio name='springsource-releases' m2compatible='true' root='http://repository.springsource.com/maven/bundles/release'/>
-            <!--             
-            <url name="com.springsource.repository.bundles.release">
+            <!-- 
+            <ibiblio name="springsource-releases" m2compatible="true" root="http://repository.springsource.com/maven/bundles/release"/>
+             -->
+            <url name="com.springsource.repository.bundles.release" m2compatible="false">
 				<ivy pattern="http://repository.springsource.com/ivy/bundles/release/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]" />
 				<artifact pattern="http://repository.springsource.com/ivy/bundles/release/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]" /> 
 			</url>
-			<url name="com.springsource.repository.bundles.external"> 
+			<url name="com.springsource.repository.bundles.external" m2compatible="false"> 
 				<ivy pattern="http://repository.springsource.com/ivy/bundles/external/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]" /> 
 				<artifact pattern="http://repository.springsource.com/ivy/bundles/external/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]" /> 
 			</url>
-			 -->  
         </chain>
     </resolvers>
 </ivysettings>
