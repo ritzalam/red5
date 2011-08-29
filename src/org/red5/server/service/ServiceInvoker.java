@@ -134,7 +134,9 @@ public class ServiceInvoker implements IServiceInvoker {
 			argsWithConnection[0] = conn;
 			for (int i = 0; i < args.length; i++) {
 				log.debug("{} => {}", i, args[i]);
-				log.trace("Arg type: {}", args[i].getClass().getName());
+                if (args[i] != null) {
+    				log.trace("Arg type: {}", args[i].getClass().getName());
+                }
 				argsWithConnection[i + 1] = args[i];
 			}
 		} else {
