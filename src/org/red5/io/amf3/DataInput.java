@@ -141,12 +141,12 @@ public class DataInput implements IDataInput {
 
 	/** {@inheritDoc} */
 	public int readUnsignedShort() {
-		return buffer.getShort() & 0xff; //buffer.getUnsignedShort();
+		return buffer.getShort() & 0xffff; //buffer.getUnsignedShort();
 	}
 
 	/** {@inheritDoc} */
 	public String readUTF() {
-		int length = buffer.getShort() & 0xff; //buffer.getUnsignedShort();
+		int length = buffer.getShort() & 0xffff; //buffer.getUnsignedShort();
 		return readUTFBytes(length);
 	}
 

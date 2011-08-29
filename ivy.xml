@@ -48,8 +48,8 @@
         <dependency org="org.apache.commons" name="com.springsource.org.apache.commons.codec" rev="1.4.0" transitive="false" />
         <dependency org="org.apache.commons" name="com.springsource.org.apache.commons.collections" rev="3.2.1" transitive="false" />
 		
-		<dependency org="commons" name="httpcore" rev="4.1" />
-		<dependency org="commons" name="httpclient" rev="4.1.1" />
+		<dependency org="commons" name="httpcore" rev="4.1.3" />
+		<dependency org="commons" name="httpclient" rev="4.1.2" />
         <!-- <dependency org="org.apache.commons" name="com.springsource.org.apache.commons.httpclient" rev="3.1.0" transitive="false" /> -->
         
 		<dependency org="commons" name="commons-lang3" rev="3.0-beta" />
