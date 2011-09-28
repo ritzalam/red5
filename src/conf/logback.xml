@@ -44,9 +44,6 @@
     <logger name="org.red5.server">
         <level value="WARN" />
     </logger>
-    <logger name="org.red5.server.Scope">
-        <level value="DEBUG" />
-    </logger>
 	<logger name="org.red5.server.Client">
 		<level value="INFO" />
 	</logger>

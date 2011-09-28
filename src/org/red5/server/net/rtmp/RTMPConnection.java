@@ -264,7 +264,8 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 			}
 			return success;
 		} catch (ClientRejectedException e) {
-			log.warn("Client rejected, unscheduling waitForHandshakeJob", e);
+			String reason = (String) e.getReason();
+			log.info("Client rejected, unscheduling waitForHandshakeJob. Reason: " + ((reason != null) ? reason : "None"));
 			unscheduleWaitForHandshakeJob();
 			throw e;
 		}
