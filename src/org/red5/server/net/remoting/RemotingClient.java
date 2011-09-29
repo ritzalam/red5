@@ -345,7 +345,6 @@ public class RemotingClient implements InitializingBean {
 					// get the response as bytes
 					byte[] bytes = EntityUtils.toByteArray(entity);
 					resultBuffer = IoBuffer.wrap(bytes);
-					resultBuffer.flip();
 					Object result = decodeResult(resultBuffer);
 					if (result instanceof RecordSet) {
 						// Make sure we can retrieve paged results
