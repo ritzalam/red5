@@ -86,15 +86,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	/** Audio packet prefix */
 	public final static byte[] PREFIX_AUDIO_FRAME = new byte[] { (byte) 0xaf, (byte) 0x01 };
 
-	/** Audio config aac main */
-	public final static byte[] AUDIO_CONFIG_FRAME_AAC_MAIN = new byte[] { (byte) 0x0a, (byte) 0x10 };
-
-	/** Audio config aac lc */
-	public final static byte[] AUDIO_CONFIG_FRAME_AAC_LC = new byte[] { (byte) 0x12, (byte) 0x10 };
-
-	/** Audio config sbr */
-	public final static byte[] AUDIO_CONFIG_FRAME_SBR = new byte[] { (byte) 0x13, (byte) 0x90, (byte) 0x56, (byte) 0xe5, (byte) 0xa5, (byte) 0x48, (byte) 0x00 };
-
 	/** Video packet prefix for the decoder frame */
 	public final static byte[] PREFIX_VIDEO_CONFIG_FRAME = new byte[] { (byte) 0x17, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00 };
 
@@ -207,8 +198,10 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	
 	private List<MP4Frame> frames = new ArrayList<MP4Frame>();
 
+	@SuppressWarnings("unused")
 	private long audioCount;
 
+	@SuppressWarnings("unused")
 	private long videoCount;
 
 	// composition time to sample entries
@@ -631,7 +624,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 													log.debug("Sample size: {}", stsz.getSampleSize());
 													videoSampleCount = videoSamples.size();
 													log.debug("Sample count: {}", videoSampleCount);
-												}
+												}											
 												//stco - has Chunks
 												MP4Atom stco = stbl.lookup(MP4Atom.typeToInt("stco"), 0);
 												if (stco != null) {
@@ -639,6 +632,15 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 													//vector full of integers
 													videoChunkOffsets = stco.getChunks();
 													log.debug("Chunk count: {}", videoChunkOffsets.size());
+												} else {
+													//co64 - has Chunks
+													MP4Atom co64 = stbl.lookup(MP4Atom.typeToInt("co64"), 0);
+													if (co64 != null) {
+														log.debug("Chunk offset (64) atom found");
+														//vector full of longs
+														videoChunkOffsets = co64.getChunks();
+														log.debug("Chunk count: {}", videoChunkOffsets.size());
+													}														
 												}
 												//stss - has Sync - no sync means all samples are keyframes
 												MP4Atom stss = stbl.lookup(MP4Atom.typeToInt("stss"), 0);
@@ -1012,7 +1014,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		}
 		ITag tag = null;
 		IoBuffer body = null;
-
 		if (hasVideo) {
 			//video tag #1
 			body = IoBuffer.allocate(41);
@@ -1040,10 +1041,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		// mp3 header magic number ((int & 0xffe00000) == 0xffe00000) 
 		if (hasAudio) {
 			//audio tag #1
-			//TODO: this data is only for backcountry bombshells - make this dynamic
-			body = IoBuffer.allocate(7);
-			body.setAutoExpand(true);
-			body.put(new byte[] { (byte) 0xaf, (byte) 0 }); //prefix
 			if (audioDecoderBytes != null) {
 				//because of other processing we do this check
 				if (log.isDebugEnabled()) {
@@ -1054,17 +1051,21 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 						log.error("", e);
 					}
 				}
+				body = IoBuffer.allocate(audioDecoderBytes.length + 3);
+				body.setAutoExpand(true);
+				body.put(new byte[] { (byte) 0xaf, (byte) 0 }); //prefix
 				body.put(audioDecoderBytes);
+				body.put((byte) 0x06); //suffix
+				tag = new Tag(IoConstants.TYPE_AUDIO, timestamp, body.position(), null, tag.getBodySize());
+				body.flip();
+				tag.setBody(body);
+				//add tag
+				firstTags.add(tag);
+				// TODO: parse the decoder bytes for hints about decoder type (sbr etc)
+				
 			} else {
-				//default to aac-lc when the esds doesnt contain descripter bytes
-				body.put(AUDIO_CONFIG_FRAME_AAC_LC);
+				log.warn("Audio decoder bytes were not available");
 			}
-			body.put((byte) 0x06); //suffix
-			tag = new Tag(IoConstants.TYPE_AUDIO, timestamp, body.position(), null, tag.getBodySize());
-			body.flip();
-			tag.setBody(body);
-			//add tag
-			firstTags.add(tag);
 		}
 	}
 
@@ -1205,7 +1206,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 						}
 						//size of the sample
 						int size = (videoSamples.get(sample - 1)).intValue();
-
 						//create a frame
 						MP4Frame frame = new MP4Frame();
 						frame.setKeyFrame(keyframe);
@@ -1229,11 +1229,11 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 								// reset
 								compositeIndex = 0;
 							}
+							log.debug("Composite sample #{} {}", sample, frame);							
 						}
 						// add the frame
 						frames.add(frame);
 						//log.debug("Sample #{} {}", sample, frame);
-						
 						//inc and dec stuff
 						pos += size;
 						sampleCount--;
@@ -1243,7 +1243,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			}
 			log.debug("Sample position map (video): {}", samplePosMap);
 		}
-
 		// if video-only, skip this
 		if (audioSamplesToChunks != null) {
 			//add the audio frames / samples / chunks		
@@ -1272,7 +1271,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 						frame.setType(TYPE_AUDIO);
 						frames.add(frame);
 						//log.debug("Sample #{} {}", sample, frame);
-
 						//inc and dec stuff
 						pos += size;
 						sampleCount--;
@@ -1285,7 +1283,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		Collections.sort(frames);
 		log.debug("Frames count: {}", frames.size());
 		//log.debug("Frames: {}", frames);
-
 		//release some memory, since we're done with the vectors
 		if (audioSamplesToChunks != null) {
 			audioChunkOffsets.clear();
@@ -1293,14 +1290,12 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			audioSamplesToChunks.clear();
 			audioSamplesToChunks = null;
 		}
-
 		if (videoSamplesToChunks != null) {
 			videoChunkOffsets.clear();
 			videoChunkOffsets = null;
 			videoSamplesToChunks.clear();
 			videoSamplesToChunks = null;
 		}
-
 		if (syncSamples != null) {
 			syncSamples.clear();
 			syncSamples = null;
