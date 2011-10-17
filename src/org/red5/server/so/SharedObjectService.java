@@ -36,10 +36,20 @@ import org.red5.server.persistence.RamPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
+
 /**
  * Shared object service
  */
-public class SharedObjectService implements ISharedObjectService {
+public class SharedObjectService implements ISharedObjectService, InitializingBean, DisposableBean {
+        
+        public static ExecutorService SHAREDOBJECT_EXECUTOR;
+
 	/**
 	 * Logger
 	 */
@@ -59,6 +69,16 @@ public class SharedObjectService implements ISharedObjectService {
 	 * Persistence class name
 	 */
 	private String persistenceClassName = "org.red5.server.persistence.RamPersistence";
+
+        private int executorThreadPoolSize = 8;
+
+	public void setExecutorThreadPoolSize(int value) {
+		executorThreadPoolSize = value;
+	}
+
+	public void afterPropertiesSet() throws Exception {
+		SHAREDOBJECT_EXECUTOR = Executors.newFixedThreadPool(executorThreadPoolSize, new CustomizableThreadFactory("SharedObjectExecutor-"));
+	}
 
 	/**
 	 * Setter for persistence class name.
@@ -170,5 +190,25 @@ public class SharedObjectService implements ISharedObjectService {
 		}
 		return result;
 	}
+
+	public void destroy() throws Exception {
+		//disable new tasks from being submitted
+		SHAREDOBJECT_EXECUTOR.shutdown(); 
+		try {
+			//wait a while for existing tasks to terminate
+			if (!SHAREDOBJECT_EXECUTOR.awaitTermination(3, TimeUnit.SECONDS)) {
+				SHAREDOBJECT_EXECUTOR.shutdownNow(); // cancel currently executing tasks
+				//wait a while for tasks to respond to being canceled
+				if (!SHAREDOBJECT_EXECUTOR.awaitTermination(3, TimeUnit.SECONDS)) {
+					System.err.println("Notifier pool did not terminate");
+				}
+			}
+		} catch (InterruptedException ie) {
+			// re-cancel if current thread also interrupted
+			SHAREDOBJECT_EXECUTOR.shutdownNow();
+			// preserve interrupt status
+			Thread.currentThread().interrupt();
+		}
+	}	
 
 }

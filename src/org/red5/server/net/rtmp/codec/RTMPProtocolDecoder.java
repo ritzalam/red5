@@ -439,6 +439,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				header.setStreamId(RTMPUtils.readReverseInt(in));
 				if (timeValue == 0xffffff) {
 					timeValue = in.getInt();
+					header.setExtendedTimestamp(timeValue);
 				}
 				header.setTimerBase(timeValue);
 				header.setTimerDelta(0);
@@ -452,6 +453,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				header.setStreamId(lastHeader.getStreamId());
 				if (timeValue == 0xffffff) {
 					timeValue = in.getInt();
+					header.setExtendedTimestamp(timeValue);
 				} else if (timeValue == 0 && header.getDataType() == TYPE_AUDIO_DATA) {
 					header.setIsGarbage(true);
 					log.trace("Audio with zero delta; setting to garbage; ChannelId: {}; DataType: {}; HeaderSize: {}", new Object[] { header.getChannelId(), header.getDataType(),
@@ -469,6 +471,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				header.setStreamId(lastHeader.getStreamId());
 				if (timeValue == 0xffffff) {
 					timeValue = in.getInt();
+					header.setExtendedTimestamp(timeValue);
 				} else if (timeValue == 0 && header.getDataType() == TYPE_AUDIO_DATA) {
 					header.setIsGarbage(true);
 					log.trace("Audio with zero delta; setting to garbage; ChannelId: {}; DataType: {}; HeaderSize: {}", new Object[] { header.getChannelId(), header.getDataType(),
@@ -484,6 +487,11 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				header.setStreamId(lastHeader.getStreamId());
 				header.setTimerBase(lastHeader.getTimerBase());
 				header.setTimerDelta(lastHeader.getTimerDelta());
+				if(lastHeader.getExtendedTimestamp() != 0) {
+					timeValue = in.getInt();
+					header.setExtendedTimestamp(timeValue);
+					log.trace("HEADER_CONTINUE with extended timestamp: {}", timeValue);
+				}
 				break;
 
 			default:
