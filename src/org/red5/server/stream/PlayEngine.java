@@ -966,7 +966,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 						ts });
 			}
 		}
-		if (streamStartTS == -1) {
+		// don't reset streamStartTS to 0 for live streams 
+		if (streamStartTS == -1 && (ts > 0 || playDecision != 0)) {
 			log.debug("sendMessage: resetting streamStartTS");
 			streamStartTS = ts;
 			messageOut.getBody().setTimestamp(0);

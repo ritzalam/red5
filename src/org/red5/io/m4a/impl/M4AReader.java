@@ -583,23 +583,23 @@ public class M4AReader implements IoConstants, ITagReader {
 	 */
     private void createPreStreamingTags() {
     	log.debug("Creating pre-streaming tags");
-    	IoBuffer body = IoBuffer.allocate(7);
-		body.setAutoExpand(true);
-		body.put(new byte[]{(byte) 0xaf, (byte) 0}); //prefix
 		if (audioDecoderBytes != null) {
-			log.debug("Audio decoder bytes: {}", HexDump.byteArrayToHexString(audioDecoderBytes));
+	    	IoBuffer body = IoBuffer.allocate(audioDecoderBytes.length + 3);
+			body.put(new byte[]{(byte) 0xaf, (byte) 0}); //prefix
+			if (log.isDebugEnabled()) {
+				log.debug("Audio decoder bytes: {}", HexDump.byteArrayToHexString(audioDecoderBytes));
+			}
 			body.put(audioDecoderBytes);
+			body.put((byte) 0x06); //suffix
+			ITag tag = new Tag(IoConstants.TYPE_AUDIO, 0, body.position(), null, prevFrameSize);
+			body.flip();
+			tag.setBody(body);		
+			//add tag
+			firstTags.add(tag);
 		} else {
 			//default to aac-lc when the esds doesnt contain descripter bytes
-			body.put(MP4Reader.AUDIO_CONFIG_FRAME_AAC_LC);
+			log.warn("Audio decoder bytes were not available");
 		}
-		body.put((byte) 0x06); //suffix
-		ITag tag = new Tag(IoConstants.TYPE_AUDIO, 0, body.position(), null, prevFrameSize);
-		body.flip();
-		tag.setBody(body);
-		
-		//add tag
-		firstTags.add(tag);
     }
     
 	/**

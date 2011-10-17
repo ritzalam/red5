@@ -36,8 +36,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class ClientList<E> extends AbstractList<E> {
 
-	private static final long serialVersionUID = -3127064371410565215L;
-
 	private CopyOnWriteArrayList<WeakReference<E>> items = new CopyOnWriteArrayList<WeakReference<E>>();
 
 	@ConstructorProperties(value = { "" })

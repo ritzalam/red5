@@ -43,6 +43,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 
+import org.red5.io.object.UnsignedLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -343,8 +344,8 @@ public class MP4Atom {
 		entryCount = (int) bitstream.readBytes(4);
 		readed += 4;
 		for (int i = 0; i < entryCount; i++) {
-			long chunkOffset = bitstream.readBytes(8);
-			chunks.addElement(Long.valueOf(chunkOffset));
+			UnsignedLong offset = new UnsignedLong(bitstream.readBytes(8));
+			chunks.addElement(offset.longValue());
 			readed += 8;
 		}
 		return readed;
@@ -825,7 +826,7 @@ public class MP4Atom {
 		log.trace("AVC config");
 		log.trace("Offset: {}", bitstream.getOffset());
 		//store the decoder config bytes
-		videoConfigBytes = new byte[(int) size];
+		videoConfigBytes = new byte[(int) size-8];
 		for (int b = 0; b < videoConfigBytes.length; b++) {
 			videoConfigBytes[b] = (byte) bitstream.readBytes(1);
 
