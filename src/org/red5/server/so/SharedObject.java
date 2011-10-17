@@ -27,9 +27,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.red5.io.object.Deserializer;
@@ -49,6 +46,7 @@ import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.so.ISharedObjectEvent.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 /**
  * Represents shared object on server-side. Shared Objects in Flash are like cookies that are stored
@@ -165,11 +163,6 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 	 * Counts number of "send message" events.
 	 */
 	protected AtomicInteger sendStats = new AtomicInteger();
-
-	/**
-	 * Executor for sending messages to connections.
-	 */
-	protected ExecutorService executor;
 
 	/** Constructs a new SharedObject. */
 	public SharedObject() {
@@ -318,9 +311,6 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 		//tell all the listeners
 		if (!events.isEmpty()) {
 			//dont create the executor until we need it
-			if (executor == null || executor.isShutdown()) {
-				executor = Executors.newCachedThreadPool();
-			}
 			//get the listeners
 			Set<IEventListener> listeners = getListeners();
 			//updates all registered clients of this shared object
@@ -344,7 +334,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 								}
 							}
 						};
-						executor.execute(worker);
+						SharedObjectService.SHAREDOBJECT_EXECUTOR.execute(worker);
 					} else {
 						log.warn("Can't send sync message to unknown connection {}", listener);
 					}
@@ -714,21 +704,6 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 		listeners.clear();
 		syncEvents.clear();
 		ownerMessage.getEvents().clear();
-		if (executor != null) {
-			//disable new tasks from being submitted
-			executor.shutdown();
-			try {
-				//wait a while for existing tasks to terminate
-				if (!executor.awaitTermination(20, TimeUnit.MILLISECONDS)) {
-					executor.shutdownNow(); // cancel currently executing tasks
-				}
-			} catch (InterruptedException ie) {
-				// re-cancel if current thread also interrupted
-				executor.shutdownNow();
-				// preserve interrupt status
-				Thread.currentThread().interrupt();
-			}
-		}
 	}
 
 	/**

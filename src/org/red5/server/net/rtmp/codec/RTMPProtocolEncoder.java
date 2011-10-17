@@ -151,33 +151,38 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 				} else {
 					data.rewind();
 				}
-				header.setSize(data.limit());
+				int dataLen = data.limit();
+				header.setSize(dataLen);
 
 				Header lastHeader = rtmp.getLastWriteHeader(channelId);
-				int headerSize = calculateHeaderSize(rtmp, header, lastHeader);
+				// maximum header size with extended timestamp (Chunk message header type 0 with 11 byte)
+				int headerSize = 18;
+
 				rtmp.setLastWriteHeader(channelId, header);
 				rtmp.setLastWritePacket(channelId, packet);
 				int chunkSize = rtmp.getWriteChunkSize();
-				int chunkHeaderSize = 1;
-				if (header.getChannelId() > 320) {
-					chunkHeaderSize = 3;
-				} else if (header.getChannelId() > 63) {
-					chunkHeaderSize = 2;
-				}
-				int numChunks = (int) Math.ceil(header.getSize() / (float) chunkSize);
-				int bufSize = header.getSize() + headerSize + (numChunks > 0 ? (numChunks - 1) * chunkHeaderSize : 0);
+				// maximum chunk header size with extended timestamp
+				int chunkHeaderSize = 7;
+				int numChunks = (int) Math.ceil(dataLen / (float) chunkSize);
+				int bufSize = dataLen + headerSize + (numChunks > 0 ? (numChunks - 1) * chunkHeaderSize : 0);
 				out = IoBuffer.allocate(bufSize, false);
 
 				encodeHeader(rtmp, header, lastHeader, out);
 				if (numChunks == 1) {
 					// we can do it with a single copy
-					BufferUtils.put(out, data, out.remaining());
+					BufferUtils.put(out, data, dataLen);
 				} else {
+					int extendedTimestamp = header.getExtendedTimestamp();
+					
 					for (int i = 0; i < numChunks - 1; i++) {
 						BufferUtils.put(out, data, chunkSize);
+						dataLen -= chunkSize;
 						RTMPUtils.encodeHeaderByte(out, HEADER_CONTINUE, header.getChannelId());
+						if (extendedTimestamp != 0) {
+							out.putInt(extendedTimestamp);
+						}	
 					}
-					BufferUtils.put(out, data, out.remaining());
+					BufferUtils.put(out, data, dataLen);
 				}
 				data.free();
 				out.flip();
@@ -415,6 +420,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 				RTMPUtils.writeReverseInt(buf, header.getStreamId());
 				if (timer < 0 || timer >= 0xffffff) {
 					buf.putInt(timer);
+					header.setExtendedTimestamp(timer);
 				}
 				header.setTimerBase(timer);
 				header.setTimerDelta(0);
@@ -431,6 +437,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 				buf.put(header.getDataType());
 				if (timer < 0 || timer >= 0xffffff) {
 					buf.putInt(timer);
+					header.setExtendedTimestamp(timer);
 				}
 				header.setTimerBase(header.getTimer() - timer);
 				header.setTimerDelta(timer);
@@ -440,6 +447,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 				if (timer < 0 || timer >= 0xffffff) {
 					RTMPUtils.writeMediumInt(buf, 0xffffff);
 					buf.putInt(timer);
+					header.setExtendedTimestamp(timer);
 				} else {
 					RTMPUtils.writeMediumInt(buf, timer);
 				}
@@ -450,6 +458,10 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 				timer = (int) RTMPUtils.diffTimestamps(header.getTimer(), lastHeader.getTimer());
 				header.setTimerBase(header.getTimer() - timer);
 				header.setTimerDelta(timer);
+				if(lastHeader.getExtendedTimestamp() != 0) {
+					buf.putInt(lastHeader.getExtendedTimestamp());
+					header.setExtendedTimestamp(lastHeader.getExtendedTimestamp());
+				}
 				break;
 			default:
 				break;

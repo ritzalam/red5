@@ -60,6 +60,11 @@ public class Header implements Constants, Cloneable, Externalizable {
 	 * Stream id
 	 */
 	private int streamId;
+	
+	/**
+	 * Extended Timestamp
+	 */
+	private int extendedTimestamp;
 
 	/**
 	 * Flash player occasionally sends garbage audio that as far as I can tell exists only to make folks who
@@ -138,6 +143,24 @@ public class Header implements Constants, Cloneable, Externalizable {
 	public void setStreamId(int streamId) {
 		this.streamId = streamId;
 	}
+	
+	/**
+	 * Getter for Extended Timestamp
+	 *
+	 * @return  Extended Timestamp
+	 */
+	public int getExtendedTimestamp() {
+		return extendedTimestamp;
+	}
+
+	/**
+	 * Setter for Extended Timestamp
+	 *
+	 * @param extendedTimestamp  Extended Timestamp
+	 */
+	public void setExtendedTimestamp(int extendedTimestamp) {
+		this.extendedTimestamp = extendedTimestamp;
+	}
 
 	/**
 	 * Getter for timer
@@ -189,7 +212,7 @@ public class Header implements Constants, Cloneable, Externalizable {
 			return false;
 		}
 		final Header header = (Header) other;
-		return (header.getChannelId() == channelId && header.getDataType() == dataType && header.getSize() == size && header.getTimer() == this.getTimer() && header.getStreamId() == streamId);
+		return (header.getChannelId() == channelId && header.getDataType() == dataType && header.getSize() == size && header.getTimer() == this.getTimer() && header.getStreamId() == streamId && header.getExtendedTimestamp() == extendedTimestamp);
 	}
 
 	/** {@inheritDoc} */
@@ -202,6 +225,7 @@ public class Header implements Constants, Cloneable, Externalizable {
 		header.setSize(size);
 		header.setDataType(dataType);
 		header.setStreamId(streamId);
+		header.setExtendedTimestamp(extendedTimestamp);
 		header.setIsGarbage(isGarbage);
 		return header;
 	}
@@ -213,6 +237,7 @@ public class Header implements Constants, Cloneable, Externalizable {
 		streamId = in.readInt();
 		timerBase = in.readInt();
 		timerDelta = in.readInt();
+		extendedTimestamp = in.readInt();
 		isGarbage = in.readBoolean();
 	}
 
@@ -223,6 +248,7 @@ public class Header implements Constants, Cloneable, Externalizable {
 		out.writeInt(streamId);
 		out.writeInt(timerBase);
 		out.writeInt(timerDelta);
+		out.writeInt(extendedTimestamp);
 		out.writeBoolean(isGarbage);
 	}
 
@@ -232,7 +258,7 @@ public class Header implements Constants, Cloneable, Externalizable {
 	@Override
 	public String toString() {
 		return "Header [channelId=" + channelId + ", dataType=" + dataType + ", timerBase=" + timerBase + ", timerDelta=" + timerDelta + ", size=" + size + ", streamId="
-				+ streamId + ", isGarbage=" + isGarbage + "]";
+				+ streamId + ", extendedTimestamp=" + extendedTimestamp + ", isGarbage=" + isGarbage + "]";
 	}
 
 }

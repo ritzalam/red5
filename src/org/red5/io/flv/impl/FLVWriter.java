@@ -432,10 +432,7 @@ public class FLVWriter implements ITagWriter {
 				writeMetadataTag(duration * 0.001d, videoCodecId, audioCodecId);
 				// set the data file the beginning 
 				dataFile.seek(0);
-				byte[] b = new byte[2];
-				while (dataFile.read(b) != -1) {
-					file.write(b);
-				}
+				file.getChannel().transferFrom(dataFile.getChannel(), bytesWritten, dataFile.length());
 			} else {
 				// TODO update duration
 
