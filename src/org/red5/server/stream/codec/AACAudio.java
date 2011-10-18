@@ -49,7 +49,7 @@ public class AACAudio implements IAudioStreamCodec {
 	 */
 	private byte[] blockDataAACDCR;
 
-	/** Constructs a new AVCVideo. */
+	/** Constructs a new AACAudio */
 	public AACAudio() {
 		this.reset();
 	}

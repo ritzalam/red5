@@ -78,9 +78,6 @@ import org.slf4j.LoggerFactory;
  */
 public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer {
 
-	/**
-	 * Logger
-	 */
 	private static Logger log = LoggerFactory.getLogger(MP4Reader.class);
 
 	/** Audio packet prefix */
@@ -292,7 +289,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 						int loops = 0;
 						int tracks = 0;
 						do {
-
 							MP4Atom trak = moov.lookup(MP4Atom.typeToInt("trak"), loops);
 							if (trak != null) {
 								log.debug("Track atom found");
@@ -308,7 +304,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 										log.debug("Width {} x Height {}", width, height);
 									}
 								}
-
 								MP4Atom edts = trak.lookup(MP4Atom.typeToInt("edts"), 0);
 								if (edts != null) {
 									log.debug("Edit atom found");
@@ -320,7 +315,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 								if (mdia != null) {
 									log.debug("Media atom found");
 									// mdia: mdhd, hdlr, minf
-
 									int scale = 0;
 									//get the media header atom
 									MP4Atom mdhd = mdia.lookup(MP4Atom.typeToInt("mdhd"), 0);
@@ -330,7 +324,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 										scale = mdhd.getTimeScale();
 										log.debug("Time scale {}", scale);
 									}
-
 									MP4Atom hdlr = mdia.lookup(MP4Atom.typeToInt("hdlr"), 0);
 									if (hdlr != null) {
 										log.debug("Handler ref atom found");
@@ -352,7 +345,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 										}
 										tracks++;
 									}
-
 									MP4Atom minf = mdia.lookup(MP4Atom.typeToInt("minf"), 0);
 									if (minf != null) {
 										log.debug("Media info atom found");
@@ -420,27 +412,51 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 																	for (int e2 = 0; e2 < children2.size(); e2++) {
 																		MP4Descriptor descr2 = children2.get(e2);
 																		log.debug("{}", ToStringBuilder.reflectionToString(descr2));
+																		// http://stackoverflow.com/questions/3987850/mp4-atom-how-to-discriminate-the-audio-codec-is-it-aac-or-mp3
 																		if (descr2.getType() == MP4Descriptor.MP4DecSpecificInfoDescriptorTag) {
 																			//we only want the MP4DecSpecificInfoDescriptorTag
 																			audioDecoderBytes = descr2.getDSID();
-																			//compare the bytes to get the aacaot/aottype 
+																			/* the first 5 (0-4) bits tell us about the coder used for aacaot/aottype
+																			 * http://wiki.multimedia.cx/index.php?title=MPEG-4_Audio
+																			 0 - NULL
+																			 1 - AAC Main (a deprecated AAC profile from MPEG-2)
+																			 2 - AAC LC or backwards compatible HE-AAC 
+																			 3 - AAC Scalable Sample Rate
+																			 4 - AAC LTP (a replacement for AAC Main, rarely used)
+																			 5 - HE-AAC explicitly signaled (Non-backward compatible)
+																			23 - Low Delay AAC
+																			29 - HE-AACv2 explicitly signaled
+																			31 - ESCAPE (read 6 more bits, add 32)
+																			32 - MP3on4 Layer 1
+																			33 - MP3on4 Layer 2
+																			34 - MP3on4 Layer 3
+																			*/
+																			byte audioCoderType = audioDecoderBytes[0];
 																			//match first byte
-																			switch (audioDecoderBytes[0]) {
-																				case 0x12:
+																			switch (audioCoderType) {
+																				case 0x02: 
 																				default:
-																					//AAC LC - 12 10
-																					audioCodecType = 1;
+																					audioCodecType = 1; //AAC LC
 																					break;
-																				case 0x0a:
-																					//AAC Main - 0A 10
-																					audioCodecType = 0;
+																				case 0x01:
+																					audioCodecType = 0; //AAC Main
 																					break;
-																				case 0x11:
-																				case 0x13:
-																					//AAC LC SBR - 11 90 & 13 xx
-																					audioCodecType = 2;
+																				case 0x03:
+																					audioCodecType = 2; //AAC LC SBR
 																					break;
+																				case 0x05:
+																				case 0x29:
+																					audioCodecType = 3; //AAC HE
+																					break;
+																				case 0x32:
+																				case 0x33:
+																				case 0x34:
+																					audioCodecType = 33; //MP3
+																					audioCodecId = "mp3";
+																					break;
+																					
 																			}
+																			log.debug("Audio coder type: {} {}", audioCoderType, Integer.toBinaryString(audioCoderType));
 																			//we want to break out of top level for loop
 																			e = 99;
 																			break;
@@ -926,7 +942,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		}
 		//tags will only appear if there is an "ilst" atom in the file
 		//props.put("tags", "");
-
 		List<Map<String, Object>> arr = new ArrayList<Map<String, Object>>(2);
 		if (hasAudio) {
 			Map<String, Object> audioMap = new HashMap<String, Object>(4);
@@ -946,9 +961,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 				audioSamples.clear();
 				audioSamples = null;
 			}
-
 			arr.add(audioMap);
-
 		}
 		if (hasVideo) {
 			Map<String, Object> videoMap = new HashMap<String, Object>(3);
@@ -961,27 +974,21 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			Map<String, String> sampleMap = new HashMap<String, String>(1);
 			sampleMap.put("sampletype", videoCodecId);
 			desc.add(sampleMap);
-
 			if (videoSamples != null) {
 				videoMap.put("length_property", videoSampleDuration * videoSamples.size());
 				//release some memory, since we're done with the vectors
 				videoSamples.clear();
 				videoSamples = null;
 			}
-
 			arr.add(videoMap);
-
 		}
 		props.put("trackinfo", arr);
 		//set this based on existence of seekpoints
 		props.put("canSeekToEnd", (seekPoints != null));
-
 		out.writeMap(props, new Serializer());
 		buf.flip();
-
 		//now that all the meta properties are done, update the duration
 		duration = Math.round(duration * 1000d);
-
 		ITag result = new Tag(IoConstants.TYPE_METADATA, 0, buf.limit(), null, 0);
 		result.setBody(buf);
 		return result;
@@ -1060,9 +1067,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 				body.flip();
 				tag.setBody(body);
 				//add tag
-				firstTags.add(tag);
-				// TODO: parse the decoder bytes for hints about decoder type (sbr etc)
-				
+				firstTags.add(tag);				
 			} else {
 				log.warn("Audio decoder bytes were not available");
 			}
