@@ -36,10 +36,12 @@ public class ClientBW extends BaseEvent {
 	private int bandwidth;
 
 	/**
-	 * Enforcement level of the bandwidth value based on three values.
-	TYPE_DYNAMIC 2
-	TYPE_HARD 0
-	TYPE_SOFT 1
+	 * Enforcement level or limit type of the bandwidth value based on three values.
+	 * <pre>
+	 * TYPE_HARD 0
+	 * TYPE_SOFT 1
+	 * TYPE_DYNAMIC 2
+	 * </pre>
 	 */
 	private byte value2;
 
@@ -47,10 +49,10 @@ public class ClientBW extends BaseEvent {
 		super(Type.STREAM_CONTROL);
 	}
 
-	public ClientBW(int bandwidth, byte value2) {
+	public ClientBW(int bandwidth, byte limitType) {
 		this();
 		this.bandwidth = bandwidth;
-		this.value2 = value2;
+		this.value2 = limitType;
 	}
 
 	/** {@inheritDoc} */
@@ -98,7 +100,7 @@ public class ClientBW extends BaseEvent {
 	/** {@inheritDoc} */
 	@Override
 	public String toString() {
-		return "ClientBW: " + bandwidth + " value2: " + value2;
+		return "ClientBW: " + bandwidth + " enforcementLevel: " + value2;
 	}
 
 	/** {@inheritDoc} */

@@ -71,9 +71,6 @@ import org.slf4j.Logger;
  */
 public class RTMPHandler extends BaseRTMPHandler {
 
-	/**
-	 * Logger
-	 */
 	protected static Logger log = Red5LoggerFactory.getLogger(RTMPHandler.class);
 
 	/**
