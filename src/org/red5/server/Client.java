@@ -276,7 +276,6 @@ public class Client extends AttributeStore implements IClient {
 	public Map<String, Object> checkBandwidthUp(Object[] params) {
 		//do something to check the bandwidth, Dan what do you think?
 		ClientServerDetection detection = new ClientServerDetection();
-
 		// if dynamic bw is turned on, we switch to a higher or lower
 		return detection.checkBandwidth(params);
 	}
