@@ -30,12 +30,10 @@ import javax.management.ObjectName;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.filterchain.IoFilterChain;
 import org.apache.mina.core.session.IoSession;
-import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
 import org.red5.server.jmx.mxbeans.RTMPMinaConnectionMXBean;
-import org.red5.server.net.filter.TrafficShapingFilter;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.event.ClientBW;
@@ -52,25 +50,29 @@ import org.slf4j.LoggerFactory;
  * @author Paul Gregoire
  */
 public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnectionMXBean {
-	
+
 	protected static Logger log = LoggerFactory.getLogger(RTMPMinaConnection.class);
 
 	/**
 	 * MINA I/O session, connection between two end points
 	 */
 	private volatile IoSession ioSession;
-	
+
 	/**
 	 * MBean object name used for de/registration purposes.
 	 */
 	private volatile ObjectName oName;
 
+	protected int defaultServerBandwidth = 10000000;
+
+	protected int defaultClientBandwidth = 10000000;
+
 	{
 		log.debug("RTMPMinaConnection created");
 	}
-	
+
 	/** Constructs a new RTMPMinaConnection. */
-	@ConstructorProperties(value={"persistent"})
+	@ConstructorProperties(value = { "persistent" })
 	public RTMPMinaConnection() {
 		super(PERSISTENT);
 	}
@@ -80,10 +82,10 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	public void close() {
 		super.close();
 		if (ioSession != null) {
-			IoFilterChain filters =	ioSession.getFilterChain();
+			IoFilterChain filters = ioSession.getFilterChain();
 			//check if it exists and remove
 			if (filters.contains("bandwidthFilter")) {
-        		ioSession.getFilterChain().remove("bandwidthFilter");
+				ioSession.getFilterChain().remove("bandwidthFilter");
 			}
 			// update our state
 			if (ioSession.containsAttribute(ProtocolState.SESSION_KEY)) {
@@ -102,16 +104,16 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 			//future.awaitUninterruptibly();
 			// now connection should be closed.
 			//if (!future.isClosed()) {
-				// force the close
+			// force the close
 			//	ioSession.close(true);				
 			//}
 		}
 		//de-register with JMX
 		try {
-		    JMXAgent.unregisterMBean(oName);
+			JMXAgent.unregisterMBean(oName);
 		} catch (Exception e) {
-		    //sometimes the client is not registered in jmx
-		}		
+			//sometimes the client is not registered in jmx
+		}
 	}
 
 	@SuppressWarnings("cast")
@@ -131,56 +133,59 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 		}
 		//if the client is null for some reason, skip the jmx registration
 		if (client != null) {
-    		try {
+			try {
 				String cName = this.getClass().getName();
 				if (cName.indexOf('.') != -1) {
 					cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
-				}				
-			    // Create a new mbean for this instance
-			    oName = JMXFactory.createObjectName("type", cName, "connectionType", type, "host", hostStr, "port", port + "", "clientId", client.getId());
-			    JMXAgent.registerMBean(this, this.getClass().getName(),	RTMPMinaConnectionMXBean.class, oName);		
-    		} catch (Exception e) {
-    			log.warn("Exception registering mbean", e);
-    		}
-		} else {
-            log.warn("Client was null");			
-		}
-		//add bandwidth filter
-		if (ioSession != null) {
-			log.debug("Top level scope detected, configuration will be applied if it exists");
-			IContext ctx = scope.getContext();
-			if (ctx != null) {
-				log.debug("Context was found");	
-				IoFilterChain filters =	ioSession.getFilterChain();
-				//add it if it does not exist
-				if (!filters.contains("bandwidthFilter")) {
-					//look for the bean first
-					if (ctx.hasBean("bandwidthFilter")) {
-						TrafficShapingFilter filter = (TrafficShapingFilter) ctx.getBean("bandwidthFilter");
-                		//load the each after the last
-                		ioSession.getFilterChain().addAfter("protocolFilter", "bandwidthFilter", filter);                		
-                		//notify client about new bandwidth settings (in bytes per second)
-                		int downStream = filter.getMaxReadThroughput();
-                		int upStream = filter.getMaxWriteThroughput();
-                		if (downStream > 0) {
-                			ServerBW serverBW = new ServerBW((int) downStream / 8);
-                			getChannel(2).write(serverBW);
-                		}
-                		if (upStream > 0) {
-                			ClientBW clientBW = new ClientBW((int) upStream / 8, (byte) 0);
-                			getChannel(2).write(clientBW);
-            				// Update generation of BytesRead messages
-            				// TODO: what are the correct values here?
-            				bytesReadInterval = (int) upStream / 8;
-            				nextBytesRead = (int) getWrittenBytes();
-                		}
-               		
-					}
 				}
+				// Create a new mbean for this instance
+				oName = JMXFactory.createObjectName("type", cName, "connectionType", type, "host", hostStr, "port", port + "", "clientId", client.getId());
+				JMXAgent.registerMBean(this, this.getClass().getName(), RTMPMinaConnectionMXBean.class, oName);
+			} catch (Exception e) {
+				log.warn("Exception registering mbean", e);
 			}
 		} else {
-			log.debug("Session was null");
+			log.warn("Client was null");
 		}
+		// tell the flash player how fast we want data and how fast we shall send it
+		getChannel(2).write(new ServerBW(defaultServerBandwidth));
+		getChannel(2).write(new ClientBW(defaultClientBandwidth, (byte) 0));
+		//add bandwidth filter
+		//		if (ioSession != null) {
+		//			log.debug("Top level scope detected, configuration will be applied if it exists");
+		//			IContext ctx = scope.getContext();
+		//			if (ctx != null) {
+		//				log.debug("Context was found");	
+		//				IoFilterChain filters =	ioSession.getFilterChain();
+		//				//add it if it does not exist
+		//				if (!filters.contains("bandwidthFilter")) {
+		//					//look for the bean first
+		//					if (ctx.hasBean("bandwidthFilter")) {
+		//						TrafficShapingFilter filter = (TrafficShapingFilter) ctx.getBean("bandwidthFilter");
+		//                		//load the each after the last
+		//                		ioSession.getFilterChain().addAfter("protocolFilter", "bandwidthFilter", filter);                		
+		//                		//notify client about new bandwidth settings (in bytes per second)
+		//                		int downStream = filter.getMaxReadThroughput();
+		//                		int upStream = filter.getMaxWriteThroughput();
+		//                		if (downStream > 0) {
+		//                			ServerBW serverBW = new ServerBW((int) downStream / 8);
+		//                			getChannel(2).write(serverBW);
+		//                		}
+		//                		if (upStream > 0) {
+		//                			ClientBW clientBW = new ClientBW((int) upStream / 8, (byte) 0);
+		//                			getChannel(2).write(clientBW);
+		//            				// Update generation of BytesRead messages
+		//            				// TODO: what are the correct values here?
+		//            				bytesReadInterval = (int) upStream / 8;
+		//            				nextBytesRead = (int) getWrittenBytes();
+		//                		}
+		//               		
+		//					}
+		//				}
+		//			}
+		//		} else {
+		//			log.debug("Session was null");
+		//		}
 		return success;
 	}
 
@@ -191,6 +196,34 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	 */
 	public IoSession getIoSession() {
 		return ioSession;
+	}
+
+	/**
+	 * @return the defaultServerBandwidth
+	 */
+	public int getDefaultServerBandwidth() {
+		return defaultServerBandwidth;
+	}
+
+	/**
+	 * @param defaultServerBandwidth the defaultServerBandwidth to set
+	 */
+	public void setDefaultServerBandwidth(int defaultServerBandwidth) {
+		this.defaultServerBandwidth = defaultServerBandwidth;
+	}
+
+	/**
+	 * @return the defaultClientBandwidth
+	 */
+	public int getDefaultClientBandwidth() {
+		return defaultClientBandwidth;
+	}
+
+	/**
+	 * @param defaultClientBandwidth the defaultClientBandwidth to set
+	 */
+	public void setDefaultClientBandwidth(int defaultClientBandwidth) {
+		this.defaultClientBandwidth = defaultClientBandwidth;
 	}
 
 	/** {@inheritDoc} */
