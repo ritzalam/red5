@@ -66,6 +66,8 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	protected int defaultServerBandwidth = 10000000;
 
 	protected int defaultClientBandwidth = 10000000;
+	
+	protected int limitType = 0;
 
 	{
 		log.debug("RTMPMinaConnection created");
@@ -121,71 +123,71 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	public boolean connect(IScope newScope, Object[] params) {
 		log.debug("Connect scope: {}", newScope);
 		boolean success = super.connect(newScope, params);
-		if (!success) {
-			return false;
-		}
-		String hostStr = host;
-		int port = 1935;
-		if (host != null && host.indexOf(":") > -1) {
-			String[] arr = host.split(":");
-			hostStr = arr[0];
-			port = Integer.parseInt(arr[1]);
-		}
-		//if the client is null for some reason, skip the jmx registration
-		if (client != null) {
-			try {
-				String cName = this.getClass().getName();
-				if (cName.indexOf('.') != -1) {
-					cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
+		if (success) {
+			//if the client is null for some reason, skip the jmx registration
+			if (client != null) {
+				try {
+					String cName = this.getClass().getName();
+					if (cName.indexOf('.') != -1) {
+						cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
+					}
+					String hostStr = host;
+					int port = 1935;
+					if (host != null && host.indexOf(":") > -1) {
+						String[] arr = host.split(":");
+						hostStr = arr[0];
+						port = Integer.parseInt(arr[1]);
+					}
+					// Create a new mbean for this instance
+					oName = JMXFactory.createObjectName("type", cName, "connectionType", type, "host", hostStr, "port", port + "", "clientId", client.getId());
+					JMXAgent.registerMBean(this, this.getClass().getName(), RTMPMinaConnectionMXBean.class, oName);
+				} catch (Exception e) {
+					log.warn("Exception registering mbean", e);
 				}
-				// Create a new mbean for this instance
-				oName = JMXFactory.createObjectName("type", cName, "connectionType", type, "host", hostStr, "port", port + "", "clientId", client.getId());
-				JMXAgent.registerMBean(this, this.getClass().getName(), RTMPMinaConnectionMXBean.class, oName);
-			} catch (Exception e) {
-				log.warn("Exception registering mbean", e);
+			} else {
+				log.warn("Client was null");
 			}
-		} else {
-			log.warn("Client was null");
+			// tell the flash player how fast we want data and how fast we shall send it
+			getChannel(2).write(new ServerBW(defaultServerBandwidth));
+			// second param is the limit type (0=hard,1=soft,2=dynamic)
+			getChannel(2).write(new ClientBW(defaultClientBandwidth, (byte) limitType));
+			//add bandwidth filter
+			//		if (ioSession != null) {
+			//			log.debug("Top level scope detected, configuration will be applied if it exists");
+			//			IContext ctx = scope.getContext();
+			//			if (ctx != null) {
+			//				log.debug("Context was found");	
+			//				IoFilterChain filters =	ioSession.getFilterChain();
+			//				//add it if it does not exist
+			//				if (!filters.contains("bandwidthFilter")) {
+			//					//look for the bean first
+			//					if (ctx.hasBean("bandwidthFilter")) {
+			//						TrafficShapingFilter filter = (TrafficShapingFilter) ctx.getBean("bandwidthFilter");
+			//                		//load the each after the last
+			//                		ioSession.getFilterChain().addAfter("protocolFilter", "bandwidthFilter", filter);                		
+			//                		//notify client about new bandwidth settings (in bytes per second)
+			//                		int downStream = filter.getMaxReadThroughput();
+			//                		int upStream = filter.getMaxWriteThroughput();
+			//                		if (downStream > 0) {
+			//                			ServerBW serverBW = new ServerBW((int) downStream / 8);
+			//                			getChannel(2).write(serverBW);
+			//                		}
+			//                		if (upStream > 0) {
+			//                			ClientBW clientBW = new ClientBW((int) upStream / 8, (byte) 0);
+			//                			getChannel(2).write(clientBW);
+			//            				// Update generation of BytesRead messages
+			//            				// TODO: what are the correct values here?
+			//            				bytesReadInterval = (int) upStream / 8;
+			//            				nextBytesRead = (int) getWrittenBytes();
+			//                		}
+			//               		
+			//					}
+			//				}
+			//			}
+			//		} else {
+			//			log.debug("Session was null");
+			//		}
 		}
-		// tell the flash player how fast we want data and how fast we shall send it
-		getChannel(2).write(new ServerBW(defaultServerBandwidth));
-		getChannel(2).write(new ClientBW(defaultClientBandwidth, (byte) 0));
-		//add bandwidth filter
-		//		if (ioSession != null) {
-		//			log.debug("Top level scope detected, configuration will be applied if it exists");
-		//			IContext ctx = scope.getContext();
-		//			if (ctx != null) {
-		//				log.debug("Context was found");	
-		//				IoFilterChain filters =	ioSession.getFilterChain();
-		//				//add it if it does not exist
-		//				if (!filters.contains("bandwidthFilter")) {
-		//					//look for the bean first
-		//					if (ctx.hasBean("bandwidthFilter")) {
-		//						TrafficShapingFilter filter = (TrafficShapingFilter) ctx.getBean("bandwidthFilter");
-		//                		//load the each after the last
-		//                		ioSession.getFilterChain().addAfter("protocolFilter", "bandwidthFilter", filter);                		
-		//                		//notify client about new bandwidth settings (in bytes per second)
-		//                		int downStream = filter.getMaxReadThroughput();
-		//                		int upStream = filter.getMaxWriteThroughput();
-		//                		if (downStream > 0) {
-		//                			ServerBW serverBW = new ServerBW((int) downStream / 8);
-		//                			getChannel(2).write(serverBW);
-		//                		}
-		//                		if (upStream > 0) {
-		//                			ClientBW clientBW = new ClientBW((int) upStream / 8, (byte) 0);
-		//                			getChannel(2).write(clientBW);
-		//            				// Update generation of BytesRead messages
-		//            				// TODO: what are the correct values here?
-		//            				bytesReadInterval = (int) upStream / 8;
-		//            				nextBytesRead = (int) getWrittenBytes();
-		//                		}
-		//               		
-		//					}
-		//				}
-		//			}
-		//		} else {
-		//			log.debug("Session was null");
-		//		}
 		return success;
 	}
 
@@ -224,6 +226,20 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	 */
 	public void setDefaultClientBandwidth(int defaultClientBandwidth) {
 		this.defaultClientBandwidth = defaultClientBandwidth;
+	}
+
+	/**
+	 * @return the limitType
+	 */
+	public int getLimitType() {
+		return limitType;
+	}
+
+	/**
+	 * @param limitType the limitType to set
+	 */
+	public void setLimitType(int limitType) {
+		this.limitType = limitType;
 	}
 
 	/** {@inheritDoc} */

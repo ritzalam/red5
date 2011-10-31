@@ -53,18 +53,6 @@ import org.slf4j.LoggerFactory;
  */
 public class RTMPMinaTransport {
 
-	private static final int DEFAULT_CONN_THREADS = Runtime.getRuntime().availableProcessors();
-
-	private static final int DEFAULT_IO_THREADS = DEFAULT_CONN_THREADS * 2;
-
-	private static final int DEFAULT_RECEIVE_BUFFER_SIZE = 256 * 1024;
-
-	private static final int DEFAULT_SEND_BUFFER_SIZE = 64 * 1024;
-
-	private static final boolean DEFAULT_TCP_NO_DELAY = false;
-
-	private static final boolean DEFAULT_USE_HEAP_BUFFERS = true;
-
 	private static final Logger log = LoggerFactory.getLogger(RTMPMinaTransport.class);
 
 	protected SocketAcceptor acceptor;
@@ -75,9 +63,7 @@ public class RTMPMinaTransport {
 
 	protected IoServiceStatistics stats;
 
-	protected int connectionThreads = DEFAULT_CONN_THREADS;
-
-	protected int ioThreads = DEFAULT_IO_THREADS;
+	protected int ioThreads = Runtime.getRuntime().availableProcessors() * 2;
 
 	/**
 	 * MBean object name used for de/registration purposes.
@@ -86,13 +72,13 @@ public class RTMPMinaTransport {
 
 	protected int jmxPollInterval = 1000;
 
-	protected int receiveBufferSize = DEFAULT_RECEIVE_BUFFER_SIZE;
+	protected int receiveBufferSize = 0;
 
-	protected int sendBufferSize = DEFAULT_SEND_BUFFER_SIZE;
+	protected int sendBufferSize = 0;
 
-	protected boolean tcpNoDelay = DEFAULT_TCP_NO_DELAY;
+	protected boolean tcpNoDelay = true;
 
-	protected boolean useHeapBuffers = DEFAULT_USE_HEAP_BUFFERS;
+	protected boolean useHeapBuffers = true;
 
 	private void initIOHandler() {
 		if (ioHandler == null) {
@@ -109,32 +95,28 @@ public class RTMPMinaTransport {
 			IoBuffer.setAllocator(new SimpleBufferAllocator());
 		}
 		log.info("RTMP Mina Transport Settings");
-		//log.info("Connection Threads: {}", connectionThreads);
 		log.info("I/O Threads: {}", ioThreads);
-		
 		// XXX Paul: come back and review why the separate executors didnt work as expected
-		// ref: http://stackoverflow.com/questions/5088850/multi-threading-in-red5
-		
+		// ref: http://stackoverflow.com/questions/5088850/multi-threading-in-red5		
 		//use default parameters, and given number of NioProcessor for multithreading I/O operations
-		acceptor = new NioSocketAcceptor(ioThreads);
-		//create separate executors to handle connections and i/o
-		//Executor connectionExecutor = Executors.newFixedThreadPool(connectionThreads);
-		//Executor ioExecutor = Executors.newFixedThreadPool(ioThreads);
-		//acceptor = new NioSocketAcceptor(connectionExecutor, new NioProcessor(ioExecutor));
-		
+		acceptor = new NioSocketAcceptor(ioThreads);		
 		// set acceptor props
 		acceptor.setHandler(ioHandler);
 		acceptor.setBacklog(50);
-		log.info("TCP No Delay: {}", tcpNoDelay);
-		log.info("Receive Buffer Size: {}", receiveBufferSize);
-		log.info("Send Buffer Size: {}", sendBufferSize);
 		//get the current session config that would be used during create
 		SocketSessionConfig sessionConf = acceptor.getSessionConfig();
 		//reuse the addresses
 		sessionConf.setReuseAddress(true);
+		log.info("TCP No Delay: {}", tcpNoDelay);
 		sessionConf.setTcpNoDelay(tcpNoDelay);
-		sessionConf.setReceiveBufferSize(receiveBufferSize);
-		sessionConf.setSendBufferSize(sendBufferSize);
+		if (receiveBufferSize > 0) {
+			log.info("Receive Buffer Size: {}", receiveBufferSize);
+			sessionConf.setReceiveBufferSize(receiveBufferSize);
+		}
+		if (sendBufferSize > 0) {
+			log.info("Send Buffer Size: {}", sendBufferSize);
+			sessionConf.setSendBufferSize(sendBufferSize);
+		}
 		//set reuse address on the socket acceptor as well
 		acceptor.setReuseAddress(true);
 		String addrStr = addresses.toString();
@@ -190,10 +172,6 @@ public class RTMPMinaTransport {
 		}
 	}
 
-	public void setConnectionThreads(int connectionThreads) {
-		this.connectionThreads = connectionThreads;
-	}
-
 	public void setIoHandler(IoHandlerAdapter rtmpIOHandler) {
 		this.ioHandler = rtmpIOHandler;
 	}
@@ -202,13 +180,13 @@ public class RTMPMinaTransport {
 		this.ioThreads = ioThreads;
 	}
 
-	public void setReceiveBufferSize(int receiveBufferSize) {
-		this.receiveBufferSize = receiveBufferSize;
-	}
+//	public void setReceiveBufferSize(int receiveBufferSize) {
+//		this.receiveBufferSize = receiveBufferSize;
+//	}
 
-	public void setSendBufferSize(int sendBufferSize) {
-		this.sendBufferSize = sendBufferSize;
-	}
+//	public void setSendBufferSize(int sendBufferSize) {
+//		this.sendBufferSize = sendBufferSize;
+//	}
 
 	public void setTcpNoDelay(boolean tcpNoDelay) {
 		this.tcpNoDelay = tcpNoDelay;
