@@ -76,11 +76,11 @@
 		<!-- Max. time in milliseconds to wait for a valid handshake. -->
 		<property name="maxHandshakeTimeout" value="5000" />
         <!-- Default server bandwidth per connection -->
-        <property name="defaultServerBandwidth" value="${default_server_bandwidth}" />
+        <property name="defaultServerBandwidth" value="${rtmp.default_server_bandwidth}" />
         <!-- Default client bandwidth per connection -->
-        <property name="defaultClientBandwidth" value="${default_client_bandwidth}" />
+        <property name="defaultClientBandwidth" value="${rtmp.default_client_bandwidth}" />
         <!-- Client bandwidth limit type: 0 = hard, 1 = soft, 2 = dynamic -->
-        <property name="limitType" value="${client_bandwidth_limit_type}" />
+        <property name="limitType" value="${rtmp.client_bandwidth_limit_type}" />
 	</bean>
 	
 	<!-- RTMPT -->
