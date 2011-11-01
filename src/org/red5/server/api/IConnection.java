@@ -250,4 +250,11 @@ public interface IConnection extends ICoreObject {
 	 */
 	public Iterator<IBasicScope> getBasicScopes();
 
+	/**
+	 * Sets the bandwidth using a mbit/s value.
+	 * 
+	 * @param mbits
+	 */
+	public void setBandwidth(int mbits);
+
 }

@@ -149,4 +149,10 @@ public interface IClient extends IAttributeStore {
 	 */
 	public Map<String, Object> checkBandwidthUp(Object[] params);
 	
+	/**
+	 * Returns whether or not a bandwidth check has been requested.
+	 * @return true if requested and false otherwise
+	 */
+	public boolean isBandwidthChecked();
+	
 }

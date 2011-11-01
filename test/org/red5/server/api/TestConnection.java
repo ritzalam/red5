@@ -70,4 +70,7 @@ public class TestConnection extends BaseConnection {
 		this.scope.setContext(context);
 	}
 
+	public void setBandwidth(int mbits) {
+	}
+
 }

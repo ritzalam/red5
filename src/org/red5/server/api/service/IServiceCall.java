@@ -60,6 +60,20 @@ public interface IServiceCall {
 	public abstract byte getStatus();
 
 	/**
+	 * Returns the time stamp at which this object was deserialized.
+	 * 
+	 * @return the readTime
+	 */
+	public long getReadTime();
+
+	/**
+	 * Returns the time stamp at which this object was serialized.
+	 * 
+	 * @return the writeTime
+	 */
+	public long getWriteTime();
+	
+	/**
 	 * Get service call exception
 	 * 
 	 * @return	service call exception

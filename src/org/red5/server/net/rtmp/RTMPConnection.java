@@ -51,9 +51,11 @@ import org.red5.server.api.stream.IStreamService;
 import org.red5.server.exception.ClientRejectedException;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.event.BytesRead;
+import org.red5.server.net.rtmp.event.ClientBW;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
+import org.red5.server.net.rtmp.event.ServerBW;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.service.Call;
@@ -208,6 +210,11 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 */
 	private volatile int maxHandshakeTimeout = 5000;
 
+	/**
+	 * Bandwidth limit type / enforcement. (0=hard,1=soft,2=dynamic)
+	 */
+	protected int limitType = 0;	
+	
 	protected volatile int clientId;
 
 	/**
@@ -254,6 +261,14 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		this.state = state;
 	}
 
+	/** {@inheritDoc} */
+	public void setBandwidth(int mbits) {
+		// tell the flash player how fast we want data and how fast we shall send it
+		getChannel(2).write(new ServerBW(mbits));
+		// second param is the limit type (0=hard,1=soft,2=dynamic)
+		getChannel(2).write(new ClientBW(mbits, (byte) limitType));
+	}	
+	
 	@Override
 	public boolean connect(IScope newScope, Object[] params) {
 		log.debug("Connect scope: {}", newScope);

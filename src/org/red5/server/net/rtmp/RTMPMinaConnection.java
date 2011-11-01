@@ -67,7 +67,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 
 	protected int defaultClientBandwidth = 10000000;
 	
-	protected int limitType = 0;
+	protected boolean bandwidthDetection = true;
 
 	{
 		log.debug("RTMPMinaConnection created");
@@ -124,8 +124,17 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 		log.debug("Connect scope: {}", newScope);
 		boolean success = super.connect(newScope, params);
 		if (success) {
+			// tell the flash player how fast we want data and how fast we shall send it
+			getChannel(2).write(new ServerBW(defaultServerBandwidth));
+			// second param is the limit type (0=hard,1=soft,2=dynamic)
+			getChannel(2).write(new ClientBW(defaultClientBandwidth, (byte) limitType));
 			//if the client is null for some reason, skip the jmx registration
 			if (client != null) {
+				// perform bandwidth detection
+				if (bandwidthDetection && !client.isBandwidthChecked()) {
+					client.checkBandwidth();
+				}
+				// register with jmx
 				try {
 					String cName = this.getClass().getName();
 					if (cName.indexOf('.') != -1) {
@@ -147,46 +156,6 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 			} else {
 				log.warn("Client was null");
 			}
-			// tell the flash player how fast we want data and how fast we shall send it
-			getChannel(2).write(new ServerBW(defaultServerBandwidth));
-			// second param is the limit type (0=hard,1=soft,2=dynamic)
-			getChannel(2).write(new ClientBW(defaultClientBandwidth, (byte) limitType));
-			//add bandwidth filter
-			//		if (ioSession != null) {
-			//			log.debug("Top level scope detected, configuration will be applied if it exists");
-			//			IContext ctx = scope.getContext();
-			//			if (ctx != null) {
-			//				log.debug("Context was found");	
-			//				IoFilterChain filters =	ioSession.getFilterChain();
-			//				//add it if it does not exist
-			//				if (!filters.contains("bandwidthFilter")) {
-			//					//look for the bean first
-			//					if (ctx.hasBean("bandwidthFilter")) {
-			//						TrafficShapingFilter filter = (TrafficShapingFilter) ctx.getBean("bandwidthFilter");
-			//                		//load the each after the last
-			//                		ioSession.getFilterChain().addAfter("protocolFilter", "bandwidthFilter", filter);                		
-			//                		//notify client about new bandwidth settings (in bytes per second)
-			//                		int downStream = filter.getMaxReadThroughput();
-			//                		int upStream = filter.getMaxWriteThroughput();
-			//                		if (downStream > 0) {
-			//                			ServerBW serverBW = new ServerBW((int) downStream / 8);
-			//                			getChannel(2).write(serverBW);
-			//                		}
-			//                		if (upStream > 0) {
-			//                			ClientBW clientBW = new ClientBW((int) upStream / 8, (byte) 0);
-			//                			getChannel(2).write(clientBW);
-			//            				// Update generation of BytesRead messages
-			//            				// TODO: what are the correct values here?
-			//            				bytesReadInterval = (int) upStream / 8;
-			//            				nextBytesRead = (int) getWrittenBytes();
-			//                		}
-			//               		
-			//					}
-			//				}
-			//			}
-			//		} else {
-			//			log.debug("Session was null");
-			//		}
 		}
 		return success;
 	}
@@ -242,6 +211,20 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 		this.limitType = limitType;
 	}
 
+	/**
+	 * @return the bandwidthDetection
+	 */
+	public boolean isBandwidthDetection() {
+		return bandwidthDetection;
+	}
+
+	/**
+	 * @param bandwidthDetection the bandwidthDetection to set
+	 */
+	public void setBandwidthDetection(boolean bandwidthDetection) {
+		this.bandwidthDetection = bandwidthDetection;
+	}
+	
 	/** {@inheritDoc} */
 	@Override
 	public long getPendingMessages() {
@@ -322,4 +305,5 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 			ioSession.write(out);
 		}
 	}
+
 }

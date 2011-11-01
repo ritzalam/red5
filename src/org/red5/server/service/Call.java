@@ -23,6 +23,7 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+
 import org.red5.server.api.service.IServiceCall;
 
 /**
@@ -32,198 +33,233 @@ import org.red5.server.api.service.IServiceCall;
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class Call implements IServiceCall, Externalizable {
+	
 	private static final long serialVersionUID = -3699712251588013875L;
-    /**
-     * Pending status constant
-     */
+
+	/**
+	 * Pending status constant
+	 */
 	public static final byte STATUS_PENDING = 0x01;
-    /**
-     * Success result constant
-     */
+
+	/**
+	 * Success result constant
+	 */
 	public static final byte STATUS_SUCCESS_RESULT = 0x02;
-    /**
-     * Returned value is null constant
-     */
+
+	/**
+	 * Returned value is null constant
+	 */
 	public static final byte STATUS_SUCCESS_NULL = 0x03;
-    /**
-     * Service returns no value constant
-     */
+
+	/**
+	 * Service returns no value constant
+	 */
 	public static final byte STATUS_SUCCESS_VOID = 0x04;
-    /**
-     * Service not found constant
-     */
+
+	/**
+	 * Service not found constant
+	 */
 	public static final byte STATUS_SERVICE_NOT_FOUND = 0x10;
-    /**
-     * Service's method not found constant
-     */
+
+	/**
+	 * Service's method not found constant
+	 */
 	public static final byte STATUS_METHOD_NOT_FOUND = 0x11;
-    /**
-     * Access denied constant
-     */
+
+	/**
+	 * Access denied constant
+	 */
 	public static final byte STATUS_ACCESS_DENIED = 0x12;
 
-    /**
-     * Exception on invocation constant
-     */
-    public static final byte STATUS_INVOCATION_EXCEPTION = 0x13;
+	/**
+	 * Exception on invocation constant
+	 */
+	public static final byte STATUS_INVOCATION_EXCEPTION = 0x13;
 
-    /**
-     * General exception constant
-     */
-    public static final byte STATUS_GENERAL_EXCEPTION = 0x14;
+	/**
+	 * General exception constant
+	 */
+	public static final byte STATUS_GENERAL_EXCEPTION = 0x14;
 
-    /**
-     * The application for this service is currently shutting down
-     */
-    public static final byte STATUS_APP_SHUTTING_DOWN = 0x15;
+	/**
+	 * The application for this service is currently shutting down
+	 */
+	public static final byte STATUS_APP_SHUTTING_DOWN = 0x15;
 
-    /**
-     * The remote method cannot be invoked because the client is not connected. NOTE that it is possible
-     * that this error is returned in the situation where the method has been invoked on the server the connection
-     * has failed before the result returned could be read. There is no way to establish whether this has happened.
-     */
-    public static final byte STATUS_NOT_CONNECTED = 0x20;
+	/**
+	 * The remote method cannot be invoked because the client is not connected. NOTE that it is possible
+	 * that this error is returned in the situation where the method has been invoked on the server the connection
+	 * has failed before the result returned could be read. There is no way to establish whether this has happened.
+	 */
+	public static final byte STATUS_NOT_CONNECTED = 0x20;
 
+	/**
+	 * Service name
+	 */
+	protected String serviceName;
 
-    /**
-     * Service name
-     */
-    protected String serviceName;
-    /**
-     * Service method name
-     */
+	/**
+	 * Service method name
+	 */
 	protected String serviceMethodName;
-    /**
-     * Call arguments
-     */
-	protected Object[] arguments = null;
-    /**
-     * Call status, initial one is pending
-     */
-	protected byte status = STATUS_PENDING;
-    /**
-     * Call exception if any, null by default
-     */
-	protected Exception exception;
-	public Call() {}
 
-    /**
-     * Creates call from method name
-     * @param method        Method name
-     */
+	/**
+	 * Call arguments
+	 */
+	protected Object[] arguments = null;
+
+	/**
+	 * Call status, initial one is pending
+	 */
+	protected byte status = STATUS_PENDING;
+
+	/**
+	 * Call exception if any, null by default
+	 */
+	protected Exception exception;
+
+	/**
+	 * Timestamp at which the call was deserialized.
+	 */
+	private long readTime;
+
+	/**
+	 * Timestamp at which the call was serialized.
+	 */
+	private long writeTime;
+	
+	public Call() {
+	}
+
+	/**
+	 * Creates call from method name
+	 * @param method        Method name
+	 */
 	public Call(String method) {
 		serviceMethodName = method;
 	}
 
-    /**
-     * Creates call from method name and array of call parameters
-     * @param method        Method name
-     * @param args          Call parameters
-     */
-    public Call(String method, Object[] args) {
+	/**
+	 * Creates call from method name and array of call parameters
+	 * @param method        Method name
+	 * @param args          Call parameters
+	 */
+	public Call(String method, Object[] args) {
 		serviceMethodName = method;
 		arguments = args;
 	}
 
-    /**
-     * Creates call from given service name, method name and array of call parameters
-     * @param name         Service name
-     * @param method       Service method name
-     * @param args         Call parameters
-     */
-    public Call(String name, String method, Object[] args) {
+	/**
+	 * Creates call from given service name, method name and array of call parameters
+	 * @param name         Service name
+	 * @param method       Service method name
+	 * @param args         Call parameters
+	 */
+	public Call(String name, String method, Object[] args) {
 		serviceName = name;
 		serviceMethodName = method;
 		arguments = args;
 	}
 
 	/**
-     * {@inheritDoc}
+	 * {@inheritDoc}
 	 */
 	public boolean isSuccess() {
-		return (status == STATUS_SUCCESS_RESULT)
-				|| (status == STATUS_SUCCESS_NULL)
-				|| (status == STATUS_SUCCESS_VOID);
+		return (status == STATUS_SUCCESS_RESULT) || (status == STATUS_SUCCESS_NULL) || (status == STATUS_SUCCESS_VOID);
 	}
 
 	/**
-     * {@inheritDoc}
+	 * {@inheritDoc}
 	 */
 	public String getServiceMethodName() {
 		return serviceMethodName;
 	}
 
 	/**
-     * Setter for service method name
-     *
-     * @param serviceMethodName  New service method name value
-     */
-    public void setServiceMethodName(String serviceMethodName) {
+	 * Setter for service method name
+	 *
+	 * @param serviceMethodName  New service method name value
+	 */
+	public void setServiceMethodName(String serviceMethodName) {
 		this.serviceMethodName = serviceMethodName;
 	}
 
 	/**
-     * {@inheritDoc}
+	 * {@inheritDoc}
 	 */
 	public String getServiceName() {
 		return serviceName;
 	}
 
 	/**
-     * Setter for service name
-     *
-     * @param serviceName  New service name value
-     */
-    public void setServiceName(String serviceName) {
+	 * Setter for service name
+	 *
+	 * @param serviceName  New service name value
+	 */
+	public void setServiceName(String serviceName) {
 		this.serviceName = serviceName;
 	}
 
 	/**
-     * {@inheritDoc}
+	 * {@inheritDoc}
 	 */
 	public Object[] getArguments() {
 		return arguments;
 	}
 
 	/**
-     * Setter for arguments.
-     *
-     * @param args  Arguments.
-     */
-    public void setArguments(Object[] args) {
+	 * Setter for arguments.
+	 *
+	 * @param args  Arguments.
+	 */
+	public void setArguments(Object[] args) {
 		arguments = args;
 	}
 
 	/**
-     * {@inheritDoc}
+	 * {@inheritDoc}
 	 */
 	public byte getStatus() {
 		return status;
 	}
 
 	/**
-     * {@inheritDoc}
+	 * {@inheritDoc}
 	 */
 	public void setStatus(byte status) {
 		this.status = status;
 	}
 
 	/**
-     * {@inheritDoc}
+	 * {@inheritDoc}
+	 */
+	public long getReadTime() {
+		return readTime;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public long getWriteTime() {
+		return writeTime;
+	}
+
+	/**
+	 * {@inheritDoc}
 	 */
 	public Exception getException() {
 		return exception;
 	}
 
 	/**
-     * {@inheritDoc}
+	 * {@inheritDoc}
 	 */
 	public void setException(Exception exception) {
 		this.exception = exception;
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("Service: ");
 		sb.append(serviceName);
@@ -245,6 +281,9 @@ public class Call implements IServiceCall, Externalizable {
 	}
 
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		// keep a time of receipt
+		readTime = System.currentTimeMillis();
+		// read-in properties
 		serviceName = (String) in.readObject();
 		serviceMethodName = (String) in.readObject();
 		arguments = (Object[]) in.readObject();
@@ -253,6 +292,9 @@ public class Call implements IServiceCall, Externalizable {
 	}
 
 	public void writeExternal(ObjectOutput out) throws IOException {
+		// keep a time of receipt
+		writeTime = System.currentTimeMillis();
+		// write-out properties
 		out.writeObject(serviceName);
 		out.writeObject(serviceMethodName);
 		out.writeObject(arguments);
