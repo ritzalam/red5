@@ -471,6 +471,11 @@ public class RemotingConnection implements IRemotingConnection {
 	public void setAttributes(IAttributeStore values) {
 		setAttributes(values.getAttributes());
 	}
+	
+	/** {@inheritDoc} */	
+	public void setBandwidth(int mbits) {
+		throw new UnsupportedOperationException("Not supported in this class");
+	}
 
 	/** {@inheritDoc} */
 	public void addHeader(String name, Object value) {

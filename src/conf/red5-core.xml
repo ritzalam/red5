@@ -81,6 +81,8 @@
         <property name="defaultClientBandwidth" value="${rtmp.default_client_bandwidth}" />
         <!-- Client bandwidth limit type: 0 = hard, 1 = soft, 2 = dynamic -->
         <property name="limitType" value="${rtmp.client_bandwidth_limit_type}" />
+        <!-- Bandwidth detection. If "false" the server will NOT initiate a check -->
+        <property name="bandwidthDetection" value="${rtmp.bandwidth_detection}" />
 	</bean>
 	
 	<!-- RTMPT -->

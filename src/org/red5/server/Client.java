@@ -22,6 +22,7 @@ package org.red5.server;
 import java.beans.ConstructorProperties;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -58,24 +59,29 @@ public class Client extends AttributeStore implements IClient {
 	protected static final String PERMISSIONS = IPersistable.TRANSIENT_PREFIX + "_red5_permissions";
 
 	/**
-	 *  Scopes this client connected to
+	 * Scopes this client connected to
 	 */
 	protected ConcurrentMap<IConnection, IScope> connToScope = new ConcurrentHashMap<IConnection, IScope>();
 
 	/**
-	 *  Creation time as Timestamp
+	 * Creation time as Timestamp
 	 */
 	protected long creationTime;
 
 	/**
-	 *  Clients identifier
+	 * Clients identifier
 	 */
 	protected String id;
 
 	/**
-	 *  Client registry where Client is registered
+	 * Client registry where Client is registered
 	 */
 	protected WeakReference<ClientRegistry> registry;
+	
+	/**
+	 * Whether or not the bandwidth has been checked.
+	 */
+	protected boolean bandwidthChecked;
 
 	/**
 	 * Creates client, sets creation time and registers it in ClientRegistry
@@ -241,11 +247,16 @@ public class Client extends AttributeStore implements IClient {
 	}
 
 	/** {@inheritDoc} */
+	public boolean isBandwidthChecked() {
+		return bandwidthChecked;
+	}
+
+	/** {@inheritDoc} */
 	@SuppressWarnings("unchecked")
 	public Collection<String> getPermissions(IConnection conn) {
 		Collection<String> result = (Collection<String>) conn.getAttribute(PERMISSIONS);
 		if (result == null) {
-			result = Collections.EMPTY_SET;
+			result = Collections.emptySet();
 		}
 		return result;
 	}
@@ -267,6 +278,8 @@ public class Client extends AttributeStore implements IClient {
 
 	/** {@inheritDoc} */
 	public void checkBandwidth() {
+		log.debug("Check bandwidth");
+		bandwidthChecked = true;
 		//do something to check the bandwidth, Dan what do you think?
 		ServerClientDetection detection = new ServerClientDetection();
 		detection.checkBandwidth(Red5.getConnectionLocal());
@@ -274,6 +287,8 @@ public class Client extends AttributeStore implements IClient {
 
 	/** {@inheritDoc} */
 	public Map<String, Object> checkBandwidthUp(Object[] params) {
+		log.debug("Check bandwidth: {}", Arrays.toString(params));
+		bandwidthChecked = true;
 		//do something to check the bandwidth, Dan what do you think?
 		ClientServerDetection detection = new ClientServerDetection();
 		// if dynamic bw is turned on, we switch to a higher or lower
@@ -328,10 +343,10 @@ public class Client extends AttributeStore implements IClient {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (!(obj instanceof Client)) {
-			return false;
+		if (obj instanceof Client) {
+			return ((Client) obj).getId().equals(id);
 		}
-		return ((Client) obj).getId().equals(id);
+		return false;
 	}
 
 	/**

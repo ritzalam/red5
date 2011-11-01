@@ -47,9 +47,6 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class BaseConnection extends AttributeStore implements IConnection {
 
-	/**
-	 *  Logger
-	 */
 	private static final Logger log = LoggerFactory.getLogger(BaseConnection.class);
 
 	/**

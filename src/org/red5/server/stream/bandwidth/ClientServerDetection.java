@@ -20,14 +20,9 @@ public class ClientServerDetection implements IPendingServiceCallback {
 
 	protected static Logger log = LoggerFactory.getLogger(ClientServerDetection.class);
 
-	public ClientServerDetection() {
-
-	}
-
 	/**
 	 * Handle callback from service call.
 	 */
-
 	public void resultReceived(IPendingServiceCall call) {
 
 	}
@@ -41,17 +36,14 @@ public class ClientServerDetection implements IPendingServiceCallback {
 	}
 
 	public Map<String, Object> checkBandwidth(Object[] params) {
-		final IStreamCapableConnection stats = this.getStats();
-
+		final IStreamCapableConnection stats = getStats();
 		Map<String, Object> statsValues = new HashMap<String, Object>();
 		Integer time = (Integer) (params.length > 0 ? params[0] : 0);
 		statsValues.put("cOutBytes", stats.getReadBytes());
 		statsValues.put("cInBytes", stats.getWrittenBytes());
 		statsValues.put("time", time);
-		
-		log.debug("cOutBytes: {} cInBytes: {} time: {}", new Object[]{stats.getReadBytes(), stats.getWrittenBytes(), time});
-
+		log.debug("cOutBytes: {} cInBytes: {} time: {}", new Object[] { stats.getReadBytes(), stats.getWrittenBytes(), time });
 		return statsValues;
-
 	}
+
 }
