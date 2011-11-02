@@ -954,33 +954,34 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		if (log.isTraceEnabled()) {
 			log.trace("sendMessage: streamStartTS={}, length={}, streamOffset={}, timestamp={}", new Object[] { streamStartTS, currentItem.getLength(), streamOffset, ts });
 		}
+		
+		// don't reset streamStartTS to 0 for live streams 
+		if ((streamStartTS == -1 && (ts > 0 || playDecision != 0)) || streamStartTS > ts) {
+			log.debug("sendMessage: resetting streamStartTS");
+			streamStartTS = ts;
+			messageOut.getBody().setTimestamp(0);
+		}
+		
 		//relative timestamp adjustment for live streams
 		if (playDecision == 0 && streamStartTS > 0) {
 			//subtract the offset time of when the stream started playing for the client
-			int relativeTs = ts - streamStartTS;
-			messageOut.getBody().setTimestamp(relativeTs);
-			//we changed the timestamp to update var
-			ts = relativeTs;
+			ts -= streamStartTS;
+			messageOut.getBody().setTimestamp(ts);
 			if (log.isTraceEnabled()) {
 				log.trace("sendMessage (updated): streamStartTS={}, length={}, streamOffset={}, timestamp={}", new Object[] { streamStartTS, currentItem.getLength(), streamOffset,
 						ts });
 			}
 		}
-		// don't reset streamStartTS to 0 for live streams 
-		if (streamStartTS == -1 && (ts > 0 || playDecision != 0)) {
-			log.debug("sendMessage: resetting streamStartTS");
-			streamStartTS = ts;
-			messageOut.getBody().setTimestamp(0);
-		} else {
-			if (currentItem.getLength() >= 0) {
-				int duration = ts - streamStartTS;
-				if (duration - streamOffset >= currentItem.getLength()) {
-					// Sent enough data to client
-					stop();
-					return;
-				}
+
+		if (streamStartTS > -1 && currentItem.getLength() >= 0) {
+			int duration = ts - streamStartTS;
+			if (duration - streamOffset >= currentItem.getLength()) {
+				// Sent enough data to client
+				stop();
+				return;
 			}
 		}
+
 		doPushMessage(messageOut);
 	}
 
