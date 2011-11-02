@@ -25,9 +25,7 @@ import org.red5.server.api.stream.IVideoStreamCodec;
 import org.slf4j.Logger;
 
 /**
- * Red5 video codec for the AVC (h264) video format.
- *
- * Store DecoderConfigurationRecord and last keyframe (for now! we're cooking a very exciting new!)
+ * Red5 video codec for the AVC (h264) video format. Stores DecoderConfigurationRecord and last keyframe.
  *
  * @author Tiago Jacobs (tiago@imdt.com.br)
  * @author Paul Gregoire (mondain@gmail.com) 
@@ -41,35 +39,11 @@ public class AVCVideo implements IVideoStreamCodec {
 	 */
 	static final String CODEC_NAME = "AVC";
 
-	/**
-	 * Block of data (AVC DecoderConfigurationRecord)
-	 */
-	private byte[] blockDataAVCDCR;
-
-	/**
-	 * Data block size (AVC DecoderConfigurationRecord)
-	 */
-	private int blockSizeAVCDCR;
-
-	/**
-	 * Block of data (Last KeyFrame)
-	 */
-	private byte[] blockDataLKF;
-
-	/**
-	 * Data block size (Last KeyFrame)
-	 */
-	private int blockSizeLKF;
-
-	/**
-	 * Number of data blocks (last key frame)
-	 */
-	private int dataCountLKF;
-
-	/**
-	 * Number of data blocks (Decoder Configuration Record)
-	 */
-	private int dataCountAVCDCR;
+	/** Last keyframe found */
+	private FrameData keyframe;
+	
+	/** Video decoder configuration data */
+	private FrameData decoderConfiguration;
 
 	/** Constructs a new AVCVideo. */
 	public AVCVideo() {
@@ -88,12 +62,8 @@ public class AVCVideo implements IVideoStreamCodec {
 
 	/** {@inheritDoc} */
 	public void reset() {
-		this.blockDataLKF = null;
-		this.blockSizeLKF = 0;
-		this.blockSizeAVCDCR = 0;
-		this.blockDataAVCDCR = null;
-		this.dataCountLKF = 0;
-		this.dataCountAVCDCR = 0;
+		keyframe = new FrameData();
+		decoderConfiguration = new FrameData();
 	}
 
 	/** {@inheritDoc} */
@@ -102,7 +72,6 @@ public class AVCVideo implements IVideoStreamCodec {
 			// Empty buffer
 			return false;
 		}
-
 		byte first = data.get();
 		boolean result = ((first & 0x0f) == VideoCodec.AVC.getId());
 		data.rewind();
@@ -112,83 +81,44 @@ public class AVCVideo implements IVideoStreamCodec {
 	/** {@inheritDoc} */
 	public boolean addData(IoBuffer data) {
 		if (data.limit() > 0) {
-			
 			//ensure that we can "handle" the data
     		if (!canHandleData(data)) {
     			return false;
     		}
-    
+    		// get frame type
     		byte frameType = data.get();
-    
-    		//check for keyframe
+    		// check for keyframe
     		if ((frameType & 0xf0) == FLV_FRAME_KEY) {
     			log.trace("Key frame found");
-    			//If we don't have the AVCDecoderConfigurationRecord stored...
-    			if (blockDataAVCDCR == null) {
-    				//data.get();//Frame Type - already read above
-    				data.get();//CODECID
-    
-    				byte AVCPacketType = data.get();
-    
-    				//Sequence Header / here comes a AVCDecoderConfigurationRecord
-    				log.debug("AVCPacketType: {}", AVCPacketType);
-    				if (AVCPacketType == 0) {
-    					log.trace("Decoder configuration found");
-    					data.rewind();
-    
-    					// Store AVCDecoderConfigurationRecord data
-    					this.dataCountAVCDCR = data.limit();
-    
-    					if (this.blockSizeAVCDCR < this.dataCountAVCDCR) {
-    						this.blockSizeAVCDCR = this.dataCountAVCDCR;
-    						this.blockDataAVCDCR = new byte[this.blockSizeAVCDCR];
-    					}
-    
-    					data.get(this.blockDataAVCDCR, 0, this.dataCountAVCDCR);
-    				}
-    			}
-    
-    			//rewind data prior to reading the keyframe
-    			data.rewind();
-    
-    			// Store last keyframe
-    			this.dataCountLKF = data.limit();
-    			if (this.blockSizeLKF < this.dataCountLKF) {
-    				this.blockSizeLKF = this.dataCountLKF;
-    				this.blockDataLKF = new byte[this.blockSizeLKF];
-    			}
-    
-    			data.get(this.blockDataLKF, 0, this.dataCountLKF);
+				byte AVCPacketType = data.get();
+				// rewind
+				data.rewind();
+				// sequence header / here comes a AVCDecoderConfigurationRecord
+				log.debug("AVCPacketType: {}", AVCPacketType);
+				if (AVCPacketType == 0) {
+					log.trace("Decoder configuration found");
+					// Store AVCDecoderConfigurationRecord data
+					decoderConfiguration.setData(data);
+					// rewind
+					data.rewind();
+				}
+   				// store last keyframe
+   				keyframe.setData(data);
     		}
-    
-    		//finished with the data, rewind one last time
+    		// finished with the data, rewind one last time
     		data.rewind();
 		}
-		
 		return true;
 	}
 
 	/** {@inheritDoc} */
 	public IoBuffer getKeyframe() {
-		if (this.dataCountLKF == 0) {
-			return null;
-		}
-
-		IoBuffer result = IoBuffer.allocate(dataCountLKF);
-		result.put(blockDataLKF, 0, dataCountLKF);
-		result.flip();
-		return result;
+		return keyframe.getFrame();
 	}
 
 	/** {@inheritDoc} */
 	public IoBuffer getDecoderConfiguration() {
-		if (dataCountAVCDCR == 0) {
-			return null;
-		}
-
-		IoBuffer result = IoBuffer.allocate(dataCountAVCDCR);
-		result.put(blockDataAVCDCR, 0, dataCountAVCDCR);
-		result.flip();
-		return result;
+		return decoderConfiguration.getFrame();
 	}
+	
 }

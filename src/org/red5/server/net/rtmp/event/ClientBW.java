@@ -24,7 +24,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 /**
- * Client bandwidth event
+ * Client bandwidth event. Also known as a Peer Bandwidth message.
  */
 public class ClientBW extends BaseEvent {
 

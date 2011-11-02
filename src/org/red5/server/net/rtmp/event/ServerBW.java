@@ -24,7 +24,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 /**
- * Server bandwidth event
+ * Server bandwidth event. Also known as a Window Acknowledgement size message.  
  */
 public class ServerBW extends BaseEvent {
 	

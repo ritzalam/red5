@@ -70,7 +70,10 @@ public interface Constants {
      */
     public static final byte TYPE_CLIENT_BANDWIDTH = 0x06;
 
-	// Unknown: 0x07
+    /**
+     * Edge / Origin message.
+     */
+    public static final byte TYPE_EDGE_ORIGIN = 0x07;
 
     /**
      * Audio data marker

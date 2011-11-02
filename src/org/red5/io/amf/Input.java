@@ -559,7 +559,10 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 				instance = newInstance(className);
 				if (instance != null) {
 					result = readBean(deserializer, instance);
-				} // else fall through
+				} else {
+					log.debug("Forced to use simple object for class {}", className);
+					result = readSimpleObject(deserializer);
+				}
 			}
 		} else {
 			result = readSimpleObject(deserializer);
