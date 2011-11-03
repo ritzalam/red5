@@ -54,6 +54,7 @@ import org.slf4j.LoggerFactory;
  * 02/05/2008 - Added stss - sync sample atom and stts - time to sample atom
  * 10/2008    - Added pasp - pixel aspect ratio atom
  * 10/2010	  - Added ctts atom
+ * 11/2011	  - Added wide, frma, chan, and terminator handling
  * 
  * @author Paul Gregoire (mondain@gmail.com)
  */
@@ -114,7 +115,7 @@ public class MP4Atom {
 	protected Vector<TimeSampleRecord> timeToSamplesRecords;
 
 	protected Vector<CompositionTimeSampleRecord> comptimeToSamplesRecords;
-	
+
 	protected int balance;
 
 	protected long trackId;
@@ -144,7 +145,6 @@ public class MP4Atom {
 	protected MP4Descriptor esd_descriptor;
 
 	public MP4Atom(long size, int type, String uuid, long readed) {
-		super();
 		this.size = size;
 		this.type = type;
 		this.uuid = uuid;
@@ -157,14 +157,17 @@ public class MP4Atom {
 	 * @return the constructed atom.
 	 */
 	public final static MP4Atom createAtom(MP4DataStream bitstream) throws IOException {
-		String uuid = null;
 		long size = bitstream.readBytes(4);
+		long readed = 4;
 		if (size == 0) {
-			throw new IOException("Invalid size");
+			//throw new IOException("Invalid size");
+			return new MP4Atom(0, 0, null, 0);
 		}
 		int type = (int) bitstream.readBytes(4);
-		long readed = 8;
+		readed += 4;
+		log.trace("Creating atom: type = {} size = {}", intToType(type), size);
 		// if atom is 'uuid' (extended atom type) read the uuid
+		String uuid = null;
 		if (type == 1970628964) {
 			uuid = bitstream.readString(16);
 			readed += 16;
@@ -247,8 +250,19 @@ public class MP4Atom {
 			case 1668576371: // MP4CompositionTimeToSampleAtomType ctts
 				readed = atom.create_composition_time_to_sample_atom(bitstream);
 				break;
+			case 2002876005: // siDecompressionParam wave
+				readed = atom.create_decompression_param_atom(bitstream);
+				break;
+			case 1718775137: // Format frma
+				readed = atom.create_format_atom(bitstream);
+				break;
+			case 1667785070: // Audio Channel Layout chan
+				readed = atom.create_chan_atom(bitstream);
+				break;
+			case 0: // Terminator 0x00000000
+				break;
 		}
-		log.trace("Atom: type = {} size = {}", intToType(type), size);
+		log.debug("Finished atom: type = {} size = {}", intToType(type), size);
 		bitstream.skipBytes(size - readed);
 		return atom;
 	}
@@ -274,7 +288,9 @@ public class MP4Atom {
 	public long create_composite_atom(MP4DataStream bitstream) throws IOException {
 		while (readed < size) {
 			MP4Atom child = MP4Atom.createAtom(bitstream);
-			this.children.add(child);
+			if (child.getType() != 0) {
+				children.add(child);
+			}
 			readed += child.getSize();
 		}
 		return readed;
@@ -310,13 +326,14 @@ public class MP4Atom {
 	 * @param bitstream the input bitstream
 	 * @return the number of bytes which was being loaded.
 	 */
-	@SuppressWarnings("unused")
 	public long create_audio_sample_entry_atom(MP4DataStream bitstream) throws IOException {
 		//qtff page 117
 		log.trace("Audio sample entry");
 		bitstream.skipBytes(6);
 		int dataReferenceIndex = (int) bitstream.readBytes(2);
-		bitstream.skipBytes(8);
+		int version = (int) bitstream.readBytes(2); // version
+		log.trace("Sample description version: {}", version);
+		bitstream.skipBytes(6);
 		channelCount = (int) bitstream.readBytes(2);
 		log.trace("Channels: {}", channelCount);
 		sampleSize = (int) bitstream.readBytes(2);
@@ -326,9 +343,22 @@ public class MP4Atom {
 		log.trace("Time scale: {}", timeScale);
 		bitstream.skipBytes(2);
 		readed += 28;
+		// version 1 contains 4 additional fields
+		if (version == 1) {
+			int samplesPerPacket = (int) bitstream.readBytes(4);
+			int bytesPerPacket = (int) bitstream.readBytes(4);
+			int bytesPerFrame = (int) bitstream.readBytes(4);
+			int bytesPerSample = (int) bitstream.readBytes(4);
+			readed += 16;
+		}
+		// version 2 contains 8 more
+		if (version == 2) {
+			// TODO add support for v2
+		}
 		MP4Atom child = MP4Atom.createAtom(bitstream);
-		this.children.add(child);
+		children.add(child);
 		readed += child.getSize();
+		log.trace("Child: {}", intToType(child.getType()));
 		return readed;
 	}
 
@@ -491,7 +521,7 @@ public class MP4Atom {
 		readed += 4;
 		for (int i = 0; i < entryCount; i++) {
 			MP4Atom child = MP4Atom.createAtom(bitstream);
-			this.children.add(child);
+			children.add(child);
 			readed += child.getSize();
 		}
 		return readed;
@@ -732,7 +762,7 @@ public class MP4Atom {
 		bitstream.skipBytes(50);
 		readed += 78;
 		MP4Atom child = MP4Atom.createAtom(bitstream);
-		this.children.add(child);
+		children.add(child);
 		readed += child.getSize();
 		return readed;
 	}
@@ -771,7 +801,7 @@ public class MP4Atom {
 		readed += 78;
 		log.trace("Bytes read: {}", readed);
 		MP4Atom child = MP4Atom.createAtom(bitstream);
-		this.children.add(child);
+		children.add(child);
 		readed += child.getSize();
 		return readed;
 	}
@@ -824,12 +854,11 @@ public class MP4Atom {
 		log.trace("AVC config");
 		log.trace("Offset: {}", bitstream.getOffset());
 		//store the decoder config bytes
-		videoConfigBytes = new byte[(int) size-8];
+		videoConfigBytes = new byte[(int) size - 8];
 		for (int b = 0; b < videoConfigBytes.length; b++) {
 			videoConfigBytes[b] = (byte) bitstream.readBytes(1);
-
 			switch (b) {
-				//0 / version
+			//0 / version
 				case 1: //profile
 					avcProfile = videoConfigBytes[b];
 					log.trace("AVC profile: {}", avcProfile);
@@ -849,9 +878,7 @@ public class MP4Atom {
 					log.trace("Number of SPS: {}", numberSPS);
 					break;
 				default:
-
 			}
-
 			readed++;
 		}
 		return readed;
@@ -863,7 +890,7 @@ public class MP4Atom {
 	 * a container for the avcC atom in these cases.
 	 * 
 	 * @param bitstream the input bitstream
-	 * @return the number of bytes which was being loaded.	
+	 * @return the number of bytes which was being loaded	
 	 */
 	public long create_pasp_atom(MP4DataStream bitstream) throws IOException {
 		log.trace("Pixel aspect ratio");
@@ -872,9 +899,63 @@ public class MP4Atom {
 		log.trace("hSpacing: {} vSpacing: {}", hSpacing, vSpacing);
 		readed += 8;
 		MP4Atom child = MP4Atom.createAtom(bitstream);
-		this.children.add(child);
+		children.add(child);
 		readed += child.getSize();
+		return readed;
+	}
 
+	/**
+	 * Creates the decompression param (wave) atom.
+	 * 
+	 * @param bitstream the input bitstream
+	 * @return the number of bytes which was being loaded	
+	 */
+	private long create_decompression_param_atom(MP4DataStream bitstream) throws IOException {
+		log.trace("Decompression param");
+		while (readed < size) {
+			MP4Atom child = MP4Atom.createAtom(bitstream);
+			//log.debug("Child: {} size: {}", child, child.getSize());
+			if (child.getType() != 0) {
+				children.add(child);
+			}
+			readed += child.getSize();
+		}
+		return readed;
+	}
+
+	/**
+	 * Creates the format (frma) atom.
+	 * 
+	 * @param bitstream the input bitstream
+	 * @return the number of bytes which was being loaded	
+	 */
+	private long create_format_atom(MP4DataStream bitstream) throws IOException {
+		log.trace("Format");
+		// Data format - The value of this field is copied from the data-format field of the sound sample description.
+		while (readed < size) {
+			MP4Atom child = MP4Atom.createAtom(bitstream);
+			children.add(child);
+			readed += child.getSize();
+		}
+		return readed;
+	}
+
+	/**
+	 * Loads Audio Channel Layout atom from the input bitstream.
+	 * @param bitstream the input bitstream
+	 * @return the number of bytes which was being loaded.
+	 */
+	public long create_chan_atom(MP4DataStream bitstream) throws IOException {
+		log.trace("Audio Channel Layout Atom atom");
+		create_full_atom(bitstream); 
+		// Audio channel layout - A big-endian AudioChannelLayout structure as defined in CoreAudioTypes.h. 
+		// See the Mac OS X Developer Library for CoreAudio framework details.
+		// http://developer.apple.com/library/mac/navigation/index.html
+		while (readed < size) {
+			MP4Atom child = MP4Atom.createAtom(bitstream);
+			children.add(child);
+			readed += child.getSize();
+		}
 		return readed;
 	}
 
@@ -884,9 +965,16 @@ public class MP4Atom {
 	 * @return the number of bytes which was being loaded.
 	 */
 	public long create_esd_atom(MP4DataStream bitstream) throws IOException {
+		log.trace("Elementary stream descriptor atom");
 		create_full_atom(bitstream);
 		esd_descriptor = MP4Descriptor.createDescriptor(bitstream);
 		readed += esd_descriptor.getReaded();
+		log.trace("Read for descriptor: {}", esd_descriptor.getReaded());
+		while (readed < size) {
+			MP4Atom child = MP4Atom.createAtom(bitstream);
+			children.add(child);
+			readed += child.getSize();
+		}
 		return readed;
 	}
 
@@ -922,7 +1010,7 @@ public class MP4Atom {
 	public Vector<CompositionTimeSampleRecord> getCompositionTimeToSamplesRecords() {
 		return comptimeToSamplesRecords;
 	}
-	
+
 	/**
 	 * Converts the time in seconds since midnight 1 Jan 1904 to the <code>Date</code>.  
 	 * @param movieTime the time in milliseconds since midnight 1 Jan 1904.
@@ -932,11 +1020,23 @@ public class MP4Atom {
 		return new Date(movieTime * 1000 - 2082850791998L);
 	}
 
+	/**
+	 * Convert the atom identifer to an integer.
+	 * 
+	 * @param type
+	 * @return
+	 */
 	public static int typeToInt(String type) {
 		int result = (type.charAt(0) << 24) + (type.charAt(1) << 16) + (type.charAt(2) << 8) + type.charAt(3);
 		return result;
 	}
 
+	/**
+	 * Convert the atom integer to a string.
+	 * 
+	 * @param type
+	 * @return
+	 */
 	public static String intToType(int type) {
 		StringBuilder st = new StringBuilder();
 		st.append((char) ((type >> 24) & 0xff));
@@ -1001,7 +1101,7 @@ public class MP4Atom {
 			return sampleDescriptionIndex;
 		}
 	}
-	
+
 	public static class TimeSampleRecord {
 		private int consecutiveSamples;
 
@@ -1020,7 +1120,7 @@ public class MP4Atom {
 			return sampleDuration;
 		}
 	}
-	
+
 	public static class CompositionTimeSampleRecord {
 		private int consecutiveSamples;
 
@@ -1040,7 +1140,7 @@ public class MP4Atom {
 		}
 
 		public void setSampleOffset(int offset) {
-			sampleOffset = offset;			
+			sampleOffset = offset;
 		}
 	}
 }

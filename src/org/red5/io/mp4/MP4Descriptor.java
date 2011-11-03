@@ -78,6 +78,7 @@ public class MP4Descriptor {
 		int size = 0;
 		int b = 0;
 		do {
+			//System.out.println("Tag: " + tag + " size: " + size);
 			b = (int) bitstream.readBytes(1);
 			size <<= 7;
 			size |= b & 0x7f;
@@ -229,9 +230,9 @@ public class MP4Descriptor {
 	}
 
 	/**
-	 * Gets the number of data bytes which were readed from the stream;
+	 * Gets the number of data bytes which were read from the stream;
 	 * 
-	 * @return the number of readed data bytes.
+	 * @return the number of read data bytes.
 	 */
 	public int getReaded() {
 		return readed;
