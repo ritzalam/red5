@@ -55,7 +55,7 @@ public final class MP4DataStream {
 	 * Reads "n" bytes from the channel.
 	 * 
 	 * @param n
-	 * @return
+	 * @return long value from the channel
 	 * @throws IOException
 	 */
 	public long readBytes(int n) throws IOException {
@@ -90,7 +90,7 @@ public final class MP4DataStream {
 	 * Returns a string of "n" bytes in length from the channel.
 	 * 
 	 * @param n
-	 * @return
+	 * @return string from the channel
 	 * @throws IOException
 	 */
 	public String readString(int n) throws IOException {
