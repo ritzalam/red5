@@ -326,6 +326,7 @@ public class MP4Atom {
 	 * @param bitstream the input bitstream
 	 * @return the number of bytes which was being loaded.
 	 */
+	@SuppressWarnings("unused")
 	public long create_audio_sample_entry_atom(MP4DataStream bitstream) throws IOException {
 		//qtff page 117
 		log.trace("Audio sample entry");
@@ -949,8 +950,7 @@ public class MP4Atom {
 		log.trace("Audio Channel Layout Atom atom");
 		create_full_atom(bitstream); 
 		// Audio channel layout - A big-endian AudioChannelLayout structure as defined in CoreAudioTypes.h. 
-		// See the Mac OS X Developer Library for CoreAudio framework details.
-		// http://developer.apple.com/library/mac/navigation/index.html
+		// See the <a href='http://developer.apple.com/library/mac/navigation/index.html'>Mac OS X Developer Library for CoreAudio framework details</a>
 		while (readed < size) {
 			MP4Atom child = MP4Atom.createAtom(bitstream);
 			children.add(child);
@@ -1024,7 +1024,7 @@ public class MP4Atom {
 	 * Convert the atom identifer to an integer.
 	 * 
 	 * @param type
-	 * @return
+	 * @return atom type as an integer
 	 */
 	public static int typeToInt(String type) {
 		int result = (type.charAt(0) << 24) + (type.charAt(1) << 16) + (type.charAt(2) << 8) + type.charAt(3);
@@ -1035,7 +1035,7 @@ public class MP4Atom {
 	 * Convert the atom integer to a string.
 	 * 
 	 * @param type
-	 * @return
+	 * @return atom type as a string
 	 */
 	public static String intToType(int type) {
 		StringBuilder st = new StringBuilder();
