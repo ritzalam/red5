@@ -28,6 +28,7 @@ import java.nio.channels.FileChannel;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -192,7 +193,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	private int prevFrameSize = 0;
 
 	private int prevVideoTS = -1;
-	
+
 	private List<MP4Frame> frames = new ArrayList<MP4Frame>();
 
 	@SuppressWarnings("unused")
@@ -212,7 +213,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 
 	/**
 	 * Container for seek points in the video. These are the time stamps
-	 * for the key frames.
+	 * for the key frames or samples.
 	 */
 	private LinkedList<Integer> seekPoints;
 
@@ -253,21 +254,18 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			MP4Atom type = MP4Atom.createAtom(fis);
 			// expect ftyp
 			log.debug("Type {}", MP4Atom.intToType(type.getType()));
-			//log.debug("Atom int types - free={} wide={}", MP4Atom.typeToInt("free"), MP4Atom.typeToInt("wide"));
-			// keep a running count of the number of atoms found at the "top" levels
-			int topAtoms = 0;
-			// we want a moov and an mdat, anything else throw the invalid file type error
-			while (topAtoms < 2) {
+			// we want a moov and an mdat, anything else will throw the invalid file type error
+			MP4Atom moov = null;
+			MP4Atom mdat = null;
+			while (moov == null || mdat == null) {
 				MP4Atom atom = MP4Atom.createAtom(fis);
 				switch (atom.getType()) {
 					case 1836019574: //moov
-						topAtoms++;
-						MP4Atom moov = atom;
+						moov = atom;
 						// expect moov
 						log.debug("Type {}", MP4Atom.intToType(moov.getType()));
 						log.debug("moov children: {}", moov.getChildren());
 						moovOffset = fis.getOffset() - moov.getSize();
-
 						MP4Atom mvhd = moov.lookup(MP4Atom.typeToInt("mvhd"), 0);
 						if (mvhd != null) {
 							log.debug("Movie header atom found");
@@ -276,7 +274,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 							duration = mvhd.getDuration();
 							log.debug("Time scale {} Duration {}", timeScale, duration);
 						}
-
 						/* nothing needed here yet
 						MP4Atom meta = moov.lookup(MP4Atom.typeToInt("meta"), 0);
 						if (meta != null) {
@@ -284,7 +281,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 							log.debug("{}", ToStringBuilder.reflectionToString(meta));
 						}
 						*/
-
 						//we would like to have two tracks, but it shouldn't be a requirement
 						int loops = 0;
 						int tracks = 0;
@@ -310,7 +306,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 									log.debug("edts children: {}", edts.getChildren());
 									//log.debug("Width {} x Height {}", edts.getWidth(), edts.getHeight());
 								}
-
 								MP4Atom mdia = trak.lookup(MP4Atom.typeToInt("mdia"), 0);
 								if (mdia != null) {
 									log.debug("Media atom found");
@@ -350,7 +345,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 										log.debug("Media info atom found");
 										// minf: (audio) smhd, dinf, stbl / (video) vmhd,
 										// dinf, stbl
-
 										MP4Atom smhd = minf.lookup(MP4Atom.typeToInt("smhd"), 0);
 										if (smhd != null) {
 											log.debug("Sound header atom found");
@@ -363,7 +357,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 												if (dref != null) {
 													log.debug("Data reference atom found");
 												}
-
 											}
 											MP4Atom stbl = minf.lookup(MP4Atom.typeToInt("stbl"), 0);
 											if (stbl != null) {
@@ -381,8 +374,10 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 												MP4Atom stsd = stbl.lookup(MP4Atom.typeToInt("stsd"), 0);
 												if (stsd != null) {
 													//stsd: mp4a
-													log.debug("Sample description atom found");
+													log.debug("Sample description atom found, containing {} children", stsd.getChildren().size());
 													MP4Atom mp4a = stsd.getChildren().get(0);
+													log.debug("MP4 audio atom found, containing {} children", mp4a.getChildren().size());
+													log.debug("mp4a: {}", ToStringBuilder.reflectionToString(mp4a));
 													//could set the audio codec here
 													setAudioCodecId(MP4Atom.intToType(mp4a.getType()));
 													//log.debug("{}", ToStringBuilder.reflectionToString(mp4a));
@@ -395,18 +390,33 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 													audioChannels = mp4a.getChannelCount();
 													log.debug("Sample rate (audio time scale): {}", audioTimeScale);
 													log.debug("Channels: {}", audioChannels);
+													// look for esds
+													MP4Atom esds = mp4a.lookup(MP4Atom.typeToInt("esds"), 0);
+													if (esds == null) {
+														// check for decompression param atom
+														MP4Atom wave = mp4a.lookup(MP4Atom.typeToInt("wave"), 0);
+														log.debug("Decompression param atom found, containing {} children", wave.getChildren().size());
+														log.debug("wave: {}", ToStringBuilder.reflectionToString(wave));
+														MP4Atom tmp = wave.getChildren().get(0);
+														log.debug("Temp: {}", ToStringBuilder.reflectionToString(tmp));
+
+														esds = wave.lookup(MP4Atom.typeToInt("esds"), 0);
+														if (esds == null) {
+															tmp = wave.lookup(MP4Atom.typeToInt("mp4a"), 0);
+															esds = tmp.lookup(MP4Atom.typeToInt("esds"), 0);
+														}
+													}
 													//mp4a: esds
-													if (mp4a.getChildren().size() > 0) {
-														log.debug("Elementary stream descriptor atom found");
-														MP4Atom esds = mp4a.getChildren().get(0);
-														log.debug("{}", ToStringBuilder.reflectionToString(esds));
+													if (esds != null) {
+														log.debug("Elementary stream descriptor atom found, containing {} children", esds.getChildren().size());
+														log.debug("esds: {}", ToStringBuilder.reflectionToString(esds));
 														MP4Descriptor descriptor = esds.getEsd_descriptor();
-														log.debug("{}", ToStringBuilder.reflectionToString(descriptor));
 														if (descriptor != null) {
+															log.debug("ESD descriptor: {}", ToStringBuilder.reflectionToString(descriptor));
 															Vector<MP4Descriptor> children = descriptor.getChildren();
 															for (int e = 0; e < children.size(); e++) {
 																MP4Descriptor descr = children.get(e);
-																log.debug("{}", ToStringBuilder.reflectionToString(descr));
+																log.debug("Descriptor child: {}", ToStringBuilder.reflectionToString(descr));
 																if (descr.getChildren().size() > 0) {
 																	Vector<MP4Descriptor> children2 = descr.getChildren();
 																	for (int e2 = 0; e2 < children2.size(); e2++) {
@@ -434,7 +444,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 																			byte audioCoderType = audioDecoderBytes[0];
 																			//match first byte
 																			switch (audioCoderType) {
-																				case 0x02: 
+																				case 0x02:
 																				default:
 																					audioCodecType = 1; //AAC LC
 																					break;
@@ -454,7 +464,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 																					audioCodecType = 33; //MP3
 																					audioCodecId = "mp3";
 																					break;
-																					
 																			}
 																			log.debug("Audio coder type: {} {}", audioCoderType, Integer.toBinaryString(audioCoderType));
 																			//we want to break out of top level for loop
@@ -616,7 +625,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 																}
 															}
 														}
-
 													}
 													log.debug("{}", ToStringBuilder.reflectionToString(avc1));
 												}
@@ -640,7 +648,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 													log.debug("Sample size: {}", stsz.getSampleSize());
 													videoSampleCount = videoSamples.size();
 													log.debug("Sample count: {}", videoSampleCount);
-												}											
+												}
 												//stco - has Chunks
 												MP4Atom stco = stbl.lookup(MP4Atom.typeToInt("stco"), 0);
 												if (stco != null) {
@@ -656,7 +664,11 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 														//vector full of longs
 														videoChunkOffsets = co64.getChunks();
 														log.debug("Chunk count: {}", videoChunkOffsets.size());
-													}														
+														// double the timescale for video, since it seems to run at
+														// half-speed when co64 is used (seems hacky)
+														videoTimeScale = scale * 2.0;
+														log.debug("Video time scale: {}", videoTimeScale);														
+													}
 												}
 												//stss - has Sync - no sync means all samples are keyframes
 												MP4Atom stss = stbl.lookup(MP4Atom.typeToInt("stss"), 0);
@@ -701,9 +713,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 												}
 											}
 										}
-
 									}
-
 								}
 							}
 							loops++;
@@ -713,7 +723,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 						fps = (videoSampleCount * timeScale) / (double) duration;
 						log.debug("FPS calc: ({} * {}) / {}", new Object[] { videoSampleCount, timeScale, duration });
 						log.debug("FPS: {}", fps);
-
 						//real duration
 						StringBuilder sb = new StringBuilder();
 						double videoTime = ((double) duration / (double) timeScale);
@@ -729,31 +738,48 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 						sb.append(df.format((videoTime % 60)));
 						formattedDuration = sb.toString();
 						log.debug("Time: {}", formattedDuration);
-
 						break;
 					case 1835295092: //mdat
-						topAtoms++;
-						long dataSize = 0L;
-						MP4Atom mdat = atom;
-						dataSize = mdat.getSize();
-						log.debug("{}", ToStringBuilder.reflectionToString(mdat));
+						mdat = atom;
+						long dataSize = mdat.getSize();
+						log.debug("mdat: {}", ToStringBuilder.reflectionToString(mdat));
+						log.debug("Read the mdat atom at: {}", fis.getOffset());
 						mdatOffset = fis.getOffset() - dataSize;
 						log.debug("File size: {} mdat size: {}", file.length(), dataSize);
-
 						break;
 					case 1718773093: //free
 					case 2003395685: //wide
 						break;
 					default:
-						log.warn("Unexpected atom: {}", MP4Atom.intToType(atom.getType()));
+						log.debug("Unexpected atom: {}", MP4Atom.intToType(atom.getType()));
+						FileChannel fc = fis.getChannel();
+						fc.position(moov.getSize());
+						log.debug("Search starting at: {}", fc.position());
+						ByteBuffer buf = ByteBuffer.allocate(4);
+						if (moov != null && mdat == null) {								
+							// search for mdat
+							String atype = null;
+							do {
+								long pos = fc.position();
+								long offset = fis.getOffset();
+								log.debug("Pos: {} Offset: {}", pos, offset);
+								fc.read(buf);
+								buf.flip();
+								atype = MP4Atom.intToType(buf.getInt());
+								//log.debug("Type: {}", atype);
+								fc.position(pos + 1);
+								buf.clear();
+							} while (!atype.equals("mdat"));
+							fc.position(fc.position() - 5);
+							log.debug("Found the mdat atom at: {}", fc.position());
+						}
+						buf.clear();
 				}
 			}
-
 			//add the tag name (size) to the offsets
 			moovOffset += 8;
 			mdatOffset += 8;
 			log.debug("Offsets moov: {} mdat: {}", moovOffset, mdatOffset);
-
 		} catch (IOException e) {
 			log.error("Exception decoding header / atoms", e);
 		}
@@ -859,16 +885,18 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	/**
 	 * Create tag for metadata event.
 	 *
-	 * Info from http://www.kaourantin.net/2007/08/what-just-happened-to-video-on-web_20.html
+	 * Information mostly from http://www.kaourantin.net/2007/08/what-just-happened-to-video-on-web_20.html
 	 * <pre>
-		duration - Obvious. But unlike for FLV files this field will always be present.
-		videocodecid - For H.264 we report 'avc1'.
-	    audiocodecid - For AAC we report 'mp4a', for MP3 we report '.mp3'.
-	    avcprofile - 66, 77, 88, 100, 110, 122 or 144 which corresponds to the H.264 profiles.
-	    avclevel - A number between 10 and 51. Consult this list to find out more.
-	    aottype - Either 0, 1 or 2. This corresponds to AAC Main, AAC LC and SBR audio types.
-	    moovposition - The offset in bytes of the moov atom in a file.
-	    trackinfo - An array of objects containing various infomation about all the tracks in a file
+		width: Display width in pixels.
+		height: Display height in pixels.
+		duration: Duration in seconds. But unlike for FLV files this field will always be present.
+		videocodecid: Usually a string such as "avc1" or "VP6F", for H.264 we report 'avc1'.
+		audiocodecid: Usually a string such as ".mp3" or "mp4a", for AAC we report 'mp4a' and MP3 we report '.mp3'.
+	    avcprofile: AVC profile number, values of 66, 77, 88, 100, 110, 122 or 144; which correspond to the H.264 profiles.
+	    avclevel: AVC IDC level number, values between 10 and 51.
+	    aottype: Either 0, 1 or 2. This corresponds to AAC Main, AAC LC and SBR audio types.
+	    moovposition: The offset in bytes of the moov atom in a file.
+	    trackinfo: An array of objects containing various infomation about all the tracks in a file
 	      ex.
 	    	trackinfo[0].length: 7081
 	    	trackinfo[0].timescale: 600
@@ -879,32 +907,16 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	    	trackinfo[1].sampledescription.sampletype: mp4a
 	    	trackinfo[1].language: und
 	    
-	    chapters - As mentioned above information about chapters in audiobooks.
-	    seekpoints - As mentioned above times you can directly feed into NetStream.seek();
-	    videoframerate - The frame rate of the video if a monotone frame rate is used. 
-	    		Most videos will have a monotone frame rate.
-	    audiosamplerate - The original sampling rate of the audio track.
-	    audiochannels - The original number of channels of the audio track.
-	    tags - As mentioned above ID3 like tag information.
-	 * </pre>
-	 * Info from 
-	 * <pre>
-		width: Display width in pixels.
-		height: Display height in pixels.
-		duration: Duration in seconds.
-		avcprofile: AVC profile number such as 55, 77, 100 etc.
-		avclevel: AVC IDC level number such as 10, 11, 20, 21 etc.
-		aacaot: AAC audio object type; 0, 1 or 2 are supported.
-		videoframerate: Frame rate of the video in this MP4.
+	    chapters: As mentioned above information about chapters in audiobooks.
 		seekpoints: Array that lists the available keyframes in a file as time stamps in milliseconds. 
 				This is optional as the MP4 file might not contain this information. Generally speaking, 
-				most MP4 files will include this by default.
-		videocodecid: Usually a string such as "avc1" or "VP6F."
-		audiocodecid: Usually a string such as ".mp3" or "mp4a."
+				most MP4 files will include this by default. You can directly feed the values into NetStream.seek();
+	    videoframerate: The frame rate of the video if a monotone frame rate is used. 
+	    		Most videos will have a monotone frame rate.
+	    audiosamplerate: The original sampling rate of the audio track.
+	    audiochannels: The original number of channels of the audio track.
 		progressivedownloadinfo: Object that provides information from the "pdin" atom. This is optional 
 				and many files will not have this field.
-		trackinfo: Object that provides information on all the tracks in the MP4 file, including their 
-				sample description ID.
 		tags: Array of key value pairs representing the information present in the "ilst" atom, which is 
 				the equivalent of ID3 tags for MP4 files. These tags are mostly used by iTunes. 
 	 * </pre>
@@ -923,7 +935,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		props.put("duration", ((double) duration / (double) timeScale));
 		props.put("width", width);
 		props.put("height", height);
-
 		// Video codec id
 		props.put("videocodecid", videoCodecId);
 		props.put("avcprofile", avcProfile);
@@ -934,10 +945,11 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		props.put("aacaot", audioCodecType);
 		props.put("audiosamplerate", audioTimeScale);
 		props.put("audiochannels", audioChannels);
-
+		// position of the moov atom
 		props.put("moovposition", moovOffset);
 		//props.put("chapters", ""); //this is for f4b - books
 		if (seekPoints != null) {
+			log.debug("Seekpoint list size: {}", seekPoints.size());
 			props.put("seekpoints", seekPoints);
 		}
 		//tags will only appear if there is an "ilst" atom in the file
@@ -1007,7 +1019,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	 * 
 	 * Audio extra data(s): 
 	 * af 00                = Prefix
-	 * 11 90 4f 14          = AAC Main   = aottype 0
+	 * 11 90 4f 14          = AAC Main   = aottype 0 // 11 90
 	 * 12 10                = AAC LC     = aottype 1
 	 * 13 90 56 e5 a5 48 00 = HE-AAC SBR = aottype 2
 	 * 06                   = Suffix
@@ -1067,9 +1079,9 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 				body.flip();
 				tag.setBody(body);
 				//add tag
-				firstTags.add(tag);				
+				firstTags.add(tag);
 			} else {
-				log.warn("Audio decoder bytes were not available");
+				log.info("Audio decoder bytes were not available");
 			}
 		}
 	}
@@ -1086,19 +1098,14 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			return firstTags.removeFirst();
 		}
 		//log.debug("Read tag - sample {} prevFrameSize {} audio: {} video: {}", new Object[]{currentSample, prevFrameSize, audioCount, videoCount});
-
 		//get the current frame
 		MP4Frame frame = frames.get(currentFrame);
 		log.debug("Playback #{} {}", currentFrame, frame);
-
 		int sampleSize = frame.getSize();
-
 		int time = (int) Math.round(frame.getTime() * 1000.0);
 		//log.debug("Read tag - dst: {} base: {} time: {}", new Object[]{frameTs, baseTs, time});
-
 		long samplePos = frame.getOffset();
 		//log.debug("Read tag - samplePos {}", samplePos);
-
 		//determine frame type and packet body padding
 		byte type = frame.getType();
 		//assume video type
@@ -1106,7 +1113,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		if (type == TYPE_AUDIO) {
 			pad = 2;
 		}
-
 		//create a byte buffer of the size of the sample
 		ByteBuffer data = ByteBuffer.allocate(sampleSize + pad);
 		try {
@@ -1205,9 +1211,15 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 							if (seekPoints == null) {
 								seekPoints = new LinkedList<Integer>();
 							}
-							int keyframeTs = (int) Math.round(ts * 1000.0);
-							seekPoints.add(keyframeTs);
-							timePosMap.put(keyframeTs, pos);
+							// get the timestamp
+							int frameTs = (int) Math.round(ts * 1000.0);
+							// add each key frames timestamp to the seek points list
+							if (keyframe) {
+								seekPoints.add(frameTs);
+							}
+							timePosMap.put(frameTs, pos);
+						} else {
+							log.debug("No sync samples available");
 						}
 						//size of the sample
 						int size = (videoSamples.get(sample - 1)).intValue();
@@ -1234,7 +1246,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 								// reset
 								compositeIndex = 0;
 							}
-							log.debug("Composite sample #{} {}", sample, frame);							
+							log.debug("Composite sample #{} {}", sample, frame);
 						}
 						// add the frame
 						frames.add(frame);
@@ -1378,7 +1390,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		result.duration = duration;
 		result.positions = new long[seekPoints.size()];
 		result.timestamps = new int[seekPoints.size()];
-		for (int idx=0; idx<seekPoints.size(); idx++) {
+		for (int idx = 0; idx < seekPoints.size(); idx++) {
 			final Integer ts = seekPoints.get(idx);
 			result.positions[idx] = timePosMap.get(ts);
 			result.timestamps[idx] = ts;
