@@ -666,7 +666,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 														// double the timescale for video, since it seems to run at
 														// half-speed when co64 is used (seems hacky)
 														videoTimeScale = scale * 2.0;
-														log.debug("Video time scale: {}", videoTimeScale);														
+														log.debug("Video time scale: {}", videoTimeScale);
 													}
 												}
 												//stss - has Sync - no sync means all samples are keyframes
@@ -752,16 +752,17 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 					default:
 						log.debug("Unexpected atom: {}", MP4Atom.intToType(atom.getType()));
 						FileChannel fc = fis.getChannel();
-						fc.position(moov.getSize());
-						log.debug("Search starting at: {}", fc.position());
 						ByteBuffer buf = ByteBuffer.allocate(4);
-						if (moov != null && mdat == null) {								
-							// search for mdat
+						if (moov != null && mdat == null) {
+							// if we have moov but no mdat
+							fc.position(moov.getSize());
+							log.debug("Search starting at: {}", fc.position());
 							String atype = null;
+							// search for mdat
 							do {
 								long pos = fc.position();
-								long offset = fis.getOffset();
-								log.debug("Pos: {} Offset: {}", pos, offset);
+								//long offset = fis.getOffset();
+								//log.debug("Pos: {} Offset: {}", pos, offset);
 								fc.read(buf);
 								buf.flip();
 								atype = MP4Atom.intToType(buf.getInt());
@@ -771,6 +772,24 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 							} while (!atype.equals("mdat"));
 							fc.position(fc.position() - 5);
 							log.debug("Found the mdat atom at: {}", fc.position());
+						}
+						if (moov == null && mdat == null) {
+							// we're missing both primary atoms at the beginning
+							log.debug("Search starting at: {}", fc.position());
+							String atype = null;
+							// search for moov first
+							do {
+								long pos = fc.position();
+								log.debug("Pos: {}", pos);
+								fc.read(buf);
+								buf.flip();
+								atype = MP4Atom.intToType(buf.getInt());
+								//log.debug("Type: {}", atype);
+								fc.position(pos + 1);
+								buf.clear();
+							} while (!atype.equals("moov"));
+							fc.position(fc.position() - 5);
+							log.debug("Found the moov atom at: {}", fc.position());
 						}
 						buf.clear();
 				}

@@ -24,6 +24,10 @@ public class MP4ReaderTest extends TestCase {
 		//File file = new File("E:/dev/red5/java/server/trunk/distx/webapps/oflaDemo/streams/transformers_720p.mp4");
 		// contains version 0 sound description 
 		//File file = new File("E:/dev/red5/java/server/trunk/distx/webapps/oflaDemo/streams/mp4_with_aac.mp4");
+		
+		//File file = new File("E:/dev/red5/java/server/trunk/distx/webapps/oflaDemo/streams/TH.0309.16-SEP-11.26011.MP4");
+		//File file = new File("E:/dev/red5/java/server/trunk/distx/webapps/oflaDemo/streams/alizie.mp4");
+		
 		MP4Reader reader = new MP4Reader(file);
 
 		KeyFrameMeta meta = reader.analyzeKeyFrames();
