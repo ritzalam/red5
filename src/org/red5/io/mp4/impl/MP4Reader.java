@@ -28,6 +28,7 @@ import java.nio.channels.FileChannel;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -82,6 +83,9 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 
 	/** Audio packet prefix */
 	public final static byte[] PREFIX_AUDIO_FRAME = new byte[] { (byte) 0xaf, (byte) 0x01 };
+
+	/** Blank AAC data **/
+	public final static byte[] EMPTY_AAC = { (byte) 0x21, (byte) 0x10, (byte) 0x04, (byte) 0x60, (byte) 0x8c, (byte) 0x1c };
 
 	/** Video packet prefix for the decoder frame */
 	public final static byte[] PREFIX_VIDEO_CONFIG_FRAME = new byte[] { (byte) 0x17, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00 };
@@ -1165,20 +1169,21 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 				// track audio frame count
 				audioCount++;
 			}
-			//do we need to add the mdat offset to the sample position?
+			// do we need to add the mdat offset to the sample position?
 			channel.position(samplePos);
+			// read from the channel
 			channel.read(data);
 		} catch (IOException e) {
 			log.error("Error on channel position / read", e);
 		}
-		//chunk the data
+		// chunk the data
 		IoBuffer payload = IoBuffer.wrap(data.array());
-		//create the tag
+		// create the tag
 		ITag tag = new Tag(type, time, payload.limit(), payload, prevFrameSize);
 		//log.debug("Read tag - type: {} body size: {}", (type == TYPE_AUDIO ? "Audio" : "Video"), tag.getBodySize());
-		//increment the frame number
+		// increment the frame number
 		currentFrame++;
-		//set the frame / tag size
+		// set the frame / tag size
 		prevFrameSize = tag.getBodySize();
 		//log.debug("Tag: {}", tag);
 		return tag;
@@ -1298,6 +1303,37 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 						double ts = (audioSampleDuration * (sample - 1)) / audioTimeScale;
 						//sample size
 						int size = (audioSamples.get(sample - 1)).intValue();
+						// skip empty AAC data which is 6 bytes long
+						log.debug("Audio sample - size: {} pos: {}", size, pos);
+						if (size == 6) {
+							try {
+								// get current pos
+								long position = channel.position();
+								// jump to data position
+								channel.position(pos);
+								// create buffer to store bytes so we can check them
+								ByteBuffer dst = ByteBuffer.allocate(6);
+								// read the data
+								channel.read(dst);
+								// flip it
+								dst.flip();
+								// reset the position
+								channel.position(position);
+								byte[] tmp = dst.array();
+								log.debug("Audio bytes: {} equal: {}", HexDump.byteArrayToHexString(tmp), Arrays.equals(EMPTY_AAC, tmp));
+								if (Arrays.equals(EMPTY_AAC, tmp)) {
+									log.debug("Skipping empty AAC data frame");
+									// update counts
+									pos += size;
+									sampleCount--;
+									sample++;
+									// read next
+									continue;
+								}
+							} catch (IOException e) {
+								log.warn("Exception during audio analysis", e);
+							}
+						}
 						//create a frame
 						MP4Frame frame = new MP4Frame();
 						frame.setOffset(pos);
@@ -1306,7 +1342,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 						frame.setType(TYPE_AUDIO);
 						frames.add(frame);
 						//log.debug("Sample #{} {}", sample, frame);
-						//inc and dec stuff
+						// update counts
 						pos += size;
 						sampleCount--;
 						sample++;
