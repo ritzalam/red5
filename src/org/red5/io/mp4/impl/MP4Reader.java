@@ -468,7 +468,8 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 																					audioCodecId = "mp3";
 																					break;
 																			}
-																			log.debug("Audio coder type: {} {}", audioCoderType, Integer.toBinaryString(audioCoderType));
+																			log.debug("Audio coder type: {} {} id: {}",
+																					new Object[] { audioCoderType, Integer.toBinaryString(audioCoderType), audioCodecId });
 																			//we want to break out of top level for loop
 																			e = 99;
 																			break;
@@ -504,6 +505,15 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 													//vector full of integers
 													audioChunkOffsets = stco.getChunks();
 													log.debug("Chunk count: {}", audioChunkOffsets.size());
+												} else {
+													//co64 - has Chunks
+													MP4Atom co64 = stbl.lookup(MP4Atom.typeToInt("co64"), 0);
+													if (co64 != null) {
+														log.debug("Chunk offset (64) atom found");
+														//vector full of longs
+														audioChunkOffsets = co64.getChunks();
+														log.debug("Chunk count: {}", audioChunkOffsets.size());
+													}
 												}
 												//stts - has TimeSampleRecords
 												MP4Atom stts = stbl.lookup(MP4Atom.typeToInt("stts"), 0);
