@@ -24,38 +24,27 @@ public class MP4ReaderTest extends TestCase {
 		//File file = new File("E:/dev/red5/java/server/trunk/distx/webapps/oflaDemo/streams/transformers_720p.mp4");
 		// contains version 0 sound description 
 		//File file = new File("E:/dev/red5/java/server/trunk/distx/webapps/oflaDemo/streams/mp4_with_aac.mp4");
-		
-		//File file = new File("E:/dev/red5/java/server/trunk/distx/webapps/oflaDemo/streams/TH.0309.16-SEP-11.26011.MP4");
-		//File file = new File("E:/dev/red5/java/server/trunk/distx/webapps/oflaDemo/streams/alizie.mp4");
-		
+		// contains some itunes atoms and junk aac bits
+		//File file = new File("E:/dev/red5/java/server/trunk/distx/webapps/oflaDemo/streams/codonics-high.mp4");
+		//File file = new File("E:/dev/red5/java/server/trunk/distx/webapps/oflaDemo/streams/ANewHope.mov");
+		//File file = new File("E:/dev/red5/java/server/trunk/distx/webapps/oflaDemo/streams/IamLegend.mp4");
+		//File file = new File("E:/dev/red5/java/server/trunk/distx/webapps/oflaDemo/streams/mp4_with_mp3.mp4");
+
 		MP4Reader reader = new MP4Reader(file);
 
 		KeyFrameMeta meta = reader.analyzeKeyFrames();
 		log.debug("Meta: {}", meta);
-		
-		ITag tag = reader.readTag();
-		log.debug("Tag: {}", tag);
-		tag = reader.readTag();
-		log.debug("Tag: {}", tag);
-		tag = reader.readTag();
-		log.debug("Tag: {}", tag);
-		tag = reader.readTag();
-		log.debug("Tag: {}", tag);
+
+		ITag tag = null;
+		for (int t = 0; t < 32; t++) {
+			tag = reader.readTag();
+			log.debug("Tag: {}", tag);
+		}
 
 		log.info("----------------------------------------------------------------------------------");
 
 		//File file2 = new File("E:/media/test_clips/IronMan.mov");
 		//MP4Reader reader2 = new MP4Reader(file2, false);
-
-		// log.info("----------------------------------------------------------------------------------");
-
-		//File file3 = new File("fixtures/AdobeBand_300K_H264.mp4");
-		//MP4Reader reader3 = new MP4Reader(file3);
-
-		//tag = reader3.readTag();		
-		//log.debug("Tag: {}", tag);		
-		//tag = reader3.readTag();		
-		//log.debug("Tag: {}", tag);
 
 	}
 

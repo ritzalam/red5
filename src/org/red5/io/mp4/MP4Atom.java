@@ -259,6 +259,12 @@ public class MP4Atom {
 			case 1667785070: // Audio Channel Layout chan
 				readed = atom.create_chan_atom(bitstream);
 				break;
+			case 1969517665: // User data udta
+				readed = atom.create_udta_atom(bitstream);
+				break;
+			case 1835365473: // Meta data meta
+				readed = atom.create_meta_atom(bitstream);
+				break;
 			case 0: // Terminator 0x00000000
 				break;
 		}
@@ -319,6 +325,57 @@ public class MP4Atom {
 
 	public int getChannelCount() {
 		return channelCount;
+	}
+
+	/**
+	 * Creates a user data atom.
+	 * 
+	 * @param bitstream
+	 * @return bytes read
+	 * @throws IOException
+	 */
+	public long create_udta_atom(MP4DataStream bitstream) throws IOException {
+		//qtff page 44
+		log.trace("User data");
+		if (size > 12) {
+			MP4Atom child = MP4Atom.createAtom(bitstream);
+			children.add(child);
+			readed += child.getSize();
+			log.trace("Child: {}", intToType(child.getType()));
+		}
+		return readed;
+	}
+
+	/**
+	 * Creates a meta data atom.
+	 * 
+	 * @param bitstream
+	 * @return bytes read
+	 * @throws IOException
+	 */
+	public long create_meta_atom(MP4DataStream bitstream) throws IOException {
+		//qtff page 110
+		log.trace("Meta data");
+		create_handler_atom(bitstream); // hdlr atom
+		if (children.size() > 0) {
+			// TODO handle children like ilst
+		} else {
+			@SuppressWarnings("unused")
+			int subSize = (int) bitstream.readBytes(4);
+			int subType = (int) bitstream.readBytes(4);
+			readed += 8;
+			if (subType == MP4Atom.typeToInt("mhdr")) {
+				log.info("Metadata header atom");
+				create_full_atom(bitstream); // mhdr atom
+				int nextItemId = (int) bitstream.readBytes(4);
+				readed += 4;
+				log.info("Next item id: {}", MP4Atom.intToType(nextItemId));
+			} else if (subType == MP4Atom.typeToInt("keys")) {
+				log.info("Keys atom");
+				create_full_atom(bitstream); // keys atom			
+			}
+		}
+		return readed;
 	}
 
 	/**
@@ -411,15 +468,31 @@ public class MP4Atom {
 	public long create_handler_atom(MP4DataStream bitstream) throws IOException {
 		create_full_atom(bitstream);
 		int qt_componentType = (int) bitstream.readBytes(4);
-		handlerType = (int) bitstream.readBytes(4);
+		log.trace("Component type: {}", MP4Atom.intToType(qt_componentType));
+		handlerType = (int) bitstream.readBytes(4); // for qt this is component sub-type
+		log.trace("Handler type: {}", MP4Atom.intToType(handlerType));
 		int qt_componentManufacturer = (int) bitstream.readBytes(4);
 		int qt_componentFlags = (int) bitstream.readBytes(4);
 		int qt_componentFlagsMask = (int) bitstream.readBytes(4);
 		readed += 20;
-		int length = (int) (size - readed - 1);
-		String trackName = bitstream.readString(length);
-		log.trace("Track name: {}", trackName);
-		readed += length;
+		if (handlerType != MP4Atom.typeToInt("hdlr")) {
+			int length = (int) (size - readed);
+			String trackName = bitstream.readString(length);
+			log.debug("Track name: {}", trackName);
+			readed += length;
+		} else {
+			int tmp = (int) bitstream.readBytes(4);
+			readed += 4;
+			if (tmp == MP4Atom.typeToInt("appl")) {
+				log.info("Apple flag?: {}", MP4Atom.intToType(tmp));
+				bitstream.skipBytes(9);
+				readed += 9;
+				MP4Atom child = MP4Atom.createAtom(bitstream);
+				children.add(child);
+				readed += child.getSize();
+				log.trace("Child: {}", intToType(child.getType()));
+			}
+		}
 		return readed;
 	}
 
@@ -948,7 +1021,7 @@ public class MP4Atom {
 	 */
 	public long create_chan_atom(MP4DataStream bitstream) throws IOException {
 		log.trace("Audio Channel Layout Atom atom");
-		create_full_atom(bitstream); 
+		create_full_atom(bitstream);
 		// Audio channel layout - A big-endian AudioChannelLayout structure as defined in CoreAudioTypes.h. 
 		// See the <a href='http://developer.apple.com/library/mac/navigation/index.html'>Mac OS X Developer Library for CoreAudio framework details</a>
 		while (readed < size) {
