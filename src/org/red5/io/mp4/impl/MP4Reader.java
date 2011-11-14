@@ -277,13 +277,20 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 							duration = mvhd.getDuration();
 							log.debug("Time scale {} Duration {}", timeScale, duration);
 						}
-						/* nothing needed here yet
 						MP4Atom meta = moov.lookup(MP4Atom.typeToInt("meta"), 0);
 						if (meta != null) {
 							log.debug("Meta atom found");
 							log.debug("{}", ToStringBuilder.reflectionToString(meta));
 						}
-						*/
+						MP4Atom udta = moov.lookup(MP4Atom.typeToInt("udta"), 0);
+						if (udta != null) {
+							log.debug("User data atom found");
+							log.debug("{}", ToStringBuilder.reflectionToString(udta));
+							if ((meta = udta.lookup(MP4Atom.typeToInt("meta"), 0)) != null) {
+								log.debug("Meta atom found");
+								log.debug("{}", ToStringBuilder.reflectionToString(meta));
+							}
+						}
 						//we would like to have two tracks, but it shouldn't be a requirement
 						int loops = 0;
 						int tracks = 0;
@@ -402,7 +409,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 														log.debug("wave: {}", ToStringBuilder.reflectionToString(wave));
 														MP4Atom tmp = wave.getChildren().get(0);
 														log.debug("Temp: {}", ToStringBuilder.reflectionToString(tmp));
-
 														esds = wave.lookup(MP4Atom.typeToInt("esds"), 0);
 														if (esds == null) {
 															tmp = wave.lookup(MP4Atom.typeToInt("mp4a"), 0);
@@ -448,22 +454,29 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 																			//match first byte
 																			switch (audioCoderType) {
 																				case 0x02:
+																					log.debug("Audio type AAC LC");
+																				case 0x11: //ER (Error Resilient) AAC LC
+																					log.debug("Audio type ER AAC LC");
 																				default:
 																					audioCodecType = 1; //AAC LC
 																					break;
 																				case 0x01:
+																					log.debug("Audio type AAC Main");
 																					audioCodecType = 0; //AAC Main
 																					break;
 																				case 0x03:
+																					log.debug("Audio type AAC SBR");
 																					audioCodecType = 2; //AAC LC SBR
 																					break;
 																				case 0x05:
-																				case 0x29:
+																				case 0x1d:
+																					log.debug("Audio type AAC HE");
 																					audioCodecType = 3; //AAC HE
 																					break;
-																				case 0x32:
-																				case 0x33:
-																				case 0x34:
+																				case 0x20:
+																				case 0x21:
+																				case 0x22:
+																					log.debug("Audio type MP3");
 																					audioCodecType = 33; //MP3
 																					audioCodecId = "mp3";
 																					break;
@@ -1256,34 +1269,39 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 						}
 						//size of the sample
 						int size = (videoSamples.get(sample - 1)).intValue();
-						//create a frame
-						MP4Frame frame = new MP4Frame();
-						frame.setKeyFrame(keyframe);
-						frame.setOffset(pos);
-						frame.setSize(size);
-						frame.setTime(ts);
-						frame.setType(TYPE_VIDEO);
-						//set time offset value from composition records
-						if (compositeTimeEntry != null) {
-							// how many samples have this offset
-							int consecutiveSamples = compositeTimeEntry.getConsecutiveSamples();
-							frame.setTimeOffset(compositeTimeEntry.getSampleOffset());
-							// increment our count
-							compositeIndex++;
-							if (compositeIndex - consecutiveSamples == 0) {
-								// ensure there are still times available
-								if (!compositionTimes.isEmpty()) {
-									// get the next one
-									compositeTimeEntry = compositionTimes.remove(0);
+						// exclude data that is not within the mdat box
+						if ((moovOffset < mdatOffset && pos > mdatOffset) || (moovOffset > mdatOffset && pos < moovOffset)) {
+							//create a frame
+							MP4Frame frame = new MP4Frame();
+							frame.setKeyFrame(keyframe);
+							frame.setOffset(pos);
+							frame.setSize(size);
+							frame.setTime(ts);
+							frame.setType(TYPE_VIDEO);
+							//set time offset value from composition records
+							if (compositeTimeEntry != null) {
+								// how many samples have this offset
+								int consecutiveSamples = compositeTimeEntry.getConsecutiveSamples();
+								frame.setTimeOffset(compositeTimeEntry.getSampleOffset());
+								// increment our count
+								compositeIndex++;
+								if (compositeIndex - consecutiveSamples == 0) {
+									// ensure there are still times available
+									if (!compositionTimes.isEmpty()) {
+										// get the next one
+										compositeTimeEntry = compositionTimes.remove(0);
+									}
+									// reset
+									compositeIndex = 0;
 								}
-								// reset
-								compositeIndex = 0;
+								log.debug("Composite sample #{} {}", sample, frame);
 							}
-							log.debug("Composite sample #{} {}", sample, frame);
+							// add the frame
+							frames.add(frame);
+							//log.debug("Sample #{} {}", sample, frame);
+						} else {
+							log.warn("Skipping video frame with invalid position");
 						}
-						// add the frame
-						frames.add(frame);
-						//log.debug("Sample #{} {}", sample, frame);
 						//inc and dec stuff
 						pos += size;
 						sampleCount--;
@@ -1314,7 +1332,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 						//sample size
 						int size = (audioSamples.get(sample - 1)).intValue();
 						// skip empty AAC data which is 6 bytes long
-						log.debug("Audio sample - size: {} pos: {}", size, pos);
+						log.trace("Audio sample - size: {} pos: {}", size, pos);
 						if (size == 6) {
 							try {
 								// get current pos
@@ -1330,9 +1348,9 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 								// reset the position
 								channel.position(position);
 								byte[] tmp = dst.array();
-								log.debug("Audio bytes: {} equal: {}", HexDump.byteArrayToHexString(tmp), Arrays.equals(EMPTY_AAC, tmp));
+								log.trace("Audio bytes: {} equal: {}", HexDump.byteArrayToHexString(tmp), Arrays.equals(EMPTY_AAC, tmp));
 								if (Arrays.equals(EMPTY_AAC, tmp)) {
-									log.debug("Skipping empty AAC data frame");
+									log.trace("Skipping empty AAC data frame");
 									// update counts
 									pos += size;
 									sampleCount--;
@@ -1343,15 +1361,20 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 							} catch (IOException e) {
 								log.warn("Exception during audio analysis", e);
 							}
+						}						
+						// exclude data that is not within the mdat box
+						if ((moovOffset < mdatOffset && pos > mdatOffset) || (moovOffset > mdatOffset && pos < moovOffset)) {
+							//create a frame
+							MP4Frame frame = new MP4Frame();
+							frame.setOffset(pos);
+							frame.setSize(size);
+							frame.setTime(ts);
+							frame.setType(TYPE_AUDIO);
+							frames.add(frame);
+							//log.debug("Sample #{} {}", sample, frame);
+						} else {
+							log.warn("Skipping audio frame with invalid position");
 						}
-						//create a frame
-						MP4Frame frame = new MP4Frame();
-						frame.setOffset(pos);
-						frame.setSize(size);
-						frame.setTime(ts);
-						frame.setType(TYPE_AUDIO);
-						frames.add(frame);
-						//log.debug("Sample #{} {}", sample, frame);
 						// update counts
 						pos += size;
 						sampleCount--;
