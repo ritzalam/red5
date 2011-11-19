@@ -319,6 +319,7 @@ public class RTMPTServlet extends HttpServlet {
 		// TODO: should we evaluate the pathinfo?
 		RTMPTConnection connection = createConnection();
 		connection.setServlet(this);
+		connection.setServletRequest(req);
 		if (connection.getId() != 0) {
 			// Return connection id to client
 			returnMessage(connection.getId() + "\n", resp);
@@ -350,8 +351,9 @@ public class RTMPTServlet extends HttpServlet {
 			handleBadRequest(String.format("Close: unknown client with id: %s", getClientId(req)), resp);
 			return;
 		}
+		
 		removeConnection(connection.getId());
-		connection.setServletRequest(req);
+
 		handler.connectionClosed(connection, connection.getState());
 		returnMessage((byte) 0, resp);
 		connection.realClose();
@@ -380,8 +382,6 @@ public class RTMPTServlet extends HttpServlet {
 			handleBadRequest("Connection already closed", resp);
 			return;
 		}
-
-		connection.setServletRequest(req);
 
 		// Put the received data in a ByteBuffer
 		int length = req.getContentLength();
@@ -446,7 +446,6 @@ public class RTMPTServlet extends HttpServlet {
 			return;
 		}
 
-		connection.setServletRequest(req);
 		returnPendingMessages(connection, resp);
 	}
 
