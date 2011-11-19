@@ -8,23 +8,37 @@
 			<pattern>[%p] [%thread] %logger - %msg%n</pattern>
 		</encoder>		
 	</appender>
-	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
-		<File>log/red5.log</File>
-		<Append>false</Append>
-		<encoder>
-			<pattern>%d{ISO8601} [%thread] %-5level %logger{35} - %msg%n</pattern>
-		</encoder>		
-	</appender>
-	<appender name="ERRORFILE" class="ch.qos.logback.core.FileAppender">
-		<File>log/error.log</File>
-		<Append>false</Append>
-    	<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-      		<level>WARN</level>
-    	</filter>
-		<encoder>
-			<pattern>%d{ISO8601} [%thread] %-5level %logger{35} - %msg%n</pattern>
-		</encoder>		
-	</appender>
+	
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <File>log/red5.log</File>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <FileNamePattern>log/red5.%d{yyyy-MM-dd}.log</FileNamePattern>
+      <!-- keep 30 days worth of history -->
+      <MaxHistory>30</MaxHistory>
+    </rollingPolicy>
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <Pattern>%date [%thread] %-5level %logger{35} - %msg%n</Pattern>
+    </layout>
+  </appender>
+  
+  <appender name="ERRORFILE" class="ch.qos.logback.core.FileAppender">
+    <File>log/error.log</File>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <FileNamePattern>log/error.%d{yyyy-MM-dd}.log</FileNamePattern>
+      <!-- keep 30 days worth of history -->
+      <MaxHistory>30</MaxHistory>
+    </rollingPolicy>
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <Pattern>%date [%thread] %-5level %logger{35} - %msg%n</Pattern>
+    </layout>
+      <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+          <level>WARN</level>
+      </filter>
+    <encoder>
+      <pattern>%d{ISO8601} [%thread] %-5level %logger{35} - %msg%n</pattern>
+    </encoder>    
+  </appender>
+  
 	<root>
 		<level value="WARN" />
 		<appender-ref ref="CONSOLE" />
