@@ -72,6 +72,32 @@ public class RTMPTHandler extends RTMPHandler {
 	public RTMPTCodecFactory getCodecFactory() {
 		return this.codecFactory;
 	}
+	
+	/**
+	 * Return hostname for URL.
+	 * 
+	 * @param url
+	 *            URL
+	 * @return Hostname from that URL
+	 */
+	@Override
+	protected String getHostname(String url) {
+		log.debug("url: {}", url);
+		String[] parts = url.split("/");
+		if (parts.length == 2) {
+			// TODO: is this a good default hostname?
+			return "";
+		} else {
+			String host = parts[2];
+			// Strip out default port in case the client
+			// added the port explicitly.
+			if (host.endsWith(":80")) {
+				// Remove default port from connection string
+				return host.substring(0, host.length() - 3);
+			}
+			return host;
+		}
+	}
 
 	/**
 	 * Handle raw buffer received
