@@ -140,12 +140,6 @@ public class EdgeRTMPHandler extends RTMPHandler {
 		// Get hostname
 		String host = getHostname((String) params.get("tcUrl"));
 
-		// Check up port
-		if (host.endsWith(":1935")) {
-			// Remove default port from connection string
-			host = host.substring(0, host.length() - 5);
-		}
-
 		// App name as path, but without query string if there is one
 		String path = (String) params.get("app");
 		if (path.indexOf("?") != -1) {
