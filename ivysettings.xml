@@ -5,6 +5,9 @@
             <ibiblio name="central" m2compatible="true"/>
             <ibiblio name="springsource-external" m2compatible="true" root="http://repository.springsource.com/maven/bundles/external"/>
             <ibiblio name="springsource-release" m2compatible="true" root="http://repository.springsource.com/maven/bundles/release"/>
+            <url name="mavencentral">
+                <artifact pattern="http://repo1.maven.org/maven2/[organisation]/[artifact]-[revision].[ext]" />
+            </url>
             <url name="googlecode">
                 <artifact pattern="http://red5.googlecode.com/svn/repository/[artifact](-[revision]).[ext]" />
                 <artifact pattern="http://red5.googlecode.com/svn/repository/[organisation]/[artifact](-[revision]).[ext]" />
