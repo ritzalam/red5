@@ -42,7 +42,7 @@
 			transitive="false" />
 		<dependency org="commons" name="httpcore" rev="4.1.3" />
 		<dependency org="commons" name="httpclient" rev="4.1.2" />
-		<dependency org="commons" name="commons-lang3" rev="3.0-beta" />
+		<dependency org="org.apache.commons" name="commons-lang3" rev="3.1" />
 		<dependency org="org.apache.commons"
 			name="com.springsource.org.apache.commons.modeler" rev="2.0.1"
 			transitive="false" />
