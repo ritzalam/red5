@@ -51,7 +51,7 @@ public class Deserializer {
 			type = in.readDataType();
 			log.trace("Type (skip): {}", type);
 		}
-		log.trace("Datatype: {}", DataTypes.toStringValue(type));
+		log.debug("Datatype: {}", DataTypes.toStringValue(type));
 		Object result;
 		switch (type) {
 			case DataTypes.CORE_NULL:
