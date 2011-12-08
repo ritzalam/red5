@@ -648,7 +648,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		// Skip unknown bytes
 		in.skip(4);
 		// create our shared object message
-		final SharedObjectMessage so = new FlexSharedObjectMessage(null, name, version, persistent);
+		final SharedObjectMessage so = new SharedObjectMessage(null, name, version, persistent);
 		doDecodeSharedObject(so, in, input);
 		return so;
 	}

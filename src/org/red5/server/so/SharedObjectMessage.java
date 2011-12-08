@@ -192,7 +192,7 @@ public class SharedObjectMessage extends BaseEvent implements ISharedObjectMessa
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder();
-		sb.append("SharedObjectMessage: ").append(name).append(" { ");
+		sb.append(getClass().getSimpleName()).append(": ").append(name).append(" { ");
 		final Iterator<ISharedObjectEvent> it = events.iterator();
 		while (it.hasNext()) {
 			sb.append(it.next());
