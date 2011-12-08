@@ -68,7 +68,11 @@ public class Channel {
      * Closes channel with this id on RTMP connection.
      */
     public void close() {
-		connection.closeChannel(id);
+        if (connection == null) {
+            return;
+        }
+        
+        connection.closeChannel(id);
 	}
 
 	/**
@@ -95,6 +99,10 @@ public class Channel {
      * @param event          Event data
      */
     public void write(IRTMPEvent event) {
+        if (connection == null) {
+            return;
+        }
+        
 		final IClientStream stream = connection.getStreamByChannelId(id);
 		if (id > 3 && stream == null) {
 			log.info("Stream doesn't exist any longer, discarding message {}", event);
@@ -111,6 +119,10 @@ public class Channel {
      * @param streamId        Stream id
      */
     private void write(IRTMPEvent event, int streamId) {
+        if (connection == null) {
+            return;
+        }
+        
 		final Header header = new Header();
 		final Packet packet = new Packet(header, event);
 		header.setChannelId(id);
@@ -127,6 +139,10 @@ public class Channel {
      * @param status           Status
      */
     public void sendStatus(Status status) {
+        if (connection == null) {
+            return;
+        }
+        
 		final boolean andReturn = !status.getCode().equals(StatusCodes.NS_DATA_START);
 		final Notify event;
 		if (andReturn) {
