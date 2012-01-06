@@ -183,8 +183,11 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 	/** {@inheritDoc} */
 	public void endUpdate() {
 		// End update of SO
-		so.endUpdate();
-		lock.unlock();
+		try {
+			so.endUpdate();
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	/** {@inheritDoc} */

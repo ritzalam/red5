@@ -35,6 +35,7 @@ import org.red5.io.object.Output;
 import org.red5.io.object.Serializer;
 import org.red5.server.AttributeStore;
 import org.red5.server.api.IAttributeStore;
+import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
@@ -281,10 +282,12 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 		//
 		if (!events.isEmpty()) {
 			// Send update to "owner" of this update request
-			SharedObjectMessage syncOwner = new SharedObjectMessage(null, name, currentVersion, persistent);
-			syncOwner.addEvents(events);
 			if (source != null) {
 				// Only send updates when issued through RTMP request
+				final SharedObjectMessage syncOwner = ((RTMPConnection) source).getEncoding() == Encoding.AMF3 ?
+						new FlexSharedObjectMessage(null, name, currentVersion, persistent) : 
+						new SharedObjectMessage(null, name, currentVersion, persistent);
+				syncOwner.addEvents(events);
 				Channel channel = ((RTMPConnection) source).getChannel((byte) 3);
 				if (channel != null) {
 					//ownerMessage.acquire();
@@ -321,7 +324,9 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 						final Channel channel = ((RTMPConnection) listener).getChannel((byte) 3);
 						//create a new sync message for every client to avoid
 						//concurrent access through multiple threads
-						final SharedObjectMessage syncMessage = new SharedObjectMessage(null, name, currentVersion, persistent);
+						final SharedObjectMessage syncMessage = ((RTMPConnection) listener).getEncoding() == Encoding.AMF3 ?
+								new FlexSharedObjectMessage(null, name, currentVersion, persistent) : 
+								new SharedObjectMessage(null, name, currentVersion, persistent);
 						syncMessage.addEvents(events);
 						//create a worker
 						Runnable worker = new Runnable() {

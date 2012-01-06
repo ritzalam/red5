@@ -209,7 +209,7 @@ public class ServiceUtils {
 				invokeOnConnection(conn, method, params, callback);
 			}
 		}
-		if (connections != null) {
+		if (connections != null && client == null) {
 			connections.clear();
 			connections = null;
 		}

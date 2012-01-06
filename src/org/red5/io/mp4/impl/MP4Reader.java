@@ -445,7 +445,6 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 																			 5 - HE-AAC explicitly signaled (Non-backward compatible)
 																			23 - Low Delay AAC
 																			29 - HE-AACv2 explicitly signaled
-																			31 - ESCAPE (read 6 more bits, add 32)
 																			32 - MP3on4 Layer 1
 																			33 - MP3on4 Layer 2
 																			34 - MP3on4 Layer 3

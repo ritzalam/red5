@@ -325,6 +325,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public Number readNumber(Type target) {
+		log.debug("readNumber - target: {}", target);
 		Number v;
 		if (currentDataType == AMF3.TYPE_NUMBER) {
 			v = buf.getDouble();
@@ -332,10 +333,21 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			// we are decoding an int
 			v = readAMF3Integer();
 		}
+		log.debug("readNumber - value: {}", v);
 		if (target instanceof Class && Number.class.isAssignableFrom((Class<?>) target)) {
 			Class cls = (Class) target;
 			if (!cls.isAssignableFrom(v.getClass())) {
-				v = (Number) convertUtilsBean.convert(v.toString(), cls);
+				String value = v.toString();
+				log.debug("readNumber - value class: {} str: {}", v.getClass(), value);
+				if (value.indexOf(".") > 0) {
+					if (Float.class == v.getClass()) {
+						v = (Number) convertUtilsBean.convert(value, Float.class);											
+					} else {
+						v = (Number) convertUtilsBean.convert(value, Double.class);					
+					}
+				} else {
+					v = (Number) convertUtilsBean.convert(value, cls);
+				}
 			}
 		}
 		return v;
