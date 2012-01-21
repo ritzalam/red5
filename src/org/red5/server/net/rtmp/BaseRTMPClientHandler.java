@@ -566,13 +566,18 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 
 	/** {@inheritDoc} */
 	@Override
-	protected void onInvoke(RTMPConnection conn, Channel channel, Header source, Notify invoke, RTMP rtmp) {
+	protected void onInvoke(RTMPConnection conn, Channel channel, Header source, Notify invoke, RTMP rtmp) {	
 		if (invoke.getType() == IEvent.Type.STREAM_DATA) {
 			log.debug("Ignoring stream data notify with header: {}", source);
 			return;
 		}
 		log.debug("onInvoke: {}, invokeId: {}", invoke, invoke.getInvokeId());
 		final IServiceCall call = invoke.getCall();
+		
+		log.debug("Service name: {} args[0]: {}", call.getServiceMethodName(), (call.getArguments().length != 0 ? call.getArguments()[0] : ""));
+		
+		
+		
 		String methodName = call.getServiceMethodName();
 		if ("_result".equals(methodName) || "_error".equals(methodName)) {
 			final IPendingServiceCall pendingCall = conn.getPendingCall(invoke.getInvokeId());
@@ -589,7 +594,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 			handlePendingCallResult(conn, invoke);
 			return;
 		}
-
+		
 		// potentially used twice so get the value once
 		boolean onStatus = call.getServiceMethodName().equals("onStatus");
 		log.debug("onStatus {}", onStatus);
@@ -599,10 +604,10 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 			// should keep this as an Object to stay compatible with FMS3 etc
 			Object clientId = objMap.get("clientid");
 			log.debug("Client id at onStatus: {}", clientId);
-			if (clientId == null) {
-				clientId = source.getStreamId();
-			}
-
+			//if (clientId == null) {
+			clientId = source.getStreamId();
+			log.debug("Client id set using stream id: {}", clientId);
+			//}
 			log.debug("Client/stream id: {}", clientId);
 			if (clientId != null) {
 				// try lookup by client id first

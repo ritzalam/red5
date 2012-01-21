@@ -69,7 +69,7 @@ public class StreamService implements IStreamService {
 	private ThreadLocal<Boolean> simplePlayback = new ThreadLocal<Boolean>() {
 		@Override
 		protected Boolean initialValue() {
-			return Boolean.FALSE;
+			return Boolean.TRUE;
 		}
 	};
 
@@ -85,13 +85,9 @@ public class StreamService implements IStreamService {
 
 	/** {@inheritDoc} */
 	public void initStream(int streamId) {
-		// XXX: what to do here?
-	}
-
-	/** {@inheritDoc} */
-	public void closeStream() {
 		IConnection conn = Red5.getConnectionLocal();
 		if (conn instanceof IStreamCapableConnection) {
+			((IStreamCapableConnection) conn).reserveStreamId(streamId);
 			IClientStream stream = ((IStreamCapableConnection) conn).getStreamById(getCurrentStreamId());
 			if (stream != null) {
 				if (stream instanceof IClientBroadcastStream) {
@@ -104,6 +100,8 @@ public class StreamService implements IStreamService {
 				stream.close();
 			}
 			((IStreamCapableConnection) conn).deleteStreamById(getCurrentStreamId());
+		} else {
+			log.warn("ERROR in intiStream, connection is not stream capable");
 		}
 	}
 
@@ -131,10 +129,11 @@ public class StreamService implements IStreamService {
 	 * </pre>
 	 * When stream is closed, corresponding NetStream status will be sent to stream provider / consumers.
 	 * Implementation is based on Red5's StreamService.close()
+	 * 
 	 * @param connection client connection
 	 * @param streamId stream ID (number: 1,2,...)
 	 */
-	public static void closeStream(IConnection connection, int streamId) {
+	public void closeStream(IConnection connection, int streamId) {
 		if (connection instanceof IStreamCapableConnection) {
 			IStreamCapableConnection scConnection = (IStreamCapableConnection) connection;
 			IClientStream stream = scConnection.getStreamById(streamId);
@@ -461,15 +460,18 @@ public class StreamService implements IStreamService {
 				// just reset the currently playing stream
 				play(streamName);
 			} else if ("switch".equals(transition)) {
-				// set the playback type
-				simplePlayback.set(Boolean.TRUE);
-				// send the "start" of transition
-				sendNSStatus(conn, StatusCodes.NS_PLAY_TRANSITION, String.format("Transitioning from %s to %s.", oldStreamName, streamName), streamName, streamId);
-				// support offset?
-				//playOptions.get("offset")
-				play(streamName, start, length);
-				// clean up
-				simplePlayback.remove();
+                try {
+                    // set the playback type
+                    simplePlayback.set(Boolean.FALSE);
+                    // send the "start" of transition
+                    sendNSStatus(conn, StatusCodes.NS_PLAY_TRANSITION, String.format("Transitioning from %s to %s.", oldStreamName, streamName), streamName, streamId);
+                    // support offset?
+                    //playOptions.get("offset")
+                    play(streamName, start, length);
+                } finally {
+                    // clean up
+                    simplePlayback.remove();
+                }
 			} else if ("append".equals(transition) || "appendAndWait".equals(transition)) {
 				IPlaylistSubscriberStream playlistStream = (IPlaylistSubscriberStream) streamConn.getStreamById(streamId);
 				IPlayItem item = SimplePlayItem.build(streamName);
