@@ -1,4 +1,3 @@
-package org.red5.io.utils;
 
 /*
  * Copyright 2001-2011 The Apache Software Foundation.
@@ -15,6 +14,8 @@ package org.red5.io.utils;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package org.red5.io.utils;
 
 import java.io.PrintWriter;
 import java.io.Writer;

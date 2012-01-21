@@ -1,20 +1,3 @@
-package org.red5.server.service;
-
-import java.io.File;
-import java.io.FilenameFilter;
-
-import javax.management.JMX;
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-
-import org.red5.server.api.scheduling.IScheduledJob;
-import org.red5.server.api.scheduling.ISchedulingService;
-import org.red5.server.jmx.JMXFactory;
-import org.red5.server.jmx.mxbeans.LoaderMXBean;
-import org.red5.server.util.FileUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /*
  * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
@@ -33,6 +16,23 @@ import org.slf4j.LoggerFactory;
  * with this library; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
+
+package org.red5.server.service;
+
+import java.io.File;
+import java.io.FilenameFilter;
+
+import javax.management.JMX;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+
+import org.red5.server.api.scheduling.IScheduledJob;
+import org.red5.server.api.scheduling.ISchedulingService;
+import org.red5.server.jmx.JMXFactory;
+import org.red5.server.jmx.mxbeans.LoaderMXBean;
+import org.red5.server.util.FileUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This service provides the means to auto-deploy a war. 
