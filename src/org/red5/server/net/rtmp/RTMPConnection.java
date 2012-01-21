@@ -407,6 +407,23 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		return result + 1;
 	}
 
+	/** {@inheritDoc} */
+	public int reserveStreamId(int id) {
+		int result = -1;
+		getWriteLock().lock();
+		try{
+			if(!reservedStreams.get(id-1)){
+				reservedStreams.set(id-1);
+				result = id-1;
+			}else{
+				result = reserveStreamId();
+			}
+		}finally{
+			getWriteLock().unlock();
+		}
+		return result;
+	}
+	
 	/**
 	 * Creates output stream object from stream id. Output stream consists of
 	 * audio, data and video channels.

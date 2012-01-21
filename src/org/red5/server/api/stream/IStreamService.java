@@ -1,5 +1,6 @@
 package org.red5.server.api.stream;
 
+import org.red5.server.api.IConnection;
 import org.red5.server.api.IScopeService;
 
 /*
@@ -37,8 +38,11 @@ public interface IStreamService extends IScopeService {
 
 	/**
 	 * Close the stream but not deallocate the resources.
+	 * 
+	 * @param connection Connection
+	 * @param streamId  Stream id
 	 */
-	public void closeStream();
+	public void closeStream(IConnection connection, int streamId);
 
 	/**
 	 * Close the stream if not been closed.

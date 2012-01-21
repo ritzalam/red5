@@ -43,7 +43,7 @@ import javax.management.openmbean.CompositeData;
  *   
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
- * @author Paul Gregoire (mondain@gmail.com)  
+ * @author Paul Gregoire (mondain@gmail.com)   
  */
 public final class Red5 {
 

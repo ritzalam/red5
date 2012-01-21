@@ -77,20 +77,11 @@
 	<logger name="org.red5.server.net.rtmp">
 		<level value="WARN" />
 	</logger>	
-	<logger name="org.red5.server.net.rtmp.RTMPHandler">
-		<level value="INFO" />
-	</logger>
 	<logger name="org.red5.server.net.rtmp.BaseRTMPHandler">
 		<level value="OFF" />
 	</logger>
-	<logger name="org.red5.server.net.rtmp.codec">
-		<level value="INFO" />
-	</logger>
 	<logger name="org.red5.server.net.rtmp.RTMPMinaIoHandler">
 		<level value="OFF" />
-	</logger>
-	<logger name="org.red5.server.net.rtmp.RTMPMinaTransport">
-		<level value="INFO" />
 	</logger>
 	<logger name="org.red5.server.net.rtmp.status">
 		<level value="INFO" />
@@ -116,15 +107,7 @@
 	<logger name="org.red5.server.stream.consumer">
 		<level value="WARN" />
 	</logger>
-<!-- 
-    <logger name="org.red5.server.stream.consumer.FileConsumer">
-        <level value="TRACE" />
-    </logger>	
- -->
 	<logger name="org.red5.server.net.mrtmp">
-		<level value="WARN" />
-	</logger>
-	<logger name="org.red5.server.net.mrtmp.codec">
 		<level value="WARN" />
 	</logger>
 	<!-- Mina -->			
@@ -149,17 +132,8 @@
         <level value="INFO" />
     </logger>
     <logger name="org.apache.catalina">
-        <level value="INFO" />
+        <level value="WARN" />
     </logger>
-    <logger name="org.apache.catalina.loader">
-        <level value="INFO" />
-    </logger>
-	<logger name="org.apache.catalina.realm">
-		<level value="WARN" />
-	</logger>
-	<logger name="org.apache.catalina.session">
-		<level value="WARN" />
-	</logger>
 	<logger name="org.apache.jasper">
 		<level value="INFO" />
 	</logger>
@@ -201,14 +175,4 @@
 	<logger name="ch.qos">
 		<level value="WARN" />
 	</logger>
-    <!-- Jetty -->
-    <logger name="org.red5.server.jetty">
-        <level value="DEBUG" />
-    </logger>
-    <logger name="org.mortbay">
-        <level value="DEBUG" />
-    </logger>
-    <logger name="org.eclipse.jetty">
-        <level value="DEBUG" />
-    </logger>
 </configuration>

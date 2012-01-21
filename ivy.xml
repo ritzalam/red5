@@ -11,47 +11,33 @@
 	<dependencies>
 		<dependency org="javax" name="javaee-api" rev="5.1.2" />
 		<!-- Spring -->
-		<dependency org="org.springframework" name="spring-asm"
-			rev="3.0.6.RELEASE" />
-		<dependency org="org.springframework" name="spring-beans"
-			rev="3.0.6.RELEASE" />
-		<dependency org="org.springframework" name="spring-context"
-			rev="3.0.6.RELEASE" />
-		<dependency org="org.springframework" name="spring-core"
-			rev="3.0.6.RELEASE" />
-		<dependency org="org.springframework" name="spring-expression"
-			rev="3.0.6.RELEASE" />
-		<dependency org="org.springframework" name="spring-web"
-			rev="3.0.6.RELEASE" />
+		<dependency org="org.springframework" name="spring-asm" rev="3.0.6.RELEASE" />
+		<dependency org="org.springframework" name="spring-beans" rev="3.0.6.RELEASE" />
+		<dependency org="org.springframework" name="spring-context" rev="3.0.6.RELEASE" />
+		<dependency org="org.springframework" name="spring-core" rev="3.0.6.RELEASE" />
+		<dependency org="org.springframework" name="spring-expression" rev="3.0.6.RELEASE" />
+		<dependency org="org.springframework" name="spring-web" rev="3.0.6.RELEASE" />
 		<!-- Logging -->
-		<dependency org="org.slf4j" name="com.springsource.slf4j.api"
-			rev="1.6.1" transitive="false" />
-		<dependency org="org.slf4j" name="com.springsource.slf4j.bridge"
-			rev="1.6.1" transitive="false" />
+		<dependency org="org.slf4j" name="com.springsource.slf4j.api" rev="1.6.1" transitive="false" />
+		<dependency org="org.slf4j" name="com.springsource.slf4j.bridge" rev="1.6.1" transitive="false" />
 		<dependency name="jul-to-slf4j" rev="1.6.1" />
 		<dependency name="log4j-over-slf4j" rev="1.6.1" />
 		<dependency name="jcl-over-slf4j" rev="1.6.1" />
 		<dependency name="logback-classic" rev="0.9.28" />
 		<dependency name="logback-core" rev="0.9.28" />
 		<!-- General -->
-		<dependency org="commons" name="commons-beanutils" rev="1.8.2" />
-		<dependency org="org.apache.commons" name="com.springsource.org.apache.commons.codec"
-			rev="1.4.0" transitive="false" />
-		<dependency org="org.apache.commons"
-			name="com.springsource.org.apache.commons.collections" rev="3.2.1"
-			transitive="false" />
+		<dependency org="org.apache.commons" name="commons-beanutils" rev="1.8.3" />
+		<dependency org="org.apache.commons" name="commons-codec" rev="1.6" />
+		<dependency org="org.apache.commons" name="commons-collections" rev="3.2.1" />
 		<dependency org="commons" name="httpcore" rev="4.1.3" />
 		<dependency org="commons" name="httpclient" rev="4.1.2" />
 		<dependency org="org.apache.commons" name="commons-lang3" rev="3.1" />
-		<dependency org="org.apache.commons"
-			name="com.springsource.org.apache.commons.modeler" rev="2.0.1"
-			transitive="false" />
-		<dependency org="commons" name="commons-pool" rev="1.5.6" />
-		<dependency name="quartz" rev="1.8.5" />
-		<dependency name="ehcache" rev="2.2.0" />
+		<dependency org="org.apache.commons" name="commons-modeler" rev="2.0.1" />
+		<dependency org="org.apache.commons" name="commons-pool" rev="1.5.6" />
+		<dependency org="org.quartz-scheduler" name="quartz" rev="1.8.5" />
+		<dependency org="net.sf.ehcache" name="ehcache-core" rev="2.5.0" />
 		<!-- XML -->
-		<dependency org="org.apache.xerces" name="com.springsource.org.apache.xerces"
-			rev="2.9.1" transitive="false" />
+		<dependency org="org.apache.xerces" name="com.springsource.org.apache.xerces" rev="2.9.1" />
 		<dependency name="xmlrpc" rev="2.0.1" />
 		<!-- Mina -->
 		<dependency org="mina" name="mina-integration-beans" rev="2.0.4" />
