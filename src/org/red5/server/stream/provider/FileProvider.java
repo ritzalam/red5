@@ -1,5 +1,3 @@
-package org.red5.server.stream.provider;
-
 /*
  * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
@@ -18,6 +16,8 @@ package org.red5.server.stream.provider;
  * with this library; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
+
+package org.red5.server.stream.provider;
 
 import java.io.File;
 import java.io.IOException;
