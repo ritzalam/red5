@@ -27,6 +27,8 @@ import org.apache.mina.core.future.IoFutureListener;
 import org.apache.mina.transport.socket.SocketConnector;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
 import org.red5.server.net.rtmp.codec.RTMP;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * RTMP client object. Initial client mode code by Christian Eckerle.
@@ -38,24 +40,25 @@ import org.red5.server.net.rtmp.codec.RTMP;
  * @author Steven Gong (steven.gong@gmail.com)
  * @author Anton Lebedevich (mabrek@gmail.com)
  * @author Tiago Daniel Jacobs (tiago@imdt.com.br)
+ * @author Jon Valliere
  */
 public class RTMPClient extends BaseRTMPClientHandler {
 
-	//private static final Logger log = LoggerFactory.getLogger(RTMPClient.class);
-	
+	private static final Logger log = LoggerFactory.getLogger(RTMPClient.class);
+
 	protected static final int CONNECTOR_WORKER_TIMEOUT = 7000; // seconds
-	
+
 	// I/O handler
 	private final RTMPMinaIoHandler ioHandler;
-	
+
 	// Socket connector, disposed on disconnect
 	protected SocketConnector socketConnector;
-	
+
 	// 
 	protected ConnectFuture future;
 
 	/** Constructs a new RTMPClient. */
-    public RTMPClient() {
+	public RTMPClient() {
 		ioHandler = new RTMPMinaIoHandler();
 		ioHandler.setCodecFactory(getCodecFactory());
 		ioHandler.setMode(RTMP.MODE_CLIENT);
@@ -70,40 +73,44 @@ public class RTMPClient extends BaseRTMPClientHandler {
 		}
 		return params;
 	}
-	
+
 	@SuppressWarnings({ "rawtypes" })
 	@Override
 	protected void startConnector(String server, int port) {
 		socketConnector = new NioSocketConnector();
 		socketConnector.setHandler(ioHandler);
 		future = socketConnector.connect(new InetSocketAddress(server, port));
-		future.addListener(
-				new IoFutureListener() {
-					public void operationComplete(IoFuture future) {
-						try {
-							// will throw RuntimeException after connection error
-							future.getSession(); 
-						} catch (Throwable e) {
-							//if there isn't an ClientExceptionHandler set, a 
-							//RuntimeException may be thrown in handleException
-							handleException(e);
-						}
-					}
+		future.addListener(new IoFutureListener() {
+			public void operationComplete(IoFuture future) {
+				try {
+					// will throw RuntimeException after connection error
+					future.getSession();
+				} catch (Throwable e) {
+					//if there isn't an ClientExceptionHandler set, a 
+					//RuntimeException may be thrown in handleException
+					handleException(e);
 				}
-		);
-	    // Now wait for the close to be completed
+			}
+		});
+		// Now wait for the close to be completed
 		future.awaitUninterruptibly(CONNECTOR_WORKER_TIMEOUT);
 	}
-	
+
 	@Override
 	public void disconnect() {
-	    // Do the close requesting that the pending messages are sent before
-	    // the session is closed
-		future.getSession().close(false);
-	    // Now wait for the close to be completed
-		future.awaitUninterruptibly(CONNECTOR_WORKER_TIMEOUT);
-	    // We can now dispose the connector
-		socketConnector.dispose();
+		if (future != null) {
+			// Do the close requesting that the pending messages are sent before
+			// the session is closed
+			try {
+				future.getSession().close(false);
+			} catch (Exception e) {
+				log.warn("Exception during disconnect", e);
+			}
+			// now wait for the close to be completed
+			future.awaitUninterruptibly(CONNECTOR_WORKER_TIMEOUT);
+			// We can now dispose the connector
+			socketConnector.dispose();
+		}
 		super.disconnect();
 	}
 }
