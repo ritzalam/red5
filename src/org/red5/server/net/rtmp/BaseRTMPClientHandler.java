@@ -58,7 +58,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Base class for clients (RTMP and RTMPT)
  */
-public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
+public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements IRTMPClient {
 
 	private static final Logger log = LoggerFactory.getLogger(BaseRTMPClientHandler.class);
 
