@@ -104,6 +104,11 @@ public class StreamService implements IStreamService {
 		}
 	}
 
+	/** {@inheritDoc} */
+	public void closeStream() {
+		closeStream(Red5.getConnectionLocal(), getCurrentStreamId());
+	}
+
 	/**
 	 * Close stream.
 	 * This method can close both IClientBroadcastStream (coming from Flash Player to Red5)
@@ -368,8 +373,8 @@ public class StreamService implements IStreamService {
 	}
 
 	/**
- 	 * Dynamic streaming play method. This is a convenience method.
- 	 * 
+	 * Dynamic streaming play method. This is a convenience method.
+	 * 
 	 * @param oldStreamName
 	 * @param start
 	 * @param transition
@@ -459,18 +464,18 @@ public class StreamService implements IStreamService {
 				// just reset the currently playing stream
 				play(streamName);
 			} else if ("switch".equals(transition)) {
-                try {
-                    // set the playback type
-                    simplePlayback.set(Boolean.FALSE);
-                    // send the "start" of transition
-                    sendNSStatus(conn, StatusCodes.NS_PLAY_TRANSITION, String.format("Transitioning from %s to %s.", oldStreamName, streamName), streamName, streamId);
-                    // support offset?
-                    //playOptions.get("offset")
-                    play(streamName, start, length);
-                } finally {
-                    // clean up
-                    simplePlayback.remove();
-                }
+				try {
+					// set the playback type
+					simplePlayback.set(Boolean.FALSE);
+					// send the "start" of transition
+					sendNSStatus(conn, StatusCodes.NS_PLAY_TRANSITION, String.format("Transitioning from %s to %s.", oldStreamName, streamName), streamName, streamId);
+					// support offset?
+					//playOptions.get("offset")
+					play(streamName, start, length);
+				} finally {
+					// clean up
+					simplePlayback.remove();
+				}
 			} else if ("append".equals(transition) || "appendAndWait".equals(transition)) {
 				IPlaylistSubscriberStream playlistStream = (IPlaylistSubscriberStream) streamConn.getStreamById(streamId);
 				IPlayItem item = SimplePlayItem.build(streamName);
