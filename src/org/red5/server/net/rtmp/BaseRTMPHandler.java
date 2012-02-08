@@ -114,7 +114,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 			final Header header = packet.getHeader();
 			final Channel channel = conn.getChannel(header.getChannelId());
 			final IClientStream stream = conn.getStreamById(header.getStreamId());
-			log.debug("Message received, header: {}", header);
+			log.trace("Message received, header: {}", header);
 			// Thread local performance ? Should we benchmark
 			Red5.setConnectionLocal(conn);
 			// XXX: HACK HACK HACK to support stream ids
@@ -199,7 +199,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 
 	/** {@inheritDoc} */
 	public void messageSent(RTMPConnection conn, Object message) {
-		log.debug("Message sent");
+		log.trace("Message sent");
 		if (message instanceof IoBuffer) {
 			return;
 		}
@@ -265,7 +265,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 					try {
 						callback.resultReceived(pendingCall);
 					} catch (Exception e) {
-						log.error("Error while executing callback {} {}", callback, e);
+						log.error("Error while executing callback {}", callback, e);
 					}
 				}
 			}
