@@ -231,13 +231,10 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
 		log.info("{}://{}:{}/{}", new Object[] { scheme, server, port, connectionParams.get("app") });
 		this.connectionParams = connectionParams;
 		this.connectArguments = connectCallArguments;
-
 		if (!connectionParams.containsKey("objectEncoding")) {
 			connectionParams.put("objectEncoding", 0);
 		}
-
 		this.connectCallback = connectCallback;
-
 		startConnector(server, port);
 	}
 
@@ -285,7 +282,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
 	/** {@inheritDoc} */
 	@Override
 	protected void onPing(RTMPConnection conn, Channel channel, Header source, Ping ping) {
-		log.debug("onPing");
+		log.trace("onPing");
 		switch (ping.getEventType()) {
 			case Ping.PING_CLIENT:
 			case Ping.STREAM_BEGIN:
@@ -338,7 +335,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
 	/** {@inheritDoc} */
 	@Override
 	protected void onSharedObject(RTMPConnection conn, Channel channel, Header source, SharedObjectMessage object) {
-		log.debug("onSharedObject");
+		log.trace("onSharedObject");
 		ClientSharedObject so = sharedObjects.get(object.getName());
 		if (so == null) {
 			log.error("Ignoring request for non-existend SO: {}", object);
@@ -489,12 +486,12 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
 		NetStreamPlayTransitions:
 		<pre>					
 			APPEND : String = "append" - Adds the stream to a playlist and begins playback with the first stream.
- 	 		APPEND_AND_WAIT : String = "appendAndWait" - Builds a playlist without starting to play it from the first stream.
- 	 		RESET : String = "reset" - Clears any previous play calls and plays the specified stream immediately.
- 	 		RESUME : String = "resume" - Requests data from the new connection starting from the point at which the previous connection ended.
- 	 		STOP : String = "stop" - Stops playing the streams in a playlist.
- 	 		SWAP : String = "swap" - Replaces a content stream with a different content stream and maintains the rest of the playlist.
- 	 		SWITCH : String = "switch" - Switches from playing one stream to another stream, typically with streams of the same content.			
+	 		APPEND_AND_WAIT : String = "appendAndWait" - Builds a playlist without starting to play it from the first stream.
+	 		RESET : String = "reset" - Clears any previous play calls and plays the specified stream immediately.
+	 		RESUME : String = "resume" - Requests data from the new connection starting from the point at which the previous connection ended.
+	 		STOP : String = "stop" - Stops playing the streams in a playlist.
+	 		SWAP : String = "swap" - Replaces a content stream with a different content stream and maintains the rest of the playlist.
+	 		SWITCH : String = "switch" - Switches from playing one stream to another stream, typically with streams of the same content.			
 	   </pre>
 	   @see <a href="http://www.adobe.com/devnet/flashmediaserver/articles/dynstream_actionscript.html">ActionScript guide to dynamic streaming</a>
 	   @see <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/net/NetStreamPlayTransitions.html">NetStreamPlayTransitions</a>
@@ -514,21 +511,21 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
 				conn.invoke(pendingCall, getChannelForStreamId(streamId));
 			} else if ("NetStreamPlayTransitions.RESET".equals(transition)) {
 				// just reset the currently playing stream
-				
+
 			} else {
-    			Object[] params = new Object[6];
-    			params[0] = playOptions.get("streamName").toString();
-    			Object o = playOptions.get("start");
-    			params[1] = o instanceof Integer ? (Integer) o : Integer.valueOf((String) o);
-    			o = playOptions.get("len");
-    			params[2] = o instanceof Integer ? (Integer) o : Integer.valueOf((String) o);
-    			// new parameters for playback
-    			params[3] = transition;
-    			params[4] = playOptions.get("offset");
-    			params[5] = playOptions.get("oldStreamName");
-    			// do call
-    			PendingCall pendingCall = new PendingCall("play2", params);
-    			conn.invoke(pendingCall, getChannelForStreamId(streamId));
+				Object[] params = new Object[6];
+				params[0] = playOptions.get("streamName").toString();
+				Object o = playOptions.get("start");
+				params[1] = o instanceof Integer ? (Integer) o : Integer.valueOf((String) o);
+				o = playOptions.get("len");
+				params[2] = o instanceof Integer ? (Integer) o : Integer.valueOf((String) o);
+				// new parameters for playback
+				params[3] = transition;
+				params[4] = playOptions.get("offset");
+				params[5] = playOptions.get("oldStreamName");
+				// do call
+				PendingCall pendingCall = new PendingCall("play2", params);
+				conn.invoke(pendingCall, getChannelForStreamId(streamId));
 			}
 		} else {
 			log.info("Connection was null ?");
@@ -565,24 +562,24 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
 
 	/** {@inheritDoc} */
 	@Override
-	protected void onInvoke(RTMPConnection conn, Channel channel, Header source, Notify invoke, RTMP rtmp) {	
+	protected void onInvoke(RTMPConnection conn, Channel channel, Header source, Notify invoke, RTMP rtmp) {
 		if (invoke.getType() == IEvent.Type.STREAM_DATA) {
 			log.debug("Ignoring stream data notify with header: {}", source);
 			return;
 		}
-		log.debug("onInvoke: {}, invokeId: {}", invoke, invoke.getInvokeId());
+		log.trace("onInvoke: {}, invokeId: {}", invoke, invoke.getInvokeId());
 		final IServiceCall call = invoke.getCall();
-		
-		log.debug("Service name: {} args[0]: {}", call.getServiceMethodName(), (call.getArguments().length != 0 ? call.getArguments()[0] : ""));
-		
-		
-		
-		String methodName = call.getServiceMethodName();
+		final String methodName = call.getServiceMethodName();
+		if ("onBWCheck".equals(methodName) || "onBWDone".equals(methodName)) {
+			log.debug("Service name: {}", methodName);
+		} else {
+			log.debug("Service name: {} args[0]: {}", methodName, (call.getArguments().length != 0 ? call.getArguments()[0] : ""));
+		}
 		if ("_result".equals(methodName) || "_error".equals(methodName)) {
 			final IPendingServiceCall pendingCall = conn.getPendingCall(invoke.getInvokeId());
 			log.debug("Received result for pending call {}", pendingCall);
 			if (pendingCall != null) {
-				if ("connect".equals(pendingCall.getServiceMethodName())) {
+				if ("connect".equals(methodName)) {
 					Integer encoding = (Integer) connectionParams.get("objectEncoding");
 					if (encoding != null && encoding.intValue() == 3) {
 						log.debug("Setting encoding to AMF3");
@@ -593,9 +590,9 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
 			handlePendingCallResult(conn, invoke);
 			return;
 		}
-		
+
 		// potentially used twice so get the value once
-		boolean onStatus = call.getServiceMethodName().equals("onStatus");
+		boolean onStatus = "onStatus".equals(methodName);
 		log.debug("onStatus {}", onStatus);
 		if (onStatus) {
 			// XXX better to serialize ObjectMap to Status object
@@ -603,11 +600,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
 			// should keep this as an Object to stay compatible with FMS3 etc
 			Object clientId = objMap.get("clientid");
 			log.debug("Client id at onStatus: {}", clientId);
-			//if (clientId == null) {
 			clientId = source.getStreamId();
 			log.debug("Client id set using stream id: {}", clientId);
-			//}
-			log.debug("Client/stream id: {}", clientId);
 			if (clientId != null) {
 				// try lookup by client id first
 				NetStreamPrivateData streamData = streamDataMap.get(clientId);
@@ -628,11 +622,11 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
 		if (serviceProvider == null) {
 			// Client doesn't support calling methods on him
 			call.setStatus(Call.STATUS_METHOD_NOT_FOUND);
-			call.setException(new MethodNotFoundException(call.getServiceMethodName()));
+			call.setException(new MethodNotFoundException(methodName));
 		} else {
 			serviceInvoker.invoke(call, serviceProvider);
 		}
-
+		
 		if (call instanceof IPendingServiceCall) {
 			IPendingServiceCall psc = (IPendingServiceCall) call;
 			Object result = psc.getResult();
@@ -647,7 +641,13 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
 				Invoke reply = new Invoke();
 				reply.setCall(call);
 				reply.setInvokeId(invoke.getInvokeId());
-				log.debug("Sending empty call reply: {}", reply);
+				if (log.isDebugEnabled()) {
+					if ("onBWCheck".equals(methodName) || "onBWDone".equals(methodName)) {
+						log.debug("Sending empty call reply");
+					} else {
+						log.debug("Sending empty call reply: {}", reply);
+					}
+				}
 				channel.write(reply);
 			}
 		}
