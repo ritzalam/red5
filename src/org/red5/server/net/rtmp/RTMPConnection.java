@@ -359,6 +359,10 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * @return Channel by id
 	 */
 	public Channel getChannel(int channelId) {
+        if (channels == null) {
+            return new Channel(null, channelId);
+        }
+        
 		final Channel value = new Channel(this, channelId);
 		Channel result = channels.putIfAbsent(channelId, value);
 		if (result == null) {

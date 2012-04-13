@@ -648,7 +648,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		// Skip unknown bytes
 		in.skip(4);
 		// create our shared object message
-		final SharedObjectMessage so = new FlexSharedObjectMessage(null, name, version, persistent);
+		final SharedObjectMessage so = new SharedObjectMessage(null, name, version, persistent);
 		doDecodeSharedObject(so, in, input);
 		return so;
 	}
@@ -797,6 +797,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 */
 	@SuppressWarnings({ "unchecked" })
 	protected Notify decodeNotifyOrInvoke(Notify notify, IoBuffer in, Header header, RTMP rtmp) {
+		final Encoding encoding = rtmp.getEncoding();
 		// TODO: we should use different code depending on server or client mode
 		int start = in.position();
 		Input input;
@@ -804,8 +805,9 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		// we use the first byte to decide which encoding to use.
 		byte tmp = in.get();
 		in.position(start);
-		if (rtmp.getEncoding() == Encoding.AMF3 && tmp == AMF.TYPE_AMF3_OBJECT) {
+		if (encoding == Encoding.AMF3 && tmp == AMF.TYPE_AMF3_OBJECT) {
 			input = new org.red5.io.amf3.Input(in);
+			((org.red5.io.amf3.Input) input).enforceAMF3();
 		} else {
 			input = new org.red5.io.amf.Input(in);
 		}
@@ -832,19 +834,17 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		}
 
 		// now go back to the actual encoding to decode parameters
-		if (rtmp.getEncoding() == Encoding.AMF3) {
+		if (encoding == Encoding.AMF3) {
 			input = new org.red5.io.amf3.Input(in);
+			((org.red5.io.amf3.Input) input).enforceAMF3();
 		} else {
 			input = new org.red5.io.amf.Input(in);
 		}
 
 		Object[] params = new Object[] {};
-
 		if (in.hasRemaining()) {
 			List<Object> paramList = new ArrayList<Object>();
-
 			final Object obj = deserializer.deserialize(input, Object.class);
-
 			if (obj instanceof Map) {
 				// Before the actual parameters we sometimes (connect) get a map
 				// of parameters, this is usually null, but if set should be
@@ -854,7 +854,6 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 			} else if (obj != null) {
 				paramList.add(obj);
 			}
-
 			while (in.hasRemaining()) {
 				paramList.add(deserializer.deserialize(input, Object.class));
 			}
