@@ -619,6 +619,7 @@ public class StreamService implements IStreamService {
 				}
 				bs.startPublishing();
 			} catch (IOException e) {
+				log.warn("Stream I/O exception", e);
 				sendNSFailed(streamConn, StatusCodes.NS_RECORD_NOACCESS, "The file could not be created/written to.", name, streamId);
 				bs.close();
 				if (created) {
