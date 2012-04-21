@@ -21,7 +21,7 @@
     </layout>
   </appender>
   
-  <appender name="ERRORFILE" class="ch.qos.logback.core.FileAppender">
+  <appender name="ERRORFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <File>log/error.log</File>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
       <FileNamePattern>log/error.%d{yyyy-MM-dd}.log</FileNamePattern>
