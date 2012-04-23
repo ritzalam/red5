@@ -1013,7 +1013,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	public FlexMessage decodeFlexMessage(IoBuffer in, RTMP rtmp) {
 		// TODO: Unknown byte, probably encoding as with Flex SOs?
 		byte flexByte = in.get();
-		log.warn("Flex byte: {}", flexByte);
+		log.trace("Flex byte: {}", flexByte);
 		// Encoding of message params can be mixed - some params may be in AMF0, others in AMF3,
 		// but according to AMF3 spec, we should collect AMF3 references for the whole message body (through all params)
 		org.red5.io.amf3.Input.RefStorage refStorage = new org.red5.io.amf3.Input.RefStorage();
@@ -1034,7 +1034,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				// Check for AMF3 encoding of parameters
 				byte objectEncodingType = in.get();
 				in.position(in.position() - 1);
-				log.warn("Object encoding: {}", objectEncodingType);
+				log.debug("Object encoding: {}", objectEncodingType);
 				switch (objectEncodingType) {
 					case AMF.TYPE_AMF3_OBJECT:
 					case AMF3.TYPE_VECTOR_NUMBER:

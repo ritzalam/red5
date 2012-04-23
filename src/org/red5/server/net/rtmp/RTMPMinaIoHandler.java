@@ -180,7 +180,6 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 					//if we are connected and doing encryption, add the ciphers
 					if (rtmp.getState() == RTMP.STATE_CONNECTED) {
 						// remove handshake from session now that we are connected
-						//session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
 		    			// if we are using encryption then put the ciphers in the session
 		        		if (handshake.getHandshakeType() == RTMPConnection.RTMP_ENCRYPTED) {
 		        			log.debug("Adding ciphers to the session");
