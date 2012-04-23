@@ -120,9 +120,11 @@ public final class Installer {
 					result.messageId = UUID.randomUUID().toString();
 					result.timestamp = System.currentTimeMillis();
 					//send the servers java version so the correct apps are installed
-					String javaVersion = System.getProperty("java.version");
-					// work around for jdk7
-					if ("1.7.0-ea".equals(javaVersion)) {
+					String javaVersion = System.getProperty("java.version").substring(0, 3);
+					log.info("JRE version detected: {}", javaVersion);
+					// allow any jre version greater than 1.5 to equal 1.6 for client compatibility
+					// fix for issue #189
+					if (Double.valueOf(javaVersion) > 1.5d) {
 						javaVersion = "1.6";
 					}
 					if (!ServiceUtils.invokeOnConnection(conn, "onJavaVersion", new Object[] { javaVersion })) {
