@@ -24,6 +24,8 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.logging.LoggingFilter;
+import org.red5.server.api.IConnection;
+import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
@@ -202,7 +204,11 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		if (message instanceof IoBuffer) {
 			rawBufferRecieved((IoBuffer) message, session);
 		} else {
+			log.debug("Setting connection local");
+			Red5.setConnectionLocal((IConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY));
 			handler.messageReceived(message, session);
+			log.debug("Removing connection local");
+			Red5.setConnectionLocal(null);
 		}
 	}
 

@@ -34,6 +34,7 @@ import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.DummySession;
 import org.apache.mina.core.session.IoSession;
 import org.red5.logging.Red5LoggerFactory;
+import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.IRTMPConnManager;
 import org.red5.server.net.rtmp.RTMPConnection;
@@ -520,7 +521,8 @@ public class RTMPTServlet extends HttpServlet {
 			default:
 				handleBadRequest(String.format("RTMPT command %s is not supported.", path), resp);
 		}
-
+		// clear thread local reference
+		Red5.setConnectionLocal(null);
 	}
 
 	/** {@inheritDoc} */
@@ -557,11 +559,14 @@ public class RTMPTServlet extends HttpServlet {
 	}
 
 	protected RTMPTConnection getConnection(int clientId) {
-		RTMPTConnection connection = (RTMPTConnection) rtmpConnManager.getConnection(clientId);
-		if (connection == null) {
+		RTMPTConnection conn = (RTMPTConnection) rtmpConnManager.getConnection(clientId);
+		if (conn != null) {
+			// clear thread local reference
+			Red5.setConnectionLocal(conn);
+		} else {
 			log.warn("Null connection for clientId: {}", clientId);
 		}
-		return connection;
+		return conn;
 	}
 
 	protected RTMPTConnection createConnection() {
@@ -570,6 +575,8 @@ public class RTMPTServlet extends HttpServlet {
 		conn.setDecoder(handler.getCodecFactory().getRTMPDecoder());
 		conn.setEncoder(handler.getCodecFactory().getRTMPEncoder());
 		handler.connectionOpened(conn, conn.getState());
+		// set thread local reference
+		Red5.setConnectionLocal(conn);
 		return conn;
 	}
 

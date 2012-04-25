@@ -24,6 +24,9 @@ import java.util.Map;
 
 import javax.management.openmbean.CompositeData;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Utility class for accessing Red5 API objects.
  *
@@ -46,6 +49,8 @@ import javax.management.openmbean.CompositeData;
  */
 public final class Red5 {
 
+	//private static Logger log = LoggerFactory.getLogger(Red5.class);
+	
 	/**
 	 * Current connection thread. Each connection of Red5 application runs in a
 	 * separate thread. This is thread object associated with the current connection.
@@ -106,6 +111,7 @@ public final class Red5 {
 	 * @param connection     Thread local connection
 	 */
 	public static void setConnectionLocal(IConnection connection) {
+		//log.info("Set connection: {}", connection);
 		if (connection != null) {
     		connThreadLocal.set(new WeakReference<IConnection>(connection));
     		IScope scope = connection.getScope();

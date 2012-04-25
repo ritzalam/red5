@@ -692,6 +692,8 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		} else {
 			log.trace("StreamBuffers collection was null");
 		}
+		// clear thread local reference
+		Red5.setConnectionLocal(null);
 	}
 
 	/**

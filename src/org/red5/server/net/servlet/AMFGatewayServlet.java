@@ -197,6 +197,8 @@ public class AMFGatewayServlet extends HttpServlet {
 			if (conn != null) {
 				((RemotingConnection) conn).cleanup();
 			}
+			// clear thread local reference
+			Red5.setConnectionLocal(null);
 		}
 	}
 

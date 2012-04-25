@@ -195,8 +195,6 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 			// Connection is being closed, don't decode any new packets
 			return Collections.EMPTY_LIST;
 		}
-		//set the local connection
-		Red5.setConnectionLocal(this);
 		readBytes.addAndGet(data.limit());
 		buffer.put(data);
 		buffer.flip();

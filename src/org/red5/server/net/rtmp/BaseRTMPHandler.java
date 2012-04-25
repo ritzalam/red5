@@ -23,7 +23,6 @@ import java.util.Set;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.IoSession;
-import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.service.IPendingServiceCall;
@@ -115,8 +114,6 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 			final Channel channel = conn.getChannel(header.getChannelId());
 			final IClientStream stream = conn.getStreamById(header.getStreamId());
 			log.trace("Message received, header: {}", header);
-			// Thread local performance ? Should we benchmark
-			Red5.setConnectionLocal(conn);
 			// XXX: HACK HACK HACK to support stream ids
 			BaseRTMPHandler.setStreamId(header.getStreamId());
 			// increase number of received messages

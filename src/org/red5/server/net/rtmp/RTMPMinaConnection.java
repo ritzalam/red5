@@ -31,6 +31,7 @@ import javax.management.ObjectName;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.filterchain.IoFilterChain;
 import org.apache.mina.core.future.CloseFuture;
+import org.apache.mina.core.future.IoFutureListener;
 import org.apache.mina.core.session.IoSession;
 import org.red5.server.api.IScope;
 import org.red5.server.jmx.mxbeans.RTMPMinaConnectionMXBean;
@@ -68,7 +69,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	protected int defaultServerBandwidth = 10000000;
 
 	protected int defaultClientBandwidth = 10000000;
-	
+
 	protected boolean bandwidthDetection = true;
 
 	{
@@ -102,15 +103,20 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 			// close now, no flushing, no waiting
 			CloseFuture future = ioSession.close(true);
 			// wait for one second
+			future.addListener(new IoFutureListener<CloseFuture>() {
+				public void operationComplete(CloseFuture future) {
+					if (future.isClosed()) {
+						log.debug("Connection is closed");
+					} else {
+						log.debug("Connection is not yet closed");
+					}
+				}
+			});
 			try {
+				// now wait 1 second for the close to be completed
 				future.await(1000L);
 			} catch (InterruptedException e) {
 				log.trace("Exception waiting for close", e);
-			}
-			if (future.isClosed()) {
-				log.debug("Connection is closed");
-			} else {
-				log.debug("Connection is not yet closed");				
 			}
 		}
 		//de-register with JMX
@@ -205,7 +211,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	public void setBandwidthDetection(boolean bandwidthDetection) {
 		this.bandwidthDetection = bandwidthDetection;
 	}
-	
+
 	/** {@inheritDoc} */
 	@Override
 	public long getPendingMessages() {
@@ -286,7 +292,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 			ioSession.write(out);
 		}
 	}
-	
+
 	protected void registerJMX() {
 		// register with jmx
 		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
@@ -303,21 +309,23 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 				port = Integer.parseInt(arr[1]);
 			}
 			// Create a new mbean for this instance
-			oName = new ObjectName(String.format("org.red5.server:type=%s,connectionType=%s,host=%s,port=%d,clientId=%s",cName, type, hostStr, port, client.getId() ));
-	        mbs.registerMBean(this, oName);
+			oName = new ObjectName(String.format("org.red5.server:type=%s,connectionType=%s,host=%s,port=%d,clientId=%s", cName, type, hostStr, port, client.getId()));
+			mbs.registerMBean(this, oName);
 		} catch (Exception e) {
 			log.warn("Error on jmx registration", e);
-		}	
+		}
 	}
-	
+
 	protected void unregisterJMX() {
 		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-		try {
-			mbs.unregisterMBean(oName);
-		} catch (Exception e) {
-			log.warn("Exception unregistering: {}", oName, e);
+		if (oName != null && mbs.isRegistered(oName)) {
+			try {
+				mbs.unregisterMBean(oName);
+			} catch (Exception e) {
+				log.warn("Exception unregistering: {}", oName, e);
+			}
+			oName = null;
 		}
-		oName = null;
 	}
 
 }
