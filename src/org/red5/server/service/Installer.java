@@ -109,7 +109,7 @@ public final class Installer {
 		HttpGet method = null;
 		try {
 			//get registry file
-			method = new HttpGet(applicationRepositoryUrl + "registry-0.9.xml");
+			method = new HttpGet(applicationRepositoryUrl + "registry.xml");
 			// execute the method
 			HttpResponse response = client.execute(method);
 			int code = response.getStatusLine().getStatusCode();

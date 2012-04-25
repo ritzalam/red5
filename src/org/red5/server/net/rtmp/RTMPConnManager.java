@@ -27,7 +27,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.red5.server.BaseConnection;
 import org.red5.server.api.scheduling.ISchedulingService;
-import org.red5.server.net.mrtmp.EdgeRTMPMinaConnection;
 import org.red5.server.net.rtmpt.RTMPTConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,8 +103,6 @@ public class RTMPConnManager implements IRTMPConnManager, ApplicationContextAwar
 		RTMPConnection conn = null;
 		if (cls == RTMPMinaConnection.class) {
 			conn = (RTMPMinaConnection) appCtx.getBean("rtmpMinaConnection");
-		} else if (cls == EdgeRTMPMinaConnection.class) {
-			conn = (EdgeRTMPMinaConnection) appCtx.getBean("rtmpEdgeMinaConnection");
 		} else if (cls == RTMPTConnection.class) {
 			conn = (RTMPTConnection) appCtx.getBean("rtmptConnection");
 		} else {

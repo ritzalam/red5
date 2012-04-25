@@ -9,9 +9,6 @@
 	<property name="java.home" value="${env.JDK_HOME}"/>
 	<property name="src.dir" value="src"/>
 	<property name="dist.dir" value="dist"/>
-	<property name="cluster.dir" value="cluster"/>
-	<property name="origindist.dir" value="${cluster.dir}/origin"/>
-	<property name="edgedist.dir" value="${cluster.dir}/edge"/>
 	<property name="log.dir" value="log"/>
 	<property name="lib.dir" value="lib"/>
 	<property name="plugins.dir" value="plugins"/>
@@ -133,9 +130,6 @@
 		<mkdir dir="${dist.dir}"/>
 		<mkdir dir="${log.dir}"/>
 		<mkdir dir="${dist.dir}/${log.dir}"/>
-		<mkdir dir="${cluster.dir}"/>
-		<mkdir dir="${origindist.dir}"/>
-		<mkdir dir="${edgedist.dir}"/>
 		<mkdir dir="${testclass.dir}"/>
 		<mkdir dir="${testreports.dir}"/>
 	</target>
@@ -145,7 +139,6 @@
 		<delete file="ivy.log"/>
 		<delete dir="${classes.dir}"/>
 		<delete dir="${dist.dir}"/>
-		<delete dir="${cluster.dir}"/>
 		<delete dir="${javadoc.dir}"/>
 		<delete dir="${testdoc.dir}"/>
 		<delete includeemptydirs="true">
@@ -640,51 +633,6 @@
 			</zipfileset>
 		</zip>
 	</target>
-	<target name="dist-edge" depends="dist-origin">
-		<!-- Copies edge build and then puts config into place. -->
-
-		<copy todir="${edgedist.dir}/">
-			<fileset dir="${dist.dir}">
-				<exclude name="**/build.properties"/>
-				<exclude name="**/build.xml"/>
-				<exclude name="**/Makefile"/>
-				<exclude name="**/doc/**"/>
-				<exclude name="**/conf/red5-origin.xml"/>
-				<exclude name="**/conf/red5-origin-core.xml"/>
-				<exclude name="**/conf/red5.xml"/>
-				<exclude name="**/docs/**"/>
-				<exclude name="**/dumps/**"/>
-				<exclude name="**/src/**"/>
-				<exclude name="**/swf/**"/>
-				<exclude name="**/webapps/**"/>
-			</fileset>
-		</copy>
-		<copy todir="${edgedist.dir}/webapps">
-			<fileset file="${dist.dir}/webapps/red5-default.xml"/>
-		</copy>
-		<move tofile="${edgedist.dir}/conf/red5.xml" file="${edgedist.dir}/conf/red5-edge.xml"
-			 overwrite="true"/>
-		<chmod file="${edgedist.dir}/red5.sh" perm="755"/>
-		<chmod file="${edgedist.dir}/red5-shutdown.sh" perm="755"/>
-	</target>
-	<target name="dist-origin" depends="dist-installer">
-		<!-- Copies dist build and then puts config into place. -->
-
-		<copy todir="${origindist.dir}/">
-			<fileset dir="${dist.dir}">
-				<exclude name="**/conf/red5.xml"/>
-			</fileset>
-		</copy>
-		<move tofile="${origindist.dir}/conf/red5.xml" file="${dist.dir}/conf/red5-origin.xml"
-			 overwrite="true"/>
-		<chmod file="${origindist.dir}/red5.sh" perm="755"/>
-		<chmod file="${origindist.dir}/red5-shutdown.sh" perm="755"/>
-	</target>
-	<target name="dist-cluster" description="Create Edge/Origin distribution" depends="dist-edge">
-		<copy tofile="${cluster.dir}/Readme.txt" file="${dist.dir}/doc/HOWTO-Clustering.txt" overwrite="true"/>
-		<echo>Edge configured in: ${edgedist.dir}</echo>
-		<echo>Origin configured in: ${origindist.dir}</echo>
-	</target>
 	<target name="dist-macosx" description="Create Mac OSX installer">
 		<ant antfile="install/macosx/build.xml" inheritAll="false"/>
 	</target>
@@ -1037,11 +985,6 @@
 			<arg line="-J-Djava.util.logging.config.file=${config.dir}/management.logging.properties -J-Djava.security.manager -J-Djava.security.policy=${config.dir}/red5.policy -J-Djavax.net.ssl.trustStore=${config.dir}/truststore.jmx -J-Djavax.net.ssl.trustStorePassword=password -J-Djavax.net.ssl.keyStore=${config.dir}/keystore.jmx -J-Djavax.net.ssl.keyStorePassword=password -J-Dssl.debug=true -J-Djava.security.debug=ssl service:jmx:rmi:///jndi/rmi://localhost:9999/red5"/>
 		</exec>
 	</target>
-
-
-
-	
-
 	<!-- 
 		Requirements:
 		1. Go here: http://subclipse.tigris.org/svnant.html
@@ -1064,7 +1007,6 @@
 		<typedef resource="org/tigris/subversion/svnant/svnantlib.xml" classpath="svnant.jar"/>
 		<svn>
 			<!-- we are three levels down -->
-
 			<checkout url="${svn.url}" revision="HEAD" destPath="../../../"/>
 		</svn>
 	</target>
