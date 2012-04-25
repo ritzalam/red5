@@ -76,7 +76,7 @@ public class Client extends AttributeStore implements IClient {
 	 * Client registry where Client is registered
 	 */
 	protected WeakReference<ClientRegistry> registry;
-	
+
 	/**
 	 * Whether or not the bandwidth has been checked.
 	 */
@@ -101,15 +101,20 @@ public class Client extends AttributeStore implements IClient {
 	 *  Disconnects client from Red5 application
 	 */
 	public void disconnect() {
-		log.debug("Disconnect - id: {}, closing {} connections", id, getConnections().size());
-		// close all connections held to Red5 by client
-		for (IConnection con : getConnections()) {
-			try {
-				con.close();
-			} catch (Exception e) {
-				// closing a connection calls into application code, so exception possible
-				log.error("Unexpected exception closing connection {}", e);
+		log.debug("Disconnect - id: {}", id);
+		if (connToScope != null && !connToScope.isEmpty()) {
+			log.debug("Closing {} connections", connToScope.size());
+			// close all connections held to Red5 by client
+			for (IConnection con : getConnections()) {
+				try {
+					con.close();
+				} catch (Exception e) {
+					// closing a connection calls into application code, so exception possible
+					log.error("Unexpected exception closing connection {}", e);
+				}
 			}
+		} else {
+			log.debug("Connection map is empty or null");
 		}
 		// unregister client
 		removeInstance();
@@ -356,5 +361,5 @@ public class Client extends AttributeStore implements IClient {
 	public String toString() {
 		return "Client: " + id;
 	}
-	
+
 }

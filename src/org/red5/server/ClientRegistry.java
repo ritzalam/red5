@@ -18,13 +18,14 @@
 
 package org.red5.server;
 
+import java.lang.management.ManagementFactory;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.management.MalformedObjectNameException;
+import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
 import org.apache.commons.lang3.StringUtils;
@@ -32,9 +33,8 @@ import org.red5.server.api.IClient;
 import org.red5.server.api.IClientRegistry;
 import org.red5.server.exception.ClientNotFoundException;
 import org.red5.server.exception.ClientRejectedException;
-import org.red5.server.jmx.JMXAgent;
-import org.red5.server.jmx.JMXFactory;
 import org.red5.server.jmx.mxbeans.ClientRegistryMXBean;
+import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
  * Registry for clients. Associates client with it's id so it's possible to get client by id
@@ -42,6 +42,7 @@ import org.red5.server.jmx.mxbeans.ClientRegistryMXBean;
  *
  * @author The Red5 Project (red5@osflash.org)
  */
+@ManagedResource(objectName="org.red5.server:type=ClientRegistry,name=default", description="ClientRegistry")
 public class ClientRegistry implements IClientRegistry, ClientRegistryMXBean {
 	/**
 	 * Clients map
@@ -59,7 +60,6 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMXBean {
 	private String name;
 
 	public ClientRegistry() {
-		JMXAgent.registerMBean(this, this.getClass().getName(), ClientRegistryMXBean.class);
 	}
 
 	//allows for setting a "name" to be used with jmx for lookup
@@ -67,11 +67,11 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMXBean {
 		this.name = name;
 		if (StringUtils.isNotBlank(this.name)) {
 			try {
-				String className = JMXAgent.trimClassName(getClass().getName());
-				ObjectName oName = new ObjectName(String.format("%s:type=%s,name=%s", JMXFactory.getDefaultDomain(), className, name));
-				JMXAgent.registerMBean(this, getClass().getName(), ClientRegistryMXBean.class, oName);
-			} catch (MalformedObjectNameException e) {
-				//log.error("Invalid object name. {}", e);
+				MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
+				ObjectName oName = new ObjectName("org.red5.server:type=ClientRegistry,name=" + name);
+		        mbeanServer.registerMBean(this, oName);
+			} catch (Exception e) {
+				//log.warn("Error on jmx registration", e);
 			}
 		}
 	}

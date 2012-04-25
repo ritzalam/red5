@@ -44,7 +44,7 @@ import org.red5.io.object.RecordSetPage;
 import org.red5.io.utils.ArrayUtils;
 import org.red5.io.utils.ObjectMap;
 import org.red5.io.utils.XMLUtils;
-import org.red5.server.service.ConversionUtils;
+import org.red5.server.util.ConversionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;

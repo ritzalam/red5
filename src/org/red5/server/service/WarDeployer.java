@@ -21,6 +21,7 @@ package org.red5.server.service;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.lang.management.ManagementFactory;
 
 import javax.management.JMX;
 import javax.management.MBeanServer;
@@ -28,7 +29,6 @@ import javax.management.ObjectName;
 
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
-import org.red5.server.jmx.JMXFactory;
 import org.red5.server.jmx.mxbeans.LoaderMXBean;
 import org.red5.server.util.FileUtil;
 import org.slf4j.Logger;
@@ -111,16 +111,22 @@ public final class WarDeployer {
 	 */
 	@SuppressWarnings("cast")
 	public LoaderMXBean getLoader() {
-		MBeanServer mbs = JMXFactory.getMBeanServer();
-		ObjectName oName = JMXFactory.createObjectName("type", "TomcatLoader");
+		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+		// proxy class
 		LoaderMXBean proxy = null;
-		if (mbs.isRegistered(oName)) {
-			proxy = (LoaderMXBean) JMX.newMXBeanProxy(mbs, oName, LoaderMXBean.class, true);
-			log.debug("Loader was found");
-		} else {
-			log.warn("Loader not found");
+		ObjectName oName;
+		try {
+			oName = new ObjectName("org.red5.server:type=TomcatLoader");
+			if (mbs.isRegistered(oName)) {
+				proxy = JMX.newMXBeanProxy(mbs, oName, LoaderMXBean.class, true);
+				log.debug("Loader was found");
+			} else {
+				log.warn("Loader not found");
+			}
+		} catch (Exception e) {
+			log.error("Exception getting loader", e);
 		}
-		return proxy;
+		return proxy;		
 	}
 
 	/**

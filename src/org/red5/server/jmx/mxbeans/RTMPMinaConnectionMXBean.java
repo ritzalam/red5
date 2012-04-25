@@ -19,7 +19,6 @@
 package org.red5.server.jmx.mxbeans;
 
 import java.util.List;
-import java.util.Map;
 
 import javax.management.MXBean;
 
@@ -28,7 +27,7 @@ import javax.management.MXBean;
  * to AttributeStore.
  */
 @MXBean
-public interface RTMPMinaConnectionMXBean {
+public interface RTMPMinaConnectionMXBean extends AttributeStoreMXBean {
 
 	public String getType();
 
@@ -43,8 +42,6 @@ public interface RTMPMinaConnectionMXBean {
 	public String getPath();
 
 	public String getSessionId();
-
-	public Map<String, Object> getConnectParams();
 
 	public boolean isConnected();
 

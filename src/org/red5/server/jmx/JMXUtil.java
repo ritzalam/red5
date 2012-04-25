@@ -18,6 +18,8 @@
 
 package org.red5.server.jmx;
 
+import java.lang.management.ManagementFactory;
+
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanConstructorInfo;
 import javax.management.MBeanInfo;
@@ -25,6 +27,7 @@ import javax.management.MBeanNotificationInfo;
 import javax.management.MBeanOperationInfo;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.management.StandardMBean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,15 +43,14 @@ public class JMXUtil {
 	private static Logger log = LoggerFactory.getLogger(JMXUtil.class);
 
 	public static void printMBeanInfo(ObjectName objectName, String className) {
-		log.info("Retrieve the management information for the " + className);
+		log.info("Retrieve the management information for the {}", className);
 		log.info("MBean using the getMBeanInfo() method of the MBeanServer");
-		MBeanServer mbs = JMXFactory.getMBeanServer();
+		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
 		MBeanInfo info = null;
 		try {
 			info = mbs.getMBeanInfo(objectName);
 		} catch (Exception e) {
-			log.error("Could not get MBeanInfo object for " + className
-					+ " !!!", e);
+			log.error("Could not get MBeanInfo object for {}", className, e);
 			return;
 		}
 		log.info("CLASSNAME: \t" + info.getClassName());
@@ -98,6 +100,24 @@ public class JMXUtil {
 		} else {
 			log.info(" ** No notifications **");
 		}
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static boolean registerNewMBean(Class clazz, Class interfaceClass) {
+		boolean status = false;
+		try {
+			String cName = clazz.getName();
+			if (cName.indexOf('.') != -1) {
+				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
+			}
+			log.debug("Register name: {}", cName);
+			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+			mbs.registerMBean(new StandardMBean(Class.forName(clazz.getName()).newInstance(), interfaceClass), new ObjectName("org.red5.server:type=" + cName));
+			status = true;
+		} catch (Exception e) {
+			log.error("Could not register the {} MBean", clazz.getName(), e);
+		}
+		return status;
 	}
 
 }

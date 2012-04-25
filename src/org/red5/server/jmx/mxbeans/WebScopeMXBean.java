@@ -15,17 +15,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.red5.server.stream;
 
-import org.red5.server.api.IBasicScope;
-import org.red5.server.messaging.IPipe;
+package org.red5.server.jmx.mxbeans;
+
+import javax.management.MXBean;
 
 /**
- * Broadcast scope is marker interface that represents object that works as basic scope and
- * has pipe connection event dispatching capabilities.
+ * An MBean interface for the web scope object.
+ *
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
-public interface IBroadcastScope extends IBasicScope, IPipe {
-	public static final String TYPE = "bs";
+@MXBean
+public interface WebScopeMXBean extends ScopeMXBean {
 
-	public static final String STREAM_ATTRIBUTE = TRANSIENT_PREFIX + "_publishing_stream";
+	public void setContextPath(String contextPath);
+
+	public void setVirtualHosts(String virtualHosts);
+
+	public void register();
+
+	public void unregister();
+
+	public boolean isShuttingDown();
+	
 }

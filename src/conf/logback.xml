@@ -148,8 +148,9 @@
 	</logger>
 	<!-- Spring -->
 	<logger name="org.springframework">
-		<level value="INFO" />
+		<level value="DEBUG" />
 	</logger>
+<!--
 	<logger name="org.springframework.beans.factory">
 		<level value="INFO" />
 	</logger>	
@@ -165,6 +166,7 @@
 	<logger name="org.springframework.web.context.support">
 		<level value="WARN" />
 	</logger>
+-->
 	<logger name="org.quartz">
 		<level value="WARN" />
 	</logger>

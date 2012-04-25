@@ -760,8 +760,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 						sendStopStatus(currentItem);
 					} else {
 						if (lastMessageTs > 0) {
-							// Remember last timestamp so we can generate correct
-							// headers in playlists.
+							// remember last timestamp so we can generate correct headers in playlists.
 							timestampOffset = lastMessageTs;
 						}
 						pss.nextItem();
@@ -808,20 +807,20 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			long pending = pendingMessages();
 			if (bufferCheckInterval > 0 && now >= nextCheckBufferUnderrun) {
 				if (pending > underrunTrigger) {
-					// Client is playing behind speed, notify him
+					// client is playing behind speed, notify him
 					sendInsufficientBandwidthStatus(currentItem);
 				}
 				nextCheckBufferUnderrun = now + bufferCheckInterval;
 			}
 			// check for under run
 			if (pending > underrunTrigger) {
-				// Too many messages already queued on the connection
+				// too many messages already queued on the connection
 				return false;
 			}
 			return true;
 		} else {
 			String itemName = "Undefined";
-			//if current item exists get the name to help debug this issue
+			// if current item exists get the name to help debug this issue
 			if (currentItem != null) {
 				itemName = currentItem.getName();
 			}
@@ -838,22 +837,37 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	private boolean isClientBufferFull(final long now) {
 		// check client buffer length when we've already sent some messages
 		if (lastMessageTs > 0) {
-			// Duration the stream is playing / playback duration
+			// duration the stream is playing / playback duration
 			final long delta = now - playbackStart;
-			// Buffer size as requested by the client
+			// buffer size as requested by the client
 			final long buffer = subscriberStream.getClientBufferDuration();
-			// Expected amount of data present in client buffer
+			// expected amount of data present in client buffer
 			final long buffered = lastMessageTs - delta;
-			log.trace("isClientBufferFull: timestamp {} delta {} buffered {} buffer {}", new Object[] { lastMessageTs, delta, buffered, buffer });
-			//Fix for SN-122, this sends double the size of the client buffer
+			log.trace("isClientBufferFull: timestamp {} delta {} buffered {} buffer duration {}", new Object[] { lastMessageTs, delta, buffered, buffer });
+			// fix for SN-122, this sends double the size of the client buffer
 			if (buffer > 0 && buffered > (buffer * 2)) {
-				// Client is likely to have enough data in the buffer
+				// client is likely to have enough data in the buffer
 				return true;
 			}
 		}
 		return false;
 	}
 
+	private boolean isClientBufferEmpty() {
+		// check client buffer length when we've already sent some messages
+		if (lastMessageTs > 0) {
+			// duration the stream is playing / playback duration
+			final long delta = System.currentTimeMillis() - playbackStart;
+			// expected amount of data present in client buffer
+			final long buffered = lastMessageTs - delta;
+			log.trace("isClientBufferEmpty: timestamp {} delta {} buffered {}", new Object[] { lastMessageTs, delta, buffered });
+			if (buffered < 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	/**
 	 * Make sure the pull and push processing is running.
 	 */
@@ -1695,6 +1709,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 						if (worker != null) {
 							log.debug("Executing pending operation");
 							worker.run();
+							return;
 						}
 					}
 					// receive then send if message is data (not audio or video)
@@ -1753,6 +1768,13 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			subscriberStream.getExecutor().schedule(new Runnable() {
 				public void run() {
 					log.trace("Ran deferred stop");
+					while (!isClientBufferEmpty()) {
+						try {
+							Thread.sleep(10L);
+						} catch (InterruptedException e) {
+						}
+					}
+					log.trace("Buffer is empty, stop will proceed");
 					stop();
 				}
 			}, 1, TimeUnit.MILLISECONDS);

@@ -37,7 +37,6 @@ import org.red5.server.ScopeResolver;
 import org.red5.server.Server;
 import org.red5.server.WebScope;
 import org.red5.server.api.Red5;
-import org.red5.server.jmx.JMXAgent;
 import org.red5.server.persistence.FilePersistenceThread;
 import org.red5.server.service.ServiceInvoker;
 import org.slf4j.Logger;
@@ -200,8 +199,6 @@ public class WarLoaderServlet extends ContextLoaderListener {
 						DriverManager.deregisterDriver(driver);
 					}
 				}
-				// shutdown jmx
-				JMXAgent.shutdown();
 				// shutdown the persistence thread
 				FilePersistenceThread persistenceThread = FilePersistenceThread.getInstance();
 				if (persistenceThread != null) {

@@ -185,7 +185,6 @@ public abstract class BasicScope extends PersistableAttributeStore implements IB
 	 * @return               Event handling result
 	 */
 	public boolean handleEvent(IEvent event) {
-		// do nothing.
 		return false;
 	}
 
@@ -242,8 +241,7 @@ public abstract class BasicScope extends PersistableAttributeStore implements IB
 	}
 
 	/**
-	 * Keeps the scope alive for a set number of seconds. This should
-	 * fulfill the APPSERVER-165 improvement.
+	 * Keeps the scope alive for a set number of seconds.
 	 */
 	private class KeepAliveJob implements IScheduledJob {
 

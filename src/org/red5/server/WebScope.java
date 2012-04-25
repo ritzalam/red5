@@ -29,8 +29,10 @@ import org.red5.server.api.IApplicationLoader;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IServer;
+import org.red5.server.jmx.mxbeans.WebScopeMXBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.web.context.ServletContextAware;
 
 /**
@@ -47,7 +49,8 @@ import org.springframework.web.context.ServletContextAware;
  * 
  * Red5 server implementation instance and ServletContext are injected as well.
  */
-public class WebScope extends Scope implements ServletContextAware {
+@ManagedResource
+public class WebScope extends Scope implements ServletContextAware, WebScopeMXBean {
 
 	/**
 	 * Logger

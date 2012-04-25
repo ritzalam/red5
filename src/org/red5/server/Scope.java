@@ -17,9 +17,10 @@
  */
 
 package org.red5.server;
-	
+
 import java.beans.ConstructorProperties;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -31,7 +32,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.management.MalformedObjectNameException;
+import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.openmbean.CompositeData;
 
@@ -49,13 +50,12 @@ import org.red5.server.api.event.IEvent;
 import org.red5.server.api.persistence.PersistenceUtils;
 import org.red5.server.api.statistics.IScopeStatistics;
 import org.red5.server.api.statistics.support.StatisticsCounter;
-import org.red5.server.jmx.JMXAgent;
-import org.red5.server.jmx.JMXFactory;
 import org.red5.server.jmx.mxbeans.ScopeMXBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.style.ToStringCreator;
+import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
  * The scope object.
@@ -72,6 +72,7 @@ import org.springframework.core.style.ToStringCreator;
  * @author Paul Gregoire (mondain@gmail.com)
  * @author Nathan Smith (nathgs@gmail.com)
  */
+@ManagedResource(objectName = "org.red5.server:type=Scope", description = "Scope")
 public class Scope extends BasicScope implements IScope, IScopeStatistics, ScopeMXBean {
 
 	/**
@@ -270,10 +271,10 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			return false;
 		}
 		if (scope.getStore() == null) {
-			// Child scope has no persistence store, use same class as parent.
+			// child scope has no persistence store, use same class as parent.
 			try {
 				if (scope instanceof Scope) {
-					((Scope) scope).setPersistenceClass(this.persistenceClass);
+					((Scope) scope).setPersistenceClass(persistenceClass);
 				}
 			} catch (Exception error) {
 				log.error("Could not set persistence class.", error);
@@ -299,9 +300,9 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		String key = scope.getType() + SEPARATOR + scope.getName();
 		//do a check first
 		if (children.get(key) == null) {
-    		//this happens atomically
-    		children.putIfAbsent(key, scope);
-    		subscopeStats.increment();
+			//this happens atomically
+			children.putIfAbsent(key, scope);
+			subscopeStats.increment();
 		}
 		return true;
 	}
@@ -438,8 +439,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				try {
 					handler.disconnect(conn, this);
 				} catch (Exception e) {
-					log.error("Error while executing \"disconnect\" for connection {} on handler {}. {}", new Object[] {
-							conn, handler, e });
+					log.error("Error while executing \"disconnect\" for connection {} on handler {}. {}", new Object[] { conn, handler, e });
 				}
 			}
 			if (conns.isEmpty()) {
@@ -448,8 +448,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 						// there may be a timeout here ?
 						handler.leave(client, this);
 					} catch (Exception e) {
-						log.error("Error while executing \"leave\" for client {} on handler {}. {}", new Object[] {
-								conn, handler, e });
+						log.error("Error while executing \"leave\" for client {} on handler {}. {}", new Object[] { conn, handler, e });
 					}
 				}
 			}
@@ -527,9 +526,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * 
 	 * @return Current thread context classloader
 	 */
-	public ClassLoader getClassLoader() {
-		//System.out.println(">>>>> scope: " + Thread.currentThread().getContextClassLoader());		
-		//System.out.println(">>>>> scope (context): " + getContext().getClassLoader());		
+	public ClassLoader getClassLoader() {	
 		return getContext().getClassLoader();
 	}
 
@@ -823,11 +820,11 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		try {
 			has = children.containsKey(TYPE + SEPARATOR + name);
 			if (log.isDebugEnabled()) {
-    			if (has) {
-    				log.debug("Child scope exists");
-    			} else {
-    				log.debug("Child scope does not exist");				
-    			}
+				if (has) {
+					log.debug("Child scope exists");
+				} else {
+					log.debug("Child scope does not exist");
+				}
 			}
 		} finally {
 			unlock();
@@ -1003,8 +1000,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		try {
 			// Don't remove if reference if we have another one
 			if (hasChildScope(scope.getName()) && getScope(scope.getName()) != scope) {
-				log.warn("Being asked to remove wrong scope reference child scope is {} not {}", new Object[] {
-						getScope(scope.getName()), scope });
+				log.warn("Being asked to remove wrong scope reference child scope is {} not {}", new Object[] { getScope(scope.getName()), scope });
 				return;
 			}
 
@@ -1034,7 +1030,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		}
 
 		if (scope instanceof Scope) {
-			JMXAgent.unregisterMBean(((Scope) scope).oName);
+			unregisterJMX();
 		}
 	}
 
@@ -1106,23 +1102,11 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	public void setName(String name) {
 		log.debug("Set name: {}", name);
 		if (oName != null) {
-			JMXAgent.unregisterMBean(oName);
-			oName = null;
+			unregisterJMX();
 		}
 		this.name = name;
-
 		if (StringUtils.isNotBlank(name)) {
-			try {
-				String className = getClass().getName();
-				if (className.indexOf('.') != -1) {
-					//strip package stuff
-					className = className.substring(className.lastIndexOf('.') + 1);
-				}
-				oName = new ObjectName(JMXFactory.getDefaultDomain() + ":type=" + className + ",name=" + name);
-			} catch (MalformedObjectNameException e) {
-				log.error("Invalid object name. {}", e);
-			}
-			JMXAgent.registerMBean(this, this.getClass().getName(), ScopeMXBean.class, oName);
+			registerJMX();
 		}
 	}
 
@@ -1273,6 +1257,31 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				log.debug("Children - {} = {}", entry.getKey(), entry.getValue());
 			}
 		}
+	}
+
+	protected void registerJMX() {
+		// register with jmx
+		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+		try {
+			String cName = this.getClass().getName();
+			if (cName.indexOf('.') != -1) {
+				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
+			}
+			oName = new ObjectName(String.format("org.red5.server:type=%s,name=%s", cName, name));
+			mbs.registerMBean(this, oName);
+		} catch (Exception e) {
+			log.warn("Error on jmx registration", e);
+		}
+	}
+
+	protected void unregisterJMX() {
+		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+		try {
+			mbs.unregisterMBean(oName);
+		} catch (Exception e) {
+			log.warn("Exception unregistering: {}", oName, e);
+		}
+		oName = null;
 	}
 
 	/**

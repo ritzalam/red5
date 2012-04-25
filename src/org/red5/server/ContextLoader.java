@@ -20,6 +20,7 @@ package org.red5.server;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,16 +28,17 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
-import org.red5.server.jmx.JMXAgent;
-import org.red5.server.jmx.JMXFactory;
 import org.red5.server.jmx.mxbeans.ContextLoaderMXBean;
 import org.red5.server.plugin.PluginRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactoryUtils;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -45,6 +47,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.core.io.Resource;
+import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.web.context.support.XmlWebApplicationContext;
 
 /**
  * Red5 applications loader
@@ -53,7 +57,8 @@ import org.springframework.core.io.Resource;
  * @author Tiago Jacobs (tiago@imdt.com.br)
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public class ContextLoader implements ApplicationContextAware, ContextLoaderMXBean {
+@ManagedResource(objectName = "org.red5.server:name=contextLoader,type=ContextLoader", description = "ContextLoader")
+public class ContextLoader implements ApplicationContextAware, InitializingBean, DisposableBean, ContextLoaderMXBean {
 
 	protected static Logger log = LoggerFactory.getLogger(ContextLoader.class);
 
@@ -87,150 +92,75 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMXBe
 	 * the Spring application context.
 	 */
 	private boolean useShutdownHook;
-
+	
 	/**
-	 * @param applicationContext Spring application context
-	 * @throws BeansException Top level exception for app context (that is, in fact, beans
-	 *             factory)
-	 */
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext = applicationContext;
-	}
-
-	/**
-	 * Setter for parent application context
+	 * Registers with JMX and registers a shutdown hook.
 	 * 
-	 * @param parentContext Parent Spring application context
+	 * @throws Exception I/O exception, casting exception and others 
 	 */
-	public void setParentContext(ApplicationContext parentContext) {
-		this.parentContext = parentContext;
-	}
-
-	/**
-	 * Setter for context config name
-	 * 
-	 * @param contextsConfig Context config name
-	 */
-	public void setContextsConfig(String contextsConfig) {
-		this.contextsConfig = contextsConfig;
-	}
-
-	/**
-	 * Whether or not the shutdown hook is enabled.
-	 * 
-	 * @return true if enabled, false otherwise
-	 */
-	public boolean isUseShutdownHook() {
-		return useShutdownHook;
-	}
-
-	/**
-	 * Enables or disables the shutdown hook.
-	 * 
-	 * @param useShutdownHook true to enable, false to disable
-	 */
-	public void setUseShutdownHook(boolean useShutdownHook) {
-		this.useShutdownHook = useShutdownHook;
-	}
-
-	/**
-	 * Loads context settings from ResourceBundle (.properties file)
-	 * 
-	 * @throws Exception I/O exception, casting exception and others
-	 */
-	public void init() throws Exception {
-		log.debug("ContextLoader init");
+	public void afterPropertiesSet() throws Exception {
+		log.info("ContextLoader init");
 		// register in jmx
-		//create a new mbean for this instance
-		oName = JMXFactory.createObjectName("type", "ContextLoader");
-		JMXAgent.registerMBean(this, this.getClass().getName(), ContextLoaderMXBean.class, oName);
+		registerJMX();
 		//check to see if we should add a shutdown hook
 		if (useShutdownHook) {
 			//register a jvm shutdown hook
 			((AbstractApplicationContext) applicationContext).registerShutdownHook();
 		}
-
-		// Load properties bundle
-		Properties props = new Properties();
-		Resource res = applicationContext.getResource(contextsConfig);
-		if (!res.exists()) {
-			log.error("Contexts config must be set.");
-			return;
-		}
-
-		// Load properties file
-		props.load(res.getInputStream());
-		// Pattern for arbitrary property substitution
-		Pattern patt = Pattern.compile("\\$\\{([^\\}]+)\\}");
-		Matcher matcher = null;
-		// Iterate thru properties keys and replace config attributes with
-		// system attributes
-		for (Object key : props.keySet()) {
-			String name = (String) key;
-			String config = props.getProperty(name);
-			String configReplaced = config + "";
-			//
-			matcher = patt.matcher(config);
-			//execute the regex
-			while (matcher.find()) {
-				String sysProp = matcher.group(1);
-				String systemPropValue = System.getProperty(sysProp);
-				if (systemPropValue == null) {
-					systemPropValue = "null";
-				}
-				configReplaced = configReplaced.replace(String.format("${%s}", sysProp), systemPropValue);
-			}
-			log.info("Loading: {} = {}", name, config + " => " + configReplaced);
-
-			matcher.reset();
-
-			// Load context
-			loadContext(name, configReplaced);
-		}
-
-		patt = null;
-		matcher = null;
+		// initialize
+		init();
 	}
 
 	/**
 	 * Un-loads or un-initializes the contexts; this is a shutdown method for this loader.
 	 */
-	public void uninit() {
+	public void destroy() throws Exception {
 		log.info("ContextLoader un-init");
-		JMXAgent.unregisterMBean(oName);
-		//shutdown the plug-in launcher here
-		try {
-			PluginRegistry.shutdown();
-		} catch (Exception e) {
-			log.warn("Exception shutting down plugin registry", e);
-		}
-		if (contextMap != null) {
-			log.debug("Context map: {}", contextMap);
-			try {
-				//unload all the contexts in the map
-				for (Map.Entry<String, ApplicationContext> entry : contextMap.entrySet()) {
-					String contextName = entry.getKey();
-					log.debug("Unloading context {} on uninit", contextName);
-					unloadContext(contextName);
-				}
-				contextMap.clear();
-			} catch (Exception e) {
-				log.warn("Exception shutting down contexts", e);
-			}
-		}
-		try {
-			// look up any shutdown enabled beans
-			LoaderBase loader = BeanFactoryUtils.beanOfTypeIncludingAncestors(applicationContext, LoaderBase.class);
-			if (loader != null) {
-				loader.shutdown();
-			} else {
-				log.debug("Loader was not found");
-			}
-		} catch (Exception e) {
-			log.warn("Exception looking for loader", e);
-		}
+		shutdown();
 		//if theres no jee loader then exit
 		System.exit(0);
+	}
+		
+	/**
+ 	 * Loads context settings from ResourceBundle (.properties file)
+	 */
+	public void init() throws IOException {
+		// Load properties bundle
+		Properties props = new Properties();
+		Resource res = applicationContext.getResource(contextsConfig);
+		if (res.exists()) {
+			// Load properties file
+			props.load(res.getInputStream());
+			// Pattern for arbitrary property substitution
+			Pattern patt = Pattern.compile("\\$\\{([^\\}]+)\\}");
+			Matcher matcher = null;
+			// Iterate thru properties keys and replace config attributes with
+			// system attributes
+			for (Object key : props.keySet()) {
+				String name = (String) key;
+				String config = props.getProperty(name);
+				String configReplaced = config + "";
+				//
+				matcher = patt.matcher(config);
+				//execute the regex
+				while (matcher.find()) {
+					String sysProp = matcher.group(1);
+					String systemPropValue = System.getProperty(sysProp);
+					if (systemPropValue == null) {
+						systemPropValue = "null";
+					}
+					configReplaced = configReplaced.replace(String.format("${%s}", sysProp), systemPropValue);
+				}
+				log.info("Loading: {} = {}", name, config + " => " + configReplaced);
+				matcher.reset();
+				// Load context
+				loadContext(name, configReplaced);
+			}
+			patt = null;
+			matcher = null;			
+		} else {
+			log.error("Contexts config must be set");
+		}
 	}
 
 	/**
@@ -336,19 +266,38 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMXBe
 	 */
 	public void shutdown() {
 		log.info("Shutting down server");
-		/*
-				//uninitialize contexts
-				uninit();
-				//shutdown jmx
-				JMXAgent.shutdown();
-				try {
-					//kill the jvm
-					System.exit(0);
-				} catch (Exception e) {
-					log.warn("Server could not be stopped", e);
-					throw new RuntimeException("Server could not be stopped");
+		unregisterJMX();
+		//shutdown the plug-in launcher here
+		try {
+			PluginRegistry.shutdown();
+		} catch (Exception e) {
+			log.warn("Exception shutting down plugin registry", e);
+		}
+		if (contextMap != null) {
+			log.debug("Context map: {}", contextMap);
+			try {
+				//unload all the contexts in the map
+				for (Map.Entry<String, ApplicationContext> entry : contextMap.entrySet()) {
+					String contextName = entry.getKey();
+					log.debug("Unloading context {} on uninit", contextName);
+					unloadContext(contextName);
 				}
-		*/
+				contextMap.clear();
+			} catch (Exception e) {
+				log.warn("Exception shutting down contexts", e);
+			}
+		}
+		try {
+			// look up any shutdown enabled beans
+			LoaderBase loader = BeanFactoryUtils.beanOfTypeIncludingAncestors(applicationContext, LoaderBase.class);
+			if (loader != null) {
+				loader.shutdown();
+			} else {
+				log.debug("Loader was not found");
+			}
+		} catch (Exception e) {
+			log.warn("Exception looking for loader", e);
+		}		
 	}
 
 	/**
@@ -366,6 +315,71 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMXBe
 	}
 
 	/**
+	 * Sets a parent context for child context based on a given key.
+	 * 
+	 * @param parentContextKey key for the parent context
+	 * @param appContextId id of the child context
+	 */
+	public void setParentContext(String parentContextKey, String appContextId) {
+		log.debug("Set parent context {} on {}", parentContextKey, appContextId);
+		ApplicationContext parentContext = getContext(parentContextKey);
+		if (parentContext != null) {
+			XmlWebApplicationContext childContext = (XmlWebApplicationContext) getContext(appContextId);
+			if (childContext != null) {
+				childContext.setParent(parentContext);
+			} else {
+				log.debug("Child context not found");
+			}
+		} else {
+			log.debug("Parent context not found");
+		}
+	}
+	
+	protected void registerJMX() {
+		// register with jmx
+		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+		try {
+			oName = new ObjectName("org.red5.server:name=contextLoader,type=ContextLoader");
+			// check for existing registration before registering
+			if (!mbs.isRegistered(oName)) {
+				mbs.registerMBean(this, oName);
+			} else {
+				log.debug("ContextLoader is already registered in JMX");
+			}
+		} catch (Exception e) {
+			log.warn("Error on jmx registration", e);
+		}
+	}
+
+	protected void unregisterJMX() {
+		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+		try {
+			mbs.unregisterMBean(oName);
+		} catch (Exception e) {
+			log.warn("Exception unregistering: {}", oName, e);
+		}
+		oName = null;
+	}	
+	
+	/**
+	 * @param applicationContext Spring application context
+	 * @throws BeansException Top level exception for app context (that is, in fact, beans
+	 *             factory)
+	 */
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		this.applicationContext = applicationContext;
+	}
+
+	/**
+	 * Setter for parent application context
+	 * 
+	 * @param parentContext Parent Spring application context
+	 */
+	public void setParentContext(ApplicationContext parentContext) {
+		this.parentContext = parentContext;
+	}
+	
+	/**
 	 * Return parent context
 	 * 
 	 * @return parent application context
@@ -374,7 +388,35 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMXBe
 		return parentContext;
 	}
 
+	/**
+	 * Setter for context config name
+	 * 
+	 * @param contextsConfig Context config name
+	 */
+	public void setContextsConfig(String contextsConfig) {
+		this.contextsConfig = contextsConfig;
+	}
+	
 	public String getContextsConfig() {
 		return contextsConfig;
 	}
+
+	/**
+	 * Whether or not the shutdown hook is enabled.
+	 * 
+	 * @return true if enabled, false otherwise
+	 */
+	public boolean isUseShutdownHook() {
+		return useShutdownHook;
+	}
+
+	/**
+	 * Enables or disables the shutdown hook.
+	 * 
+	 * @param useShutdownHook true to enable, false to disable
+	 */
+	public void setUseShutdownHook(boolean useShutdownHook) {
+		this.useShutdownHook = useShutdownHook;
+	}	
+	
 }

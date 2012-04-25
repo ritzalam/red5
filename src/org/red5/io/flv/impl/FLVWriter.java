@@ -106,6 +106,21 @@ public class FLVWriter implements ITagWriter {
 	private volatile int audioCodecId = -1;
 
 	/**
+	 * Sampling rate
+	 */
+	private volatile int soundRate;
+
+	/**
+	 * Size of each audio sample
+	 */
+	private volatile int soundSize;
+
+	/**
+	 * Mono (0) or stereo (1) sound
+	 */
+	private volatile boolean soundType;
+
+	/**
 	 * Are we appending to an existing file?
 	 */
 	private boolean append;
@@ -114,6 +129,16 @@ public class FLVWriter implements ITagWriter {
 	 * Duration of the file.
 	 */
 	private int duration;
+
+	/**
+	 * Size of video data
+	 */
+	private int videoDataSize = 0;
+
+	/**
+	 * Size of audio data
+	 */
+	private int audioDataSize = 0;
 
 	/**
 	 * Flv file.
@@ -273,14 +298,46 @@ public class FLVWriter implements ITagWriter {
 				// put the bytes into the array
 				tag.getBody().get(bodyBuf);
 				// get the audio or video codec identifier
-				if (dataType == ITag.TYPE_AUDIO && audioCodecId == -1) {
-					int id = bodyBuf[0] & 0xff; // must be unsigned
-					audioCodecId = (id & ITag.MASK_SOUND_FORMAT) >> 4;
-					log.debug("Audio codec id: {}", audioCodecId);
-				} else if (dataType == ITag.TYPE_VIDEO && videoCodecId == -1) {
-					int id = bodyBuf[0] & 0xff; // must be unsigned
-					videoCodecId = id & ITag.MASK_VIDEO_CODEC;
-					log.debug("Video codec id: {}", videoCodecId);
+				if (dataType == ITag.TYPE_AUDIO) {
+					audioDataSize += bodySize;
+					if (audioCodecId == -1) {
+						int id = bodyBuf[0] & 0xff; // must be unsigned
+						audioCodecId = (id & ITag.MASK_SOUND_FORMAT) >> 4;
+						log.debug("Audio codec id: {}", audioCodecId);
+						switch ((id & ITag.MASK_SOUND_RATE) >> 2) {
+							case ITag.FLAG_RATE_5_5_KHZ:
+								soundRate = 5500;
+								break;
+							case ITag.FLAG_RATE_11_KHZ:
+								soundRate = 11000;
+								break;
+							case ITag.FLAG_RATE_22_KHZ:
+								soundRate = 22000;
+								break;
+							case ITag.FLAG_RATE_44_KHZ:
+								soundRate = 44000;
+								break;
+						}
+						log.debug("Sound rate: {}", soundRate);
+						switch ((id & ITag.MASK_SOUND_SIZE) >> 1) {
+							case ITag.FLAG_SIZE_8_BIT:
+								soundSize = 8;
+								break;
+							case ITag.FLAG_SIZE_16_BIT:
+								soundSize = 16;
+								break;
+						}
+						log.debug("Sound size: {}", soundSize);
+						soundType = (id & ITag.MASK_SOUND_TYPE) > 0;
+						log.debug("Sound type: {}", soundType);
+					}
+				} else if (dataType == ITag.TYPE_VIDEO) {
+					videoDataSize += bodySize;
+					if (videoCodecId == -1) {
+						int id = bodyBuf[0] & 0xff; // must be unsigned
+						videoCodecId = id & ITag.MASK_VIDEO_CODEC;
+						log.debug("Video codec id: {}", videoCodecId);
+					}
 				}
 			}
 			// Data Type
@@ -364,12 +421,17 @@ public class FLVWriter implements ITagWriter {
 		params.put("duration", (Number) duration);
 		if (videoCodecId != -1) {
 			params.put("videocodecid", videoCodecId);
+			params.put("videodatarate", 8 * videoDataSize / 1024 / duration); //from bytes to kilobits
 		} else {
 			// place holder
 			params.put("novideocodec", 0);
 		}
 		if (audioCodecId != -1) {
 			params.put("audiocodecid", audioCodecId);
+			params.put("audiosamplerate", soundRate);
+			params.put("audiosamplesize", soundSize);
+			params.put("stereo", soundType);
+			params.put("audiodatarate", 8 * audioDataSize / 1024 / duration); //from bytes to kilobits			
 		} else {
 			// place holder
 			params.put("noaudiocodec", 0);
