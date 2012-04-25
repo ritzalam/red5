@@ -137,14 +137,38 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 			assertTrue(appScope.getDepth() == 1);
 		}
 		IScope room1 = ScopeUtils.resolveScope(appScope, "/junit/room1");
-		@SuppressWarnings("unused")
-		IScope room5 = ScopeUtils.resolveScope(appScope, "/junit/room1/room4/room5");
+		log.debug("Room 1 scope: {}", room1);
+		assertTrue(room1.getDepth() == 2);
 		Iterator<String> names = room1.getScopeNames();
+		while (names.hasNext()) {
+			log.debug("Scope: {}", names.next());
+		}
+		IScope room5 = ScopeUtils.resolveScope(appScope, "/junit/room1/room4/room5");
+		log.debug("Room 5 scope: {}", room5);
+		assertTrue(room5.getDepth() == 4);
+		names = room1.getScopeNames();
 		while (names.hasNext()) {
 			log.debug("Scope: {}", names.next());
 		}
 	}
 
+	@Test
+	public void testRemoveScope() throws Exception {
+		log.debug("testRemoveScope");
+		if (appScope == null) {
+			appScope = (WebScope) applicationContext.getBean("web.scope");
+			log.debug("Application / web scope: {}", appScope);
+			assertTrue(appScope.getDepth() == 1);
+		}
+		IScope room1 = ScopeUtils.resolveScope(appScope, "/junit/room1");
+		IScope room4 = ScopeUtils.resolveScope(appScope, "/junit/room1/room4");
+		log.debug("Room 4 scope: {}", room4);
+		assertTrue(room4.getDepth() == 3);
+		log.debug("Room 4 child scope exists: {}", room1.hasChildScope("room4"));
+		room1.removeChildScope(room4);
+		log.debug("Room 4 child scope exists: {}", room1.hasChildScope("room4"));
+	}	
+	
 	/**
 	 * Test for Issue 73
 	 * http://code.google.com/p/red5/issues/detail?id=73

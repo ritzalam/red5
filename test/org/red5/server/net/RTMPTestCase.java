@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.red5.server.rtmp;
+package org.red5.server.net;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;

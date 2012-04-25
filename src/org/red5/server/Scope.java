@@ -526,7 +526,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * 
 	 * @return Current thread context classloader
 	 */
-	public ClassLoader getClassLoader() {	
+	public ClassLoader getClassLoader() {
 		return getContext().getClassLoader();
 	}
 
@@ -992,7 +992,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * @param scope Child scope to remove
 	 */
 	public void removeChildScope(IBasicScope scope) {
-
+		log.debug("removeChildScope: {}", scope);
 		// Obtain lock
 		lock();
 
@@ -1011,6 +1011,13 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				}
 				subscopeStats.decrement();
 			}
+			// remove all children
+			//((IScope) scope).removeChildScopes();
+			Iterator<IBasicScope> iter = ((IScope) scope).iterator();
+			while (iter.hasNext()) {
+				((IScope) scope).removeChildScope(iter.next());
+			}			
+			// remove from parent
 			children.remove(scope.getType() + SEPARATOR + scope.getName());
 		} finally {
 			unlock();
@@ -1276,12 +1283,14 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 
 	protected void unregisterJMX() {
 		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-		try {
-			mbs.unregisterMBean(oName);
-		} catch (Exception e) {
-			log.warn("Exception unregistering: {}", oName, e);
+		if (oName != null && mbs.isRegistered(oName)) {
+			try {
+				mbs.unregisterMBean(oName);
+			} catch (Exception e) {
+				log.warn("Exception unregistering: {}", oName, e);
+			}
+			oName = null;
 		}
-		oName = null;
 	}
 
 	/**
