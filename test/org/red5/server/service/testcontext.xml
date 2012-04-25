@@ -20,29 +20,6 @@
     <!-- Server bean -->
     <bean id="red5.server" class="org.red5.server.Server"/>
 
-    <!-- JMX server -->
-    <bean id="jmxFactory" class="org.red5.server.jmx.JMXFactory">
-        <property name="domain" value="org.red5.server"/>
-    </bean>
-    
-    <bean id="jmxAgent" class="org.red5.server.jmx.JMXAgent" init-method="init">
-        <!-- The RMI adapter allows remote connections to the MBeanServer -->
-        <property name="enableRmiAdapter" value="true"/>
-        <property name="rmiAdapterPort" value="9999"/>
-        <property name="rmiAdapterRemotePort" value=""/>
-        <property name="rmiAdapterHost" value="0.0.0.0"/>
-        <property name="enableSsl" value="false"/>
-        <!-- Starts a registry if it doesnt exist -->
-        <property name="startRegistry" value="true"/>
-        <!-- Authentication -->
-        <property name="remoteAccessProperties" value="${red5.config_root}/access.properties"/>
-        <property name="remotePasswordProperties" value="${red5.config_root}/password.properties"/>
-        <property name="remoteSSLKeystore" value="${red5.config_root}/keystore.jmx"/>
-        <property name="remoteSSLKeystorePass" value="${rtmps.keystorepass}"/>
-        <!-- Mina offers its own Mbeans so you may integrate them here -->
-        <property name="enableMinaMonitor" value="true"/>
-    </bean>	
- 
     <!-- Global stuff from red5-default.xml -->
     
     <bean id="global.clientRegistry" class="org.red5.server.DummyClientRegistry" />
