@@ -61,10 +61,11 @@
             </list>
         </property>
 		<property name="ioThreads" value="${rtmp.io_threads}" />
+        <property name="tcpNoDelay" value="${rtmp.tcp_nodelay}" />
 		<!-- This is the interval at which the sessions are polled for stats. If mina monitoring is not
 				enabled, polling will not occur. -->
-		<property name="jmxPollInterval" value="1000" />
-		<property name="tcpNoDelay" value="${rtmp.tcp_nodelay}" />
+		<property name="minaPollInterval" value="${jmx.mina.poll.interval}" />
+		<property name="enableMinaMonitor" value="${jmx.mina.monitor.enable}" />
 	</bean>
 	
 	<!-- RTMP Mina Connection -->

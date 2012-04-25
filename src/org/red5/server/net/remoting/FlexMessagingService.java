@@ -46,7 +46,7 @@ import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceInvoker;
 import org.red5.server.exception.ClientDetailsException;
 import org.red5.server.messaging.ServiceAdapter;
-import org.red5.server.service.ConversionUtils;
+import org.red5.server.util.ConversionUtils;
 import org.red5.server.service.PendingCall;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

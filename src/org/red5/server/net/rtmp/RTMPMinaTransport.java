@@ -18,12 +18,14 @@
 
 package org.red5.server.net.rtmp;
 
+import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
 import org.apache.mina.core.buffer.IoBuffer;
@@ -31,12 +33,10 @@ import org.apache.mina.core.buffer.SimpleBufferAllocator;
 import org.apache.mina.core.service.AbstractIoService;
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.service.IoServiceStatistics;
-import org.apache.mina.integration.jmx.IoServiceMBean;
 import org.apache.mina.transport.socket.SocketAcceptor;
 import org.apache.mina.transport.socket.SocketSessionConfig;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
-import org.red5.server.jmx.JMXAgent;
-import org.red5.server.jmx.JMXFactory;
+import org.red5.server.jmx.mxbeans.RTMPMinaTransportMXBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
  * @author Luke Hubbard
  * @author Paul Gregoire
  */
-public class RTMPMinaTransport {
+public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 
 	private static final Logger log = LoggerFactory.getLogger(RTMPMinaTransport.class);
 
@@ -69,7 +69,9 @@ public class RTMPMinaTransport {
 	 */
 	protected ObjectName serviceManagerObjectName;
 
-	protected int jmxPollInterval = 1000;
+	protected boolean enableMinaMonitor = false;
+
+	protected int minaPollInterval = 1000;
 
 	protected boolean tcpNoDelay = true;
 
@@ -125,11 +127,11 @@ public class RTMPMinaTransport {
 			cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
 		}
 		//enable only if user wants it
-		if (JMXAgent.isEnableMinaMonitor()) {
+		if (enableMinaMonitor) {
 			//add a service manager to allow for more introspection into the workings of mina
 			stats = new IoServiceStatistics((AbstractIoService) acceptor);
 			//poll every second
-			stats.setThroughputCalculationInterval(jmxPollInterval);
+			stats.setThroughputCalculationInterval(minaPollInterval);
 			//construct a object containing all the host and port combos
 			StringBuilder addressAndPorts = new StringBuilder();
 			for (SocketAddress sa : addresses) {
@@ -142,8 +144,13 @@ public class RTMPMinaTransport {
 				}
 			}
 			addressAndPorts.deleteCharAt(addressAndPorts.length() - 1);
-			serviceManagerObjectName = JMXFactory.createObjectName("type", "IoServiceManager", "addresses", addressAndPorts.toString());
-			JMXAgent.registerMBean(stats, stats.getClass().getName(), IoServiceMBean.class, serviceManagerObjectName);
+			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+			try {
+				serviceManagerObjectName = new ObjectName("org.red5.server:type=IoServiceManager,addresses=" + addressAndPorts.toString());
+				mbs.registerMBean(this, serviceManagerObjectName);
+			} catch (Exception e) {
+				log.warn("Error on jmx registration", e);
+			}
 		}
 	}
 
@@ -152,7 +159,12 @@ public class RTMPMinaTransport {
 		acceptor.unbind();
 		// deregister with jmx
 		if (serviceManagerObjectName != null) {
-			JMXAgent.unregisterMBean(serviceManagerObjectName);
+			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+			try {
+				mbs.unregisterMBean(serviceManagerObjectName);
+			} catch (Exception e) {
+				log.warn("Error on jmx unregistration", e);
+			}
 		}
 	}
 
@@ -184,12 +196,15 @@ public class RTMPMinaTransport {
 		this.useHeapBuffers = useHeapBuffers;
 	}
 
-	public int getJmxPollInterval() {
-		return jmxPollInterval;
+	/**
+	 * @param enableMinaMonitor the enableMinaMonitor to set
+	 */
+	public void setEnableMinaMonitor(boolean enableMinaMonitor) {
+		this.enableMinaMonitor = enableMinaMonitor;
 	}
 
-	public void setJmxPollInterval(int jmxPollInterval) {
-		this.jmxPollInterval = jmxPollInterval;
+	public void setMinaPollInterval(int minaPollInterval) {
+		this.minaPollInterval = minaPollInterval;
 	}
 
 	public String toString() {

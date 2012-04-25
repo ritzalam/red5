@@ -22,6 +22,7 @@ package org.red5.server.service;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.util.UUID;
 
 import javax.management.JMX;
@@ -41,7 +42,6 @@ import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
 import org.red5.server.api.service.ServiceUtils;
-import org.red5.server.jmx.JMXFactory;
 import org.red5.server.jmx.mxbeans.LoaderMXBean;
 import org.red5.server.util.FileUtil;
 import org.red5.server.util.HttpConnectionUtil;
@@ -78,16 +78,22 @@ public final class Installer {
 	 */
 	@SuppressWarnings("cast")
 	public LoaderMXBean getLoader() {
-		MBeanServer mbs = JMXFactory.getMBeanServer();
-		ObjectName oName = JMXFactory.createObjectName("type", "TomcatLoader");
+		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+		// proxy class
 		LoaderMXBean proxy = null;
-		if (mbs.isRegistered(oName)) {
-			proxy = (LoaderMXBean) JMX.newMXBeanProxy(mbs, oName, LoaderMXBean.class, true);
-			log.debug("Loader was found");
-		} else {
-			log.warn("Loader not found");
+		ObjectName oName;
+		try {
+			oName = new ObjectName("org.red5.server:type=TomcatLoader");
+			if (mbs.isRegistered(oName)) {
+				proxy = JMX.newMXBeanProxy(mbs, oName, LoaderMXBean.class, true);
+				log.debug("Loader was found");
+			} else {
+				log.warn("Loader not found");
+			}
+		} catch (Exception e) {
+			log.error("Exception getting loader", e);
 		}
-		return proxy;
+		return proxy;		
 	}
 
 	/**

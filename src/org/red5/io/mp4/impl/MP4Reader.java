@@ -534,11 +534,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 													log.debug("Record count: {}", records.size());
 													MP4Atom.TimeSampleRecord rec = records.firstElement();
 													log.debug("Record data: Consecutive samples={} Duration={}", rec.getConsecutiveSamples(), rec.getSampleDuration());
-													//if we have 1 record then all samples have the same duration
-													if (records.size() > 1) {
-														//TODO: handle audio samples with varying durations
-														log.info("Audio samples have differing durations, audio playback may fail");
-													}
+													//if we have 1 record it means all samples have the same duration
 													audioSampleDuration = rec.getSampleDuration();
 												}
 											}
@@ -710,11 +706,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 													log.debug("Record count: {}", records.size());
 													MP4Atom.TimeSampleRecord rec = records.firstElement();
 													log.debug("Record data: Consecutive samples={} Duration={}", rec.getConsecutiveSamples(), rec.getSampleDuration());
-													//if we have 1 record then all samples have the same duration
-													if (records.size() > 1) {
-														//TODO: handle video samples with varying durations
-														log.info("Video samples have differing durations, video playback may fail");
-													}
+													//if we have 1 record it means all samples have the same duration
 													videoSampleDuration = rec.getSampleDuration();
 												}
 												//ctts - (composition) time to sample
@@ -1118,7 +1110,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 				body.put(new byte[] { (byte) 0xaf, (byte) 0 }); //prefix
 				body.put(audioDecoderBytes);
 				body.put((byte) 0x06); //suffix
-				tag = new Tag(IoConstants.TYPE_AUDIO, timestamp, body.position(), null, tag.getBodySize());
+				tag = new Tag(IoConstants.TYPE_AUDIO, timestamp, body.position(), null, 0);
 				body.flip();
 				tag.setBody(body);
 				//add tag
@@ -1359,7 +1351,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 							} catch (IOException e) {
 								log.warn("Exception during audio analysis", e);
 							}
-						}						
+						}
 						// exclude data that is not within the mdat box
 						if ((moovOffset < mdatOffset && pos > mdatOffset) || (moovOffset > mdatOffset && pos < moovOffset)) {
 							//create a frame
@@ -1473,12 +1465,23 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		KeyFrameMeta result = new KeyFrameMeta();
 		result.audioOnly = hasAudio && !hasVideo;
 		result.duration = duration;
-		result.positions = new long[seekPoints.size()];
-		result.timestamps = new int[seekPoints.size()];
-		for (int idx = 0; idx < seekPoints.size(); idx++) {
-			final Integer ts = seekPoints.get(idx);
-			result.positions[idx] = timePosMap.get(ts);
-			result.timestamps[idx] = ts;
+		if (result.audioOnly) {
+			result.positions = new long[frames.size()];
+			result.timestamps = new int[frames.size()];
+			result.audioOnly = true;
+			for (int i = 0; i < result.positions.length; i++) {
+				frames.get(i).setKeyFrame(true);
+				result.positions[i] = frames.get(i).getOffset();
+				result.timestamps[i] = (int) Math.round(frames.get(i).getTime() * 1000.0);
+			}
+		} else {
+			result.positions = new long[seekPoints.size()];
+			result.timestamps = new int[seekPoints.size()];
+			for (int idx = 0; idx < seekPoints.size(); idx++) {
+				final Integer ts = seekPoints.get(idx);
+				result.positions[idx] = timePosMap.get(ts);
+				result.timestamps[idx] = ts;
+			}
 		}
 		return result;
 	}

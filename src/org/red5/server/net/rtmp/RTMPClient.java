@@ -86,6 +86,7 @@ public class RTMPClient extends BaseRTMPClientHandler {
 					// will throw RuntimeException after connection error
 					future.getSession();
 				} catch (Throwable e) {
+					socketConnector.dispose(false);
 					//if there isn't an ClientExceptionHandler set, a 
 					//RuntimeException may be thrown in handleException
 					handleException(e);
@@ -99,17 +100,17 @@ public class RTMPClient extends BaseRTMPClientHandler {
 	@Override
 	public void disconnect() {
 		if (future != null) {
-			// Do the close requesting that the pending messages are sent before
-			// the session is closed
 			try {
+				// close requesting that the pending messages are sent before the session is closed
 				future.getSession().close(false);
+				// now wait for the close to be completed
+				future.awaitUninterruptibly(CONNECTOR_WORKER_TIMEOUT);
 			} catch (Exception e) {
 				log.warn("Exception during disconnect", e);
+			} finally {
+				// We can now dispose the connector
+				socketConnector.dispose(false);
 			}
-			// now wait for the close to be completed
-			future.awaitUninterruptibly(CONNECTOR_WORKER_TIMEOUT);
-			// We can now dispose the connector
-			socketConnector.dispose();
 		}
 		super.disconnect();
 	}

@@ -20,26 +20,18 @@ package org.red5.server.jmx.mxbeans;
 
 import javax.management.MXBean;
 
-import org.apache.mina.core.service.IoHandlerAdapter;
-
 /** 
  * 
  */
 @MXBean
 public interface RTMPMinaTransportMXBean {
-
-	public void setAddress(String address);
-	public void setPort(int port);
 	public void setIoThreads(int ioThreads);
-	public void setEventThreadsCore(int eventThreadsCore);
-	public void setEventThreadsMax(int eventThreadsMax);
-	public void setEventThreadsKeepalive(int eventThreadsKeepalive);
-	public void setEventThreadsQueue(int eventThreadsQueue);
-	public void setIoHandler(IoHandlerAdapter rtmpIOHandler);
-	public void setReceiveBufferSize(int receiveBufferSize);
-	public void setSendBufferSize(int sendBufferSize);
+
 	public void setTcpNoDelay(boolean tcpNoDelay);
+
 	public void setUseHeapBuffers(boolean useHeapBuffers);
+
 	public void start() throws Exception;
+
 	public void stop();
 }

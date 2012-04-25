@@ -22,6 +22,8 @@ import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IServer;
 import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.api.persistence.PersistenceUtils;
+import org.red5.server.jmx.mxbeans.GlobalScopeMXBean;
+import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
  * Global scope is a top level scope. Server instance is meant to be injected
@@ -30,7 +32,8 @@ import org.red5.server.api.persistence.PersistenceUtils;
  * @see org.red5.server.api.IGlobalScope
  * @see org.red5.server.api.IScope
  */
-public class GlobalScope extends Scope implements IGlobalScope {
+@ManagedResource
+public class GlobalScope extends Scope implements IGlobalScope, GlobalScopeMXBean {
 	
 	// Red5 Server instance
 	protected IServer server;

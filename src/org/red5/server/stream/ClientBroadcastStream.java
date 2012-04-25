@@ -21,11 +21,15 @@ package org.red5.server.stream;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.IConnection;
@@ -76,6 +80,7 @@ import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.StatusMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
  * Represents live stream broadcasted from client. As Flash Media Server, Red5 supports
@@ -93,6 +98,7 @@ import org.slf4j.LoggerFactory;
  * @author Paul Gregoire (mondain@gmail.com)
  * @author Vladimir Hmelyoff (vlhm@splitmedialabs.com)
  */
+@ManagedResource(objectName = "org.red5.server:type=ClientBroadcastStream", description = "ClientBroadcastStream")
 public class ClientBroadcastStream extends AbstractClientStream implements IClientBroadcastStream, IFilter, IPushableConsumer, IPipeConnectionListener, IEventDispatcher,
 		IClientBroadcastStreamStatistics, ClientBroadcastStreamMXBean {
 
@@ -209,7 +215,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 * Closes stream, unsubscribes provides, sends stoppage notifications and broadcast close notification.
 	 */
 	public void close() {
-		log.info("Close");
+		log.info("Stream close");
 		if (closed) {
 			// Already closed
 			return;
@@ -231,7 +237,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		connMsgOut.unsubscribe(this);
 		notifyBroadcastClose();
 		// deregister with jmx
-		//JMXAgent.unregisterMBean(oName);
+		unregisterJMX();
 	}
 
 	/**
@@ -454,18 +460,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 */
 	public void setPublishedName(String name) {
 		log.debug("setPublishedName: {}", name);
-		//check to see if we are setting the name to the same string
-		/*
-		if (!name.equals(publishedName)) {
-			// update an attribute
-			JMXAgent.updateMBeanAttribute(oName, "publishedName", name);
-		} else {
-			//create a new mbean for this instance with the new name
-			oName = JMXFactory.createObjectName("type", "ClientBroadcastStream", "publishedName", name);
-			JMXAgent.registerMBean(this, this.getClass().getName(), ClientBroadcastStreamMBean.class, oName);
-		}
-		*/
 		this.publishedName = name;
+		registerJMX();
 	}
 
 	/**
@@ -936,6 +932,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 
 	/** {@inheritDoc} */
 	public void stop() {
+		log.info("Stream stop");
 		stopRecording();
 		close();
 	}
@@ -973,4 +970,25 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		listeners.remove(listener);
 	}
 
+	protected void registerJMX() {
+		// register with jmx
+		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+		try {
+			ObjectName oName = new ObjectName(String.format("org.red5.server:type=ClientBroadcastStream,publishedName=%s", publishedName));
+			mbs.registerMBean(this, oName);
+		} catch (Exception e) {
+			log.warn("Error on jmx registration", e);
+		}
+	}
+
+	protected void unregisterJMX() {
+		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+		try {
+			ObjectName oName = new ObjectName(String.format("org.red5.server:type=ClientBroadcastStream,publishedName=%s", publishedName));
+			mbs.unregisterMBean(oName);
+		} catch (Exception e) {
+			log.warn("Exception unregistering", e);
+		}
+	}	
+	
 }

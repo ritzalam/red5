@@ -23,8 +23,6 @@ import java.net.SocketAddress;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.management.ObjectName;
-
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.buffer.SimpleBufferAllocator;
 import org.apache.mina.core.filterchain.IoFilter;
@@ -33,7 +31,6 @@ import org.apache.mina.filter.logging.LoggingFilter;
 import org.apache.mina.transport.socket.SocketAcceptor;
 import org.apache.mina.transport.socket.SocketSessionConfig;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
-import org.red5.server.jmx.JMXAgent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,11 +79,6 @@ public class MRTMPMinaTransport {
 	private int ioThreads = DEFAULT_IO_THREADS;
 
 	private boolean isLoggingTraffic = false;
-
-	/**
-	 * MBean object name used for de/registration purposes.
-	 */
-	private ObjectName oName;
 
 	private int port = DEFAULT_PORT;
 
@@ -142,7 +134,6 @@ public class MRTMPMinaTransport {
 
 	public void setPort(int port) {
 		this.port = port;
-		JMXAgent.updateMBeanAttribute(oName, "port", port);
 	}
 
 	public void setReceiveBufferSize(int receiveBufferSize) {
