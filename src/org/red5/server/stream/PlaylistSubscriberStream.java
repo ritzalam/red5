@@ -632,6 +632,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 							} catch (Throwable t) {
 								log.error("error notify streamPlayItemSeek", t);
 							}
+							// clear thread local reference
+							Red5.setConnectionLocal(null);
 						}
 					};
 				}
@@ -653,7 +655,9 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 								handler.streamPlayItemPause(stream, item, position);
 							} catch (Throwable t) {
 								log.error("error notify streamPlayItemPause", t);
-							}
+							}			
+							// clear thread local reference
+							Red5.setConnectionLocal(null);
 						}
 					};
 				}
@@ -675,8 +679,9 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 								handler.streamPlayItemResume(stream, item, position);
 							} catch (Throwable t) {
 								log.error("error notify streamPlayItemResume", t);
-
 							}
+							// clear thread local reference
+							Red5.setConnectionLocal(null);
 						}
 					};
 				}
@@ -697,6 +702,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 							} catch (Throwable t) {
 								log.error("error notify streamPlayItemPlay", t);
 							}
+							// clear thread local reference
+							Red5.setConnectionLocal(null);
 						}
 					};
 				}
@@ -713,6 +720,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 							} catch (Throwable t) {
 								log.error("error notify streamSubscriberClose", t);
 							}
+							// clear thread local reference
+							Red5.setConnectionLocal(null);
 						}
 					};
 				}
@@ -729,6 +738,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 							} catch (Throwable t) {
 								log.error("error notify streamSubscriberStart", t);
 							}
+							// clear thread local reference
+							Red5.setConnectionLocal(null);
 						}
 					};
 				}
@@ -749,6 +760,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 							} catch (Throwable t) {
 								log.error("error notify streamPlaylistItemStop", t);
 							}
+							// clear thread local reference
+							Red5.setConnectionLocal(null);
 						}
 					};
 				}

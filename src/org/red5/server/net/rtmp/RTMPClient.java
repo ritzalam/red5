@@ -22,7 +22,6 @@ import java.net.InetSocketAddress;
 import java.util.Map;
 
 import org.apache.mina.core.future.ConnectFuture;
-import org.apache.mina.core.future.IoFuture;
 import org.apache.mina.core.future.IoFutureListener;
 import org.apache.mina.transport.socket.SocketConnector;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
@@ -74,14 +73,13 @@ public class RTMPClient extends BaseRTMPClientHandler {
 		return params;
 	}
 
-	@SuppressWarnings({ "rawtypes" })
 	@Override
 	protected void startConnector(String server, int port) {
 		socketConnector = new NioSocketConnector();
 		socketConnector.setHandler(ioHandler);
 		future = socketConnector.connect(new InetSocketAddress(server, port));
-		future.addListener(new IoFutureListener() {
-			public void operationComplete(IoFuture future) {
+		future.addListener(new IoFutureListener<ConnectFuture>() {
+			public void operationComplete(ConnectFuture future) {
 				try {
 					// will throw RuntimeException after connection error
 					future.getSession();

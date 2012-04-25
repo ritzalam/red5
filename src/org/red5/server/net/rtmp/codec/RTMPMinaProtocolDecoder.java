@@ -26,7 +26,6 @@ import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoderAdapter;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 import org.red5.io.object.Deserializer;
-import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.message.Constants;
@@ -46,8 +45,6 @@ public class RTMPMinaProtocolDecoder extends ProtocolDecoderAdapter {
 		RTMPConnection conn = (RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		conn.getWriteLock().lock();
 		try {
-			// Set thread local here so we have the connection during decoding of packets
-			Red5.setConnectionLocal(conn);
 			//create a buffer and store it on the session
 			IoBuffer buf = (IoBuffer) session.getAttribute("buffer");
 			if (buf == null) {

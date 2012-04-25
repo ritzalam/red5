@@ -112,7 +112,6 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 		if (request.getLocalPort() != 80) {
 			host += ":" + request.getLocalPort();
 		}
-		
 		remoteAddress = request.getRemoteAddr();
 		remoteAddresses = ServletUtils.getRemoteAddresses(request);
 		remotePort = request.getRemotePort();

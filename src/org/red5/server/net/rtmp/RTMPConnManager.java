@@ -45,24 +45,23 @@ public class RTMPConnManager implements IRTMPConnManager, ApplicationContextAwar
 	private ApplicationContext appCtx;
 
 	public RTMPConnection createConnection(Class<?> connCls) {
-		if (!RTMPConnection.class.isAssignableFrom(connCls)) {
-			return null;
-		}
-		try {
-			RTMPConnection conn = createConnectionInstance(connCls);
-			lock.writeLock().lock();
+		RTMPConnection conn = null;
+		if (RTMPConnection.class.isAssignableFrom(connCls)) {
 			try {
-				int clientId = BaseConnection.getNextClientId();
-				conn.setId(clientId);
-				connMap.put(clientId, conn);
-				log.debug("Connection created, id: {}", conn.getId());
-			} finally {
-				lock.writeLock().unlock();
+				conn = createConnectionInstance(connCls);
+				lock.writeLock().lock();
+				try {
+					int clientId = BaseConnection.getNextClientId();
+					conn.setId(clientId);
+					connMap.put(clientId, conn);
+					log.debug("Connection created, id: {}", conn.getId());
+				} finally {
+					lock.writeLock().unlock();
+				}
+			} catch (Exception e) {
 			}
-			return conn;
-		} catch (Exception e) {
-			return null;
 		}
+		return conn;
 	}
 
 	public RTMPConnection getConnection(int clientId) {
