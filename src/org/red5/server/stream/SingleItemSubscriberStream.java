@@ -47,8 +47,8 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 	 * Executor that will be used to schedule stream playback to keep
 	 * the client buffer filled.
 	 */
-	protected static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(3);	
-	
+	protected static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(3);
+
 	/**
 	 * Interval in ms to check for buffer underruns in VOD streams.
 	 */
@@ -64,7 +64,7 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 	 * Timestamp this stream was created.
 	 */
 	protected long creationTime = System.currentTimeMillis();
-	
+
 	private volatile IPlayItem item;
 
 	/**
@@ -146,24 +146,11 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 		}
 	}
 
-	/** {@inheritDoc} */
-	@Override
-	public StreamState getState() {
-		return state;
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public void setState(StreamState state) {
-		this.state = state;
-	}
-
 	/**
 	 * Creates a play engine based on current services (scheduling service, consumer service, and provider service).
 	 * This method is useful during unit testing.
 	 */
-	PlayEngine createEngine(ISchedulingService schedulingService, IConsumerService consumerService,
-			IProviderService providerService) {
+	PlayEngine createEngine(ISchedulingService schedulingService, IConsumerService consumerService, IProviderService providerService) {
 		engine = new PlayEngine.Builder(this, schedulingService, consumerService, providerService).build();
 		return engine;
 	}
@@ -208,8 +195,8 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 	 */
 	public void setUnderrunTrigger(int underrunTrigger) {
 		this.underrunTrigger = underrunTrigger;
-	}	
-	
+	}
+
 	public void start() {
 		//ensure the play engine exists
 		if (engine == null) {
@@ -237,7 +224,6 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 					//try the parent
 					providerService = (IProviderService) scope.getParent().getContext().getBean(IProviderService.BEAN_NAME);
 				}
-
 				engine = new PlayEngine.Builder(this, schedulingService, consumerService, providerService).build();
 			} else {
 				log.info("Scope was null on start");
@@ -257,7 +243,7 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 		engine.close();
 		onChange(StreamState.CLOSED);
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -422,8 +408,7 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 				//there is no "default" handling
 		}
 		if (notifier != null) {
-			IConnection conn = Red5.getConnectionLocal();
-			notifier.setConnection(conn);
+			notifier.setConnection(Red5.getConnectionLocal());
 			executor.execute(notifier);
 		}
 	}
@@ -451,7 +436,7 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 		ISingleItemSubscriberStream stream;
 
 		IStreamAwareScopeHandler handler;
-		
+
 		IConnection conn;
 
 		public Notifier(ISingleItemSubscriberStream stream, IStreamAwareScopeHandler handler) {
@@ -459,7 +444,7 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 			this.stream = stream;
 			this.handler = handler;
 		}
-		
+
 		public void setConnection(IConnection conn) {
 			this.conn = conn;
 		}
@@ -467,6 +452,6 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 		public void run() {
 		}
 
-	}	
-	
+	}
+
 }

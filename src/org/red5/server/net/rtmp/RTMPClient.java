@@ -23,9 +23,14 @@ import java.util.Map;
 
 import org.apache.mina.core.future.ConnectFuture;
 import org.apache.mina.core.future.IoFutureListener;
+import org.apache.mina.core.session.IoSession;
+import org.apache.mina.filter.codec.ProtocolCodecFilter;
+import org.apache.mina.filter.logging.LoggingFilter;
 import org.apache.mina.transport.socket.SocketConnector;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
+import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
+import org.red5.server.net.rtmpe.RTMPEIoFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +53,7 @@ public class RTMPClient extends BaseRTMPClientHandler {
 	protected static final int CONNECTOR_WORKER_TIMEOUT = 7000; // seconds
 
 	// I/O handler
-	private final RTMPMinaIoHandler ioHandler;
+	private final RTMPClientIoHandler ioHandler;
 
 	// Socket connector, disposed on disconnect
 	protected SocketConnector socketConnector;
@@ -58,8 +63,7 @@ public class RTMPClient extends BaseRTMPClientHandler {
 
 	/** Constructs a new RTMPClient. */
 	public RTMPClient() {
-		ioHandler = new RTMPMinaIoHandler();
-		ioHandler.setCodecFactory(getCodecFactory());
+		ioHandler = new RTMPClientIoHandler();
 		ioHandler.setMode(RTMP.MODE_CLIENT);
 		ioHandler.setHandler(this);
 		ioHandler.setRtmpConnManager(RTMPClientConnManager.getInstance());
@@ -112,4 +116,49 @@ public class RTMPClient extends BaseRTMPClientHandler {
 		}
 		super.disconnect();
 	}
+	
+	protected class RTMPClientIoHandler extends RTMPMinaIoHandler {
+		
+		@Override
+		public void sessionCreated(IoSession session) throws Exception {
+			log.debug("Session created");
+			// moved protocol state from connection object to RTMP object
+			RTMP rtmp = new RTMP(mode);
+			session.setAttribute(ProtocolState.SESSION_KEY, rtmp);
+			//add rtmpe filter
+			session.getFilterChain().addFirst("rtmpeFilter", new RTMPEIoFilter());
+			//add protocol filter next
+			session.getFilterChain().addLast("protocolFilter", new ProtocolCodecFilter(codecFactory));
+			if (log.isTraceEnabled()) {
+				session.getFilterChain().addLast("logger", new LoggingFilter());
+			}
+			//create a connection
+			RTMPMinaConnection conn = createRTMPMinaConnection();
+			conn.setIoSession(session);
+			conn.setState(rtmp);
+			//add the connection
+			session.setAttribute(RTMPConnection.RTMP_CONNECTION_KEY, conn);
+			//create inbound or outbound handshaker
+			if (rtmp.getMode() == RTMP.MODE_CLIENT) {
+				// create an outbound handshake
+				OutboundHandshake outgoingHandshake = new OutboundHandshake();
+				//if handler is rtmpe client set encryption on the protocol state
+				//if (handler instanceof RTMPEClient) {
+				//rtmp.setEncrypted(true);
+				//set the handshake type to encrypted as well
+				//outgoingHandshake.setHandshakeType(RTMPConnection.RTMP_ENCRYPTED);
+				//}
+				//add the handshake
+				session.setAttribute(RTMPConnection.RTMP_HANDSHAKE, outgoingHandshake);
+				// set a reference to the connection on the client
+				if (handler instanceof BaseRTMPClientHandler) {
+					((BaseRTMPClientHandler) handler).setConnection((RTMPConnection) conn);
+				}
+			} else {
+				//add the handshake
+				session.setAttribute(RTMPConnection.RTMP_HANDSHAKE, new InboundHandshake());
+			}
+		}
+	}
+	
 }

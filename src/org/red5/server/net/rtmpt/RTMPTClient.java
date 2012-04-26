@@ -22,12 +22,17 @@ import java.util.Map;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.IoSession;
+import org.red5.io.object.Deserializer;
+import org.red5.io.object.Serializer;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.BaseRTMPClientHandler;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPMinaConnection;
 import org.red5.server.net.rtmp.codec.RTMP;
+import org.red5.server.net.rtmp.codec.RTMPProtocolDecoder;
+import org.red5.server.net.rtmp.codec.RTMPProtocolEncoder;
 import org.red5.server.net.rtmp.message.Constants;
+import org.red5.server.net.rtmpt.codec.RTMPTCodecFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,9 +46,14 @@ public class RTMPTClient extends BaseRTMPClientHandler {
 	private static final Logger log = LoggerFactory.getLogger(RTMPTClient.class);
 
 	// guarded by this
-	private RTMPTClientConnector connector = null;
+	private RTMPTClientConnector connector;
+	
+	private RTMPTCodecFactory codecFactory;
 	
 	public RTMPTClient() {
+		codecFactory = new RTMPTCodecFactory();
+		codecFactory.setDeserializer(new Deserializer());
+		codecFactory.setSerializer(new Serializer());
 	}
 
 	public Map<String, Object> makeDefaultConnectionParams(String server, int port, String application) {
@@ -89,7 +99,7 @@ public class RTMPTClient extends BaseRTMPClientHandler {
 		in.limit(in.position() + Constants.HANDSHAKE_SIZE);
 		out.put(in);
 		out.flip();
-		conn.rawWrite(out);
+		conn.writeRaw(out);
 		connectionOpened(conn, conn.getState());
 	}
 
@@ -100,4 +110,14 @@ public class RTMPTClient extends BaseRTMPClientHandler {
 		}
 		super.disconnect();
 	}
+
+	public RTMPProtocolDecoder getDecoder() {
+		return codecFactory.getRTMPDecoder();
+	}
+
+	public RTMPProtocolEncoder getEncoder() {
+		return codecFactory.getRTMPEncoder();
+	}
+	
+	
 }

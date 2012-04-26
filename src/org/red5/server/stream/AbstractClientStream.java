@@ -19,9 +19,11 @@
 package org.red5.server.stream;
 
 import java.lang.ref.WeakReference;
+import java.util.concurrent.Semaphore;
 
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
+import org.red5.server.api.stream.StreamState;
 
 /**
  * Abstract base for client streams
@@ -32,7 +34,7 @@ public abstract class AbstractClientStream extends AbstractStream implements ICl
 	 *  Stream identifier. Unique across server.
 	 */
 	private int streamId;
-	
+
 	/**
 	 * Stream name of the broadcasting stream.
 	 */
@@ -49,20 +51,9 @@ public abstract class AbstractClientStream extends AbstractStream implements ICl
 	private int clientBufferDuration;
 
 	/**
-	 * Return stream id
-	 * @return           Stream id
+	 * Lock for protecting critical sections
 	 */
-	public int getStreamId() {
-		return streamId;
-	}
-
-	/**
-	 * Return connection associated with stream
-	 * @return           Stream capable connection object
-	 */
-	public IStreamCapableConnection getConnection() {
-		return conn.get();
-	}
+	private final Semaphore lock = new Semaphore(1, true);
 
 	/**
 	 * Setter for stream id
@@ -73,11 +64,49 @@ public abstract class AbstractClientStream extends AbstractStream implements ICl
 	}
 
 	/**
+	 * Return stream id
+	 * @return           Stream id
+	 */
+	public int getStreamId() {
+		return streamId;
+	}
+
+	/**
 	 * Setter for stream capable connection
 	 * @param conn           IStreamCapableConnection object
 	 */
 	public void setConnection(IStreamCapableConnection conn) {
 		this.conn = new WeakReference<IStreamCapableConnection>(conn);
+	}
+
+	/**
+	 * Return connection associated with stream
+	 * @return           Stream capable connection object
+	 */
+	public IStreamCapableConnection getConnection() {
+		return conn.get();
+	}
+
+	/** {@inheritDoc} */
+	public StreamState getState() {
+		try {
+			lock.acquireUninterruptibly();
+			return state;
+		} finally {
+			lock.release();
+		}
+	}
+
+	/** {@inheritDoc} */
+	public void setState(StreamState state) {
+		if (!this.state.equals(state)) {
+			try {
+				lock.acquireUninterruptibly();
+				this.state = state;
+			} finally {
+				lock.release();
+			}
+		}
 	}
 
 	/** {@inheritDoc} */
@@ -107,5 +136,5 @@ public abstract class AbstractClientStream extends AbstractStream implements ICl
 	public String getBroadcastStreamPublishName() {
 		return broadcastStreamPublishName;
 	}
-		
+
 }

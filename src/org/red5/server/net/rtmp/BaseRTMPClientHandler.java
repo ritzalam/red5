@@ -23,6 +23,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.apache.mina.core.session.IoSession;
+import org.apache.mina.filter.codec.ProtocolCodecFactory;
+import org.apache.mina.filter.codec.ProtocolDecoder;
+import org.apache.mina.filter.codec.ProtocolEncoder;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.ObjectMap;
@@ -37,7 +41,8 @@ import org.red5.server.api.so.IClientSharedObject;
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.net.rtmp.codec.RTMP;
-import org.red5.server.net.rtmp.codec.RTMPCodecFactory;
+import org.red5.server.net.rtmp.codec.RTMPMinaProtocolDecoder;
+import org.red5.server.net.rtmp.codec.RTMPMinaProtocolEncoder;
 import org.red5.server.net.rtmp.event.ChunkSize;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
@@ -75,7 +80,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
 	/**
 	 * Connect call arguments
 	 */
-	private Object[] connectArguments = null;
+	private Object[] connectArguments;
 
 	/**
 	 * Connection callback
@@ -112,17 +117,13 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
 	 */
 	private ClientExceptionHandler exceptionHandler;
 
-	private RTMPCodecFactory codecFactory;
-
 	private IEventDispatcher streamEventDispatcher;
 
+	protected RTMPClientCodecFactory codecFactory = new RTMPClientCodecFactory();
+	
 	protected volatile RTMPConnection conn;
 
 	protected BaseRTMPClientHandler() {
-		codecFactory = new RTMPCodecFactory();
-		codecFactory.setDeserializer(new Deserializer());
-		codecFactory.setSerializer(new Serializer());
-		codecFactory.init();
 	}
 
 	public void setConnectionClosedHandler(Runnable connectionClosedHandler) {
@@ -658,8 +659,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
 	 * 
 	 * @param factory Codec factory to use
 	 */
-	public void setCodecFactory(RTMPCodecFactory factory) {
-		this.codecFactory = factory;
+	public void setCodecFactory(RTMPClientCodecFactory factory) {
+		codecFactory = factory;
 	}
 
 	/**
@@ -667,8 +668,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
 	 * 
 	 * @return Codec factory
 	 */
-	public RTMPCodecFactory getCodecFactory() {
-		return this.codecFactory;
+	public ProtocolCodecFactory getCodecFactory() {
+		return codecFactory;
 	}
 
 	public void handleException(Throwable throwable) {
@@ -783,4 +784,28 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
 
 		public volatile ConnectionConsumer connConsumer;
 	}
+	
+	private class RTMPClientCodecFactory implements ProtocolCodecFactory {
+
+		protected RTMPMinaProtocolDecoder decoder;
+		
+		protected RTMPMinaProtocolEncoder encoder;
+		
+		public RTMPClientCodecFactory() {
+			decoder = new RTMPMinaProtocolDecoder();
+			decoder.setDeserializer(new Deserializer());
+			encoder = new RTMPMinaProtocolEncoder();
+			encoder.setSerializer(new Serializer());
+		}
+
+		public ProtocolDecoder getDecoder(IoSession session) throws Exception {
+			return decoder;
+		}
+
+		public ProtocolEncoder getEncoder(IoSession session) throws Exception {
+			return encoder;
+		}
+
+	}
+	
 }

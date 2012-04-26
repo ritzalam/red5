@@ -38,90 +38,82 @@ import org.slf4j.LoggerFactory;
  * Identified connection that transfers packets.
  */
 public class Channel {
-    
+
 	protected static Logger log = LoggerFactory.getLogger(Channel.class);
 
 	private final static String CALL_ON_STATUS = "onStatus";
-	
+
 	/**
-     * RTMP connection used to transfer packets.
-     */
-	private RTMPConnection connection;
+	 * RTMP connection used to transfer packets.
+	 */
+	private final RTMPConnection connection;
 
-    /**
-     * Channel id
-     */
-    private int id;
+	/**
+	 * Channel id
+	 */
+	private final int id;
 
-    /**
-     * Creates channel from connection and channel id
-     * @param conn                Connection
-     * @param channelId           Channel id
-     */
+	/**
+	 * Creates channel from connection and channel id
+	 * @param conn                Connection
+	 * @param channelId           Channel id
+	 */
 	public Channel(RTMPConnection conn, int channelId) {
 		connection = conn;
 		id = channelId;
 	}
 
-    /**
-     * Closes channel with this id on RTMP connection.
-     */
-    public void close() {
-        if (connection == null) {
-            return;
-        }
-        
-        connection.closeChannel(id);
+	/**
+	 * Closes channel with this id on RTMP connection.
+	 */
+	public void close() {
+		if (connection != null) {
+			connection.closeChannel(id);
+		}
 	}
 
 	/**
-     * Getter for id.
-     *
-     * @return  Channel ID
-     */
-    public int getId() {
+	 * Getter for id.
+	 *
+	 * @return  Channel ID
+	 */
+	public int getId() {
 		return id;
 	}
-	
+
 	/**
-     * Getter for RTMP connection.
-     *
-     * @return  RTMP connection
-     */
-    protected RTMPConnection getConnection() {
+	 * Getter for RTMP connection.
+	 *
+	 * @return  RTMP connection
+	 */
+	protected RTMPConnection getConnection() {
 		return connection;
 	}
 
-    /**
-     * Writes packet from event data to RTMP connection.
+	/**
+	 * Writes packet from event data to RTMP connection.
 	 *
-     * @param event          Event data
-     */
-    public void write(IRTMPEvent event) {
-        if (connection == null) {
-            return;
-        }
-        
-		final IClientStream stream = connection.getStreamByChannelId(id);
-		if (id > 3 && stream == null) {
-			log.info("Stream doesn't exist any longer, discarding message {}", event);
-			return;
+	 * @param event          Event data
+	 */
+	public void write(IRTMPEvent event) {
+		if (connection != null) {
+			final IClientStream stream = connection.getStreamByChannelId(id);
+			if (id > 3 && stream == null) {
+				log.info("Stream doesn't exist any longer, discarding message {}", event);
+			} else {
+				final int streamId = (stream == null) ? 0 : stream.getStreamId();
+				write(event, streamId);
+			}
 		}
-		final int streamId = (stream == null) ? 0 : stream.getStreamId();
-		write(event, streamId);
 	}
 
-    /**
-     * Writes packet from event data to RTMP connection and stream id.
+	/**
+	 * Writes packet from event data to RTMP connection and stream id.
 	 *
-     * @param event           Event data
-     * @param streamId        Stream id
-     */
-    private void write(IRTMPEvent event, int streamId) {
-        if (connection == null) {
-            return;
-        }
-        
+	 * @param event           Event data
+	 * @param streamId        Stream id
+	 */
+	private void write(IRTMPEvent event, int streamId) {
 		final Header header = new Header();
 		final Packet packet = new Packet(header, event);
 		header.setChannelId(id);
@@ -132,49 +124,47 @@ public class Channel {
 		connection.write(packet);
 	}
 
-    /**
-     * Sends status notification.
+	/**
+	 * Sends status notification.
 	 *
-     * @param status           Status
-     */
-    public void sendStatus(Status status) {
-        if (connection == null) {
-            return;
-        }
-        
-		final boolean andReturn = !status.getCode().equals(StatusCodes.NS_DATA_START);
-		final Notify event;
-		if (andReturn) {
-			final PendingCall call = new PendingCall(null, CALL_ON_STATUS, new Object[] { status });
-			event = new Invoke();
-			if (status.getCode().equals(StatusCodes.NS_PLAY_START)) {	
-				IScope scope = connection.getScope();
-				if (scope.getContext().getApplicationContext().containsBean(IRtmpSampleAccess.BEAN_NAME)) {
-					IRtmpSampleAccess sampleAccess = (IRtmpSampleAccess) scope.getContext().getApplicationContext().getBean(IRtmpSampleAccess.BEAN_NAME);
-					boolean videoAccess = sampleAccess.isVideoAllowed(scope);
-					boolean audioAccess = sampleAccess.isAudioAllowed(scope);
-					if (videoAccess || audioAccess) {
-						final Call call2 = new Call(null, "|RtmpSampleAccess", null);
-						Notify notify = new Notify();
-						notify.setInvokeId(connection.getInvokeId()); 
-						notify.setCall(call2);
-						notify.setData(IoBuffer.wrap(new byte[] { 0x01, (byte) (audioAccess ? 0x01 : 0x00), 0x01, (byte) (videoAccess ? 0x01 : 0x00) }));
-						write(notify, connection.getStreamIdForChannel(id));
+	 * @param status           Status
+	 */
+	public void sendStatus(Status status) {
+		if (connection != null) {
+			final boolean andReturn = !status.getCode().equals(StatusCodes.NS_DATA_START);
+			final Notify event;
+			if (andReturn) {
+				final PendingCall call = new PendingCall(null, CALL_ON_STATUS, new Object[] { status });
+				event = new Invoke();
+				if (status.getCode().equals(StatusCodes.NS_PLAY_START)) {
+					IScope scope = connection.getScope();
+					if (scope.getContext().getApplicationContext().containsBean(IRtmpSampleAccess.BEAN_NAME)) {
+						IRtmpSampleAccess sampleAccess = (IRtmpSampleAccess) scope.getContext().getApplicationContext().getBean(IRtmpSampleAccess.BEAN_NAME);
+						boolean videoAccess = sampleAccess.isVideoAllowed(scope);
+						boolean audioAccess = sampleAccess.isAudioAllowed(scope);
+						if (videoAccess || audioAccess) {
+							final Call call2 = new Call(null, "|RtmpSampleAccess", null);
+							Notify notify = new Notify();
+							notify.setInvokeId(connection.getInvokeId());
+							notify.setCall(call2);
+							notify.setData(IoBuffer.wrap(new byte[] { 0x01, (byte) (audioAccess ? 0x01 : 0x00), 0x01, (byte) (videoAccess ? 0x01 : 0x00) }));
+							write(notify, connection.getStreamIdForChannel(id));
+						}
 					}
 				}
+				event.setInvokeId(connection.getInvokeId());
+				event.setCall(call);
+			} else {
+				final Call call = new Call(null, CALL_ON_STATUS, new Object[] { status });
+				event = new Notify();
+				event.setInvokeId(connection.getInvokeId());
+				event.setCall(call);
 			}
-			event.setInvokeId(connection.getInvokeId()); 
-			event.setCall(call);
-		} else {
-			final Call call = new Call(null, CALL_ON_STATUS, new Object[] { status });
-			event = new Notify();
-			event.setInvokeId(connection.getInvokeId()); 
-			event.setCall(call);
+			// We send directly to the corresponding stream as for
+			// some status codes, no stream has been created and thus
+			// "getStreamByChannelId" will fail.
+			write(event, connection.getStreamIdForChannel(id));
 		}
-		// We send directly to the corresponding stream as for
-		// some status codes, no stream has been created and thus
-		// "getStreamByChannelId" will fail.
-		write(event, connection.getStreamIdForChannel(id));
 	}
 
 }

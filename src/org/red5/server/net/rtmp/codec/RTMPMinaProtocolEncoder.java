@@ -34,14 +34,14 @@ import org.slf4j.LoggerFactory;
 public class RTMPMinaProtocolEncoder extends ProtocolEncoderAdapter {
 
 	protected static Logger log = LoggerFactory.getLogger(RTMPMinaProtocolEncoder.class);
-	
+
 	private RTMPProtocolEncoder encoder = new RTMPProtocolEncoder();
-	
+
 	/** {@inheritDoc} */
-    public void encode(IoSession session, Object message, ProtocolEncoderOutput out) throws ProtocolCodecException {
-    	final ProtocolState state = (ProtocolState) session.getAttribute(ProtocolState.SESSION_KEY);
-		RTMPConnection conn = (RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
-		conn.getWriteLock().lock();
+	public void encode(IoSession session, Object message, ProtocolEncoderOutput out) throws ProtocolCodecException {
+		final ProtocolState state = (ProtocolState) session.getAttribute(ProtocolState.SESSION_KEY);
+		// pass the connection to the encoder for its use
+		encoder.setConnection((RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY));
 		try {
 			// We need to synchronize on the output and flush the generated data to prevent two packages to the same channel
 			// to be sent in different order thus resulting in wrong headers being generated.
@@ -54,16 +54,14 @@ public class RTMPMinaProtocolEncoder extends ProtocolEncoderAdapter {
 				log.trace("Response buffer was null after encoding");
 			}
 		} catch (Exception ex) {
-			log.error("", ex);
-		} finally {
-			conn.getWriteLock().unlock();
+			log.error("Exception during encode", ex);
 		}
 	}
 
-    public RTMPProtocolEncoder getEncoder() {
+	public RTMPProtocolEncoder getEncoder() {
 		return encoder;
 	}
-    
+
 	/**
 	 * Setter for serializer.
 	 *
@@ -72,18 +70,18 @@ public class RTMPMinaProtocolEncoder extends ProtocolEncoderAdapter {
 	public void setSerializer(org.red5.io.object.Serializer serializer) {
 		encoder.setSerializer(serializer);
 	}
-    
+
 	/**
 	 * Setter for baseTolerance
 	 * */
 	public void setBaseTolerance(long baseTolerance) {
 		encoder.setBaseTolerance(baseTolerance);
 	}
-	
+
 	/**
 	 * Setter for dropLiveFuture
 	 * */
-	public void setDropLiveFuture (boolean dropLiveFuture) {
+	public void setDropLiveFuture(boolean dropLiveFuture) {
 		encoder.setDropLiveFuture(dropLiveFuture);
-	}    
+	}
 }
