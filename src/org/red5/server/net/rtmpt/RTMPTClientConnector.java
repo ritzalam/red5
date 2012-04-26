@@ -165,14 +165,14 @@ class RTMPTClientConnector extends Thread {
 			RTMP state = new RTMP(RTMP.MODE_CLIENT);
 			connection.setState(state);
 			connection.setHandler(client);
-			connection.setDecoder(client.getCodecFactory().getRTMPDecoder());
-			connection.setEncoder(client.getCodecFactory().getRTMPEncoder());
+			connection.setDecoder(client.getDecoder());
+			connection.setEncoder(client.getEncoder());
 			log.debug("Handshake 1st phase");
 			IoBuffer handshake = IoBuffer.allocate(Constants.HANDSHAKE_SIZE + 1);
 			handshake.put((byte) 0x03);
 			handshake.fill((byte) 0x01, Constants.HANDSHAKE_SIZE);
 			handshake.flip();
-			connection.rawWrite(handshake);
+			connection.writeRaw(handshake);
 		}
 		return connection;			
 	}

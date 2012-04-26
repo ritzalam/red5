@@ -28,6 +28,7 @@ import org.red5.io.object.Serializer;
 import org.red5.io.utils.HexDump;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 
 /**
  * Service that works with status objects.
@@ -36,7 +37,7 @@ import org.slf4j.LoggerFactory;
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
-public class StatusObjectService implements StatusCodes {
+public class StatusObjectService implements StatusCodes, InitializingBean {
 
 	/**
 	 * Logger
@@ -70,7 +71,7 @@ public class StatusObjectService implements StatusCodes {
 	/**
 	 * Initialization
 	 */
-	public void initialize() {
+	public void afterPropertiesSet() throws Exception {
 		log.trace("Loading status objects");
 		loadStatusObjects();
 		log.trace("Caching status objects");

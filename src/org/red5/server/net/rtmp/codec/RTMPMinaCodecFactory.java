@@ -22,46 +22,33 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolEncoder;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 /**
  * RTMP codec factory.
  */
-public class RTMPMinaCodecFactory implements ProtocolCodecFactory {
+public class RTMPMinaCodecFactory implements ProtocolCodecFactory, ApplicationContextAware, InitializingBean {
+
+	protected ApplicationContext appCtx;
 	
     /**
      * RTMP Mina protocol decoder.
      */
 	protected RTMPMinaProtocolDecoder decoder;
+	
     /**
      * RTMP Mina protocol encoder.
      */
 	protected RTMPMinaProtocolEncoder encoder;
 
-    /**
-     * Initialization. 
-     * Create and setup of encoder/decoder and serializer/deserializer is handled by Spring.
-     */
-    public void init() {
+	public void afterPropertiesSet() throws Exception {
+		decoder = (RTMPMinaProtocolDecoder) appCtx.getBean("minaDecoder");
+		encoder = (RTMPMinaProtocolEncoder) appCtx.getBean("minaEncoder");
 	}
-
-	/**
-     * Setter for encoder.
-     *
-     * @param encoder  Encoder
-     */
-    public void setMinaEncoder(RTMPMinaProtocolEncoder encoder) {
-		this.encoder = encoder;
-    }
-
-	/**
-     * Setter for decoder
-     *
-     * @param decoder  Decoder
-     */
-    public void setMinaDecoder(RTMPMinaProtocolDecoder decoder) {
-		this.decoder = decoder;
-    }
-
+	
 	/** {@inheritDoc} */
     public ProtocolDecoder getDecoder(IoSession session) {
 		return decoder;
@@ -71,21 +58,10 @@ public class RTMPMinaCodecFactory implements ProtocolCodecFactory {
     public ProtocolEncoder getEncoder(IoSession session) {
 		return encoder;
 	}
-	
-	/**
-	 * 
-	 * @return decoder
-	 */
-    public RTMPMinaProtocolDecoder getMinaDecoder() {
-		return decoder;
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		appCtx = applicationContext;
 	}
-
-	/**
-	 * 
-	 * @return encoder
-	 */
-    public RTMPMinaProtocolEncoder getMinaEncoder() {
-		return encoder;
-	}	
-
+	
 }

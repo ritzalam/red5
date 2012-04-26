@@ -112,7 +112,7 @@ public class RTMPTHandler extends RTMPHandler {
 		log.debug("Writing handshake reply, handskake size: {}", in.remaining());
 		RTMPHandshake shake = new InboundHandshake();
 		shake.setHandshakeType(RTMPConnection.RTMP_NON_ENCRYPTED);
-		conn.rawWrite(shake.doHandshake(in));
+		conn.writeRaw(shake.doHandshake(in));
 	}
 
 	/** {@inheritDoc} */

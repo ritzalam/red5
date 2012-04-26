@@ -1003,20 +1003,18 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				log.warn("Being asked to remove wrong scope reference child scope is {} not {}", new Object[] { getScope(scope.getName()), scope });
 				return;
 			}
-
 			log.debug("Remove child scope: {} path: {}", scope, scope.getPath());
 			if (scope instanceof IScope) {
 				if (hasHandler()) {
 					getHandler().stop((IScope) scope);
 				}
 				subscopeStats.decrement();
-			}
-			// remove all children
-			//((IScope) scope).removeChildScopes();
-			Iterator<IBasicScope> iter = ((IScope) scope).iterator();
-			while (iter.hasNext()) {
-				((IScope) scope).removeChildScope(iter.next());
-			}			
+				// remove all children
+				Iterator<IBasicScope> iter = ((IScope) scope).iterator();
+				while (iter.hasNext()) {
+					((IScope) scope).removeChildScope(iter.next());
+				}	
+			}	
 			// remove from parent
 			children.remove(scope.getType() + SEPARATOR + scope.getName());
 		} finally {

@@ -26,8 +26,7 @@
 	</bean>
 	    
 	<!-- RTMP Handler -->
-	<bean id="rtmpHandler"
-		class="org.red5.server.net.rtmp.RTMPHandler">
+	<bean id="rtmpHandler" class="org.red5.server.net.rtmp.RTMPHandler">
 		<property name="server" ref="red5.server" />
 		<property name="statusObjectService" ref="statusObjectService" />
 		<!-- Enable this if you want to allow global scope connections
@@ -36,10 +35,8 @@
 	</bean>
 	
 	<!-- RTMP Mina IO Handler -->
-	<bean id="rtmpMinaIoHandler"
-		class="org.red5.server.net.rtmp.RTMPMinaIoHandler">
+	<bean id="rtmpMinaIoHandler" class="org.red5.server.net.rtmp.RTMPMinaIoHandler">
 		<property name="handler" ref="rtmpHandler" />
-		<property name="codecFactory" ref="rtmpCodecFactory" />
 		<property name="rtmpConnManager" ref="rtmpMinaConnManager" />
 	</bean>
 	
@@ -88,26 +85,21 @@
 	
 	<!-- RTMPT -->
 	
-	<bean id="rtmptConnManager"
-		class="org.red5.server.net.rtmp.RTMPConnManager">
-	</bean>
+	<bean id="rtmptConnManager" class="org.red5.server.net.rtmp.RTMPConnManager" />
 	
 	<!-- RTMPT Handler -->
-	<bean id="rtmptHandler"
-		class="org.red5.server.net.rtmpt.RTMPTHandler" autowire="byType">
+	<bean id="rtmptHandler" class="org.red5.server.net.rtmpt.RTMPTHandler" autowire="byType">
 		<property name="codecFactory" ref="rtmptCodecFactory" />
 	</bean>
 	
 	<!-- Use injection to store RTMPT handler in servlet -->
-	<bean id="rtmptServlet"
-		class="org.red5.server.net.rtmpt.RTMPTServlet">
+	<bean id="rtmptServlet"	class="org.red5.server.net.rtmpt.RTMPTServlet">
 		<property name="handler" ref="rtmptHandler" />
 		<property name="rtmpConnManager" ref="rtmptConnManager" />
 	</bean>
 	
 	<!-- RTMPT Connection -->
-	<bean id="rtmptConnection" scope="prototype"
-		class="org.red5.server.net.rtmpt.RTMPTConnection">
+	<bean id="rtmptConnection" scope="prototype" class="org.red5.server.net.rtmpt.RTMPTConnection">
 		<!-- Ping clients every X ms. Set to 0 to disable ghost detection code. -->
 		<property name="pingInterval" value="${rtmpt.ping_interval}" />
 		<!-- Disconnect client after X ms of not responding. -->
@@ -118,10 +110,8 @@
 		
 	<!-- RTMPS -->
 <!--    
-    <bean id="rtmpsMinaIoHandler"
-        class="org.red5.server.net.rtmps.RTMPSMinaIoHandler">
+    <bean id="rtmpsMinaIoHandler" class="org.red5.server.net.rtmps.RTMPSMinaIoHandler">
         <property name="handler" ref="rtmpHandler" />
-        <property name="codecFactory" ref="rtmpCodecFactory" />
         <property name="rtmpConnManager" ref="rtmpMinaConnManager" />
         <property name="keyStorePassword" value="${rtmps.keystorepass}" />
         <property name="keystoreFile" value="conf/keystore" />

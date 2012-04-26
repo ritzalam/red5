@@ -25,7 +25,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.mina.core.buffer.IoBuffer;
-import org.red5.server.api.Red5;
 import org.red5.server.net.rtmp.IRTMPHandler;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.codec.RTMP;
@@ -161,7 +160,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 * @param packet the buffer containing the raw data
 	 */
 	@Override
-	public void rawWrite(IoBuffer packet) {
+	public void writeRaw(IoBuffer packet) {
 		pendingMessages.add(new PendingData(packet));
 	}
 

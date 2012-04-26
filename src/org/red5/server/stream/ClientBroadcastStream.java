@@ -148,11 +148,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	protected IPipe livePipe;
 
 	/**
-	 * MBean object name used for de/registration purposes.
-	 */
-	//private ObjectName oName;
-
-	/**
 	 * Stream published name
 	 */
 	protected String publishedName;

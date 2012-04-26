@@ -26,9 +26,7 @@ import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.object.Output;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.BufferUtils;
-import org.red5.server.api.IConnection;
 import org.red5.server.api.IConnection.Encoding;
-import org.red5.server.api.Red5;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.stream.IClientStream;
@@ -98,9 +96,11 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	/**
 	 * Indicates if we should drop live packets with future timestamp 
 	 * (i.e, when publisher bandwidth is limited) - EXPERIMENTAL
-	 * */
-	private boolean dropLiveFuture = false;
+	 */
+	private boolean dropLiveFuture;
 
+	private RTMPConnection conn;
+	
 	/**
 	 * Encodes object with given protocol state to byte buffer
 	 * 
@@ -227,14 +227,14 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 				// never drop pings
 				return false;
 			}
-			//we only drop audio or video data
+			// we only drop audio or video data
 			if ((isVideo = message instanceof VideoData) || message instanceof AudioData) {
 				if (message.getTimestamp() == 0) {
 					// never drop initial packages, also this could be the first packet after
 					// MP4 seeking and therefore mess with the timestamp mapping
 					return false;
 				}
-				//determine working type
+				// determine working type
 				boolean isLive = message.getSourceType() == Constants.SOURCE_TYPE_LIVE;
 				log.trace("Connection type: {}", (isLive ? "Live" : "VOD"));
 				long timestamp = (message.getTimestamp() & 0xFFFFFFFFL);
@@ -256,15 +256,13 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 					tardiness = Math.abs(tardiness);
 				}
 				//subtract the ping time / latency from the tardiness value
-				IConnection conn = Red5.getConnectionLocal();
 				log.debug("Connection: {}", conn);
 				if (conn != null) {
 					log.debug("Last ping time for connection: {}", conn.getLastPingTime());
 					tardiness -= conn.getLastPingTime();
 					//subtract the buffer time
-					RTMPConnection rtmpConn = (RTMPConnection) conn;
-					int streamId = rtmpConn.getStreamIdForChannel(channelId);
-					IClientStream stream = rtmpConn.getStreamById(streamId);
+					int streamId = conn.getStreamIdForChannel(channelId);
+					IClientStream stream = conn.getStreamById(streamId);
 					if (stream != null) {
 						int clientBufferDuration = stream.getClientBufferDuration();
 						if (clientBufferDuration > 0) {
@@ -321,7 +319,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 					}
 				}
 			}
-			log.debug("Drop data: {}", drop);
+			log.debug("Message was{}dropped", (drop ? " " : " not "));
 		}
 		return drop;
 	}
@@ -943,14 +941,23 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	}
 
 	/**
-	 *   Setter for dropLiveFuture
-	 * */
+	 * Setter for dropLiveFuture
+	 */
 	public void setDropLiveFuture(boolean dropLiveFuture) {
 		this.dropLiveFuture = dropLiveFuture;
 	}
 
 	public long getBaseTolerance() {
 		return baseTolerance;
+	}
+
+	/**
+	 * Set the connection being used with this encoder
+	 * 
+	 * @param conn active connection
+	 */
+	public void setConnection(RTMPConnection conn) {
+		this.conn = conn;
 	}
 
 }

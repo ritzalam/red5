@@ -58,11 +58,6 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 	 */
 	protected ApplicationContext appCtx;
 
-	/**
-	 * RTMP protocol codec factory
-	 */
-	protected ProtocolCodecFactory codecFactory;
-
 	protected IRTMPConnManager rtmpConnManager;
 
 	/** {@inheritDoc} */
@@ -75,6 +70,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		//add rtmpe filter
 		session.getFilterChain().addFirst("rtmpeFilter", new RTMPEIoFilter());
 		//add protocol filter next
+		ProtocolCodecFactory codecFactory = (ProtocolCodecFactory) appCtx.getBean("rtmpCodecFactory");
 		session.getFilterChain().addLast("protocolFilter", new ProtocolCodecFilter(codecFactory));
 		if (log.isTraceEnabled()) {
 			session.getFilterChain().addLast("logger", new LoggingFilter());
@@ -91,9 +87,9 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 			OutboundHandshake outgoingHandshake = new OutboundHandshake();
 			//if handler is rtmpe client set encryption on the protocol state
 			//if (handler instanceof RTMPEClient) {
-				//rtmp.setEncrypted(true);
-				//set the handshake type to encrypted as well
-				//outgoingHandshake.setHandshakeType(RTMPConnection.RTMP_ENCRYPTED);
+			//rtmp.setEncrypted(true);
+			//set the handshake type to encrypted as well
+			//outgoingHandshake.setHandshakeType(RTMPConnection.RTMP_ENCRYPTED);
 			//}
 			//add the handshake
 			session.setAttribute(RTMPConnection.RTMP_HANDSHAKE, outgoingHandshake);
@@ -132,18 +128,18 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		log.debug("RTMP state: {}", rtmp);
 		RTMPMinaConnection conn = (RTMPMinaConnection) session.removeAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		try {
-    		conn.sendPendingServiceCallsCloseError();
-    		// fire-off closed event
-    		handler.connectionClosed(conn, rtmp);
-    		// clear any session attributes we may have previously set
-    		// TODO: verify this cleanup code is necessary. The session is over and will be garbage collected surely?
-    		session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
+			conn.sendPendingServiceCallsCloseError();
+			// fire-off closed event
+			handler.connectionClosed(conn, rtmp);
+			// clear any session attributes we may have previously set
+			// TODO: verify this cleanup code is necessary. The session is over and will be garbage collected surely?
+			session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
 			session.removeAttribute(RTMPConnection.RTMPE_CIPHER_IN);
 			session.removeAttribute(RTMPConnection.RTMPE_CIPHER_OUT);
 		} finally {
 			// DW we *always* remove the connection from the RTMP manager even if unexpected exception gets thrown e.g. by handler.connectionClosed
 			// Otherwise connection stays around forever, and everything it references e.g. Client, ...
-    		rtmpConnManager.removeConnection(conn.getId());
+			rtmpConnManager.removeConnection(conn.getId());
 		}
 	}
 
@@ -163,31 +159,26 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		RTMPHandshake handshake = (RTMPHandshake) session.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
 		if (handshake != null) {
 			IoBuffer out = null;
-			conn.getWriteLock().lock();
-			try {
-				if (rtmp.getMode() == RTMP.MODE_SERVER) {
-					if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
-						log.warn("Raw buffer after handshake, something odd going on");
-					}
-					log.debug("Handshake - server phase 1 - size: {}", in.remaining());
-				} else {
-					log.debug("Handshake - client phase 2 - size: {}", in.remaining());
+			if (rtmp.getMode() == RTMP.MODE_SERVER) {
+				if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
+					log.warn("Raw buffer after handshake, something odd going on");
 				}
-				out = handshake.doHandshake(in);
-			} finally {
-				conn.getWriteLock().unlock();
-				if (out != null) {
-					log.debug("Output: {}", out);
-					session.write(out);
-					//if we are connected and doing encryption, add the ciphers
-					if (rtmp.getState() == RTMP.STATE_CONNECTED) {
-						// remove handshake from session now that we are connected
-		    			// if we are using encryption then put the ciphers in the session
-		        		if (handshake.getHandshakeType() == RTMPConnection.RTMP_ENCRYPTED) {
-		        			log.debug("Adding ciphers to the session");
-		        			session.setAttribute(RTMPConnection.RTMPE_CIPHER_IN, handshake.getCipherIn());
-		        			session.setAttribute(RTMPConnection.RTMPE_CIPHER_OUT, handshake.getCipherOut());
-		        		}
+				log.debug("Handshake - server phase 1 - size: {}", in.remaining());
+			} else {
+				log.debug("Handshake - client phase 2 - size: {}", in.remaining());
+			}
+			out = handshake.doHandshake(in);
+			if (out != null) {
+				log.debug("Output: {}", out);
+				session.write(out);
+				//if we are connected and doing encryption, add the ciphers
+				if (rtmp.getState() == RTMP.STATE_CONNECTED) {
+					// remove handshake from session now that we are connected
+					// if we are using encryption then put the ciphers in the session
+					if (handshake.getHandshakeType() == RTMPConnection.RTMP_ENCRYPTED) {
+						log.debug("Adding ciphers to the session");
+						session.setAttribute(RTMPConnection.RTMPE_CIPHER_IN, handshake.getCipherIn());
+						session.setAttribute(RTMPConnection.RTMPE_CIPHER_OUT, handshake.getCipherOut());
 					}
 				}
 			}
@@ -254,15 +245,6 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 	 */
 	public void setMode(boolean mode) {
 		this.mode = mode;
-	}
-
-	/**
-	 * Setter for codec factory.
-	 *
-	 * @param codecFactory RTMP protocol codec factory
-	 */
-	public void setCodecFactory(ProtocolCodecFactory codecFactory) {
-		this.codecFactory = codecFactory;
 	}
 
 	public void setRtmpConnManager(IRTMPConnManager rtmpConnManager) {

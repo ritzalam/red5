@@ -580,13 +580,13 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 			items.set(index, newItem);
 			result = true;
 		} catch (Exception e) {
-			
+
 		} finally {
 			read.unlock();
-		}		
+		}
 		return result;
 	}
-	
+
 	/**
 	 * Move the current item to the next in list.
 	 */
@@ -655,7 +655,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 								handler.streamPlayItemPause(stream, item, position);
 							} catch (Throwable t) {
 								log.error("error notify streamPlayItemPause", t);
-							}			
+							}
 							// clear thread local reference
 							Red5.setConnectionLocal(null);
 						}
@@ -807,36 +807,22 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 
 	/** {@inheritDoc} */
 	public double getEstimatedBufferFill() {
-		//check to see if any messages have been sent
+		// check to see if any messages have been sent
 		int lastMessageTs = engine.getLastMessageTimestamp();
 		if (lastMessageTs < 0) {
-			// Nothing has been sent yet
+			// nothing has been sent yet
 			return 0.0;
 		}
-
-		// Buffer size as requested by the client
+		// buffer size as requested by the client
 		final long buffer = getClientBufferDuration();
 		if (buffer == 0) {
 			return 100.0;
 		}
-
-		// Duration the stream is playing
+		// duration the stream is playing
 		final long delta = System.currentTimeMillis() - engine.getPlaybackStart();
-		// Expected amount of data present in client buffer
+		// expected amount of data present in client buffer
 		final long buffered = lastMessageTs - delta;
 		return (buffered * 100.0) / buffer;
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public StreamState getState() {
-		return state;
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public void setState(StreamState state) {
-		this.state = state;
 	}
 
 	/**
