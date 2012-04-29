@@ -614,7 +614,7 @@ public class StreamService implements IStreamService {
 				} else if (IClientStream.MODE_APPEND.equals(mode)) {
 					bs.start();
 					bs.saveAs(name, true);
-				} else if (IClientStream.MODE_PUBLISH.equals(mode) || IClientStream.MODE_LIVE.equals(mode)) {
+				} else {
 					bs.start();
 				}
 				bs.startPublishing();

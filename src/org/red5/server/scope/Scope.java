@@ -944,10 +944,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 */
 	public void removeChildScope(IBasicScope scope) {
 		log.debug("removeChildScope: {}", scope);
-		// don't remove if reference if we have another one
-		if (hasChildScope(scope.getName()) && getScope(scope.getName()) != scope) {
-			log.warn("Being asked to remove wrong scope reference child scope is {} not {}", new Object[] { getScope(scope.getName()), scope });
-		} else {
+		if (hasChildScope(scope.getName())) {
 			// remove from parent
 			children.remove(scope);
 			if (scope instanceof Scope) {

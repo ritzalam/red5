@@ -134,7 +134,6 @@ public class ProviderService implements IProviderService {
 			} else {
 				log.trace("VOD file {} was not found, may be live stream", name);
 			}
-			return null;
 		}
 		return file;
 	}
@@ -202,10 +201,10 @@ public class ProviderService implements IProviderService {
 				break;
 			}
 		}
-
+		// look for a custom filename gen class
 		IStreamFilenameGenerator filenameGenerator = (IStreamFilenameGenerator) ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.class,
 				DefaultStreamFilenameGenerator.class);
-
+		// get the filename
 		String filename = filenameGenerator.generateFilename(scope, name, GenerationType.PLAYBACK);
 		File file;
 		//most likely case first
@@ -220,7 +219,6 @@ public class ProviderService implements IProviderService {
 			file = null;
 		}
 		return file;
-
 	}
 
 }
