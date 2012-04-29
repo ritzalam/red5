@@ -18,7 +18,7 @@
 
 package org.red5.server.service;
 
-import org.red5.server.api.IScope;
+import org.red5.server.api.scope.IScope;
 
 /**
  * Interface for objects that resolve service names to services.

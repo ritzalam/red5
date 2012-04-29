@@ -28,6 +28,5 @@ public interface IMessageComponent {
 	 * @param pipe                 Connection pipe
 	 * @param oobCtrlMsg           Out-of-band control message
 	 */
-	void onOOBControlMessage(IMessageComponent source, IPipe pipe,
-			OOBControlMessage oobCtrlMsg);
+	void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg);
 }

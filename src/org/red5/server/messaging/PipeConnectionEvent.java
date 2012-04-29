@@ -31,6 +31,7 @@ import java.util.Map;
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public class PipeConnectionEvent extends EventObject {
+
 	private static final long serialVersionUID = 9078843765378168072L;
 
 	private List<Runnable> taskList = new ArrayList<Runnable>(3);
@@ -65,25 +66,25 @@ public class PipeConnectionEvent extends EventObject {
 	 */
 	public static final int CONSUMER_DISCONNECT = 5;
 
-    /**
-     * Provider
-     */
-    private transient IProvider provider;
+	/**
+	 * Provider
+	 */
+	private transient IProvider provider;
 
-    /**
-     * Consumer
-     */
-    private transient IConsumer consumer;
+	/**
+	 * Consumer
+	 */
+	private transient IConsumer consumer;
 
-    /**
-     * Event type
-     */
-    private int type;
+	/**
+	 * Event type
+	 */
+	private int type;
 
-    /**
-     * Parameters map
-     */
-    private Map<String, Object> paramMap;
+	/**
+	 * Parameters map
+	 */
+	private Map<String, Object> paramMap;
 
 	/**
 	 * Construct an object with the specific pipe as the
@@ -94,83 +95,83 @@ public class PipeConnectionEvent extends EventObject {
 		super(source);
 	}
 
-    /**
-     * Return pipe connection provider
-     * @return          Provider
-     */
-    public IProvider getProvider() {
+	/**
+	 * Return pipe connection provider
+	 * @return          Provider
+	 */
+	public IProvider getProvider() {
 		return provider;
 	}
 
-    /**
-     * Setter for pipe connection provider
-     * @param provider  Provider
-     */
-    public void setProvider(IProvider provider) {
+	/**
+	 * Setter for pipe connection provider
+	 * @param provider  Provider
+	 */
+	public void setProvider(IProvider provider) {
 		this.provider = provider;
 	}
 
-    /**
-     * Return pipe connection consumer
-     * @return          Consumer
-     */
-    public IConsumer getConsumer() {
+	/**
+	 * Return pipe connection consumer
+	 * @return          Consumer
+	 */
+	public IConsumer getConsumer() {
 		return consumer;
 	}
 
-    /**
-     * Setter for pipe connection consumer
-     * @param consumer  Consumer
-     */
-    public void setConsumer(IConsumer consumer) {
+	/**
+	 * Setter for pipe connection consumer
+	 * @param consumer  Consumer
+	 */
+	public void setConsumer(IConsumer consumer) {
 		this.consumer = consumer;
 	}
 
-    /**
-     * Return event type
-     * @return             Event type
-     */
-    public int getType() {
+	/**
+	 * Return event type
+	 * @return             Event type
+	 */
+	public int getType() {
 		return type;
 	}
 
-    /**
-     * Setter for event type
-     * @param type         Event type
-     */
-    public void setType(int type) {
+	/**
+	 * Setter for event type
+	 * @param type         Event type
+	 */
+	public void setType(int type) {
 		this.type = type;
 	}
 
-    /**
-     * Return event parameters as Map
-     * @return             Event parameters as Map
-     */
-    public Map<String, Object> getParamMap() {
+	/**
+	 * Return event parameters as Map
+	 * @return             Event parameters as Map
+	 */
+	public Map<String, Object> getParamMap() {
 		return paramMap;
 	}
 
-    /**
-     * Setter for event parameters map
-     * @param paramMap     Event parameters as Map
-     */
-    public void setParamMap(Map<String, Object> paramMap) {
+	/**
+	 * Setter for event parameters map
+	 * @param paramMap     Event parameters as Map
+	 */
+	public void setParamMap(Map<String, Object> paramMap) {
 		this.paramMap = paramMap;
 	}
 
-    /**
-     * Add task to list
-     * @param task     Task to add
-     */
-    public void addTask(Runnable task) {
+	/**
+	 * Add task to list
+	 * @param task     Task to add
+	 */
+	public void addTask(Runnable task) {
 		taskList.add(task);
 	}
 
-    /**
-     * Return list of tasks
-     * @return       List of tasks
-     */
-    List<Runnable> getTaskList() {
+	/**
+	 * Return list of tasks
+	 * @return       List of tasks
+	 */
+	List<Runnable> getTaskList() {
 		return taskList;
 	}
 }

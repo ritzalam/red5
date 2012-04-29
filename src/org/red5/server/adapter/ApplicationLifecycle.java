@@ -20,7 +20,7 @@ package org.red5.server.adapter;
 
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
-import org.red5.server.api.IScope;
+import org.red5.server.api.scope.IScope;
 
 /**
  *

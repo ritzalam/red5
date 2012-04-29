@@ -21,15 +21,12 @@
 	
 	<bean id="global.mappingStrategy" class="org.red5.server.MappingStrategy" />
 	
-	<bean id="global.context" class="org.red5.server.Context" 
-		autowire="byType" />
+	<bean id="global.context" class="org.red5.server.Context" autowire="byType" />
 
 	<bean id="global.handler" class="org.red5.server.CoreHandler" autowire="byType" />
 			
-	<bean id="global.scope" class="org.red5.server.GlobalScope"
-		 init-method="register">
+	<bean id="global.scope" class="org.red5.server.scope.GlobalScope" init-method="register">
 		<property name="server" ref="red5.server" />
-		<property name="name" value="default" />
 		<property name="context" ref="global.context" />
 		<property name="handler" ref="global.handler" />
 		<property name="persistenceClass">
@@ -37,9 +34,8 @@
 		</property>
 	</bean>
 	
-	<bean id="red5.scopeResolver" class="org.red5.server.ScopeResolver">
+	<bean id="red5.scopeResolver" class="org.red5.server.scope.ScopeResolver">
 		<property name="globalScope" ref="global.scope" />
-	</bean>
-	
+	</bean>	
 	
 </beans>

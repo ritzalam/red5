@@ -18,8 +18,6 @@
 
 package org.red5.server.net.rtmp;
 
-import static org.red5.server.api.ScopeUtils.getScopeService;
-
 import java.beans.ConstructorProperties;
 import java.util.BitSet;
 import java.util.Collection;
@@ -34,10 +32,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.BaseConnection;
-import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCall;
@@ -65,6 +63,7 @@ import org.red5.server.stream.OutputStream;
 import org.red5.server.stream.PlaylistSubscriberStream;
 import org.red5.server.stream.SingleItemSubscriberStream;
 import org.red5.server.stream.StreamService;
+import org.red5.server.util.ScopeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -594,7 +593,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 			keepAliveJobName = null;
 		}
 		Red5.setConnectionLocal(this);
-		IStreamService streamService = (IStreamService) getScopeService(scope, IStreamService.class, StreamService.class);
+		IStreamService streamService = (IStreamService) ScopeUtils.getScopeService(scope, IStreamService.class, StreamService.class);
 		if (streamService != null) {
 			for (Map.Entry<Integer, IClientStream> entry : streams.entrySet()) {
 				IClientStream stream = entry.getValue();
@@ -711,7 +710,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * @param out IoBuffer
 	 */
 	public abstract void writeRaw(IoBuffer out);
-	
+
 	/**
 	 * Update number of bytes to read next value.
 	 */

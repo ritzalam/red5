@@ -18,7 +18,7 @@
 
 package org.red5.server.api.stream;
 
-import org.red5.server.api.IScope;
+import org.red5.server.api.scope.IScope;
 
 /**
  * Interface for handlers that control access to stream playback.
@@ -39,5 +39,5 @@ public interface IStreamPlaybackSecurity {
 	 * @return <code>True</code> if playback is allowed, otherwise <code>False</code>
 	 */
 	public boolean isPlaybackAllowed(IScope scope, String name, int start, int length, boolean flushPlaylist);
-	
+
 }

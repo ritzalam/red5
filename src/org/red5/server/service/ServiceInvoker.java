@@ -28,8 +28,8 @@ import java.util.Set;
 import org.red5.annotations.DeclarePrivate;
 import org.red5.annotations.DeclareProtected;
 import org.red5.server.api.IConnection;
-import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.service.IServiceInvoker;
@@ -133,9 +133,9 @@ public class ServiceInvoker implements IServiceInvoker {
 			argsWithConnection[0] = conn;
 			for (int i = 0; i < args.length; i++) {
 				log.debug("{} => {}", i, args[i]);
-                if (args[i] != null) {
-    				log.trace("Arg type: {}", args[i].getClass().getName());
-                }
+				if (args[i] != null) {
+					log.trace("Arg type: {}", args[i].getClass().getName());
+				}
 				argsWithConnection[i + 1] = args[i];
 			}
 		} else {

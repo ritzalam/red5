@@ -20,11 +20,11 @@ package org.red5.server.jmx.mxbeans;
 
 import javax.management.MXBean;
 
-import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
-import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
+import org.red5.server.api.scope.IBasicScope;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.api.service.IServiceCall;
 
 /**

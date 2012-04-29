@@ -20,7 +20,7 @@ package org.red5.server.api.so;
 
 import java.util.List;
 
-import org.red5.server.api.IScope;
+import org.red5.server.api.scope.IScope;
 
 /**
  * Interface for handlers that control access to shared objects.
@@ -39,7 +39,7 @@ public interface ISharedObjectSecurity {
 	 * @return is creation allowed
 	 */
 	public boolean isCreationAllowed(IScope scope, String name, boolean persistent);
-	
+
 	/**
 	 * Check if a connection to the given existing shared object is allowed.
 	 * 

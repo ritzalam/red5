@@ -611,7 +611,6 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		if (stringCache == null) {
 			stringCache = getCacheManager().getCache("org.red5.io.amf.Output.stringCache");
 		}
-
 		return stringCache;
 	}
 
@@ -619,7 +618,6 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		if (serializeCache == null) {
 			serializeCache = getCacheManager().getCache("org.red5.io.amf.Output.serializeCache");
 		}
-
 		return serializeCache;
 	}
 
@@ -627,7 +625,6 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		if (fieldCache == null) {
 			fieldCache = getCacheManager().getCache("org.red5.io.amf.Output.fieldCache");
 		}
-
 		return fieldCache;
 	}
 
@@ -635,7 +632,17 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		if (getterCache == null) {
 			getterCache = getCacheManager().getCache("org.red5.io.amf.Output.getterCache");
 		}
-
 		return getterCache;
 	}
+
+	public static void destroyCache() {
+		if (cacheManager != null) {
+			cacheManager.shutdown();
+			fieldCache = null;
+			getterCache = null;
+			serializeCache = null;
+			stringCache = null;
+		}
+	}
+	
 }

@@ -18,8 +18,6 @@
 
 package org.red5.server.so;
 
-import static org.red5.server.api.so.ISharedObject.TYPE;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +36,7 @@ import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
+import org.red5.server.api.scope.ScopeType;
 import org.red5.server.api.statistics.ISharedObjectStatistics;
 import org.red5.server.api.statistics.support.StatisticsCounter;
 import org.red5.server.net.rtmp.Channel;
@@ -187,23 +186,48 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 	/**
 	 * Creates new SO from given data map, name, path and persistence option
 	 *
-	 * @param data               Data
 	 * @param name               SO name
 	 * @param path               SO path
 	 * @param persistent         SO persistence
 	 */
-	public SharedObject(Map<String, Object> data, String name, String path, boolean persistent) {
+	public SharedObject(String name, String path, boolean persistent) {
 		super();
 		this.name = name;
 		this.path = path;
 		this.persistent = persistent;
 		ownerMessage = new SharedObjectMessage(null, name, 0, persistent);
 		creationTime = System.currentTimeMillis();
-		super.setAttributes(data);
+	}	
+	
+	/**
+	 * Creates new SO from given data map, name, path, storage object and persistence option
+	 * 
+	 * @param name               SO name
+	 * @param path               SO path
+	 * @param persistent         SO persistence
+	 * @param storage            Persistence storage
+	 */
+	public SharedObject(String name, String path, boolean persistent, IPersistenceStore storage) {
+		this(name, path, persistent);
+		setStore(storage);
+	}	
+	
+	/**
+	 * Creates new SO from given data map, name, path and persistence option
+	 *
+	 * @param data               Data
+	 * @param name               SO name
+	 * @param path               SO path
+	 * @param persistent         SO persistence
+	 */
+	public SharedObject(Map<String, Object> data, String name, String path, boolean persistent) {
+		this(name, path, persistent);
+		attributes.putAll(data);
 	}
 
 	/**
 	 * Creates new SO from given data map, name, path, storage object and persistence option
+	 * 
 	 * @param data               Data
 	 * @param name               SO name
 	 * @param path               SO path
@@ -222,7 +246,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 
 	/** {@inheritDoc} */
 	public void setName(String name) {
-		// Shared objects don't support setting of their names
+		throw new UnsupportedOperationException("Shared objects don't support setting of their name");
 	}
 
 	/** {@inheritDoc} */
@@ -237,7 +261,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 
 	/** {@inheritDoc} */
 	public String getType() {
-		return TYPE;
+		return ScopeType.SHARED_OBJECT.toString();
 	}
 
 	/** {@inheritDoc} */

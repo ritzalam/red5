@@ -18,31 +18,33 @@
 
 package org.red5.server.api.event;
 
-import java.util.Iterator;
+import java.util.Set;
 
 /**
  * IEventObservable hold functionality of the well-known Observer pattern, that is
  * it has a list of objects that listen to events.
- *
  */
 public interface IEventObservable {
+	
     /**
      * Add event listener to this observable
+     * 
      * @param listener      Event listener
      */
 	public void addEventListener(IEventListener listener);
 
     /**
      * Remove event listener from this observable
+     * 
      * @param listener      Event listener
      */
     public void removeEventListener(IEventListener listener);
 
 	/**
-     * Iterator for event listeners
+     * Returns event listeners
      *
      * @return  Event listeners iterator
      */
-    public Iterator<IEventListener> getEventListeners();
+    public Set<IEventListener> getEventListeners();
 
 }

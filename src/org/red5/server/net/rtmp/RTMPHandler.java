@@ -18,20 +18,18 @@
 
 package org.red5.server.net.rtmp;
 
-import static org.red5.server.api.ScopeUtils.getScopeService;
-
 import java.util.HashMap;
 import java.util.Map;
 
 import org.red5.logging.Red5LoggerFactory;
+import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.api.IContext;
-import org.red5.server.api.IGlobalScope;
-import org.red5.server.api.IScope;
-import org.red5.server.api.IScopeHandler;
 import org.red5.server.api.IServer;
 import org.red5.server.api.Red5;
-import org.red5.server.api.ScopeUtils;
-import org.red5.server.api.IConnection.Encoding;
+import org.red5.server.api.scope.IBroadcastScope;
+import org.red5.server.api.scope.IGlobalScope;
+import org.red5.server.api.scope.IScope;
+import org.red5.server.api.scope.IScopeHandler;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.so.ISharedObject;
@@ -61,8 +59,8 @@ import org.red5.server.so.ISharedObjectEvent;
 import org.red5.server.so.SharedObjectEvent;
 import org.red5.server.so.SharedObjectMessage;
 import org.red5.server.so.SharedObjectService;
-import org.red5.server.stream.IBroadcastScope;
 import org.red5.server.stream.StreamService;
+import org.red5.server.util.ScopeUtils;
 import org.slf4j.Logger;
 
 /**
@@ -119,7 +117,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 		for (IClientStream stream : conn.getStreams()) {
 			if (stream instanceof IClientBroadcastStream) {
 				IClientBroadcastStream bs = (IClientBroadcastStream) stream;
-				IBroadcastScope scope = (IBroadcastScope) bs.getScope().getBasicScope(IBroadcastScope.TYPE, bs.getPublishedName());
+				IBroadcastScope scope = bs.getScope().getBroadcastScope(bs.getPublishedName());
 				if (scope == null) {
 					continue;
 				}
@@ -207,7 +205,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 				final Map<String, Object> params = invoke.getConnectionParams();
 				// Get hostname
 				String host = getHostname((String) params.get("tcUrl"));
-				
+
 				// App name as path, but without query string if there is
 				// one
 				String path = (String) params.get("app");
@@ -374,7 +372,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 					case PAUSE_RAW:
 					case RECEIVE_VIDEO:
 					case RECEIVE_AUDIO:
-						IStreamService streamService = (IStreamService) getScopeService(conn.getScope(), IStreamService.class, StreamService.class);
+						IStreamService streamService = (IStreamService) ScopeUtils.getScopeService(conn.getScope(), IStreamService.class, StreamService.class);
 						Status status = null;
 						try {
 							log.debug("Invoking {} from {} with service: {}", new Object[] { call, conn, streamService });
@@ -504,7 +502,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 		log.debug("Incoming shared object - name: {} persistence: {}", name, persistent);
 		final IScope scope = conn.getScope();
 		if (scope != null) {
-			ISharedObjectService sharedObjectService = (ISharedObjectService) getScopeService(scope, ISharedObjectService.class, SharedObjectService.class, false);
+			ISharedObjectService sharedObjectService = (ISharedObjectService) ScopeUtils.getScopeService(scope, ISharedObjectService.class, SharedObjectService.class, false);
 			if (!sharedObjectService.hasSharedObject(scope, name)) {
 				log.debug("Shared object service doesnt have requested object, creation will be attempted");
 				ISharedObjectSecurityService security = (ISharedObjectSecurityService) ScopeUtils.getScopeService(scope, ISharedObjectSecurityService.class);

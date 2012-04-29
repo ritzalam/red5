@@ -18,7 +18,7 @@
 
 package org.red5.server.api.listeners;
 
-import org.red5.server.api.IScope;
+import org.red5.server.api.scope.IScope;
 
 /**
  * Interface for listeners to scope events.

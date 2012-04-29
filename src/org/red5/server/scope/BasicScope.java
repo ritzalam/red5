@@ -16,41 +16,59 @@
  * limitations under the License.
  */
 
-package org.red5.server;
+package org.red5.server.scope;
 
 import java.beans.ConstructorProperties;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
-import org.red5.server.api.IBasicScope;
-import org.red5.server.api.IScope;
-import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventListener;
+import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
+import org.red5.server.api.scope.IBasicScope;
+import org.red5.server.api.scope.IScope;
+import org.red5.server.api.scope.ScopeType;
+import org.red5.server.util.ScopeUtils;
 
 /**
- *  Generalizations of one of main Red5 object types, Scope.
- *  Basic scope is a persistable attribute store with event handling functionality
+ * Generalizations of one of main Red5 object types, Scope.
  *
  * @see org.red5.server.api.IScope
  * @see org.red5.server.Scope
  */
-public abstract class BasicScope extends PersistableAttributeStore implements IBasicScope {
+public abstract class BasicScope implements IBasicScope {
 
 	/**
 	 * Parent scope. Scopes can be nested.
 	 *
-	 * @see org.red5.server.api.IScope
+	 * @see org.red5.server.api.scope.IScope
 	 */
 	protected IScope parent;
+	
+	/**
+	 * Scope type.
+	 *
+	 * @see org.red5.server.api.scope.ScopeType
+	 */
+	protected ScopeType type = ScopeType.UNDEFINED;
 
 	/**
-	 * List of event listeners
+	 * String identifier for this scope
 	 */
-	protected Set<IEventListener> listeners;
+	protected String name;
+	
+	/**
+	 * Whether or not to persist attributes
+	 */
+	protected boolean persistent;
+
+	/**
+	 * Storage for persistable attributes
+	 */
+	protected IPersistenceStore store;
 
 	/**
 	 * Scope persistence storage type
@@ -69,11 +87,15 @@ public abstract class BasicScope extends PersistableAttributeStore implements IB
 	protected int keepDelay = 0;
 
 	/**
+	 * List of event listeners
+	 */
+	protected Set<IEventListener> listeners;
+
+	/**
 	 * Creates unnamed scope
 	 */
 	@ConstructorProperties(value = { "" })
 	public BasicScope() {
-		this(null, "scope", null, false);
 	}
 
 	/**
@@ -85,9 +107,11 @@ public abstract class BasicScope extends PersistableAttributeStore implements IB
 	 * @param persistent       Whether scope is persistent
 	 */
 	@ConstructorProperties({ "parent", "type", "name", "persistent" })
-	public BasicScope(IScope parent, String type, String name, boolean persistent) {
-		super(type, name, null, persistent);
+	public BasicScope(IScope parent, ScopeType type, String name, boolean persistent) {
 		this.parent = parent;
+		this.type = type;
+		this.name = name;
+		this.persistent = persistent;
 		this.listeners = new HashSet<IEventListener>();
 	}
 
@@ -103,6 +127,27 @@ public abstract class BasicScope extends PersistableAttributeStore implements IB
 	 */
 	public IScope getParent() {
 		return parent;
+	}
+
+	/**
+	 * @return the type
+	 */
+	public ScopeType getType() {
+		return type;
+	}
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * @return the store
+	 */
+	public IPersistenceStore getStore() {
+		return store;
 	}
 
 	/**
@@ -129,6 +174,16 @@ public abstract class BasicScope extends PersistableAttributeStore implements IB
 	public void setKeepDelay(int keepDelay) {
 		this.keepDelay = keepDelay;
 	}
+	
+	/**
+	 * Validates a scope based on its name and type
+	 * 
+	 * @return true if both name and type are valid, false otherwise
+	 */
+	public boolean isValid() {
+		// to be valid a scope must have a type set other than undefined and its name will be set
+		return (type != null && !type.equals(ScopeType.UNDEFINED) && (name != null && !("").equals(name)));
+	}
 
 	/**
 	 * Add event listener to list of notified objects
@@ -148,8 +203,7 @@ public abstract class BasicScope extends PersistableAttributeStore implements IB
 			if (ScopeUtils.isRoom(this) && listeners.isEmpty()) {
 				if (keepDelay > 0) {
 					// create a job to keep alive for n seconds
-					ISchedulingService schedulingService = (ISchedulingService) parent.getContext().getBean(
-							ISchedulingService.BEAN_NAME);
+					ISchedulingService schedulingService = (ISchedulingService) parent.getContext().getBean(ISchedulingService.BEAN_NAME);
 					schedulingService.addScheduledOnceJob(keepDelay * 1000, new KeepAliveJob(this));
 				} else {
 					// delete empty rooms
@@ -164,8 +218,8 @@ public abstract class BasicScope extends PersistableAttributeStore implements IB
 	 *
 	 * @return  Listeners list iterator
 	 */
-	public Iterator<IEventListener> getEventListeners() {
-		return listeners.iterator();
+	public Set<IEventListener> getEventListeners() {
+		return Collections.unmodifiableSet(listeners);
 	}
 
 	/**
@@ -210,34 +264,39 @@ public abstract class BasicScope extends PersistableAttributeStore implements IB
 	}
 
 	/**
-	 * Getter for subscopes list iterator. Returns null because this is a base implementation
-	 *
-	 * @return           Iterator for subscopes
+	 * Hash code is based on the scope's name and type
+	 * 
+	 * @return hash code
 	 */
-	public Iterator<IBasicScope> iterator() {
-		return null;
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((type == null) ? 0 : type.hashCode());
+		return result;
 	}
 
 	/**
-	 * Iterator for basic scope
+	 * Equality is based on the scope's name and type
+	 * 
+	 * @param obj
 	 */
-	public static class EmptyBasicScopeIterator implements Iterator<IBasicScope> {
-
-		/** {@inheritDoc} */
-		public boolean hasNext() {
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
 			return false;
-		}
-
-		/** {@inheritDoc} */
-		public IBasicScope next() {
-			return null;
-		}
-
-		/** {@inheritDoc} */
-		public void remove() {
-			// nothing
-		}
-
+		if (getClass() != obj.getClass())
+			return false;
+		BasicScope other = (BasicScope) obj;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		if (type != other.type)
+			return false;
+		return true;
 	}
 
 	/**

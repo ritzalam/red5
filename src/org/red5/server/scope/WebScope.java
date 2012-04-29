@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.red5.server;
+package org.red5.server.scope;
 
 import java.util.Collection;
 import java.util.Set;
@@ -24,11 +24,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.servlet.ServletContext;
 
+import org.red5.server.LoaderBase;
 import org.red5.server.api.IApplicationContext;
 import org.red5.server.api.IApplicationLoader;
 import org.red5.server.api.IConnection;
-import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IServer;
+import org.red5.server.api.scope.IGlobalScope;
+import org.red5.server.api.scope.ScopeType;
 import org.red5.server.jmx.mxbeans.WebScopeMXBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,16 +38,13 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.web.context.ServletContextAware;
 
 /**
- * Web scope is special scope that is aware of servlet context and represents
- * scope of Red5 application in servlet container (or application server) like
- * Tomcat, Jetty or JBoss.
- * 
- * Web scope is aware of virtual hosts configuration for Red5 application and is
- * the first scope that instantiated after Red5 application gets started.
- * 
- * Then it loads virtual hosts configuration, adds mappings of paths to global
- * scope that is injected thru Spring IoC context file and runs initialization
- * process.
+ * <p>Web scope is special scope that is aware of servlet context and represents
+ * scope of a Red5 application within a servlet container (or application server)
+ * such as Tomcat, Jetty or JBoss.</p>
+ * <p>Web scope is aware of virtual hosts configuration for Red5 application and is
+ * the first scope that instantiated after Red5 application gets started.</p>
+ * <p>Then it loads virtual hosts configuration, adds mappings of paths to global
+ * scope that is injected thru Spring IoC context file and runs initialization process.</p>
  * 
  * Red5 server implementation instance and ServletContext are injected as well.
  */
@@ -102,6 +101,10 @@ public class WebScope extends Scope implements ServletContextAware, WebScopeMXBe
 	 */
 	protected AtomicBoolean shuttingDown = new AtomicBoolean(false);
 
+	{
+		type = ScopeType.APPLICATION;
+	}
+	
 	/**
 	 * Setter for global scope. Sets persistence class.
 	 * 
@@ -208,8 +211,7 @@ public class WebScope extends Scope implements ServletContextAware, WebScopeMXBe
 			}
 		}
 		init();
-		// We don't want to have configured scopes to get freed when a client
-		// disconnects.
+		// don't free configured scopes when a client disconnects
 		keepOnDisconnect = true;
 		registered.set(true);
 	}
@@ -256,7 +258,7 @@ public class WebScope extends Scope implements ServletContextAware, WebScopeMXBe
 			log.debug("Application context is null, could not be stopped");
 		}
 		// Various cleanup tasks
-		setStore(null);
+		store = null;
 		setServletContext(null);
 		setServer(null);
 		setName(null);

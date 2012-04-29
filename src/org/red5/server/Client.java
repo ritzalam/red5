@@ -27,8 +27,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -36,9 +36,9 @@ import javax.management.openmbean.CompositeData;
 
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
-import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
 import org.red5.server.api.persistence.IPersistable;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.stream.bandwidth.ClientServerDetection;
 import org.red5.server.stream.bandwidth.ServerClientDetection;
 import org.slf4j.Logger;
@@ -91,6 +91,7 @@ public class Client extends AttributeStore implements IClient {
 	 */
 	@ConstructorProperties({ "id", "registry" })
 	public Client(String id, ClientRegistry registry) {
+		super();
 		this.id = id;
 		// use a weak reference to prevent any hard-links to the registry
 		this.registry = new WeakReference<ClientRegistry>(registry);
@@ -312,6 +313,10 @@ public class Client extends AttributeStore implements IClient {
 			instance = new Client(id, null);
 			instance.setCreationTime((Long) cd.get("creationTime"));
 			instance.setAttribute(PERMISSIONS, cd.get(PERMISSIONS));
+		}
+		if (cd.containsKey("attributes")) {
+			AttributeStore attrs = (AttributeStore) cd.get("attributes");
+			instance.setAttributes(attrs);
 		}
 		return instance;
 	}

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.red5.server.api;
+package org.red5.server.api.scope;
 
 import org.red5.server.exception.ScopeNotFoundException;
 

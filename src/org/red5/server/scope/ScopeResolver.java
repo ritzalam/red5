@@ -16,23 +16,26 @@
  * limitations under the License.
  */
 
-package org.red5.server;
+package org.red5.server.scope;
 
-import org.red5.server.api.IGlobalScope;
-import org.red5.server.api.IScope;
-import org.red5.server.api.IScopeResolver;
+import java.util.Arrays;
+
+import org.apache.commons.lang3.StringUtils;
+import org.red5.server.api.scope.IGlobalScope;
+import org.red5.server.api.scope.IScope;
+import org.red5.server.api.scope.IScopeResolver;
+import org.red5.server.api.scope.ScopeType;
 import org.red5.server.exception.ScopeNotFoundException;
 import org.red5.server.exception.ScopeShuttingDownException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Resolves scopes from path
  */
 public class ScopeResolver implements IScopeResolver {
 
-	/**
-	 *  Default host constant
-	 */
-	public static final String DEFAULT_HOST = "";
+	protected static Logger log = LoggerFactory.getLogger(ScopeResolver.class);
 
 	/**
 	 *  Global scope
@@ -62,7 +65,7 @@ public class ScopeResolver implements IScopeResolver {
 	 * @return            Scope object
 	 */
 	public IScope resolveScope(String path) {
-		// Start from global scope
+		// start from global scope
 		return resolveScope(globalScope, path);
 	}
 
@@ -74,31 +77,33 @@ public class ScopeResolver implements IScopeResolver {
 	 * @return            Scope object
 	 */
 	public IScope resolveScope(IScope root, String path) {
-		// Start from root scope
+		log.debug("resolveScope - root: {} path: {}", root, path);
+		// start from root scope
 		IScope scope = root;
-		// If there's no path return root scope (e.i. root path scope)
-		if (path != null || !"".equals(path)) {
+		// if there's no path return root scope (e.i. root path scope)
+		if (StringUtils.isNotEmpty(path)) {
 			// Split path to parts
 			final String[] parts = path.split("/");
+			log.debug("Split path: {}", Arrays.toString(parts));
 			// Iterate thru them, skip empty parts
-			for (String room : parts) {
-				if (room == null || "".equals(room)) {
-					// Skip empty path elements
+			for (String child : parts) {
+				if (StringUtils.isEmpty(child)) {
+					// skip empty path elements
 					continue;
 				}
-				if (scope.hasChildScope(room)) {
-					scope = scope.getScope(room);
+				if (scope.hasChildScope(child)) {
+					scope = scope.getScope(child);
 				} else if (!scope.equals(root)) {
-					//no need for sync here, scope.children is concurrent
-					if (scope.createChildScope(room)) {
-						scope = scope.getScope(room);
+					// no need for sync here, scope.children is concurrent
+					if (scope.createChildScope(child)) {
+						scope = scope.getScope(child);
 					}
 				}
-				//if the scope is still equal to root then the room was not found
+				// if the scope is still equal to root then the room was not found
 				if (scope == root) {
-					throw new ScopeNotFoundException(scope, room);
+					throw new ScopeNotFoundException(scope, child);
 				}
-				if (scope instanceof WebScope && ((WebScope) scope).isShuttingDown()) {
+				if (scope.getType().equals(ScopeType.APPLICATION) && ((WebScope) scope).isShuttingDown()) {
 					throw new ScopeShuttingDownException(scope);
 				}
 			}

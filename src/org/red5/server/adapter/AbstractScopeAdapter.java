@@ -20,13 +20,13 @@ package org.red5.server.adapter;
 
 import java.util.Map;
 
-import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
-import org.red5.server.api.IScope;
-import org.red5.server.api.IScopeHandler;
 import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEvent;
+import org.red5.server.api.scope.IBasicScope;
+import org.red5.server.api.scope.IScope;
+import org.red5.server.api.scope.IScopeHandler;
 import org.red5.server.api.service.IServiceCall;
 
 /**

@@ -19,20 +19,18 @@
 package org.red5.server.statistics;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
-import org.red5.server.api.IScope;
-import org.red5.server.api.ScopeUtils;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectService;
 import org.red5.server.exception.ScopeNotFoundException;
+import org.red5.server.util.ScopeUtils;
 
 /**
  * Public methods for XML-RPC scope statistics service.
@@ -109,12 +107,7 @@ public class XmlRpcScopeStatistics {
 	 */
 	public String[] getScopes(String path) {
 		IScope scope = getScope(path);
-		List<String> result = new ArrayList<String>();
-		Iterator<String> iter = scope.getScopeNames();
-		while (iter.hasNext()) {
-			result.add(iter.next());
-		}
-		iter = null;
+		Set<String> result = scope.getScopeNames();
 		return result.toArray(new String[result.size()]);
 	}
 

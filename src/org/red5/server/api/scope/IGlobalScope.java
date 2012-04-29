@@ -16,23 +16,29 @@
  * limitations under the License.
  */
 
-package org.red5.server.api;
+package org.red5.server.api.scope;
+
+import org.red5.server.api.IServer;
 
 /**
- * Maker interface for all objects that are aware of the scope they are located
- * in.
+ * The global scope that acts as root for all applications in a host.
  *  
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
  *
  */
-public interface IScopeAware {
+public interface IGlobalScope extends IScope {
 
 	/**
-	 * Set the scope the object is located in.
-	 * 
-	 * @param scope Scope for this object
+	 * Register the global scope in the server and initialize it
 	 */
-	public void setScope(IScope scope);
+	public void register();
 
+	/**
+	 * Return the server this global scope runs in.
+	 * 
+	 * @return the server
+	 */
+	public IServer getServer();
+	
 }

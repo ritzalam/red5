@@ -55,7 +55,6 @@ public class AttributeStore implements ICastingAttributeStore {
 			if (value == null) {
 				continue;
 			}
-
 			result.put(key, value);
 		}
 		return result;
@@ -65,7 +64,6 @@ public class AttributeStore implements ICastingAttributeStore {
 	 * Creates empty attribute store. Object is not associated with a persistence storage.
 	 */
 	public AttributeStore() {
-		// Nothing to do here
 	}
 
 	/**
@@ -157,21 +155,18 @@ public class AttributeStore implements ICastingAttributeStore {
 	 *
 	 * @param name  the name of the attribute to change
 	 * @param value the new value of the attribute
-	 * @return true if the attribute value changed otherwise false
+	 * @return true if the attribute value was added or changed, otherwise false
 	 */
 	public boolean setAttribute(String name, Object value) {
-		if (name == null) {
-			return false;
+		if (name != null) {
+			if (value != null) {
+				// update with new value
+				Object previous = attributes.putIfAbsent(name, value);
+				// previous will be null if the attribute didn't exist
+				return (previous == null || !value.equals(previous));
+			}
 		}
-
-		if (value == null) {
-			// Remove value
-			return (attributes.remove(name) != null);
-		} else {
-			// Update with new value
-			Object previous = attributes.put(name, value);
-			return (previous == null || value == previous || !value.equals(previous));
-		}
+		return false;
 	}
 
 	/**
@@ -199,11 +194,10 @@ public class AttributeStore implements ICastingAttributeStore {
 	 * @return true if the attribute was found and removed otherwise false
 	 */
 	public boolean removeAttribute(String name) {
-		if (name == null) {
-			return false;
+		if (name != null) {
+			return (attributes.remove(name) != null);
 		}
-
-		return (attributes.remove(name) != null);
+		return false;
 	}
 
 	/**

@@ -22,6 +22,8 @@ import java.util.Set;
 
 import javax.management.MXBean;
 
+import org.red5.server.api.scope.ScopeType;
+
 /**
  * An MBean interface for the scope object.
  *
@@ -29,7 +31,7 @@ import javax.management.MXBean;
  * @author Paul Gregoire (mondain@gmail.com)
  */
 @MXBean
-public interface ScopeMXBean extends AttributeStoreMXBean {
+public interface ScopeMXBean {
 
 	/**
 	 * Check if scope is enabled
@@ -103,7 +105,7 @@ public interface ScopeMXBean extends AttributeStoreMXBean {
 	 * @param name               Child scope name
 	 * @return                   <code>true</code> if scope has child node with given name and type, <code>false</code> otherwise
 	 */
-	public boolean hasChildScope(String type, String name);
+	public boolean hasChildScope(ScopeType type, String name);
 
 	/**
 	 * Check if scope has a context

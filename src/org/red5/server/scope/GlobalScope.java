@@ -16,12 +16,13 @@
  * limitations under the License.
  */
 
-package org.red5.server;
+package org.red5.server.scope;
 
-import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IServer;
 import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.api.persistence.PersistenceUtils;
+import org.red5.server.api.scope.IGlobalScope;
+import org.red5.server.api.scope.ScopeType;
 import org.red5.server.jmx.mxbeans.GlobalScopeMXBean;
 import org.springframework.jmx.export.annotation.ManagedResource;
 
@@ -34,9 +35,14 @@ import org.springframework.jmx.export.annotation.ManagedResource;
  */
 @ManagedResource
 public class GlobalScope extends Scope implements IGlobalScope, GlobalScopeMXBean {
-	
+
 	// Red5 Server instance
 	protected IServer server;
+
+	{
+		type = ScopeType.GLOBAL;
+		name = "default";
+	}
 
 	/**
 	 * 
@@ -57,15 +63,13 @@ public class GlobalScope extends Scope implements IGlobalScope, GlobalScopeMXBea
 	 */
 	@Override
 	public IPersistenceStore getStore() {
-		if (store != null) {
-			return store;
-		}
-
-		try {
-			store = PersistenceUtils.getPersistenceStore(this, this.persistenceClass);
-		} catch (Exception error) {
-			log.error("Could not create persistence store.", error);
-			store = null;
+		if (store == null) {
+			try {
+				store = PersistenceUtils.getPersistenceStore(this, this.persistenceClass);
+			} catch (Exception error) {
+				log.error("Could not create persistence store.", error);
+				store = null;
+			}
 		}
 		return store;
 	}

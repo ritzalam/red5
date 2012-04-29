@@ -18,8 +18,8 @@
 
 package org.red5.server.service;
 
-import org.red5.server.api.IScope;
-import org.red5.server.api.IScopeHandler;
+import org.red5.server.api.scope.IScope;
+import org.red5.server.api.scope.IScopeHandler;
 import org.red5.server.api.service.IServiceHandlerProvider;
 import org.red5.server.api.service.IServiceHandlerProviderAware;
 

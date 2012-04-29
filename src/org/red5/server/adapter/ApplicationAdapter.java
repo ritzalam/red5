@@ -20,7 +20,7 @@ package org.red5.server.adapter;
 
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
-import org.red5.server.api.IScope;
+import org.red5.server.api.scope.IScope;
 
 /**
  * Base class for applications, takes care that callbacks are executed single-threaded.
@@ -47,29 +47,29 @@ public class ApplicationAdapter extends MultiThreadedApplicationAdapter {
 	public synchronized void disconnect(IConnection conn, IScope scope) {
 		super.disconnect(conn, scope);
 	}
-	
+
 	/** {@inheritDoc} */
 	@Override
 	public synchronized boolean start(IScope scope) {
 		return super.start(scope);
 	}
-	
+
 	/** {@inheritDoc} */
 	@Override
 	public synchronized void stop(IScope scope) {
 		super.stop(scope);
 	}
-	
+
 	/** {@inheritDoc} */
 	@Override
 	public synchronized boolean join(IClient client, IScope scope) {
 		return super.join(client, scope);
 	}
-	
+
 	/** {@inheritDoc} */
 	@Override
 	public synchronized void leave(IClient client, IScope scope) {
 		super.leave(client, scope);
 	}
-	
+
 }

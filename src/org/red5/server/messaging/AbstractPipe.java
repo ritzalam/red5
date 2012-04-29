@@ -59,7 +59,7 @@ public abstract class AbstractPipe implements IPipe {
 	 * Event listeners
 	 */
 	protected volatile CopyOnWriteArrayList<IPipeConnectionListener> listeners = new CopyOnWriteArrayList<IPipeConnectionListener>();
-	
+
 	/**
 	 * Executor service used to run pipe tasks.
 	 */
@@ -74,11 +74,11 @@ public abstract class AbstractPipe implements IPipe {
 	 * @return                <code>true</code> if consumer was added, <code>false</code> otherwise
 	 */
 	public boolean subscribe(IConsumer consumer, Map<String, Object> paramMap) {
-		// If consumer is listener object register it as listener
+		// if consumer is listener object register it as listener
 		if (consumer instanceof IPipeConnectionListener) {
 			listeners.addIfAbsent((IPipeConnectionListener) consumer);
 		}
-		// Pipe is possibly used by dozens of Threads at once (like many subscribers for one server stream)
+		// pipe is possibly used by dozens of threads at once (like many subscribers for one server stream)
 		return consumers.addIfAbsent(consumer);
 	}
 
@@ -91,7 +91,7 @@ public abstract class AbstractPipe implements IPipe {
 	 * @return                <code>true</code> if provider was added, <code>false</code> otherwise
 	 */
 	public boolean subscribe(IProvider provider, Map<String, Object> paramMap) {
-		// Register event listener if given
+		// register event listener if given
 		if (provider instanceof IPipeConnectionListener) {
 			listeners.add((IPipeConnectionListener) provider);
 		}
@@ -104,14 +104,13 @@ public abstract class AbstractPipe implements IPipe {
 	 * @return                 <code>true</code> on success, <code>false</code> otherwise
 	 */
 	public boolean unsubscribe(IProvider provider) {
-		if (!providers.remove(provider)) {
+		if (providers.remove(provider)) {
+			fireProviderConnectionEvent(provider, PipeConnectionEvent.PROVIDER_DISCONNECT, null);
+			listeners.remove(provider);
+			return true;			
+		} else {
 			return false;
 		}
-		fireProviderConnectionEvent(provider, PipeConnectionEvent.PROVIDER_DISCONNECT, null);
-		if (provider instanceof IPipeConnectionListener) {
-			listeners.remove(provider);
-		}
-		return true;
 	}
 
 	/**
@@ -120,14 +119,13 @@ public abstract class AbstractPipe implements IPipe {
 	 * @return                 <code>true</code> on success, <code>false</code> otherwise
 	 */
 	public boolean unsubscribe(IConsumer consumer) {
-		if (!consumers.remove(consumer)) {
+		if (consumers.remove(consumer)) {
+			fireConsumerConnectionEvent(consumer, PipeConnectionEvent.CONSUMER_DISCONNECT, null);
+			listeners.remove(consumer);
+			return true;			
+		} else {
 			return false;
 		}
-		fireConsumerConnectionEvent(consumer, PipeConnectionEvent.CONSUMER_DISCONNECT, null);
-		if (consumer instanceof IPipeConnectionListener) {
-			listeners.remove(consumer);
-		}
-		return true;
 	}
 
 	/**
@@ -256,14 +254,14 @@ public abstract class AbstractPipe implements IPipe {
 			try {
 				element.onPipeConnectionEvent(event);
 			} catch (Throwable t) {
-				log.error("exception when handling pipe connection event", t);
+				log.error("Exception when handling pipe connection event", t);
 			}
 		}
 
 		if (taskExecutor == null) {
 			taskExecutor = Executors.newSingleThreadExecutor();
 		}
-		
+
 		// Run all of event's tasks
 		for (Runnable task : event.getTaskList()) {
 			try {
@@ -275,36 +273,36 @@ public abstract class AbstractPipe implements IPipe {
 		// Clear event's tasks list
 		event.getTaskList().clear();
 
-        //disable new tasks from being submitted
-        taskExecutor.shutdown(); 
-        try {
-        	//wait a while for existing tasks to terminate
-        	if (!taskExecutor.awaitTermination(250, TimeUnit.MILLISECONDS)) {
-        		taskExecutor.shutdownNow(); // cancel currently executing tasks
-        	}
-        } catch (InterruptedException ie) {
-        	// preserve interrupt status
-        	Thread.currentThread().interrupt();
-        }
+		//disable new tasks from being submitted
+		taskExecutor.shutdown();
+		try {
+			//wait a while for existing tasks to terminate
+			if (!taskExecutor.awaitTermination(250, TimeUnit.MILLISECONDS)) {
+				taskExecutor.shutdownNow(); // cancel currently executing tasks
+			}
+		} catch (InterruptedException ie) {
+			// preserve interrupt status
+			Thread.currentThread().interrupt();
+		}
 	}
 
 	/**
 	 * Close the pipe
 	 */
 	public void close() {
-        //clean up collections
-        if (consumers != null) {
-        	consumers.clear();
-        	consumers = null;
-        }
-        if (providers != null) {
-        	providers.clear();
-        	providers = null;
-        }        
-        if (listeners != null) {
-        	listeners.clear();
-        	listeners = null;
-        }
+		//clean up collections
+		if (consumers != null) {
+			consumers.clear();
+			consumers = null;
+		}
+		if (providers != null) {
+			providers.clear();
+			providers = null;
+		}
+		if (listeners != null) {
+			listeners.clear();
+			listeners = null;
+		}
 	}
-	
+
 }

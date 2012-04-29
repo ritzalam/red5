@@ -16,18 +16,24 @@
  * limitations under the License.
  */
 
-package org.red5.server;
+package org.red5.server.scope;
 
-import static org.junit.Assert.*;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertTrue;
 
-import java.util.Iterator;
+import java.util.Set;
 
 import junit.framework.TestCase;
 
 import org.junit.Test;
+import org.red5.server.Context;
+import org.red5.server.api.IClient;
+import org.red5.server.api.IClientRegistry;
 import org.red5.server.api.IContext;
-import org.red5.server.api.IScope;
-import org.red5.server.api.ScopeUtils;
+import org.red5.server.api.Red5;
+import org.red5.server.api.TestConnection;
+import org.red5.server.api.scope.IScope;
+import org.red5.server.util.ScopeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
@@ -44,13 +50,21 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 
 	protected static Logger log = LoggerFactory.getLogger(ScopeTest.class);
 
+	private static Context context;
+	
 	private static WebScope appScope;
+	
+	private String host = "localhost";
+	
+	private String appPath = "junit";
+	
+	private String roomPath = "/junit/room1";
 
 	static {
 		System.setProperty("red5.deployment.type", "junit");
 		System.setProperty("red5.root", "bin");
 		System.setProperty("red5.config_root", "bin/conf");
-		System.setProperty("logback.ContextSelector", "org.red5.logging.LoggingContextSelector");
+		System.setProperty("logback.ContextSelector", "org.red5.logging.LoggingContextSelector");		
 	}
 
 	{
@@ -59,6 +73,119 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		log.debug("Property - red5.config_root: {}", System.getProperty("red5.config_root"));
 	}
 
+	@Test
+	public void client() {
+		context = (Context) applicationContext.getBean("web.context");
+		IClientRegistry reg = context.getClientRegistry();
+		IClient client = reg.newClient(null);
+		assertTrue("client should not be null", client != null);
+	}
+
+	@Test
+	public void connectionHandler() {
+		context = (Context) applicationContext.getBean("web.context");
+		TestConnection conn = new TestConnection(host, "/", null);
+		// add the connection to thread local
+		Red5.setConnectionLocal(conn);
+		// resolve root
+		IScope scope = context.resolveScope("/");
+		IClientRegistry reg = context.getClientRegistry();
+		IClient client = reg.newClient(null);
+		assertNotNull(client);
+		
+		log.debug("----------------------------------\nDump scope details");
+		((Scope) scope).dump();
+		log.debug("----------------------------------\n");
+		
+		conn.initialize(client);
+		if (!conn.connect(scope)) {
+			assertTrue("didnt connect", false);
+		} else {
+			assertTrue("should have a scope", conn.getScope() != null);
+			conn.close();
+			assertTrue("should not be connected", !conn.isConnected());
+		}
+		Red5.setConnectionLocal(null);
+	}
+
+	@Test
+	public void context() {
+		context = (Context) applicationContext.getBean("web.context");
+		IScope testRoom = context.resolveScope(roomPath);
+		IContext context = testRoom.getContext();
+		assertTrue("context should not be null", context != null);
+		log.debug("{}", testRoom.getContext().getResource(""));
+		log.debug("{}", testRoom.getResource(""));
+		log.debug("{}", testRoom.getParent().getResource(""));
+	}
+
+	@Test
+	public void handler() {
+		context = (Context) applicationContext.getBean("web.context");
+
+		Scope testApp = (Scope) context.resolveScope(appPath);
+		assertTrue("should have a handler", testApp.hasHandler());
+
+		IClientRegistry reg = context.getClientRegistry();
+		IClient client = reg.newClient(null);
+
+		TestConnection conn = new TestConnection(host, appPath, client.getId());
+		conn.initialize(client);
+
+		Red5.setConnectionLocal(conn);
+		
+		assertTrue("client should not be null", client != null);
+		log.debug("{}", client);
+
+		String key = "key";
+		String value = "value";
+		client.setAttribute(key, value);
+		assertTrue("attributes not working", client.getAttribute(key) == value);
+
+		conn.connect(testApp);
+
+		assertTrue("app should have 1 client", testApp.getClients().size() == 1);
+		assertTrue("host should have 1 client", testApp.getParent()
+				.getClients().size() == 1);
+
+		conn.close();
+
+		assertTrue("app should have 0 client", testApp.getClients().size() == 0);
+		assertTrue("host should have 0 client", testApp.getParent()
+				.getClients().size() == 0);
+
+		//client.disconnect();
+		Red5.setConnectionLocal(null);
+	}
+
+	@Test
+	public void scopeResolver() {
+		context = (Context) applicationContext.getBean("web.context");
+		
+		// Global
+		IScope global = context.getGlobalScope();
+		assertNotNull("global scope should be set", global);
+		assertTrue("should be global", ScopeUtils.isGlobal(global));
+		log.debug("{}", global);
+
+		// Test App
+		IScope testApp = context.resolveScope(appPath);
+		assertTrue("testApp scope not null", testApp != null);
+		log.debug("{}", testApp);
+
+		// Test Room
+		IScope testRoom = context.resolveScope(roomPath);
+		log.debug("{}", testRoom);
+
+		// Test App Not Found
+		try {
+			IScope notFoundApp = context.resolveScope(appPath + "notfound");
+			log.debug("{}", notFoundApp);
+			assertTrue("should have thrown an exception", false);
+		} catch (RuntimeException e) {
+		}
+	}	
+	
 	@Test
 	public void testScope() {
 		log.debug("testScope");
@@ -112,7 +239,6 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		// /default/junit/room1/room4/room5
 		TestCase.assertTrue(room4.createChildScope("room5"));
 		IScope room5 = room4.getScope("room5");
-		room5.setPersistent(true);
 		log.debug("Room 5: {}", room5);
 		assertTrue(room5.getDepth() == 4);
 
@@ -139,17 +265,13 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		IScope room1 = ScopeUtils.resolveScope(appScope, "/junit/room1");
 		log.debug("Room 1 scope: {}", room1);
 		assertTrue(room1.getDepth() == 2);
-		Iterator<String> names = room1.getScopeNames();
-		while (names.hasNext()) {
-			log.debug("Scope: {}", names.next());
-		}
+		Set<String> names = room1.getScopeNames();
+		log.debug("Scope: {}", names);
 		IScope room5 = ScopeUtils.resolveScope(appScope, "/junit/room1/room4/room5");
 		log.debug("Room 5 scope: {}", room5);
 		assertTrue(room5.getDepth() == 4);
 		names = room1.getScopeNames();
-		while (names.hasNext()) {
-			log.debug("Scope: {}", names.next());
-		}
+		log.debug("Scope: {}", names);
 	}
 
 	@Test
@@ -167,8 +289,8 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		log.debug("Room 4 child scope exists: {}", room1.hasChildScope("room4"));
 		room1.removeChildScope(room4);
 		log.debug("Room 4 child scope exists: {}", room1.hasChildScope("room4"));
-	}	
-	
+	}
+
 	/**
 	 * Test for Issue 73
 	 * http://code.google.com/p/red5/issues/detail?id=73
