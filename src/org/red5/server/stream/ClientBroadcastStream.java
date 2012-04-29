@@ -18,8 +18,8 @@
 
 package org.red5.server.stream;
 
-
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.Collection;
@@ -660,21 +660,24 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.class, DefaultStreamFilenameGenerator.class);
 		// Generate filename
 		recordingFilename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
-		// Get file for that filename
-		File file;
+		// get file for that filename
+		File file = null;
 		if (generator.resolvesToAbsolutePath()) {
 			file = new File(recordingFilename);
 		} else {
-			file = scope.getContext().getResource(recordingFilename).getFile();
+			try {
+				file = scope.getContext().getResource(recordingFilename).getFile();
+			} catch (FileNotFoundException fnfe) {
+				log.debug("File not found: {}", fnfe);
+				file = new File(String.format("%s/webapps/%s/%s", System.getProperty("red5.root"), scope.getContextPath(), recordingFilename));
+			}
 		}
-		//
+		log.debug("File path: {}", file.getCanonicalPath());
 		log.debug("File exists: {} writable: {}", file.exists(), file.canWrite());
 		// If append mode is on...
 		if (!isAppend) {
 			if (file.exists()) {
-				// Per livedoc of FCS/FMS:
-				// When "live" or "record" is used,
-				// any previously recorded stream with the same stream URI is deleted.
+				// when "live" or "record" is used, any previously recorded stream with the same stream URI is deleted.
 				if (!file.delete()) {
 					throw new IOException(String.format("File: %s could not be deleted", file.getName()));
 				}
@@ -683,9 +686,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			if (file.exists()) {
 				appending = true;
 			} else {
-				// Per livedoc of FCS/FMS:
-				// If a recorded stream at the same URI does not already exist,
-				// "append" creates the stream as though "record" was passed.
+				// if a recorded stream at the same URI does not already exist, "append" creates the stream as though "record" was passed.
 				isAppend = false;
 			}
 		}
@@ -986,6 +987,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		} catch (Exception e) {
 			log.warn("Exception unregistering", e);
 		}
-	}	
-	
+	}
+
 }
