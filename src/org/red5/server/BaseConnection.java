@@ -30,11 +30,12 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
-import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
+import org.red5.server.api.scope.IBasicScope;
+import org.red5.server.api.scope.IScope;
+import org.red5.server.scope.Scope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -21,7 +21,7 @@ package org.red5.io;
 import java.io.File;
 import java.util.Set;
 
-import org.red5.server.api.IScopeService;
+import org.red5.server.api.scope.IScopeService;
 
 /**
  * Scope service extension that provides method to get streamable file services set
@@ -33,10 +33,10 @@ public interface IStreamableFileFactory extends IScopeService {
 	public abstract IStreamableFileService getService(File fp);
 
 	/**
-     * Getter for services
-     *
-     * @return  Set of streamable file services
-     */
-    public abstract Set<IStreamableFileService> getServices();
+	 * Getter for services
+	 *
+	 * @return  Set of streamable file services
+	 */
+	public abstract Set<IStreamableFileService> getServices();
 
 }

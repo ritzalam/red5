@@ -24,14 +24,15 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.red5.server.Context;
-import org.red5.server.Scope;
 import org.red5.server.api.scheduling.ISchedulingService;
+import org.red5.server.api.scope.ScopeType;
 import org.red5.server.api.stream.OperationNotSupportedException;
 import org.red5.server.api.stream.support.SimplePlayItem;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageOutput;
 import org.red5.server.messaging.IProvider;
 import org.red5.server.messaging.OOBControlMessage;
+import org.red5.server.scope.Scope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.AbstractDependencyInjectionSpringContextTests;
@@ -42,12 +43,12 @@ public class PlaylistSubscriberStreamTest extends AbstractDependencyInjectionSpr
 	protected static Logger log = LoggerFactory.getLogger(PlaylistSubscriberStreamTest.class);
 
 	private static PlaylistSubscriberStream pss;
-	
+
 	@Override
 	protected String[] getConfigLocations() {
 		return new String[] { "org/red5/server/stream/PlaylistSubscriberStreamTest.xml" };
 	}
-	
+
 	@Override
 	protected void onSetUp() throws Exception {
 		System.out.println("onSetUp");
@@ -100,7 +101,7 @@ public class PlaylistSubscriberStreamTest extends AbstractDependencyInjectionSpr
 	}
 
 	@Test
-	public void testPause() {		
+	public void testPause() {
 		System.out.println("testPause");
 		long sent = pss.getBytesSent();
 		pss.pause((int) sent);
@@ -110,7 +111,7 @@ public class PlaylistSubscriberStreamTest extends AbstractDependencyInjectionSpr
 	public void testResume() {
 		System.out.println("testResume");
 		long sent = pss.getBytesSent();
-		pss.resume((int) sent);		
+		pss.resume((int) sent);
 	}
 
 	@Test
@@ -121,7 +122,7 @@ public class PlaylistSubscriberStreamTest extends AbstractDependencyInjectionSpr
 			pss.seek((int) (sent * 2));
 		} catch (OperationNotSupportedException e) {
 			log.warn("Exception {}", e);
-		}		
+		}
 	}
 
 	@Test
@@ -145,23 +146,27 @@ public class PlaylistSubscriberStreamTest extends AbstractDependencyInjectionSpr
 	public void testSetItem() {
 		log.error("Not yet implemented -- get on that");
 	}
-	
+
 	@Test
-	public void testStop() {		
+	public void testStop() {
 		System.out.println("testStop");
 		pss.stop();
-	}	
-	
+	}
+
 	@Test
-	public void testClose() {		
+	public void testClose() {
 		System.out.println("testClose");
 		pss.close();
-	}	
-	
-	private class DummyScope extends Scope {
-
 	}
-	
+
+	private class DummyScope extends Scope {
+		
+		DummyScope() {
+			super(new Scope.Builder(null, ScopeType.ROOM, "dummy", false));
+		}
+		
+	}
+
 	private class DummyMessageOut implements IMessageOutput {
 
 		public List<IProvider> getProviders() {
@@ -170,12 +175,11 @@ public class PlaylistSubscriberStreamTest extends AbstractDependencyInjectionSpr
 		}
 
 		public void pushMessage(IMessage message) throws IOException {
-			System.out.println("pushMessage: " + message);	
+			System.out.println("pushMessage: " + message);
 		}
 
-		public void sendOOBControlMessage(IProvider provider,
-				OOBControlMessage oobCtrlMsg) {
-			System.out.println("sendOOBControlMessage");			
+		public void sendOOBControlMessage(IProvider provider, OOBControlMessage oobCtrlMsg) {
+			System.out.println("sendOOBControlMessage");
 		}
 
 		public boolean subscribe(IProvider provider, Map<String, Object> paramMap) {

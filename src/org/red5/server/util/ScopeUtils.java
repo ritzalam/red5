@@ -16,11 +16,17 @@
  * limitations under the License.
  */
 
-package org.red5.server.api;
+package org.red5.server.util;
 
 import java.lang.reflect.Field;
 
+import org.red5.server.api.IContext;
 import org.red5.server.api.persistence.IPersistable;
+import org.red5.server.api.scope.IBasicScope;
+import org.red5.server.api.scope.IScope;
+import org.red5.server.api.scope.IScopeHandler;
+import org.red5.server.api.scope.IScopeService;
+import org.red5.server.api.scope.ScopeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -31,12 +37,6 @@ import org.springframework.context.ApplicationContext;
 public class ScopeUtils {
 
 	private static final Logger log = LoggerFactory.getLogger(ScopeUtils.class);
-
-	private static final int GLOBAL = 0x00;
-
-	private static final int APPLICATION = 0x01;
-
-	private static final int ROOM = 0x02;
 
 	private static final String SERVICE_CACHE_PREFIX = "__service_cache:";
 
@@ -107,7 +107,7 @@ public class ScopeUtils {
 	 */
 	public static IScope findApplication(IScope from) {
 		IScope current = from;
-		while (current.hasParent() && current.getDepth() != APPLICATION) {
+		while (current.hasParent() && !current.getType().equals(ScopeType.APPLICATION)) {
 			current = current.getParent();
 		}
 		return current;
@@ -156,7 +156,7 @@ public class ScopeUtils {
 	 *         <code>false</code> otherwise.
 	 */
 	public static boolean isGlobal(IBasicScope scope) {
-		return scope.getDepth() == GLOBAL;
+		return scope.getType().equals(ScopeType.GLOBAL);
 	}
 
 	/**
@@ -168,7 +168,7 @@ public class ScopeUtils {
 	 *         <code>false</code> otherwise.
 	 */
 	public static boolean isApp(IBasicScope scope) {
-		return scope.getDepth() == APPLICATION;
+		return scope.getType().equals(ScopeType.APPLICATION);
 	}
 
 	/**
@@ -180,7 +180,7 @@ public class ScopeUtils {
 	 *         otherwise.
 	 */
 	public static boolean isRoom(IBasicScope scope) {
-		return scope.getDepth() >= ROOM;
+		return scope.getType().equals(ScopeType.ROOM);
 	}
 
 	/**
@@ -257,7 +257,6 @@ public class ScopeUtils {
 	}
 
 	public static Object getScopeService(IScope scope, Class<?> intf, Class<?> defaultClass, boolean checkHandler) {
-		//log.trace("Classloaders - TCL: {} Default: {}", Thread.currentThread().getContextClassLoader(), (defaultClass != null ? defaultClass.getClassLoader(): null));
 		if (scope == null || intf == null) {
 			return null;
 		}
@@ -266,7 +265,7 @@ public class ScopeUtils {
 
 		String attr = IPersistable.TRANSIENT_PREFIX + SERVICE_CACHE_PREFIX + intf.getCanonicalName();
 		if (scope.hasAttribute(attr)) {
-			// Return cached service
+			// return cached service
 			return scope.getAttribute(attr);
 		}
 
@@ -279,7 +278,6 @@ public class ScopeUtils {
 					handler = scopeHandler;
 					break;
 				}
-
 				if (!current.hasParent()) {
 					break;
 				}
@@ -288,24 +286,19 @@ public class ScopeUtils {
 		}
 
 		if (handler == null && IScopeService.class.isAssignableFrom(intf)) {
-			// We got an IScopeService, try to lookup bean
+			// we've got an IScopeService, try to lookup bean
 			Field key = null;
 			Object serviceName = null;
 			try {
 				key = intf.getField("BEAN_NAME");
 				serviceName = key.get(null);
-				if (!(serviceName instanceof String)) {
-					serviceName = null;
+				if (serviceName instanceof String) {
+					handler = getScopeService(scope, (String) serviceName, defaultClass);
 				}
 			} catch (Exception e) {
 				log.debug("No string field 'BEAN_NAME' in that interface");
 			}
-
-			if (serviceName != null) {
-				handler = getScopeService(scope, (String) serviceName, defaultClass);
-			}
 		}
-
 		if (handler == null && defaultClass != null) {
 			try {
 				handler = defaultClass.newInstance();
@@ -313,8 +306,7 @@ public class ScopeUtils {
 				log.error("", e);
 			}
 		}
-
-		// Cache service
+		// cache service
 		scope.setAttribute(attr, handler);
 		return handler;
 	}

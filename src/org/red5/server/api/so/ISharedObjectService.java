@@ -20,8 +20,8 @@ package org.red5.server.api.so;
 
 import java.util.Set;
 
-import org.red5.server.api.IScope;
-import org.red5.server.api.IScopeService;
+import org.red5.server.api.scope.IScope;
+import org.red5.server.api.scope.IScopeService;
 
 /**
  * Service that manages shared objects for given scope.
@@ -48,8 +48,7 @@ public interface ISharedObjectService extends IScopeService {
 	 * @return <code>true</code> if the shared object was created, otherwise
 	 *         <code>false</code>
 	 */
-	public boolean createSharedObject(IScope scope, String name,
-			boolean persistent);
+	public boolean createSharedObject(IScope scope, String name, boolean persistent);
 
 	/**
 	 * Get a shared object by name.
@@ -68,8 +67,7 @@ public interface ISharedObjectService extends IScopeService {
 	 * @param persistent should the shared object be created persistent 
 	 * @return the shared object
 	 */
-	public ISharedObject getSharedObject(IScope scope, String name,
-			boolean persistent);
+	public ISharedObject getSharedObject(IScope scope, String name, boolean persistent);
 
 	/**
 	 * Check if a shared object exists.

@@ -24,6 +24,7 @@ import junit.framework.JUnit4TestAdapter;
 import org.junit.Test;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventListener;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectService;
 import org.red5.server.so.SharedObjectService;
@@ -37,7 +38,7 @@ public class SharedObjectTest extends BaseTest implements IEventListener {
 	protected String name = "testso";
 
 	/** {@inheritDoc} */
-    public void notifyEvent(IEvent event) {
+	public void notifyEvent(IEvent event) {
 		log.debug("Event: {}", event);
 	}
 

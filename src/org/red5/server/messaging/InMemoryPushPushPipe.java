@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public class InMemoryPushPushPipe extends AbstractPipe {
-	
+
 	private static final Logger log = LoggerFactory.getLogger(InMemoryPushPushPipe.class);
 
 	/** {@inheritDoc} */

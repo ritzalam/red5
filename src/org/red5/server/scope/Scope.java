@@ -16,38 +16,41 @@
  * limitations under the License.
  */
 
-package org.red5.server;
+package org.red5.server.scope;
 
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.Semaphore;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.openmbean.CompositeData;
 
 import org.apache.commons.lang3.StringUtils;
-import org.red5.server.api.IBasicScope;
+import org.red5.server.AttributeStore;
+import org.red5.server.Server;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IContext;
-import org.red5.server.api.IGlobalScope;
-import org.red5.server.api.IScope;
-import org.red5.server.api.IScopeAware;
-import org.red5.server.api.IScopeHandler;
 import org.red5.server.api.IServer;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.persistence.PersistenceUtils;
+import org.red5.server.api.scope.IBasicScope;
+import org.red5.server.api.scope.IBroadcastScope;
+import org.red5.server.api.scope.IGlobalScope;
+import org.red5.server.api.scope.IScope;
+import org.red5.server.api.scope.IScopeAware;
+import org.red5.server.api.scope.IScopeHandler;
+import org.red5.server.api.scope.ScopeType;
 import org.red5.server.api.statistics.IScopeStatistics;
 import org.red5.server.api.statistics.support.StatisticsCounter;
 import org.red5.server.jmx.mxbeans.ScopeMXBean;
@@ -59,14 +62,20 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
  * The scope object.
- * 
+ * <p>
  * A stateful object shared between a group of clients connected to the same
  * context path. Scopes are arranged in a hierarchical way, so its possible for
  * a scope to have a parent. If a client is connect to a scope then they are
  * also connected to its parent scope. The scope object is used to access
- * resources, shared object, streams, etc.
- * 
- * The following are all names for scopes: application, room, place, lobby.
+ * resources, shared object, streams, etc.</p>
+ * Scope layout:
+ * <pre>
+ *  /Global scope - Contains application scopes
+ *      /Application scope - Contains room, shared object, and stream scopes
+ *          /Room scope - Contains other room, shared object, and / or stream scopes
+ *              /Shared object scope - Contains shared object
+ *              /Broadcast stream scope - Contains a broadcast stream
+ * </pre>
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)
@@ -75,72 +84,6 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 @ManagedResource(objectName = "org.red5.server:type=Scope", description = "Scope")
 public class Scope extends BasicScope implements IScope, IScopeStatistics, ScopeMXBean {
 
-	/**
-	 * Iterator that filters strings by given prefix
-	 */
-	static class PrefixFilteringStringIterator implements Iterator<String> {
-		/**
-		 * Iterator
-		 */
-		private final Iterator<String> iterator;
-
-		/**
-		 * Next object
-		 */
-		private String next;
-
-		/**
-		 * Prefix
-		 */
-		private final String prefix;
-
-		/**
-		 * Creates prefix filtering string iterator from iterator and prefix
-		 * 
-		 * @param iterator Iterator
-		 * @param prefix prefix
-		 */
-		public PrefixFilteringStringIterator(Iterator<String> iterator, String prefix) {
-			//log.debug("Iterator: {} prefix: {}", iterator, prefix);
-			this.iterator = iterator;
-			this.prefix = prefix;
-		}
-
-		/** {@inheritDoc} */
-		public boolean hasNext() {
-			if (next != null) {
-				return true;
-			}
-			do {
-				next = (iterator.hasNext()) ? iterator.next() : null;
-			} while (next != null && !next.startsWith(prefix));
-			return next != null;
-		}
-
-		/** {@inheritDoc} */
-		public String next() {
-			if (next != null) {
-				final String result = next;
-				next = null;
-				return result.substring(prefix.length());
-			}
-			if (hasNext()) {
-				return next();
-			} else {
-				return null;
-			}
-		}
-
-		/** {@inheritDoc} */
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-
-	}
-
-	/**
-	 * Logger
-	 */
 	protected static Logger log = LoggerFactory.getLogger(Scope.class);
 
 	/**
@@ -154,14 +97,19 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	private boolean autoStart = true;
 
 	/**
-	 * Child scopes map (child scopes are named)
+	 * Child scopes
 	 */
-	private final ConcurrentMap<String, IBasicScope> children = new ConcurrentHashMap<String, IBasicScope>();
+	private final ConcurrentScopeSet<IBasicScope> children = new ConcurrentScopeSet<IBasicScope>();
 
 	/**
 	 * Clients and connection map
 	 */
 	private final ConcurrentMap<IClient, Set<IConnection>> clients = new ConcurrentHashMap<IClient, Set<IConnection>>();
+
+	/**
+	 * Storage for scope attributes
+	 */
+	protected final AttributeStore attributes = new AttributeStore();
 
 	/**
 	 * Statistics about clients connected to the scope.
@@ -210,10 +158,9 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 
 	/**
 	 * Lock for critical sections, to prevent concurrent modification. 
-	 * A "fairness" policy is used wherein the longest waiting thread
-	 * will be granted access before others.
+	 * A "fairness" policy is used wherein the longest waiting thread will be granted access before others.
 	 */
-	protected Lock lock = new ReentrantLock(true);
+	protected Semaphore lock = new Semaphore(1, true);
 
 	/**
 	 * Registered service handlers for this scope. The map is created on-demand
@@ -231,21 +178,11 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	}
 
 	/**
-	 * Creates unnamed scope
+	 * Creates a scope
 	 */
 	@ConstructorProperties(value = { "" })
 	public Scope() {
-		super();
-	}
-
-	/**
-	 * Creates scope with given name
-	 * 
-	 * @param name Scope name
-	 */
-	@ConstructorProperties({ "name" })
-	public Scope(String name) {
-		super(null, TYPE, name, false);
+		super(null, ScopeType.UNDEFINED, null, false);
 	}
 
 	/**
@@ -253,6 +190,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * 
 	 * @param builder
 	 */
+	@ConstructorProperties({ "builder" })
 	public Scope(Builder builder) {
 		super(builder.parent, builder.type, builder.name, builder.persistent);
 	}
@@ -266,45 +204,27 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 */
 	public boolean addChildScope(IBasicScope scope) {
 		log.debug("Add child: {}", scope);
-		if (hasChildScope(scope.getType(), scope.getName())) {
-			log.warn("Child scope already exists");
-			return false;
-		}
-		if (scope.getStore() == null) {
-			// child scope has no persistence store, use same class as parent.
-			try {
-				if (scope instanceof Scope) {
-					((Scope) scope).setPersistenceClass(persistenceClass);
+		if (!children.contains(scope)) {
+			if (scope.isValid()) {
+				log.debug("Add child scope: {} to {}", scope, this);
+				// if child scope has no persistence store, use same class as parent
+				if (scope.getStore() == null) {
+					try {
+						if (scope instanceof Scope) {
+							((Scope) scope).setPersistenceClass(persistenceClass);
+						}
+					} catch (Exception error) {
+						log.error("Could not set persistence class.", error);
+					}
 				}
-			} catch (Exception error) {
-				log.error("Could not set persistence class.", error);
+				return children.add(scope);
+			} else {
+				log.warn("Invalid scope was not added: {}", scope);
 			}
+		} else {
+			log.warn("Child scope already exists");
 		}
-		if (hasHandler() && !getHandler().addChildScope(scope)) {
-			log.debug("Failed to add child scope: {} to {}", scope, this);
-			return false;
-		}
-		if (scope instanceof IScope) {
-			// start the scope
-			if (hasHandler() && !getHandler().start((IScope) scope)) {
-				log.debug("Failed to start child scope: {} in {}", scope, this);
-				return false;
-			}
-
-			final IServer server = getServer();
-			if (server instanceof Server) {
-				((Server) server).notifyScopeCreated((IScope) scope);
-			}
-		}
-		log.debug("Add child scope: {} to {}", scope, this);
-		String key = scope.getType() + SEPARATOR + scope.getName();
-		//do a check first
-		if (children.get(key) == null) {
-			//this happens atomically
-			children.putIfAbsent(key, scope);
-			subscopeStats.increment();
-		}
-		return true;
+		return false;
 	}
 
 	/**
@@ -337,14 +257,14 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		}
 		final IClient client = conn.getClient();
 		if (!conn.isConnected()) {
-			// Timeout while connecting client
+			// timeout while connecting client
 			return false;
 		}
-		//we would not get this far if there is no handler
+		// we would not get this far if there is no handler
 		if (hasHandler() && !getHandler().join(client, this)) {
 			return false;
 		}
-		//checking the connection again? why?
+		// checking the connection again? why?
 		if (!conn.isConnected()) {
 			// Timeout while connecting client
 			return false;
@@ -379,8 +299,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * @return <code>true</code> on success, <code>false</code> otherwise
 	 */
 	public boolean createChildScope(String name) {
-		final Scope scope = new Scope(name);
-		scope.setParent(this);
+		final Scope scope = new Builder(this, ScopeType.ROOM, name, false).build();
 		return addChildScope(scope);
 	}
 
@@ -396,13 +315,11 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			// Because handler can be null when there is a parent handler
 			getHandler().stop(this);
 		}
-		// TODO: kill all child scopes
-		Set<Map.Entry<String, IBasicScope>> entries = children.entrySet();
-		for (Map.Entry<String, IBasicScope> entry : entries) {
-			log.debug("Stopping child scope: {}", entry.getKey());
-			IBasicScope basic = entry.getValue();
-			if (basic instanceof Scope) {
-				((Scope) basic).uninit();
+		// kill all child scopes
+		for (IBasicScope child : children) {
+			removeChildScope(child);
+			if (child instanceof Scope) {
+				((Scope) child).uninit();
 			}
 		}
 	}
@@ -475,10 +392,40 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				try {
 					conn.dispatchEvent(event);
 				} catch (RuntimeException e) {
-					log.error("", e);
+					log.error("Exception during dispatching event: {}", event, e);
 				}
 			}
 		}
+	}
+
+	/** {@inheritDoc} */
+	public Object getAttribute(String name) {
+		return attributes.getAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	public boolean setAttribute(String name, Object value) {
+		return attributes.setAttribute(name, value);
+	}
+
+	/** {@inheritDoc} */
+	public boolean hasAttribute(String name) {
+		return attributes.hasAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	public boolean removeAttribute(String name) {
+		return attributes.removeAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	public Set<String> getAttributeNames() {
+		return attributes.getAttributeNames();
+	}
+
+	/** {@inheritDoc} */
+	public Map<String, Object> getAttributes() {
+		return attributes.getAttributes();
 	}
 
 	/** {@inheritDoc} */
@@ -497,27 +444,55 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	}
 
 	/**
+	 * Return the broadcast scope for a given name
+	 * 
+	 * @param name
+	 * @return broadcast scope or null if not found
+	 */
+	public IBroadcastScope getBroadcastScope(String name) {
+		for (IBasicScope child : children) {
+			if (child.getType().equals(ScopeType.BROADCAST) && child.getName().equals(name)) {
+				log.debug("Returning broadcast scope");
+				return (IBroadcastScope) child;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Return base scope of given type with given name
 	 * 
 	 * @param type Scope type
 	 * @param name Scope name
 	 * @return Basic scope object
 	 */
-	public IBasicScope getBasicScope(String type, String name) {
-		return children.get(type + SEPARATOR + name);
+	public IBasicScope getBasicScope(ScopeType type, String name) {
+		for (IBasicScope child : children) {
+			if (child.getType().equals(type) && child.getName().equals(name)) {
+				log.debug("Returning basic scope");
+				return child;
+			}
+		}
+		return null;
 	}
 
 	/**
-	 * Return basic scope names iterator
+	 * Return basic scope names matching given type
 	 * 
 	 * @param type Scope type
-	 * @return Iterator
+	 * @return set of scope names 
 	 */
-	public Iterator<String> getBasicScopeNames(String type) {
-		if (type == null) {
-			return children.keySet().iterator();
+	public Set<String> getBasicScopeNames(ScopeType type) {
+		if (type != null) {
+			Set<String> names = new HashSet<String>();
+			for (IBasicScope child : children) {
+				if (child.getType().equals(type)) {
+					names.add(child.getName());
+				}
+			}
+			return names;
 		} else {
-			return new PrefixFilteringStringIterator(children.keySet().iterator(), type + SEPARATOR);
+			return getScopeNames();
 		}
 	}
 
@@ -691,19 +666,13 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * @return Child scope with given name
 	 */
 	public IScope getScope(String name) {
-		// Synchronize removal and retrieval of child scopes
-		IScope scope;
-
-		// Obtain lock
-		lock();
-		try {
-			// Get the scope
-			scope = (IScope) children.get(TYPE + SEPARATOR + name);
-		} finally {
-			unlock();
+		for (IBasicScope child : children) {
+			if (child.getName().equals(name)) {
+				log.debug("Returning child scope");
+				return (IScope) child;
+			}
 		}
-
-		return scope;
+		return null;
 	}
 
 	/**
@@ -711,9 +680,13 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * 
 	 * @return Child scope names iterator
 	 */
-	public Iterator<String> getScopeNames() {
-		//log.debug("Children: {}", children);
-		return new PrefixFilteringStringIterator(children.keySet().iterator(), TYPE + SEPARATOR);
+	public Set<String> getScopeNames() {
+		log.debug("Children: {}", children);
+		Set<String> names = new HashSet<String>();
+		for (IBasicScope child : children) {
+			names.add(child.getName());
+		}
+		return names;
 	}
 
 	/**
@@ -812,25 +785,14 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 */
 	public boolean hasChildScope(String name) {
 		log.debug("Has child scope? {} in {}", name, this);
-
-		boolean has;
-
-		// Obtain lock
-		lock();
-		try {
-			has = children.containsKey(TYPE + SEPARATOR + name);
-			if (log.isDebugEnabled()) {
-				if (has) {
-					log.debug("Child scope exists");
-				} else {
-					log.debug("Child scope does not exist");
-				}
+		for (IBasicScope child : children) {
+			if (child.getName().equals(name)) {
+				log.debug("Child scope exists");
+				return true;
 			}
-		} finally {
-			unlock();
 		}
-
-		return has;
+		log.debug("Child scope does not exist");
+		return false;
 	}
 
 	/**
@@ -841,18 +803,15 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * @return <code>true</code> if scope has child node with given name and
 	 *         type, <code>false</code> otherwise
 	 */
-	public boolean hasChildScope(String type, String name) {
-		boolean has;
-
-		// Obtain lock
-		lock();
-		try {
-			has = children.containsKey(type + SEPARATOR + name);
-		} finally {
-			unlock();
+	public boolean hasChildScope(ScopeType type, String name) {
+		log.debug("Has child scope? {} in {}", name, this);
+		for (IBasicScope child : children) {
+			if (child.getName().equals(name) && child.getType().equals(type)) {
+				log.debug("Child scope exists");
+				return true;
+			}
 		}
-
-		return has;
+		return false;
 	}
 
 	/**
@@ -890,13 +849,15 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * Initialization actions, start if autostart is set to <code>true</code>
 	 */
 	public void init() {
-		log.debug("Init scope");
+		log.debug("Init scope: {} parent: {}", name, parent);
 		if (hasParent()) {
-			if (!parent.hasChildScope(name)) {
-				if (!parent.addChildScope(this)) {
-					return;
-				}
+			if (parent.addChildScope(this)) {
+				log.debug("Scope added to parent");
+			} else {
+				return;
 			}
+		} else {
+			log.debug("Scope has no parent");
 		}
 		if (autoStart) {
 			start();
@@ -908,7 +869,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 */
 	public void uninit() {
 		log.debug("Un-init scope");
-		for (IBasicScope child : children.values()) {
+		for (IBasicScope child : children) {
 			if (child instanceof Scope) {
 				((Scope) child).uninit();
 			}
@@ -956,16 +917,6 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	}
 
 	/**
-	 * Child scopes iterator
-	 * 
-	 * @return Child scopes iterator
-	 */
-	@Override
-	public Iterator<IBasicScope> iterator() {
-		return children.values().iterator();
-	}
-
-	/**
 	 * Looks up connections for client
 	 * 
 	 * @param client Client
@@ -993,49 +944,24 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 */
 	public void removeChildScope(IBasicScope scope) {
 		log.debug("removeChildScope: {}", scope);
-		// Obtain lock
-		lock();
-
-		// Synchronize retrieval of the child scope (with removal)
-		try {
-			// Don't remove if reference if we have another one
-			if (hasChildScope(scope.getName()) && getScope(scope.getName()) != scope) {
-				log.warn("Being asked to remove wrong scope reference child scope is {} not {}", new Object[] { getScope(scope.getName()), scope });
-				return;
-			}
-			log.debug("Remove child scope: {} path: {}", scope, scope.getPath());
-			if (scope instanceof IScope) {
-				if (hasHandler()) {
-					getHandler().stop((IScope) scope);
-				}
-				subscopeStats.decrement();
-				// remove all children
-				Iterator<IBasicScope> iter = ((IScope) scope).iterator();
-				while (iter.hasNext()) {
-					((IScope) scope).removeChildScope(iter.next());
-				}	
-			}	
+		// don't remove if reference if we have another one
+		if (hasChildScope(scope.getName()) && getScope(scope.getName()) != scope) {
+			log.warn("Being asked to remove wrong scope reference child scope is {} not {}", new Object[] { getScope(scope.getName()), scope });
+		} else {
 			// remove from parent
-			children.remove(scope.getType() + SEPARATOR + scope.getName());
-		} finally {
-			unlock();
-		}
-
-		if (hasHandler()) {
-			log.debug("Remove child scope");
-			getHandler().removeChildScope(scope);
-		}
-		scope.setStore(null);
-
-		if (scope instanceof IScope) {
-			final IServer server = getServer();
-			if (server instanceof Server) {
-				((Server) server).notifyScopeRemoved((IScope) scope);
+			children.remove(scope);
+			if (scope instanceof Scope) {
+				unregisterJMX();
 			}
 		}
+	}
 
-		if (scope instanceof Scope) {
-			unregisterJMX();
+	/**
+	 * Removes all the child scopes
+	 */
+	public void removeChildren() {
+		for (IBasicScope child : children) {
+			removeChildScope(child);
 		}
 	}
 
@@ -1134,9 +1060,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	public void setPersistenceClass(String persistenceClass) throws Exception {
 		this.persistenceClass = persistenceClass;
 		if (persistenceClass != null) {
-			setStore(PersistenceUtils.getPersistenceStore(this, persistenceClass));
-		} else {
-			setStore(null);
+			store = PersistenceUtils.getPersistenceStore(this, persistenceClass);
 		}
 	}
 
@@ -1150,22 +1074,22 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		log.debug("Start scope");
 		boolean result = false;
 		if (enabled && !running) {
+			// check for any handlers
 			if (hasHandler()) {
-				// Only start if scope handler allows it
-				lock();
 				try {
+					lock.acquire();
 					// if we dont have a handler of our own dont try to start it
 					if (handler != null) {
 						result = handler.start(this);
 					}
 				} catch (Throwable e) {
-					log.error("Could not start scope {}. {}", this, e);
+					log.error("Could not start scope {} {}", this, e);
 				} finally {
-					unlock();
+					lock.release();
 				}
 			} else {
 				// Always start scopes without handlers
-				log.debug("Scope {} has no handler, allowing start.", this);
+				log.debug("Scope {} has no handler, allowing start", this);
 				result = true;
 			}
 			running = result;
@@ -1178,17 +1102,15 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 */
 	public void stop() {
 		log.debug("Stop scope");
-		if (enabled && running && hasHandler()) {
-			lock();
+		if (enabled && running && handler != null) {
 			try {
+				lock.acquire();
 				// if we dont have a handler of our own dont try to stop it
-				if (handler != null) {
-					handler.stop(this);
-				}
+				handler.stop(this);
 			} catch (Throwable e) {
 				log.error("Could not stop scope {}", this, e);
 			} finally {
-				unlock();
+				lock.release();
 			}
 		}
 		running = false;
@@ -1235,14 +1157,6 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		}
 	}
 
-	public void lock() {
-		lock.lock();
-	}
-
-	public void unlock() {
-		lock.unlock();
-	}
-
 	//for debugging
 	public void dump() {
 		if (log.isDebugEnabled()) {
@@ -1250,16 +1164,17 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			log.debug("Running: {}", running);
 			if (hasParent()) {
 				log.debug("Parent: {}", parent);
-				Iterator<String> names = parent.getBasicScopeNames(null);
-				while (names.hasNext()) {
-					String sib = names.next();
+				Set<String> names = parent.getBasicScopeNames(null);
+				log.debug("Sibling count: {}", names.size());
+				for (String sib : names) {
 					log.debug("Siblings - {}", sib);
 				}
 				names = null;
 			}
 			log.debug("Handler: {}", handler);
-			for (Map.Entry<String, IBasicScope> entry : children.entrySet()) {
-				log.debug("Children - {} = {}", entry.getKey(), entry.getValue());
+			log.debug("Child count: {}", children.size());
+			for (IBasicScope entry : children) {
+				log.debug("Child: {}", entry);
 			}
 		}
 	}
@@ -1298,14 +1213,99 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * @return Scope class instance
 	 */
 	public static Scope from(CompositeData cd) {
-		Scope instance = new Scope();
+		IScope parent = null;
+		ScopeType type = ScopeType.UNDEFINED;
+		String name = null;
+		boolean persistent = false;
+		if (cd.containsKey("parent")) {
+			parent = (IScope) cd.get("parent");
+		}
+		if (cd.containsKey("type")) {
+			type = (ScopeType) cd.get("type");
+		}
 		if (cd.containsKey("name")) {
-			Object name = cd.get("name");
-			if (name != null) {
-				instance = new Scope((String) name);
+			name = (String) cd.get("name");
+		}
+		if (cd.containsKey("persistent")) {
+			persistent = (Boolean) cd.get("persistent");
+		}
+		return new Scope(new Builder(parent, type, name, persistent));
+	}
+
+	@SuppressWarnings({ "hiding", "serial" })
+	private final class ConcurrentScopeSet<IBasicScope> extends CopyOnWriteArraySet<IBasicScope> {
+
+		@Override
+		public boolean add(IBasicScope scope) {
+			if (scope instanceof IScope) {
+				return add((IScope) scope);
+			} else {
+				log.debug("Adding basic scope to scope set");
+				if (hasHandler() && !getHandler().addChildScope((org.red5.server.api.scope.IBasicScope) scope)) {
+					log.debug("Failed to add child scope: {} to {}", scope, this);
+					return false;
+				}
+				boolean added = super.add(scope);
+				if (added) {
+					subscopeStats.increment();
+				}
+				return added;
 			}
 		}
-		return instance;
+
+		public boolean add(IScope scope) {
+			log.debug("Adding scope to scope set");
+			if (hasHandler()) {
+				// add the scope to the handler
+				if (!getHandler().addChildScope(scope)) {
+					log.debug("Failed to add child scope: {} to {}", scope, this);
+					return false;
+				}
+				// start the scope
+				if (!getHandler().start((IScope) scope)) {
+					log.debug("Failed to start child scope: {} in {}", scope, this);
+					return false;
+				}
+			}
+			// add the entry
+			@SuppressWarnings("unchecked")
+			boolean added = super.add((IBasicScope) scope);
+			if (added) {
+				subscopeStats.increment();
+				// post notification
+				IServer server = getServer();
+				((Server) server).notifyScopeCreated((IScope) scope);
+			}
+			return added;
+		}
+
+		@Override
+		public boolean remove(Object scope) {
+			log.debug("Remove child scope: {}", scope);
+			if (hasHandler()) {
+				log.debug("Remove child scope");
+				getHandler().removeChildScope((org.red5.server.api.scope.IBasicScope) scope);
+			}
+			if (scope instanceof IScope) {
+				if (hasHandler()) {
+					getHandler().stop((IScope) scope);
+				}
+				// remove all children
+				((IScope) scope).removeChildren();
+				// post notification
+				final IServer server = getServer();
+				if (server instanceof Server) {
+					((Server) server).notifyScopeRemoved((IScope) scope);
+				}
+			}
+			// remove the entry
+			boolean removed = super.remove(scope);
+			if (removed) {
+				subscopeStats.decrement();
+			}
+			return removed;
+		}
+
 	}
 
 	/**
@@ -1314,20 +1314,13 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	public final static class Builder {
 		private IScope parent;
 
-		private String type;
+		private ScopeType type;
 
 		private String name;
 
 		private boolean persistent;
 
-		public Builder() {
-		}
-
-		public Builder(String name) {
-			this.name = name;
-		}
-
-		public Builder(IScope parent, String type, String name, boolean persistent) {
+		public Builder(IScope parent, ScopeType type, String name, boolean persistent) {
 			this.parent = parent;
 			this.type = type;
 			this.name = name;

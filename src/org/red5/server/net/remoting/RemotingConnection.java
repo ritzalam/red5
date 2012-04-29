@@ -34,13 +34,13 @@ import javax.servlet.http.HttpSession;
 
 import org.red5.server.Client;
 import org.red5.server.api.IAttributeStore;
-import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
-import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.remoting.IRemotingConnection;
 import org.red5.server.api.remoting.IRemotingHeader;
+import org.red5.server.api.scope.IBasicScope;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.net.remoting.message.RemotingPacket;
 import org.red5.server.net.servlet.ServletUtils;
 

@@ -18,7 +18,7 @@
 
 package org.red5.server.api.so;
 
-import org.red5.server.api.IBasicScope;
+import org.red5.server.api.scope.IBasicScope;
 import org.red5.server.api.statistics.ISharedObjectStatistics;
 
 /**
@@ -29,8 +29,6 @@ import org.red5.server.api.statistics.ISharedObjectStatistics;
  */
 
 public interface ISharedObject extends IBasicScope, ISharedObjectBase, ISharedObjectSecurityService {
-
-	public static final String TYPE = "SharedObject";
 
 	/**
 	 * Prevent shared object from being released. Each call to <code>acquire</code>

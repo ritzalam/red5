@@ -21,7 +21,7 @@ package org.red5.server.api.scheduling;
 import java.util.Date;
 import java.util.List;
 
-import org.red5.server.api.IScopeService;
+import org.red5.server.api.scope.IScopeService;
 
 /**
  * Service that supports periodic execution of jobs, adding, removing and

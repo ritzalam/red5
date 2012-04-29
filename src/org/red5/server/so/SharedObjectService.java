@@ -18,36 +18,32 @@
 
 package org.red5.server.so;
 
-import static org.red5.server.api.so.ISharedObject.TYPE;
-
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
-import org.red5.server.api.IBasicScope;
-import org.red5.server.api.IScope;
 import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.api.persistence.PersistenceUtils;
+import org.red5.server.api.scope.IBasicScope;
+import org.red5.server.api.scope.IScope;
+import org.red5.server.api.scope.ScopeType;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectService;
 import org.red5.server.persistence.RamPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 /**
  * Shared object service
  */
 public class SharedObjectService implements ISharedObjectService, InitializingBean, DisposableBean {
-        
-        public static ExecutorService SHAREDOBJECT_EXECUTOR;
+
+	public static ExecutorService SHAREDOBJECT_EXECUTOR;
 
 	/**
 	 * Logger
@@ -69,7 +65,7 @@ public class SharedObjectService implements ISharedObjectService, InitializingBe
 	 */
 	private String persistenceClassName = "org.red5.server.persistence.RamPersistence";
 
-        private int executorThreadPoolSize = 8;
+	private int executorThreadPoolSize = 8;
 
 	public void setExecutorThreadPoolSize(int value) {
 		executorThreadPoolSize = value;
@@ -112,9 +108,7 @@ public class SharedObjectService implements ISharedObjectService, InitializingBe
 				store = PersistenceUtils.getPersistenceStore(scope, persistenceClassName);
 				log.info("Created persistence store {} for shared objects.", store);
 			} catch (Exception err) {
-				log.warn(
-						"Could not create persistence store ({}) for shared objects, falling back to Ram persistence.",
-						persistenceClassName, err);
+				log.warn("Could not create persistence store ({}) for shared objects, falling back to Ram persistence.", persistenceClassName, err);
 				store = new RamPersistence(scope);
 			}
 			scope.setAttribute(SO_PERSISTENCE_STORE, store);
@@ -138,7 +132,7 @@ public class SharedObjectService implements ISharedObjectService, InitializingBe
 
 	/** {@inheritDoc} */
 	public ISharedObject getSharedObject(IScope scope, String name) {
-		return (ISharedObject) scope.getBasicScope(TYPE, name);
+		return (ISharedObject) scope.getBasicScope(ScopeType.SHARED_OBJECT, name);
 	}
 
 	/** {@inheritDoc} */
@@ -151,19 +145,12 @@ public class SharedObjectService implements ISharedObjectService, InitializingBe
 
 	/** {@inheritDoc} */
 	public Set<String> getSharedObjectNames(IScope scope) {
-		Set<String> result = new HashSet<String>();
-		Iterator<String> iter = scope.getBasicScopeNames(TYPE);
-		while (iter.hasNext()) {
-			result.add(iter.next());
-		}
-		return result;
+		return scope.getBasicScopeNames(ScopeType.SHARED_OBJECT);
 	}
 
 	/** {@inheritDoc} */
 	public boolean hasSharedObject(IScope scope, String name) {
-		//Scope.hasChildScope uses a Reentrant lock and thus does not require
-		//any additional synchronization
-		return scope.hasChildScope(TYPE, name);
+		return scope.hasChildScope(ScopeType.SHARED_OBJECT, name);
 	}
 
 	/** {@inheritDoc} */
@@ -184,7 +171,7 @@ public class SharedObjectService implements ISharedObjectService, InitializingBe
 				// followed by any two characters. If a directory name matches
 				// this specification, all the shared objects within this directory
 				// are cleared.
-				result = ((ISharedObject) scope.getBasicScope(TYPE, name)).clear();
+				result = ((ISharedObject) scope.getBasicScope(ScopeType.SHARED_OBJECT, name)).clear();
 			}
 		}
 		return result;
@@ -192,13 +179,13 @@ public class SharedObjectService implements ISharedObjectService, InitializingBe
 
 	public void destroy() throws Exception {
 		//disable new tasks from being submitted
-		SHAREDOBJECT_EXECUTOR.shutdown(); 
+		SHAREDOBJECT_EXECUTOR.shutdown();
 		try {
 			//wait a while for existing tasks to terminate
-			if (!SHAREDOBJECT_EXECUTOR.awaitTermination(3, TimeUnit.SECONDS)) {
+			if (!SHAREDOBJECT_EXECUTOR.awaitTermination(2, TimeUnit.SECONDS)) {
 				SHAREDOBJECT_EXECUTOR.shutdownNow(); // cancel currently executing tasks
 				//wait a while for tasks to respond to being canceled
-				if (!SHAREDOBJECT_EXECUTOR.awaitTermination(3, TimeUnit.SECONDS)) {
+				if (!SHAREDOBJECT_EXECUTOR.awaitTermination(1, TimeUnit.SECONDS)) {
 					System.err.println("Notifier pool did not terminate");
 				}
 			}
@@ -208,6 +195,6 @@ public class SharedObjectService implements ISharedObjectService, InitializingBe
 			// preserve interrupt status
 			Thread.currentThread().interrupt();
 		}
-	}	
+	}
 
 }

@@ -47,8 +47,7 @@ import org.red5.server.api.event.IEventListener;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 
-public interface ISharedObjectBase extends ISharedObjectHandlerProvider,
-		ICastingAttributeStore {
+public interface ISharedObjectBase extends ISharedObjectHandlerProvider, ICastingAttributeStore {
 
 	/**
 	 * Returns the version of the shared object. The version is incremented
@@ -92,8 +91,8 @@ public interface ISharedObjectBase extends ISharedObjectHandlerProvider,
 	/**
 	 * Start performing multiple updates to the shared object from a connected
 	 * client.
-     * @param source      Update events listener
-     */
+	 * @param source      Update events listener
+	 */
 	public void beginUpdate(IEventListener source);
 
 	/**

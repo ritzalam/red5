@@ -31,9 +31,10 @@ import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Serializer;
 import org.red5.logging.Red5LoggerFactory;
-import org.red5.server.api.IScope;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
+import org.red5.server.api.scope.IBroadcastScope;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.api.stream.IAudioStreamCodec;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IPlayItem;
@@ -184,11 +185,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 * Scheduled future job that makes sure messages are sent to the client.
 	 */
 	private volatile ScheduledFuture<?> pullAndPushFuture;
-
-	/**
-	 * Monitor to guard setup and teardown of pull/push thread.
-	 */
-	//private Object pullAndPushMonitor = new Object();
 
 	/**
 	 * Monitor guarding completion of a given push/pull run.
@@ -386,7 +382,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				//drop all frames up to the next keyframe
 				videoFrameDropper.reset(IFrameDropper.SEND_KEYFRAMES_CHECK);
 				if (msgIn instanceof IBroadcastScope) {
-					IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn).getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
+					IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn).getClientBroadcastStream();
 					if (stream != null && stream.getCodecInfo() != null) {
 						IVideoStreamCodec videoCodec = stream.getCodecInfo().getVideoCodec();
 						if (videoCodec != null) {
@@ -501,7 +497,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		streamOffset = 0;
 		streamStartTS = -1;
 		//get the stream so that we can grab any metadata and decoder configs
-		IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn).getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
+		IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn).getClientBroadcastStream();
 		//prevent an NPE when a play list is created and then immediately flushed
 		if (stream != null) {
 			Notify metaData = stream.getMetaData();
@@ -1330,7 +1326,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				if (body instanceof VideoData) {
 					IVideoStreamCodec videoCodec = null;
 					if (msgIn instanceof IBroadcastScope) {
-						IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn).getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
+						IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn).getClientBroadcastStream();
 						if (stream != null && stream.getCodecInfo() != null) {
 							videoCodec = stream.getCodecInfo().getVideoCodec();
 						}
@@ -1750,9 +1746,10 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 					// We couldn't get more data, stop stream.
 					log.error("Error while getting message", err);
 					runDeferredStop();
+				} finally {
+					// reset running flag
+					pushPullRunning.compareAndSet(true, false);
 				}
-				// reset running flag
-				pushPullRunning.compareAndSet(true, false);
 			} else {
 				log.debug("Push / pull already running");
 			}

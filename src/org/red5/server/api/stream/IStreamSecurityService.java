@@ -20,7 +20,7 @@ package org.red5.server.api.stream;
 
 import java.util.Set;
 
-import org.red5.server.api.IScopeService;
+import org.red5.server.api.scope.IScopeService;
 
 /**
  * Service that supports protecting access to streams.
@@ -41,40 +41,40 @@ public interface IStreamSecurityService extends IScopeService {
 	 * @param handler Handler to add.
 	 */
 	public void registerStreamPublishSecurity(IStreamPublishSecurity handler);
-	
+
 	/**
 	 * Remove handler that protects stream publishing.
 	 * 
 	 * @param handler Handler to remove.
 	 */
 	public void unregisterStreamPublishSecurity(IStreamPublishSecurity handler);
-	
+
 	/**
 	 * Get handlers that protect stream publishing.
 	 * 
 	 * @return list of handlers
 	 */
 	public Set<IStreamPublishSecurity> getStreamPublishSecurity();
-	
+
 	/**
 	 * Add handler that protects stream playback.
 	 * 
 	 * @param handler Handler to add.
 	 */
 	public void registerStreamPlaybackSecurity(IStreamPlaybackSecurity handler);
-	
+
 	/**
 	 * Remove handler that protects stream playback.
 	 * 
 	 * @param handler Handler to remove.
 	 */
 	public void unregisterStreamPlaybackSecurity(IStreamPlaybackSecurity handler);
-	
+
 	/**
 	 * Get handlers that protect stream plaback.
 	 * 
 	 * @return list of handlers
 	 */
 	public Set<IStreamPlaybackSecurity> getStreamPlaybackSecurity();
-	
+
 }

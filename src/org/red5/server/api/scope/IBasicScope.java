@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-package org.red5.server.api;
+package org.red5.server.api.scope;
 
+import org.red5.server.api.ICoreObject;
 import org.red5.server.api.event.IEventObservable;
-import org.red5.server.api.persistence.IPersistable;
+import org.red5.server.api.persistence.IPersistenceStore;
 
 /**
  * Base interface for all scope objects, including SharedObjects.
@@ -27,8 +28,7 @@ import org.red5.server.api.persistence.IPersistable;
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
  */
-public interface IBasicScope extends ICoreObject, IEventObservable,
-		Iterable<IBasicScope>, IPersistable {
+public interface IBasicScope extends ICoreObject, IEventObservable {
 
 	/**
 	 * Does this scope have a parent? You can think of scopes as of tree items
@@ -64,6 +64,12 @@ public interface IBasicScope extends ICoreObject, IEventObservable,
 	public String getName();
 
 	/**
+	 * Get the persistable store
+	 * @return the store
+	 */
+	public IPersistenceStore getStore();
+	
+	/**
 	 * Get the full absolute path. Eg. <code>host/myapp/someroom</code>.
 	 * 
 	 * @return Absolute scope path
@@ -75,8 +81,8 @@ public interface IBasicScope extends ICoreObject, IEventObservable,
 	 * 
 	 * @return Type of scope
 	 */
-	public String getType();
-	
+	public ScopeType getType();
+
 	/**
 	 * Sets the amount of time to keep the scope available after the
 	 * last disconnect.
@@ -86,13 +92,10 @@ public interface IBasicScope extends ICoreObject, IEventObservable,
 	public void setKeepDelay(int keepDelay);
 	
 	/**
-	 * Lock handling - attempts to obtain a lock
+	 * Validates a scope based on its name and type
+	 * 
+	 * @return true if both name and type are valid, false otherwise
 	 */
-	public void lock();
-	
-	/**
-	 * Lock handling - attempts to unlock a lock
-	 */
-	public void unlock();
+	public boolean isValid();
 
 }

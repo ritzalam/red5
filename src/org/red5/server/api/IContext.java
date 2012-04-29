@@ -19,6 +19,9 @@
 package org.red5.server.api;
 
 import org.red5.server.api.persistence.IPersistenceStore;
+import org.red5.server.api.scope.IGlobalScope;
+import org.red5.server.api.scope.IScope;
+import org.red5.server.api.scope.IScopeHandler;
 import org.red5.server.api.service.IServiceInvoker;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.support.ResourcePatternResolver;

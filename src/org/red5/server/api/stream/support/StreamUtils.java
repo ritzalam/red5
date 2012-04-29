@@ -18,10 +18,10 @@
 
 package org.red5.server.api.stream.support;
 
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
-import org.red5.server.api.IScope;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.api.stream.IServerStream;
 import org.red5.server.stream.ServerStream;
 import org.slf4j.Logger;
@@ -78,7 +78,7 @@ public abstract class StreamUtils {
 			return null;
 		}
 	}
-	
+
 	/**
 	 * Puts a server stream in the stream map
 	 *
@@ -87,7 +87,7 @@ public abstract class StreamUtils {
 	 * @param stream ServerStream object
 	 */
 	public static void putServerStream(IScope scope, String name, IServerStream stream) {
-		logger.debug("Putting server stream in the map - name: {} scope: {} stream: {}", new Object[]{name, scope, stream});
+		logger.debug("Putting server stream in the map - name: {} scope: {} stream: {}", new Object[] { name, scope, stream });
 		String key = scope.getName() + '/' + name;
 		if (!serverStreamMap.containsKey(key)) {
 			serverStreamMap.put(key, stream);
@@ -95,7 +95,7 @@ public abstract class StreamUtils {
 			logger.warn("Server stream already exists in the map with key: {}", key);
 		}
 	}
-	
+
 	/**
 	 * Removes a server stream from the stream map
 	 *
@@ -110,6 +110,6 @@ public abstract class StreamUtils {
 		} else {
 			logger.warn("Server stream did not exist in the map with key: {}", key);
 		}
-	}	
-	
+	}
+
 }

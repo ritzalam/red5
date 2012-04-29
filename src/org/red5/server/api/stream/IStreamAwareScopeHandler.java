@@ -18,7 +18,7 @@
 
 package org.red5.server.api.stream;
 
-import org.red5.server.api.IScopeHandler;
+import org.red5.server.api.scope.IScopeHandler;
 
 /**
  * A scope handler that is stream aware.
@@ -113,7 +113,6 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
 	 * @param item item
 	 * @param position position
 	 */
-	public void streamPlayItemSeek(ISubscriberStream stream, IPlayItem item, int position);	
-	
-	
+	public void streamPlayItemSeek(ISubscriberStream stream, IPlayItem item, int position);
+
 }

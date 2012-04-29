@@ -28,24 +28,28 @@ import java.util.Enumeration;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 
+import org.red5.io.amf.Output;
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.ClientRegistry;
 import org.red5.server.Context;
-import org.red5.server.GlobalScope;
 import org.red5.server.MappingStrategy;
-import org.red5.server.ScopeResolver;
 import org.red5.server.Server;
-import org.red5.server.WebScope;
 import org.red5.server.api.Red5;
 import org.red5.server.persistence.FilePersistenceThread;
+import org.red5.server.scope.GlobalScope;
+import org.red5.server.scope.ScopeResolver;
+import org.red5.server.scope.WebScope;
 import org.red5.server.service.ServiceInvoker;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.ContextLoader;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.WebApplicationContext;
+
+import ch.qos.logback.classic.LoggerContext;
 
 /**
  * Entry point from which the server config file is loaded while running within
@@ -111,8 +115,7 @@ public class WarLoaderServlet extends ContextLoaderListener {
 			//use super to initialize
 			super.contextInitialized(sce);
 			//get the web context
-			applicationContext = (ConfigurableWebApplicationContext) servletContext
-					.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+			applicationContext = (ConfigurableWebApplicationContext) servletContext.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
 			logger.debug("Root context path: {}", applicationContext.getServletContext().getContextPath());
 
 			ConfigurableBeanFactory factory = applicationContext.getBeanFactory();
@@ -142,8 +145,7 @@ public class WarLoaderServlet extends ContextLoaderListener {
 			ctx = servletContext;
 		}
 		ContextLoader loader = new ContextLoader();
-		ConfigurableWebApplicationContext appCtx = (ConfigurableWebApplicationContext) loader
-				.initWebApplicationContext(ctx);
+		ConfigurableWebApplicationContext appCtx = (ConfigurableWebApplicationContext) loader.initWebApplicationContext(ctx);
 		appCtx.setParent(applicationContext);
 		appCtx.refresh();
 
@@ -203,6 +205,13 @@ public class WarLoaderServlet extends ContextLoaderListener {
 				FilePersistenceThread persistenceThread = FilePersistenceThread.getInstance();
 				if (persistenceThread != null) {
 					persistenceThread.shutdown();
+				}
+				// clear the AMF output cache
+				Output.destroyCache();
+				// stop the logger
+				try {
+					((LoggerContext) LoggerFactory.getILoggerFactory()).stop();
+				} catch (Exception e) {
 				}
 				// shutdown spring
 				Object attr = ctx.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);

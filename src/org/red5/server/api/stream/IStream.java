@@ -18,7 +18,7 @@
 
 package org.red5.server.api.stream;
 
-import org.red5.server.api.IScope;
+import org.red5.server.api.scope.IScope;
 
 /**
  * Base interface for stream objects.
@@ -64,7 +64,7 @@ public interface IStream {
 	 * Close this stream.
 	 */
 	public void close();
-	
+
 	/**
 	 * Returns the timestamp at which the stream was created.
 	 * 

@@ -26,21 +26,20 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import org.red5.server.api.IScope;
-import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.api.stream.IPlayItem;
 import org.red5.server.api.stream.IPlaylistController;
 import org.red5.server.api.stream.IServerStream;
 import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.IStreamFilenameGenerator;
+import org.red5.server.api.stream.IStreamFilenameGenerator.GenerationType;
 import org.red5.server.api.stream.IStreamListener;
 import org.red5.server.api.stream.IStreamPacket;
 import org.red5.server.api.stream.ResourceExistException;
 import org.red5.server.api.stream.ResourceNotFoundException;
 import org.red5.server.api.stream.StreamState;
-import org.red5.server.api.stream.IStreamFilenameGenerator.GenerationType;
 import org.red5.server.messaging.IFilter;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
@@ -60,6 +59,7 @@ import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.stream.consumer.FileConsumer;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.ResetMessage;
+import org.red5.server.util.ScopeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -385,11 +385,11 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 			if (scope.getContext().hasBean("fileConsumer")) {
 				recordingFile = (FileConsumer) scope.getContext().getBean("fileConsumer");
 				recordingFile.setScope(scope);
-				recordingFile.setFile(file);			
+				recordingFile.setFile(file);
 			} else {
 				// get a new instance
-				recordingFile = new FileConsumer(scope, file);			
-			}			
+				recordingFile = new FileConsumer(scope, file);
+			}
 			Map<String, Object> paramMap = new HashMap<String, Object>();
 			if (isAppend) {
 				paramMap.put("mode", "append");

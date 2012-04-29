@@ -28,19 +28,18 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import org.red5.server.api.IScope;
-import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.api.stream.IPlayItem;
 import org.red5.server.api.stream.IPlaylistController;
 import org.red5.server.api.stream.IServerStream;
 import org.red5.server.api.stream.IStreamFilenameGenerator;
+import org.red5.server.api.stream.IStreamFilenameGenerator.GenerationType;
 import org.red5.server.api.stream.IStreamListener;
 import org.red5.server.api.stream.IStreamPacket;
 import org.red5.server.api.stream.ResourceExistException;
 import org.red5.server.api.stream.ResourceNotFoundException;
-import org.red5.server.api.stream.IStreamFilenameGenerator.GenerationType;
 import org.red5.server.messaging.IFilter;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
@@ -60,17 +59,17 @@ import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.stream.consumer.FileConsumer;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.ResetMessage;
+import org.red5.server.util.ScopeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
-
-import org.slf4j.*;
 
 /**
  * An implementation for server side stream.
  * 
  * @author The Red5 Project (red5@osflash.org)
  */
-public class NoSyncServerStream extends AbstractStream implements
-		IServerStream, IFilter, IPushableConsumer, IPipeConnectionListener {
+public class NoSyncServerStream extends AbstractStream implements IServerStream, IFilter, IPushableConsumer, IPipeConnectionListener {
 	/**
 	 * Enumeration for states
 	 */
@@ -334,8 +333,7 @@ public class NoSyncServerStream extends AbstractStream implements
 		if (controller != null) {
 			currentItemIndex = controller.nextItem(this, currentItemIndex);
 		} else {
-			currentItemIndex = defaultController.nextItem(this,
-					currentItemIndex);
+			currentItemIndex = defaultController.nextItem(this, currentItemIndex);
 		}
 	}
 
@@ -350,8 +348,7 @@ public class NoSyncServerStream extends AbstractStream implements
 		if (controller != null) {
 			currentItemIndex = controller.previousItem(this, currentItemIndex);
 		} else {
-			currentItemIndex = defaultController.previousItem(this,
-					currentItemIndex);
+			currentItemIndex = defaultController.previousItem(this, currentItemIndex);
 		}
 	}
 
@@ -374,8 +371,7 @@ public class NoSyncServerStream extends AbstractStream implements
 	}
 
 	/** {@inheritDoc} */
-	public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
-			OOBControlMessage oobCtrlMsg) {
+	public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
 	}
 
 	/**
@@ -390,9 +386,7 @@ public class NoSyncServerStream extends AbstractStream implements
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 			case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
-				if (event.getProvider() == this
-						&& (event.getParamMap() == null || !event.getParamMap()
-								.containsKey("record"))) {
+				if (event.getProvider() == this && (event.getParamMap() == null || !event.getParamMap().containsKey("record"))) {
 					this.msgOut = (IMessageOutput) event.getSource();
 				}
 				break;
@@ -421,17 +415,14 @@ public class NoSyncServerStream extends AbstractStream implements
 		// Assume this is not live stream
 		boolean isLive = false;
 		// Get provider service from Spring bean factory
-		IProviderService providerService = (IProviderService) getScope()
-				.getContext().getBean(IProviderService.BEAN_NAME);
+		IProviderService providerService = (IProviderService) getScope().getContext().getBean(IProviderService.BEAN_NAME);
 		msgIn = providerService.getVODProviderInput(getScope(), item.getName());
 		if (msgIn == null) {
-			msgIn = providerService.getLiveProviderInput(getScope(), item
-					.getName(), true);
+			msgIn = providerService.getLiveProviderInput(getScope(), item.getName(), true);
 			isLive = true;
 		}
 		if (msgIn == null) {
-			log
-					.warn("ABNORMAL Can't get both VOD and Live input from providerService");
+			log.warn("ABNORMAL Can't get both VOD and Live input from providerService");
 			return;
 		}
 		state = State.PLAYING;
@@ -440,17 +431,16 @@ public class NoSyncServerStream extends AbstractStream implements
 		msgIn.subscribe(this, null);
 		if (isLive) {
 			if (item.getLength() >= 0) {
-				liveJobName = scheduler.addScheduledOnceJob(item.getLength(),
-						new IScheduledJob() {
-							/** {@inheritDoc} */
-							public void execute(ISchedulingService service) {
-								if (liveJobName == null) {
-									return;
-								}
-								liveJobName = null;
-								onItemEnd();
-							}
-						});
+				liveJobName = scheduler.addScheduledOnceJob(item.getLength(), new IScheduledJob() {
+					/** {@inheritDoc} */
+					public void execute(ISchedulingService service) {
+						if (liveJobName == null) {
+							return;
+						}
+						liveJobName = null;
+						onItemEnd();
+					}
+				});
 			}
 		} else {
 			long start = item.getStart();
@@ -482,12 +472,12 @@ public class NoSyncServerStream extends AbstractStream implements
 	private void pushMessage(IMessage message) throws IOException {
 		msgOut.pushMessage(message);
 		recordPipe.pushMessage(message);
-		
+
 		// Notify listeners about received packet
 		if (message instanceof RTMPMessage) {
 			final IRTMPEvent rtmpEvent = ((RTMPMessage) message).getBody();
 			if (rtmpEvent instanceof IStreamPacket) {
-				for (IStreamListener listener: getStreamListeners()) {
+				for (IStreamListener listener : getStreamListeners()) {
 					try {
 						listener.packetReceived(this, (IStreamPacket) rtmpEvent);
 					} catch (Exception e) {
@@ -517,16 +507,12 @@ public class NoSyncServerStream extends AbstractStream implements
 	}
 
 	/** {@inheritDoc} */
-	public void saveAs(String name, boolean isAppend) throws IOException,
-			ResourceNotFoundException, ResourceExistException {
+	public void saveAs(String name, boolean isAppend) throws IOException, ResourceNotFoundException, ResourceExistException {
 		try {
 			IScope scope = getScope();
-			IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils
-					.getScopeService(scope, IStreamFilenameGenerator.class,
-							DefaultStreamFilenameGenerator.class);
+			IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.class, DefaultStreamFilenameGenerator.class);
 
-			String filename = generator.generateFilename(scope, name, ".flv",
-					GenerationType.RECORD);
+			String filename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
 			Resource res = scope.getContext().getResource(filename);
 			if (!isAppend) {
 				if (res.exists()) {
@@ -568,8 +554,7 @@ public class NoSyncServerStream extends AbstractStream implements
 
 			if (!res.exists()) {
 				if (!res.getFile().canWrite()) {
-					log.warn("File cannot be written to "
-							+ res.getFile().getCanonicalPath());
+					log.warn("File cannot be written to " + res.getFile().getCanonicalPath());
 				}
 				res.getFile().createNewFile();
 			}
@@ -612,9 +597,7 @@ public class NoSyncServerStream extends AbstractStream implements
 			// even if it is seeked to somewhere in the middle
 			// which will cause the stream to wait too long.
 			// Is this an FLVReader's bug?
-			if (!(rtmpEvent instanceof VideoData)
-					&& !(rtmpEvent instanceof AudioData)
-					&& rtmpEvent.getTimestamp() == 0) {
+			if (!(rtmpEvent instanceof VideoData) && !(rtmpEvent instanceof AudioData) && rtmpEvent.getTimestamp() == 0) {
 				rtmpEvent.release();
 				nextRTMPMessage = getNextRTMPMessage();
 				if (nextRTMPMessage == null) {
@@ -638,8 +621,7 @@ public class NoSyncServerStream extends AbstractStream implements
 		if (first) {
 			vodStartTS = nextTS;
 		}
-		long delta = nextTS - vodStartTS
-				- (System.currentTimeMillis() - serverStartTS);
+		long delta = nextTS - vodStartTS - (System.currentTimeMillis() - serverStartTS);
 
 		vodJobName = scheduler.addScheduledOnceJob(delta, new IScheduledJob() {
 			/** {@inheritDoc} */
@@ -658,9 +640,7 @@ public class NoSyncServerStream extends AbstractStream implements
 				if (start < 0) {
 					start = 0;
 				}
-				if (currentItem.getLength() >= 0
-						&& nextTS - currentItem.getStart() > currentItem
-								.getLength()) {
+				if (currentItem.getLength() >= 0 && nextTS - currentItem.getStart() > currentItem.getLength()) {
 					onItemEnd();
 					return;
 				}
@@ -746,29 +726,23 @@ public class NoSyncServerStream extends AbstractStream implements
 	 */
 	public void start() {
 		if (state != State.UNINIT) {
-			throw new IllegalStateException("State " + state
-					+ " not valid to start");
+			throw new IllegalStateException("State " + state + " not valid to start");
 		}
 		if (items.size() == 0) {
-			throw new IllegalStateException(
-					"At least one item should be specified to start");
+			throw new IllegalStateException("At least one item should be specified to start");
 		}
 		if (publishedName == null) {
-			throw new IllegalStateException(
-					"A published name is needed to start");
+			throw new IllegalStateException("A published name is needed to start");
 		}
 		// publish this server-side stream
-		IProviderService providerService = (IProviderService) getScope()
-				.getContext().getBean(IProviderService.BEAN_NAME);
-		providerService
-				.registerBroadcastStream(getScope(), publishedName, this);
+		IProviderService providerService = (IProviderService) getScope().getContext().getBean(IProviderService.BEAN_NAME);
+		providerService.registerBroadcastStream(getScope(), publishedName, this);
 		Map<String, Object> recordParamMap = new HashMap<String, Object>();
 		recordPipe = new InMemoryPushPushPipe();
 		recordParamMap.put("record", null);
 		recordPipe.subscribe((IProvider) this, recordParamMap);
 		recordingFilename = null;
-		scheduler = (ISchedulingService) getScope().getContext().getBean(
-				ISchedulingService.BEAN_NAME);
+		scheduler = (ISchedulingService) getScope().getContext().getBean(ISchedulingService.BEAN_NAME);
 		state = State.STOPPED;
 		currentItemIndex = -1;
 		nextItem();
@@ -831,12 +805,12 @@ public class NoSyncServerStream extends AbstractStream implements
 		sendVODSeekCM(msgIn, position);
 	}
 
-    /**
-     * Send VOD seek control message
-     * 
-     * @param msgIn				Message input
-     * @param position			New timestamp to play from
-     */
+	/**
+	 * Send VOD seek control message
+	 * 
+	 * @param msgIn				Message input
+	 * @param position			New timestamp to play from
+	 */
 	private void sendVODSeekCM(IMessageInput msgIn, int position) {
 		OOBControlMessage oobCtrlMsg = new OOBControlMessage();
 		oobCtrlMsg.setTarget(ISeekableProvider.KEY);
@@ -852,18 +826,18 @@ public class NoSyncServerStream extends AbstractStream implements
 			if (nextRTMPMessage != null) {
 				try {
 					pushMessage(nextRTMPMessage);
-		    	} catch (IOException err) {
-		    		log.error("Error while sending message.", err);
-		    	}
+				} catch (IOException err) {
+					log.error("Error while sending message.", err);
+				}
 				nextRTMPMessage.getBody().release();
 				nextRTMPMessage = null;
 			}
 			ResetMessage reset = new ResetMessage();
 			try {
 				pushMessage(reset);
-	    	} catch (IOException err) {
-	    		log.error("Error while sending message.", err);
-	    	}
+			} catch (IOException err) {
+				log.error("Error while sending message.", err);
+			}
 			scheduleNextMessage();
 		}
 	}

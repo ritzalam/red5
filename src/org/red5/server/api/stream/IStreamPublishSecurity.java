@@ -18,7 +18,7 @@
 
 package org.red5.server.api.stream;
 
-import org.red5.server.api.IScope;
+import org.red5.server.api.scope.IScope;
 
 /**
  * Interface for handlers that control access to stream publishing.
@@ -37,5 +37,5 @@ public interface IStreamPublishSecurity {
 	 * @return <code>True</code> if publishing is allowed, otherwise <code>False</code>
 	 */
 	public boolean isPublishAllowed(IScope scope, String name, String mode);
-	
+
 }

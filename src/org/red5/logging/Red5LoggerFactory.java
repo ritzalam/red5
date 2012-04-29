@@ -21,7 +21,7 @@ package org.red5.logging;
 import java.lang.reflect.Method;
 
 import org.red5.server.adapter.StatefulScopeWrappingAdapter;
-import org.red5.server.api.IScope;
+import org.red5.server.api.scope.IScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.impl.StaticLoggerBinder;
@@ -139,7 +139,7 @@ public class Red5LoggerFactory {
 					//debug
 					//StatusPrinter.print(ctx);
 					//get the logger from the context or default context
-					logger = ((ctx != null) ? ctx.getLogger(clazz) : selector.getDefaultLoggerContext().getLogger(clazz));					
+					logger = ((ctx != null) ? ctx.getLogger(clazz) : selector.getDefaultLoggerContext().getLogger(clazz));
 					break;
 				}
 			}
@@ -165,5 +165,5 @@ public class Red5LoggerFactory {
 		}
 		return selector;
 	}
-	
+
 }

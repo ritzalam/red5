@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.red5.server.stream;
+package org.red5.server.scope;
 
 
 import java.io.IOException;
@@ -26,8 +26,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.red5.server.BasicScope;
-import org.red5.server.api.IScope;
+import org.red5.server.api.scope.IBroadcastScope;
+import org.red5.server.api.scope.IScope;
+import org.red5.server.api.scope.ScopeType;
+import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.messaging.IConsumer;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IPipeConnectionListener;
@@ -35,6 +37,7 @@ import org.red5.server.messaging.IProvider;
 import org.red5.server.messaging.InMemoryPushPushPipe;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
+import org.red5.server.stream.IProviderService;
 
 /**
  * Scope type for publishing that deals with pipe connection events,
@@ -43,17 +46,22 @@ import org.red5.server.messaging.PipeConnectionEvent;
 public class BroadcastScope extends BasicScope implements IBroadcastScope, IPipeConnectionListener {
 
 	/**
-	 *  Simple in memory push pipe, triggered by an active provider to push messages to consumer
+	 * Broadcasting stream associated with this scope
+	 */
+	private IClientBroadcastStream clientBroadcastStream;
+	
+	/**
+	 * Simple in memory push pipe, triggered by an active provider to push messages to consumer
 	 */
 	private InMemoryPushPushPipe pipe;
 
 	/**
-	 *  Number of components.
+	 * Number of components.
 	 */
 	private AtomicInteger compCounter;
 
 	/**
-	 *  Remove flag
+	 * Remove flag
 	 */
 	private boolean hasRemoved;
 
@@ -63,14 +71,14 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope, IPipe
 	 * will be granted access before others.
 	 */
 	protected Lock lock = new ReentrantLock(true);
-
+	
 	/**
 	 * Creates broadcast scope
 	 * @param parent            Parent scope
 	 * @param name              Scope name
 	 */
 	public BroadcastScope(IScope parent, String name) {
-		super(parent, TYPE, name, false);
+		super(parent, ScopeType.BROADCAST, name, false);
 		pipe = new InMemoryPushPushPipe();
 		pipe.addPipeConnectionListener(this);
 		compCounter = new AtomicInteger(0);
@@ -260,5 +268,22 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope, IPipe
 	public void unlock() {
 		lock.unlock();
 	}
+	
+	/**
+	 * Returns the client broadcast stream
+	 */
+	public IClientBroadcastStream getClientBroadcastStream() {
+		return clientBroadcastStream;
+	}
+
+	/**
+	 * Sets the client broadcast stream
+	 * 
+	 * @param clientBroadcastStream 
+	 */
+	public void setClientBroadcastStream(IClientBroadcastStream clientBroadcastStream) {
+		this.clientBroadcastStream = clientBroadcastStream;
+	}
+
 
 }

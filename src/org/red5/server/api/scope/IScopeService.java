@@ -15,17 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.red5.server.stream;
-
-import org.red5.server.api.IBasicScope;
-import org.red5.server.messaging.IPipe;
+package org.red5.server.api.scope;
 
 /**
- * Broadcast scope is marker interface that represents object that works as basic scope and
- * has pipe connection event dispatching capabilities.
+ * Base marker interface for all scope services. Used by the ScopeUtils to lookup
+ * services defined as beans in Spring application context. A scope service usually can perform various
+ * tasks on a scope like managing shared objects, streams, etc.
+ * 
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Joachim Bauch (bauch@struktur.de)
  */
-public interface IBroadcastScope extends IBasicScope, IPipe {
-	public static final String TYPE = "bs";
+public interface IScopeService {
 
-	public static final String STREAM_ATTRIBUTE = TRANSIENT_PREFIX + "_publishing_stream";
+	/** 
+	 * Name of a bean defining that scope service. Override in
+	 * subinterfaces.
+	 * */
+	public static String BEAN_NAME = null;
+
 }

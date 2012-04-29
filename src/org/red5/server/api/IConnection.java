@@ -22,6 +22,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.red5.server.api.scope.IBasicScope;
+import org.red5.server.api.scope.IScope;
+
 /**
  * The connection object.
  * 
@@ -35,7 +38,7 @@ import java.util.Map;
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
  */
-public interface IConnection extends ICoreObject {
+public interface IConnection extends ICoreObject, ICastingAttributeStore {
 
 	/**
 	 * AMF version types, either AMF0 or AMF3.

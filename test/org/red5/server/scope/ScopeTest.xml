@@ -17,7 +17,6 @@
         </property>
     </bean>
 
-
     <!-- Server bean -->
     <bean id="red5.server" class="org.red5.server.Server"/>
 
@@ -53,11 +52,13 @@
     
     <bean id="global.mappingStrategy" class="org.red5.server.MappingStrategy" />
     
-    <bean id="global.context" class="org.red5.server.Context" autowire="byType" />
+    <bean id="global.context" class="org.red5.server.Context" autowire="byType">
+        <property name="contextPath" value="test" />
+    </bean>
 
     <bean id="global.handler" class="org.red5.server.CoreHandler" autowire="byType" />
             
-    <bean id="global.scope" class="org.red5.server.GlobalScope" init-method="register">
+    <bean id="global.scope" class="org.red5.server.scope.GlobalScope" init-method="register">
         <property name="server" ref="red5.server" />
         <property name="name" value="default" />
         <property name="context" ref="global.context" />
@@ -65,7 +66,7 @@
         <property name="persistenceClass" value="org.red5.server.persistence.RamPersistence" /> 
     </bean>
     
-    <bean id="red5.scopeResolver" class="org.red5.server.ScopeResolver">
+    <bean id="red5.scopeResolver" class="org.red5.server.scope.ScopeResolver">
         <property name="globalScope" ref="global.scope" />
     </bean>    
     
@@ -73,7 +74,7 @@
     
     <bean id="web.context" class="org.red5.server.Context" autowire="byType" />
 
-    <bean id="web.scope" class="org.red5.server.WebScope" init-method="register">
+    <bean id="web.scope" class="org.red5.server.scope.WebScope" init-method="register">
         <property name="server" ref="red5.server" />
         <property name="parent" ref="global.scope" />
         <property name="context" ref="web.context" />
@@ -84,5 +85,11 @@
     </bean>    
     
     <bean id="web.handler" class="org.red5.server.adapter.ApplicationAdapter" />
+    
+    <bean id="room1" class="org.red5.server.scope.RoomScope" init-method="init">
+        <property name="parent" ref="web.scope" />
+        <property name="name" value="room1" />
+        <property name="handler" ref="web.handler" />
+    </bean>
     
 </beans>
