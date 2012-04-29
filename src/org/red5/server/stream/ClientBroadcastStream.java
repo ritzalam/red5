@@ -139,7 +139,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 */
 	protected IMessageOutput connMsgOut;
 
-	/** Stores timestamp of first packet. */
+	/** 
+	 * Stores timestamp of first packet
+	 */
 	protected long firstPacketTime = -1;
 
 	/**
@@ -867,7 +869,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 
 	private void sendStartNotifications(IEventListener source) {
 		if (sendStartNotification) {
-			// Notify handler that stream starts recording/publishing
+			// notify handler that stream starts recording/publishing
 			sendStartNotification = false;
 			if (source instanceof IConnection) {
 				IScope scope = ((IConnection) source).getScope();
@@ -882,7 +884,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 					}
 				}
 			}
-			// Send start notifications
+			// send start notifications
 			sendPublishStartNotify();
 			if (recording) {
 				sendRecordStartNotify();
