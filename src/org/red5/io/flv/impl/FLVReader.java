@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.BufferType;
@@ -121,6 +122,8 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 
 	/** The header of this FLV file. */
 	private FLVHeader header;
+
+	private final Semaphore lock = new Semaphore(1, true);
 
 	/** Constructs a new FLVReader. */
 	FLVReader() {
@@ -559,47 +562,54 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		return result;
 	}
 
-	/** {@inheritDoc}
-	 */
-	public synchronized ITag readTag() {
-		long oldPos = getCurrentPosition();
-		ITag tag = readTagHeader();
-		if (tag != null) {
-			boolean isMetaData = tag.getDataType() == TYPE_METADATA;
-			log.debug("readTag, oldPos: {}, tag header: \n{}", oldPos, tag);
-			if (!metadataSent && !isMetaData && generateMetadata) {
-				// Generate initial metadata automatically
-				setCurrentPosition(oldPos);
-				KeyFrameMeta meta = analyzeKeyFrames();
-				if (meta != null) {
-					return createFileMeta();
-				}
-			}
-			int bodySize = tag.getBodySize();
-			IoBuffer body = IoBuffer.allocate(bodySize, false);
-			// XXX Paul: this assists in 'properly' handling damaged FLV files		
-			long newPosition = getCurrentPosition() + bodySize;
-			if (newPosition <= getTotalBytes()) {
-				int limit;
-				while (getCurrentPosition() < newPosition) {
-					fillBuffer(newPosition - getCurrentPosition());
-					if (getCurrentPosition() + in.remaining() > newPosition) {
-						limit = in.limit();
-						in.limit((int) (newPosition - getCurrentPosition()) + in.position());
-						body.put(in);
-						in.limit(limit);
-					} else {
-						body.put(in);
+	/** {@inheritDoc} */
+	public ITag readTag() {
+		ITag tag = null;
+		try {
+			lock.acquire();
+			long oldPos = getCurrentPosition();
+			tag = readTagHeader();
+			if (tag != null) {
+				boolean isMetaData = tag.getDataType() == TYPE_METADATA;
+				log.debug("readTag, oldPos: {}, tag header: \n{}", oldPos, tag);
+				if (!metadataSent && !isMetaData && generateMetadata) {
+					// Generate initial metadata automatically
+					setCurrentPosition(oldPos);
+					KeyFrameMeta meta = analyzeKeyFrames();
+					if (meta != null) {
+						return createFileMeta();
 					}
 				}
-				body.flip();
-				tag.setBody(body);
+				int bodySize = tag.getBodySize();
+				IoBuffer body = IoBuffer.allocate(bodySize, false);
+				// XXX Paul: this assists in 'properly' handling damaged FLV files		
+				long newPosition = getCurrentPosition() + bodySize;
+				if (newPosition <= getTotalBytes()) {
+					int limit;
+					while (getCurrentPosition() < newPosition) {
+						fillBuffer(newPosition - getCurrentPosition());
+						if (getCurrentPosition() + in.remaining() > newPosition) {
+							limit = in.limit();
+							in.limit((int) (newPosition - getCurrentPosition()) + in.position());
+							body.put(in);
+							in.limit(limit);
+						} else {
+							body.put(in);
+						}
+					}
+					body.flip();
+					tag.setBody(body);
+				}
+				if (isMetaData) {
+					metadataSent = true;
+				}
+			} else {
+				log.debug("Tag was null");
 			}
-			if (isMetaData) {
-				metadataSent = true;
-			}
-		} else {
-			log.debug("Tag was null");
+		} catch (InterruptedException e) {
+			log.warn("Exception acquiring lock", e);
+		} finally {
+			lock.release();
 		}
 		return tag;
 	}
@@ -628,10 +638,12 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	 *
 	 * @return             Keyframe metadata
 	 */
-	public synchronized KeyFrameMeta analyzeKeyFrames() {
+	public KeyFrameMeta analyzeKeyFrames() {
 		if (keyframeMeta != null) {
 			return keyframeMeta;
 		}
+		try {
+			lock.acquire();
 		// check for cached keyframe informations
 		if (keyframeCache != null) {
 			keyframeMeta = keyframeCache.loadKeyFrameMeta(file);
@@ -749,6 +761,11 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		if (keyframeCache != null) {
 			keyframeCache.saveKeyFrameMeta(file, keyframeMeta);
 		}
+	} catch (InterruptedException e) {
+		log.warn("Exception acquiring lock", e);
+	} finally {
+		lock.release();
+	}
 		return keyframeMeta;
 	}
 

@@ -712,11 +712,10 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 	protected boolean clear() {
 		log.debug("clear");
 		super.removeAttributes();
-		// Send confirmation to client
+		// send confirmation to client
 		ownerMessage.addEvent(Type.CLIENT_CLEAR_DATA, name, null);
 		notifyModified();
 		changeStats.incrementAndGet();
-		// Is it clear now?
 		return true;
 	}
 

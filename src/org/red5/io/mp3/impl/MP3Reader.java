@@ -20,16 +20,16 @@ package org.red5.io.mp3.impl;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.jaudiotagger.audio.AudioFileIO;
@@ -57,6 +57,7 @@ import org.slf4j.LoggerFactory;
  * Read MP3 files
  */
 public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
+
 	/**
 	 * Logger
 	 */
@@ -78,14 +79,9 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 	private FileChannel channel;
 
 	/**
-	 * Memory-mapped buffer for file content
+	 * Byte buffer
 	 */
-	private MappedByteBuffer mappedFile;
-
-	/**
-	 * Source byte buffer
-	 */
-	private IoBuffer in;
+	private ByteBuffer buf = ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN);
 
 	/**
 	 * Last read tag object
@@ -110,7 +106,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 	/**
 	 * Positions and time map
 	 */
-	private HashMap<Integer, Double> posTimeMap;
+	private HashMap<Long, Double> posTimeMap;
 
 	private int dataRate;
 
@@ -135,17 +131,21 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 	 */
 	private LinkedList<ITag> firstTags = new LinkedList<ITag>();
 
+	private long fileSize;
+
+	private final Semaphore lock = new Semaphore(1, true);
+
 	MP3Reader() {
 		// Only used by the bean startup code to initialize the frame cache
 	}
 
 	/**
 	 * Creates reader from file input stream
-	 * @param file file input
 	 * 
-	 * @throws FileNotFoundException if not found 
+	 * @param file file input
+	 * @throws IOException 
 	 */
-	public MP3Reader(File file) throws FileNotFoundException {
+	public MP3Reader(File file) throws IOException {
 		this.file = file;
 		// parse the id3 info
 		try {
@@ -221,36 +221,35 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		fis = new FileInputStream(file);
 		// grab file channel and map it to memory-mapped byte buffer in read-only mode
 		channel = fis.getChannel();
-		try {
-			mappedFile = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-		} catch (IOException e) {
-			log.error("MP3Reader {}", e);
-		}
-		// Use Big Endian bytes order
-		mappedFile.order(ByteOrder.BIG_ENDIAN);
-		// Wrap mapped byte buffer to MINA buffer
-		in = IoBuffer.wrap(mappedFile);
-		// Analyze keyframes data
+		// get the total bytes / file size
+		fileSize = channel.size();
+		log.debug("File size: {}", fileSize);
+		// analyze keyframes data
 		analyzeKeyFrames();
-		// Create file metadata object
+		// create file metadata object
 		firstTags.addFirst(createFileMeta());
 		// MP3 header is length of 32 bits, that is, 4 bytes
-		// Read further if there's still data
-		if (in.remaining() > 4) {
-			// Look to next frame
+		// read further if there's still data
+		if ((fileSize - channel.position()) > 4) {
+			// look for next frame
 			searchNextFrame();
-			// Set position
-			int pos = in.position();
-			// Read header...
+			// get current position
+			long pos = channel.position();
 			// Data in MP3 file goes header-data-header-data...header-data
-			MP3Header header = readHeader();
-			// Set position
-			in.position(pos);
+			// Read header...
+			MP3Header header = null;
+			try {
+				header = readHeader();
+			} catch (Exception e) {
+				log.warn("Exception reading initial header", e);
+			}
+			// set position
+			channel.position(pos);
 			// Check header
 			if (header != null) {
 				checkValidHeader(header);
 			} else {
-				throw new RuntimeException("No initial header found.");
+				throw new RuntimeException("No initial header found");
 			}
 		}
 	}
@@ -282,9 +281,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 			case 22050:
 			case 11025:
 			case 5513:
-				// Supported sample rate
 				break;
-
 			default:
 				throw new RuntimeException("Unsupported sample rate: " + header.getSampleRate());
 		}
@@ -296,10 +293,11 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 	 * @return Tag
 	 */
 	private ITag createFileMeta() {
-		// Create tag for onMetaData event
-		IoBuffer buf = IoBuffer.allocate(1024);
-		buf.setAutoExpand(true);
-		Output out = new Output(buf);
+		log.debug("createFileMeta");
+		// create tag for onMetaData event
+		IoBuffer in = IoBuffer.allocate(1024);
+		in.setAutoExpand(true);
+		Output out = new Output(in);
 		out.writeString("onMetaData");
 		Map<Object, Object> props = new HashMap<Object, Object>();
 		props.put("duration", frameMeta.timestamps[frameMeta.timestamps.length - 1] / 1000.0);
@@ -326,25 +324,47 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 			metaData = null;
 		}
 		out.writeMap(props, new Serializer());
-		buf.flip();
+		in.flip();
 
-		ITag result = new Tag(IoConstants.TYPE_METADATA, 0, buf.limit(), null, prevSize);
-		result.setBody(buf);
+		ITag result = new Tag(IoConstants.TYPE_METADATA, 0, in.limit(), null, prevSize);
+		result.setBody(in);
 		return result;
 	}
 
-	/** Search for next frame sync word. Sync word identifies valid frame. */
+	/** 
+	 * Search for next frame sync word. Sync word identifies valid frame.
+	 */
 	public void searchNextFrame() {
-		while (in.remaining() > 1) {
-			int ch = in.get() & 0xff;
-			if (ch != 0xff) {
-				continue;
+		log.debug("searchNextFrame");
+		ByteBuffer in = ByteBuffer.allocate(1).order(ByteOrder.BIG_ENDIAN);
+		try {
+			while ((fileSize - channel.position()) > 1) {
+				// read byte
+				in.clear();
+				channel.read(in);
+				in.flip();
+				// check byte
+				int ch = in.get() & 0xff;
+				if (ch != 0xff) {
+					continue;
+				}
+				// read next byte
+				in.clear();
+				channel.read(in);
+				in.flip();
+				// check next byte
+				if ((in.get() & 0xe0) == 0xe0) {
+					// found it
+					log.debug("Found frame");
+					channel.position(channel.position() - 2);
+					break;
+				}
 			}
-			if ((in.get() & 0xe0) == 0xe0) {
-				// Found it
-				in.position(in.position() - 2);
-				return;
-			}
+		} catch (IOException e) {
+			log.warn("Exception getting next frame", e);
+		} finally {
+			in.clear();
+			in = null;
 		}
 	}
 
@@ -360,7 +380,12 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 
 	/** {@inheritDoc} */
 	public long getBytesRead() {
-		return in.position();
+		try {
+			return channel.position();
+		} catch (IOException e) {
+			log.warn("Exception getting bytes read", e);
+		}
+		return 0;
 	}
 
 	/** {@inheritDoc} */
@@ -374,107 +399,106 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 	 * @return Total readable bytes
 	 */
 	public long getTotalBytes() {
-		return in.capacity();
+		return fileSize;
 	}
 
 	/** {@inheritDoc} */
 	public boolean hasMoreTags() {
+		log.debug("hasMoreTags");
 		MP3Header header = null;
-		while (header == null && in.remaining() > 4) {
-			try {
-				header = new MP3Header(in.getInt());
-			} catch (IOException e) {
-				log.error("MP3Reader :: hasMoreTags ::>\n", e);
-				break;
-			} catch (Exception e) {
-				searchNextFrame();
-			}
+		try {
+			header = readHeader();
+		} catch (IOException e) {
+			log.warn("Exception reading header", e);
+		} catch (Exception e) {
+			searchNextFrame();
 		}
+		//log.debug("Header: {}", header);
 		if (header == null || header.frameSize() == 0) {
-			// TODO find better solution how to deal with broken files...
-			// See APPSERVER-62 for details
+			// TODO find better solution how to deal with broken files
 			return false;
 		}
-		if (in.position() + header.frameSize() - 4 > in.limit()) {
-			// Last frame is incomplete
-			in.position(in.limit());
-			return false;
+		try {
+			if (channel.position() + header.frameSize() - 4 > fileSize) {
+				// last frame is incomplete
+				channel.position(fileSize);
+				return false;
+			}
+			channel.position(channel.position() - 4);
+		} catch (IOException e) {
+			log.warn("Exception checking for more tags", e);
 		}
-		in.position(in.position() - 4);
 		return true;
 	}
 
-	private MP3Header readHeader() {
-		MP3Header header = null;
-		while (header == null && in.remaining() > 4) {
-			try {
-				header = new MP3Header(in.getInt());
-			} catch (IOException e) {
-				log.error("MP3Reader :: readTag ::>\n", e);
-				break;
-			} catch (Exception e) {
-				searchNextFrame();
-			}
-		}
-		return header;
+	private MP3Header readHeader() throws Exception {
+		log.debug("readHeader at {}", channel.position());
+		buf.clear();
+		channel.read(buf);
+		buf.flip();
+		return new MP3Header(buf.getInt());
 	}
 
 	/** {@inheritDoc} */
-	public synchronized ITag readTag() {
-		if (!firstTags.isEmpty()) {
-			// Return first tags before media data
-			return firstTags.removeFirst();
-		}
+	public ITag readTag() {
+		log.debug("readTag");
+		try {
+			lock.acquire();
+			if (!firstTags.isEmpty()) {
+				// Return first tags before media data
+				return firstTags.removeFirst();
+			}
+			MP3Header header = readHeader();
+			int frameSize = header.frameSize();
+			if (frameSize == 0) {
+				// TODO find better solution how to deal with broken files
+				return null;
+			}
+			if (channel.position() + frameSize - 4 > fileSize) {
+				// last frame is incomplete
+				channel.position(fileSize);
+				return null;
+			}
+			tag = new Tag(IoConstants.TYPE_AUDIO, (int) currentTime, frameSize + 1, null, prevSize);
+			prevSize = frameSize + 1;
+			currentTime += header.frameDuration();
+			IoBuffer body = IoBuffer.allocate(tag.getBodySize());
+			body.setAutoExpand(true);
+			byte tagType = (IoConstants.FLAG_FORMAT_MP3 << 4) | (IoConstants.FLAG_SIZE_16_BIT << 1);
+			switch (header.getSampleRate()) {
+				case 48000:
+					tagType |= IoConstants.FLAG_RATE_48_KHZ << 2;
+					break;
+				case 44100:
+					tagType |= IoConstants.FLAG_RATE_44_KHZ << 2;
+					break;
+				case 22050:
+					tagType |= IoConstants.FLAG_RATE_22_KHZ << 2;
+					break;
+				case 11025:
+					tagType |= IoConstants.FLAG_RATE_11_KHZ << 2;
+					break;
+				default:
+					tagType |= IoConstants.FLAG_RATE_5_5_KHZ << 2;
+			}
+			tagType |= (header.isStereo() ? IoConstants.FLAG_TYPE_STEREO : IoConstants.FLAG_TYPE_MONO);
+			body.put(tagType);
+			body.putInt(header.getData());
 
-		MP3Header header = readHeader();
-		if (header == null) {
-			return null;
-		}
+			ByteBuffer in = ByteBuffer.allocate(frameSize - 4).order(ByteOrder.BIG_ENDIAN);
+			channel.read(in);
+			in.flip();
+			body.put(in);
+			body.flip();
 
-		int frameSize = header.frameSize();
-		if (frameSize == 0) {
-			// TODO find better solution how to deal with broken files...
-			// See APPSERVER-62 for details
-			return null;
+			tag.setBody(body);
+		} catch (InterruptedException e) {
+			log.warn("Exception acquiring lock", e);
+		} catch (Exception e) {
+			log.warn("Exception reading tag", e);
+		} finally {
+			lock.release();
 		}
-
-		if (in.position() + frameSize - 4 > in.limit()) {
-			// Last frame is incomplete
-			in.position(in.limit());
-			return null;
-		}
-
-		tag = new Tag(IoConstants.TYPE_AUDIO, (int) currentTime, frameSize + 1, null, prevSize);
-		prevSize = frameSize + 1;
-		currentTime += header.frameDuration();
-		IoBuffer body = IoBuffer.allocate(tag.getBodySize());
-		body.setAutoExpand(true);
-		byte tagType = (IoConstants.FLAG_FORMAT_MP3 << 4) | (IoConstants.FLAG_SIZE_16_BIT << 1);
-		switch (header.getSampleRate()) {
-			case 48000:
-				tagType |= IoConstants.FLAG_RATE_48_KHZ << 2;
-				break;
-			case 44100:
-				tagType |= IoConstants.FLAG_RATE_44_KHZ << 2;
-				break;
-			case 22050:
-				tagType |= IoConstants.FLAG_RATE_22_KHZ << 2;
-				break;
-			case 11025:
-				tagType |= IoConstants.FLAG_RATE_11_KHZ << 2;
-				break;
-			default:
-				tagType |= IoConstants.FLAG_RATE_5_5_KHZ << 2;
-		}
-		tagType |= (header.isStereo() ? IoConstants.FLAG_TYPE_STEREO : IoConstants.FLAG_TYPE_MONO);
-		body.put(tagType);
-		final int limit = in.limit();
-		body.putInt(header.getData());
-		in.limit(in.position() + frameSize - 4);
-		body.put(in);
-		body.flip();
-		in.limit(limit);
-		tag.setBody(body);
 		return tag;
 	}
 
@@ -483,16 +507,15 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		if (posTimeMap != null) {
 			posTimeMap.clear();
 		}
-		mappedFile.clear();
-		if (in != null) {
-			in.free();
-			in = null;
+		if (buf != null) {
+			buf.clear();
+			buf = null;
 		}
 		try {
 			fis.close();
 			channel.close();
 		} catch (IOException e) {
-			log.error("MP3Reader :: close ::>\n", e);
+			log.error("Exception on close", e);
 		}
 	}
 
@@ -502,91 +525,104 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 
 	/** {@inheritDoc} */
 	public void position(long pos) {
-		if (pos == Long.MAX_VALUE) {
-			// Seek at EOF
-			in.position(in.limit());
-			currentTime = duration;
-			return;
-		}
-		in.position((int) pos);
-		// Advance to next frame
-		searchNextFrame();
-		// Make sure we can resolve file positions to timestamps
-		analyzeKeyFrames();
-		Double time = posTimeMap.get(in.position());
-		if (time != null) {
-			currentTime = time;
-		} else {
-			// Unknown frame position - this should never happen
-			currentTime = 0;
+		try {
+			if (pos == Long.MAX_VALUE) {
+				// seek at EOF
+				channel.position(fileSize);
+				currentTime = duration;
+				return;
+			}
+			channel.position(pos);
+			// advance to next frame
+			searchNextFrame();
+			Double time = posTimeMap.get(channel.position());
+			if (time != null) {
+				currentTime = time;
+			} else {
+				// Unknown frame position - this should never happen
+				currentTime = 0;
+			}
+		} catch (IOException e) {
+			log.warn("Exception setting position", e);
 		}
 	}
 
 	/** {@inheritDoc} */
-	public synchronized KeyFrameMeta analyzeKeyFrames() {
+	public KeyFrameMeta analyzeKeyFrames() {
+		log.debug("analyzeKeyFrames");
 		if (frameMeta != null) {
 			return frameMeta;
 		}
-		// check for cached frame informations
-		if (frameCache != null) {
-			frameMeta = frameCache.loadKeyFrameMeta(file);
-			if (frameMeta != null && frameMeta.duration > 0) {
-				// Frame data loaded, create other mappings
-				duration = frameMeta.duration;
-				frameMeta.audioOnly = true;
-				posTimeMap = new HashMap<Integer, Double>();
-				for (int i = 0; i < frameMeta.positions.length; i++) {
-					posTimeMap.put((int) frameMeta.positions[i], (double) frameMeta.timestamps[i]);
+		try {
+			lock.acquire();
+			// check for cached frame informations
+			if (frameCache != null) {
+				frameMeta = frameCache.loadKeyFrameMeta(file);
+				if (frameMeta != null && frameMeta.duration > 0) {
+					// Frame data loaded, create other mappings
+					duration = frameMeta.duration;
+					frameMeta.audioOnly = true;
+					posTimeMap = new HashMap<Long, Double>();
+					for (int i = 0; i < frameMeta.positions.length; i++) {
+						posTimeMap.put(frameMeta.positions[i], (double) frameMeta.timestamps[i]);
+					}
+					return frameMeta;
 				}
-				return frameMeta;
 			}
-		}
-		List<Integer> positionList = new ArrayList<Integer>();
-		List<Double> timestampList = new ArrayList<Double>();
-		dataRate = 0;
-		long rate = 0;
-		int count = 0;
-		int origPos = in.position();
-		double time = 0;
-		in.position(0);
-		searchNextFrame();
-		while (this.hasMoreTags()) {
-			MP3Header header = readHeader();
-			if (header == null || header.frameSize() == 0) {
-				// TODO find better solution how to deal with broken files...
-				// See APPSERVER-62 for details
-				break;
+			List<Long> positionList = new ArrayList<Long>();
+			List<Double> timestampList = new ArrayList<Double>();
+			dataRate = 0;
+			long rate = 0;
+			int count = 0;
+			long origPos = channel.position();
+			double time = 0;
+			channel.position(0);
+			searchNextFrame();
+			while (hasMoreTags()) {
+				MP3Header header = readHeader();
+				if (header == null || header.frameSize() == 0) {
+					// TODO find better solution how to deal with broken files...
+					// See APPSERVER-62 for details
+					break;
+				}
+				long pos = channel.position() - 4;
+				if (pos + header.frameSize() > fileSize) {
+					// last frame is incomplete
+					break;
+				}
+				positionList.add(pos);
+				timestampList.add(time);
+				rate += header.getBitRate() / 1000;
+				time += header.frameDuration();
+				channel.position(pos + header.frameSize());
+				count++;
 			}
-			int pos = in.position() - 4;
-			if (pos + header.frameSize() > in.limit()) {
-				// Last frame is incomplete
-				break;
+			// restore the pos
+			channel.position(origPos);
+			duration = (long) time;
+			dataRate = (int) (rate / count);
+			posTimeMap = new HashMap<Long, Double>();
+			frameMeta = new KeyFrameMeta();
+			frameMeta.duration = duration;
+			frameMeta.positions = new long[positionList.size()];
+			frameMeta.timestamps = new int[timestampList.size()];
+			frameMeta.audioOnly = true;
+			for (int i = 0; i < frameMeta.positions.length; i++) {
+				frameMeta.positions[i] = positionList.get(i);
+				frameMeta.timestamps[i] = timestampList.get(i).intValue();
+				posTimeMap.put(positionList.get(i), timestampList.get(i));
 			}
-			positionList.add(pos);
-			timestampList.add(time);
-			rate += header.getBitRate() / 1000;
-			time += header.frameDuration();
-			in.position(pos + header.frameSize());
-			count++;
+			if (frameCache != null) {
+				frameCache.saveKeyFrameMeta(file, frameMeta);
+			}
+		} catch (InterruptedException e) {
+			log.warn("Exception acquiring lock", e);
+		} catch (Exception e) {
+			log.warn("Exception analyzing frames", e);
+		} finally {
+			lock.release();
 		}
-		// restore the pos
-		in.position(origPos);
-		duration = (long) time;
-		dataRate = (int) (rate / count);
-		posTimeMap = new HashMap<Integer, Double>();
-		frameMeta = new KeyFrameMeta();
-		frameMeta.duration = duration;
-		frameMeta.positions = new long[positionList.size()];
-		frameMeta.timestamps = new int[timestampList.size()];
-		frameMeta.audioOnly = true;
-		for (int i = 0; i < frameMeta.positions.length; i++) {
-			frameMeta.positions[i] = positionList.get(i);
-			frameMeta.timestamps[i] = timestampList.get(i).intValue();
-			posTimeMap.put(positionList.get(i), timestampList.get(i));
-		}
-		if (frameCache != null) {
-			frameCache.saveKeyFrameMeta(file, frameMeta);
-		}
+		log.debug("Analysis complete");
 		return frameMeta;
 	}
 
