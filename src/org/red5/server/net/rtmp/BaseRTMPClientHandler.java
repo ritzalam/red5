@@ -255,7 +255,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler implements I
 	 * @param persistent SO persistence flag
 	 * @return Client shared object instance
 	 */
-	public synchronized IClientSharedObject getSharedObject(String name, boolean persistent) {
+	public IClientSharedObject getSharedObject(String name, boolean persistent) {
 		log.debug("getSharedObject name: {} persistent {}", new Object[] { name, persistent });
 		ClientSharedObject result = sharedObjects.get(name);
 		if (result != null) {

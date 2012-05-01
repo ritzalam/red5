@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.api.persistence.PersistenceUtils;
-import org.red5.server.api.scope.IBasicScope;
 import org.red5.server.api.scope.IScope;
 import org.red5.server.api.scope.ScopeType;
 import org.red5.server.api.so.ISharedObject;
@@ -119,15 +118,11 @@ public class SharedObjectService implements ISharedObjectService, InitializingBe
 
 	/** {@inheritDoc} */
 	public boolean createSharedObject(IScope scope, String name, boolean persistent) {
-		if (hasSharedObject(scope, name)) {
-			// The shared object already exists.
-			return true;
-		} else {
-			synchronized (scope) {
-				final IBasicScope soScope = new SharedObjectScope(scope, name, persistent, getStore(scope, persistent));
-				return scope.addChildScope(soScope);
-			}
+		if (!hasSharedObject(scope, name)) {
+			return scope.addChildScope(new SharedObjectScope(scope, name, persistent, getStore(scope, persistent)));
 		}
+		// the shared object already exists
+		return true;
 	}
 
 	/** {@inheritDoc} */
@@ -156,23 +151,14 @@ public class SharedObjectService implements ISharedObjectService, InitializingBe
 	/** {@inheritDoc} */
 	public boolean clearSharedObjects(IScope scope, String name) {
 		boolean result = false;
-		synchronized (scope) {
-			if (hasSharedObject(scope, name)) {
-				// '/' clears all local and persistent shared objects associated with the instance
-				// if (name.equals('/')) {
-				// /foo/bar clears the shared object /foo/bar; if bar is a
-				// directory name, no shared objects are deleted.
-				// if (name.equals('/')) {
-				// /foo/bar/* clears all shared objects stored under the
-				// instance directory /foo/bar. The bar directory is also deleted if no
-				// persistent shared objects are in use within this namespace.
-				// if (name.equals('/')) {
-				// /foo/bar/XX?? clears all shared objects that begin with XX,
-				// followed by any two characters. If a directory name matches
-				// this specification, all the shared objects within this directory
-				// are cleared.
-				result = ((ISharedObject) scope.getBasicScope(ScopeType.SHARED_OBJECT, name)).clear();
-			}
+		if (hasSharedObject(scope, name)) {
+			// '/' clears all local and persistent shared objects associated with the instance
+			// /foo/bar clears the shared object /foo/bar; if bar is a directory name, no shared objects are deleted.
+			// /foo/bar/* clears all shared objects stored under the instance directory /foo/bar. 
+			// The bar directory is also deleted if no persistent shared objects are in use within this namespace.
+			// /foo/bar/XX?? clears all shared objects that begin with XX, followed by any two characters. If a directory name matches
+			// this specification, all the shared objects within this directory are cleared.
+			result = ((ISharedObject) scope.getBasicScope(ScopeType.SHARED_OBJECT, name)).clear();
 		}
 		return result;
 	}

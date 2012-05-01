@@ -755,16 +755,13 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	/* Wrapper around ISharedObjectService */
 
 	/**
-	 * Creates a new shared object for given scope. Server-side shared objects
-	 * (also known as Remote SO) are special kind of objects those variable are
-	 * synchronized between clients. To get an instance of RSO at client-side,
-	 * use <code>SharedObject.getRemote()</code>.
+	 * Creates a new shared object for given scope. Server-side shared objects (also known as Remote SO) are special kind of 
+	 * objects those variable are synchronized between clients. To get an instance of RSO at client-side, use 
+	 * <code>SharedObject.getRemote()</code>.
 	 * 
-	 * SharedObjects can be persistent and transient. Persistent RSO are
-	 * stateful, i.e. store their data between sessions. If you need to store
-	 * some data on server while clients go back and forth use persistent SO
-	 * (just use <code>true</code> ), otherwise prefer usage of transient for
-	 * extra performance.
+	 * SharedObjects can be persistent and transient. Persistent RSO are stateful, i.e. store their data between sessions. 
+	 * If you need to store some data on server while clients go back and forth use persistent SO (just use <code>true</code> ),
+	 * otherwise prefer usage of transient for extra performance.
 	 * 
 	 * @param scope
 	 *            Scope that shared object belongs to

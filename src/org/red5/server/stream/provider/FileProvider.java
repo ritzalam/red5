@@ -125,7 +125,7 @@ public class FileProvider implements IPassive, ISeekableProvider, IPullableProvi
 	/** {@inheritDoc} */
 	public synchronized IMessage pullMessage(IPipe pipe) throws IOException {
 		if (this.pipe == pipe) {
-			if (this.reader == null) {
+			if (reader == null) {
 				init();
 			}
 			if (reader.hasMoreTags()) {
@@ -241,10 +241,10 @@ public class FileProvider implements IPassive, ISeekableProvider, IPullableProvi
 	/**
 	 * Reset
 	 */
-	private synchronized void uninit() {
-		if (this.reader != null) {
-			this.reader.close();
-			this.reader = null;
+	private void uninit() {
+		if (reader != null) {
+			reader.close();
+			reader = null;
 		}
 	}
 

@@ -79,24 +79,22 @@ public class RemotingProtocolEncoder {
 		
 		IRemotingConnection conn = (IRemotingConnection) Red5.getConnectionLocal();
 		Collection<IRemotingHeader> headers = conn.getHeaders();
-		synchronized (headers) {
-			buf.putShort((short) headers.size()); // write the header count
-			if (resp.getEncoding() == Encoding.AMF0) {
-				output = new Output(buf);
-			} else {
-				output = new org.red5.io.amf3.Output(buf);
-			}
-			for (IRemotingHeader header: headers) {
-				Output.putString(buf, IRemotingHeader.PERSISTENT_HEADER);
-				output.writeBoolean(false);
-				Map<String, Object> param = new HashMap<String, Object>();
-				param.put("name", header.getName());
-				param.put("mustUnderstand", header.getMustUnderstand() ? Boolean.TRUE : Boolean.FALSE);
-				param.put("data", header.getValue());
-				serializer.serialize(output, param);
-			}
-			headers.clear();
+		buf.putShort((short) headers.size()); // write the header count
+		if (resp.getEncoding() == Encoding.AMF0) {
+			output = new Output(buf);
+		} else {
+			output = new org.red5.io.amf3.Output(buf);
 		}
+		for (IRemotingHeader header: headers) {
+			Output.putString(buf, IRemotingHeader.PERSISTENT_HEADER);
+			output.writeBoolean(false);
+			Map<String, Object> param = new HashMap<String, Object>();
+			param.put("name", header.getName());
+			param.put("mustUnderstand", header.getMustUnderstand() ? Boolean.TRUE : Boolean.FALSE);
+			param.put("data", header.getValue());
+			serializer.serialize(output, param);
+		}
+		headers.clear();
 		
 		buf.putShort((short) resp.getCalls().size()); // write the number of bodies
 		for (RemotingCall call: resp.getCalls()) {
