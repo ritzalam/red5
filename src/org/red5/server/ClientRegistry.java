@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.management.StandardMBean;
 
 import org.apache.commons.lang3.StringUtils;
 import org.red5.server.api.IClient;
@@ -69,7 +70,7 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMXBean {
 			try {
 				MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
 				ObjectName oName = new ObjectName("org.red5.server:type=ClientRegistry,name=" + name);
-		        mbeanServer.registerMBean(this, oName);
+		        mbeanServer.registerMBean(new StandardMBean(this, ClientRegistryMXBean.class, true), oName);
 			} catch (Exception e) {
 				//log.warn("Error on jmx registration", e);
 			}

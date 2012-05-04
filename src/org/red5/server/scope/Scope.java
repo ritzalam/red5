@@ -33,6 +33,7 @@ import java.util.concurrent.Semaphore;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.management.StandardMBean;
 import javax.management.openmbean.CompositeData;
 
 import org.apache.commons.lang3.StringUtils;
@@ -1185,7 +1186,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
 			}
 			oName = new ObjectName(String.format("org.red5.server:type=%s,name=%s", cName, name));
-			mbs.registerMBean(this, oName);
+			mbs.registerMBean(new StandardMBean(this, ScopeMXBean.class, true), oName);
 		} catch (Exception e) {
 			log.warn("Error on jmx registration", e);
 		}

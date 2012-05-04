@@ -27,6 +27,7 @@ import java.util.Set;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.management.StandardMBean;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.buffer.SimpleBufferAllocator;
@@ -147,7 +148,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
 			try {
 				serviceManagerObjectName = new ObjectName("org.red5.server:type=IoServiceManager,addresses=" + addressAndPorts.toString());
-				mbs.registerMBean(this, serviceManagerObjectName);
+				mbs.registerMBean(new StandardMBean(this, RTMPMinaTransportMXBean.class, true), serviceManagerObjectName);
 			} catch (Exception e) {
 				log.warn("Error on jmx registration", e);
 			}

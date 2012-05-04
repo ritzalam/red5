@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.management.StandardMBean;
 
 import org.red5.server.jmx.mxbeans.ContextLoaderMXBean;
 import org.red5.server.plugin.PluginRegistry;
@@ -342,7 +343,7 @@ public class ContextLoader implements ApplicationContextAware, InitializingBean,
 			oName = new ObjectName("org.red5.server:name=contextLoader,type=ContextLoader");
 			// check for existing registration before registering
 			if (!mbs.isRegistered(oName)) {
-				mbs.registerMBean(this, oName);
+				mbs.registerMBean(new StandardMBean(this, ContextLoaderMXBean.class, true), oName);
 			} else {
 				log.debug("ContextLoader is already registered in JMX");
 			}
