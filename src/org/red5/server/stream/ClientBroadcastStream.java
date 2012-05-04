@@ -30,6 +30,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.management.StandardMBean;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.IConnection;
@@ -973,7 +974,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
 		try {
 			ObjectName oName = new ObjectName(String.format("org.red5.server:type=ClientBroadcastStream,publishedName=%s", publishedName));
-			mbs.registerMBean(this, oName);
+			mbs.registerMBean(new StandardMBean(this, ClientBroadcastStreamMXBean.class, true), oName);
 		} catch (Exception e) {
 			log.warn("Error on jmx registration", e);
 		}

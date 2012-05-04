@@ -28,6 +28,7 @@ import java.util.concurrent.Semaphore;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.management.StandardMBean;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.filterchain.IoFilterChain;
@@ -333,7 +334,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 			}
 			// Create a new mbean for this instance
 			oName = new ObjectName(String.format("org.red5.server:type=%s,connectionType=%s,host=%s,port=%d,clientId=%s", cName, type, hostStr, port, client.getId()));
-			mbs.registerMBean(this, oName);
+			mbs.registerMBean(new StandardMBean(this, RTMPMinaConnectionMXBean.class, true), oName);
 		} catch (Exception e) {
 			log.warn("Error on jmx registration", e);
 		}

@@ -24,10 +24,12 @@ import java.util.Properties;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.management.StandardMBean;
 import javax.servlet.ServletContext;
 
 import org.quartz.impl.StdSchedulerFactory;
 import org.red5.logging.Red5LoggerFactory;
+import org.red5.server.jmx.mxbeans.QuartzSchedulingServiceMXBean;
 import org.slf4j.Logger;
 import org.springframework.jmx.export.annotation.ManagedResource;
 
@@ -111,7 +113,7 @@ public class ApplicationSchedulingService extends QuartzSchedulingService {
 			} else {
 				oName = new ObjectName("org.red5.server:type=ApplicationSchedulingService,applicationName=" + applicationName + ",instanceId=" + instanceId);
 			}
-			mbeanServer.registerMBean(this, oName);
+			mbeanServer.registerMBean(new StandardMBean(this, QuartzSchedulingServiceMXBean.class, true), oName);
 		} catch (Exception e) {
 			log.warn("Error on jmx registration", e);
 		}
