@@ -15,17 +15,17 @@
 	
 	<!-- Server bean -->
 	<bean id="red5.server" class="org.red5.server.Server">
-	   <property name="notifierThreadPoolSize" value="4"/>
+	   <property name="notifierThreadPoolSize" value="${notifier.threads}"/>
 	</bean>
 	
 	<!-- JMX -->
     <bean id="rmiRegistry" class="org.springframework.remoting.rmi.RmiRegistryFactoryBean">
         <property name="port" value="${jmx.rmi.port}" />
-        <property name="alwaysCreate" value="true" />
+        <property name="alwaysCreate" value="${jmx.registry.create}" />
     </bean>
 
     <bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
-        <property name="locateExistingServerIfPossible" value="true"/>  
+        <property name="locateExistingServerIfPossible" value="${jmx.reuse.existing.server}"/>  
     </bean>
 
     <bean class="org.springframework.jmx.support.ConnectorServerFactoryBean" depends-on="rmiRegistry">
@@ -142,7 +142,7 @@
     <!-- War deployer -->
     <bean id="warDeployService" class="org.red5.server.service.WarDeployer" init-method="init" destroy-method="shutdown">
         <property name="scheduler" ref="schedulingService"/>
-        <property name="checkInterval" value="600000"/>
+        <property name="checkInterval" value="${war.deploy.server.check.interval}"/>
         <property name="deploymentDirectory" value="${red5.root}/webapps"/>
     </bean>		 
 
@@ -184,7 +184,7 @@
 	    Cache to use for keyframe metadata.
 	-->
 	<bean id="keyframe.cache" class="org.red5.io.CachingFileKeyFrameMetaCache">
-		<property name="maxCacheEntry" value="500" />
+		<property name="maxCacheEntry" value="${keyframe.cache.entry.max}" />
 	</bean>
 	
 	<!--
@@ -236,14 +236,14 @@
 		the client buffer filled.
 	-->
 	<bean id="streamExecutor" class="java.util.concurrent.ScheduledThreadPoolExecutor">
-		<constructor-arg value="4"/>
-		<property name="maximumPoolSize" value="32"/>
+		<constructor-arg value="${stream.executor.threads.min}"/>
+		<property name="maximumPoolSize" value="${stream.executor.threads.max}"/>
 	</bean>
 	
 	<!-- Low level access for recording to file -->
     <bean id="fileConsumer" scope="prototype" lazy-init="true" class="org.red5.server.stream.consumer.FileConsumer">        
-        <property name="delayWrite" value="true"/>
-        <property name="queueThreshold" value="33"/>
+        <property name="delayWrite" value="${fileconsumer.delayed.write}"/>
+        <property name="queueThreshold" value="${fileconsumer.queue.size}"/>
     </bean>
 	
 	<!-- ClientBroadcastStream and PlaylistSubscriberStream
@@ -257,16 +257,16 @@
 		<!-- Check for buffer underruns every X ms and generate NetStream.Play.InsufficientBW accordingly.
 		     Set to 0 to disable. Be careful not to set this value too small to avoid network congestion.
 		  -->
-		<property name="bufferCheckInterval" value="5000"/>
+		<property name="bufferCheckInterval" value="${subscriberstream.buffer.check.interval}"/>
 		<!-- A NetStream.Play.InsufficientBW message is generated if more than X messages are queued for sending on the connection.
 		     This value will also control the maximum pending messages on the server. To use a smaller value on slow connections
 		     to get smaller delay for downstream server commands.
 		  -->
-		<property name="underrunTrigger" value="100"/>
+		<property name="underrunTrigger" value="${subscriberstream.underrun.trigger}"/>
 	</bean>
 	
 	<bean id="clientBroadcastStream" scope="prototype" lazy-init="true" class="org.red5.server.stream.ClientBroadcastStream">
-        <property name="automaticRecording" value="false"/>
+        <property name="automaticRecording" value="${broadcaststream.auto.record}"/>
 	</bean>
 
 </beans>

@@ -71,7 +71,7 @@
 		<!-- Disconnect client after X ms of not responding. -->
 		<property name="maxInactivity" value="${rtmp.max_inactivity}" />
 		<!-- Max. time in milliseconds to wait for a valid handshake. -->
-		<property name="maxHandshakeTimeout" value="5000" />
+		<property name="maxHandshakeTimeout" value="${rtmp.max_handshake_time}" />
         <!-- Default server bandwidth per connection -->
         <property name="defaultServerBandwidth" value="${rtmp.default_server_bandwidth}" />
         <!-- Default client bandwidth per connection -->
@@ -104,7 +104,7 @@
 		<!-- Disconnect client after X ms of not responding. -->
 		<property name="maxInactivity" value="${rtmpt.max_inactivity}" />
 		<!-- Max. time in milliseconds to wait for a valid handshake. -->
-		<property name="maxHandshakeTimeout" value="5000" />
+		<property name="maxHandshakeTimeout" value="${rtmpt.max_handshake_time}" />
 	</bean>
 		
 	<!-- RTMPS -->

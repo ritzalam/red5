@@ -81,12 +81,12 @@ public class RTMP extends ProtocolState {
 	/**
 	 * Client mode.
 	 */
-	public static final boolean MODE_CLIENT = true;
+	//public static final boolean MODE_CLIENT = true;
 
 	/**
 	 * Server mode.
 	 */
-	public static final boolean MODE_SERVER = false;
+	//public static final boolean MODE_SERVER = false;
 
 	/**
 	 * Default chunk size. Packets are read and written chunk-by-chunk.
@@ -101,7 +101,7 @@ public class RTMP extends ProtocolState {
 	/**
 	 * Server mode by default.
 	 */
-	private volatile boolean mode = MODE_SERVER;
+	//private volatile boolean mode = MODE_SERVER;
 
 	/**
 	 * Debug flag.
@@ -224,17 +224,7 @@ public class RTMP extends ProtocolState {
 	 *
 	 * @param mode            Initial mode
 	 */
-	public RTMP(boolean mode) {
-		this.mode = mode;
-	}
-
-	/**
-	 * Return current mode.
-	 *
-	 * @return  Current mode
-	 */
-	public boolean getMode() {
-		return mode;
+	public RTMP() {
 	}
 
 	/**
@@ -503,7 +493,7 @@ public class RTMP extends ProtocolState {
 	 */
 	@Override
 	public String toString() {
-		return "RTMP [state=" + states[state] + ", client-mode=" + mode + ", debug=" + debug + ", encrypted=" + encrypted + ", lastReadChannel=" + lastReadChannel + ", lastWriteChannel="
+		return "RTMP [state=" + states[state] + ", debug=" + debug + ", encrypted=" + encrypted + ", lastReadChannel=" + lastReadChannel + ", lastWriteChannel="
 				+ lastWriteChannel + ", readHeaders=" + readHeaders + ", writeHeaders=" + writeHeaders + ", readPacketHeaders=" + readPacketHeaders + ", readPackets="
 				+ readPackets + ", writePackets=" + writePackets + ", writeTimestamps=" + writeTimestamps + ", liveTimestamps=" + liveTimestamps + ", readChunkSize="
 				+ readChunkSize + ", writeChunkSize=" + writeChunkSize + ", encoding=" + encoding + "]";

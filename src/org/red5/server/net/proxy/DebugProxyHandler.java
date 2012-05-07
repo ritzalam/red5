@@ -41,8 +41,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.ResourceLoader;
 
-public class DebugProxyHandler extends IoHandlerAdapter implements
-		ResourceLoaderAware {
+public class DebugProxyHandler extends IoHandlerAdapter implements ResourceLoaderAware {
 
 	protected static Logger log = LoggerFactory.getLogger(DebugProxyHandler.class);
 
@@ -55,43 +54,42 @@ public class DebugProxyHandler extends IoHandlerAdapter implements
 	private String dumpTo = "./dumps/";
 
 	/** {@inheritDoc} */
-    public void setResourceLoader(ResourceLoader loader) {
+	public void setResourceLoader(ResourceLoader loader) {
 		this.loader = loader;
 	}
 
 	/**
-     * Setter for property 'codecFactory'.
-     *
-     * @param codecFactory Value to set for property 'codecFactory'.
-     */
-    public void setCodecFactory(ProtocolCodecFactory codecFactory) {
+	 * Setter for property 'codecFactory'.
+	 *
+	 * @param codecFactory Value to set for property 'codecFactory'.
+	 */
+	public void setCodecFactory(ProtocolCodecFactory codecFactory) {
 		this.codecFactory = codecFactory;
 	}
 
 	/**
-     * Setter for property 'forward'.
-     *
-     * @param forward Value to set for property 'forward'.
-     */
-    public void setForward(String forward) {
+	 * Setter for property 'forward'.
+	 *
+	 * @param forward Value to set for property 'forward'.
+	 */
+	public void setForward(String forward) {
 		int split = forward.indexOf(':');
 		String host = forward.substring(0, split);
-		int port = Integer.parseInt(forward.substring(split + 1, forward
-				.length()));
+		int port = Integer.parseInt(forward.substring(split + 1, forward.length()));
 		this.forward = new InetSocketAddress(host, port);
 	}
 
 	/**
-     * Setter for property 'dumpTo'.
-     *
-     * @param dumpTo Value to set for property 'dumpTo'.
-     */
-    public void setDumpTo(String dumpTo) {
+	 * Setter for property 'dumpTo'.
+	 *
+	 * @param dumpTo Value to set for property 'dumpTo'.
+	 */
+	public void setDumpTo(String dumpTo) {
 		this.dumpTo = dumpTo;
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public void sessionOpened(IoSession session) throws Exception {
 		SocketSessionConfig ssc = (SocketSessionConfig) session.getConfig();
 		ssc.setTcpNoDelay(true);
@@ -103,36 +101,27 @@ public class DebugProxyHandler extends IoHandlerAdapter implements
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public void sessionCreated(IoSession session) throws Exception {
 
 		boolean isClient = session.getRemoteAddress().equals(forward);
-		//session.getConfig();
 
 		if (log.isDebugEnabled()) {
 			log.debug("Is downstream: " + isClient);
-
-			session.setAttribute(ProtocolState.SESSION_KEY, new RTMP(isClient));
-
-			session.getFilterChain().addFirst("protocol",
-					new ProtocolCodecFilter(codecFactory));
+			session.setAttribute(ProtocolState.SESSION_KEY, new RTMP());
+			session.getFilterChain().addFirst("protocol", new ProtocolCodecFilter(codecFactory));
 		}
 
-		session.getFilterChain().addFirst("proxy",
-				new ProxyFilter(isClient ? "client" : "server"));
+		session.getFilterChain().addFirst("proxy", new ProxyFilter(isClient ? "client" : "server"));
 
 		if (true) {
 
-			String fileName = System.currentTimeMillis() + '_'
-					+ forward.getHostName() + '_' + forward.getPort() + '_'
-					+ (isClient ? "DOWNSTREAM" : "UPSTREAM");
+			String fileName = System.currentTimeMillis() + '_' + forward.getHostName() + '_' + forward.getPort() + '_' + (isClient ? "DOWNSTREAM" : "UPSTREAM");
 
-			File headersFile = loader.getResource(dumpTo + fileName + ".cap")
-					.getFile();
+			File headersFile = loader.getResource(dumpTo + fileName + ".cap").getFile();
 			headersFile.createNewFile();
 
-			File rawFile = loader.getResource(dumpTo + fileName + ".raw")
-					.getFile();
+			File rawFile = loader.getResource(dumpTo + fileName + ".raw").getFile();
 			rawFile.createNewFile();
 
 			FileOutputStream headersFos = new FileOutputStream(headersFile);
@@ -146,12 +135,10 @@ public class DebugProxyHandler extends IoHandlerAdapter implements
 			header.flip();
 			headers.write(header.buf());
 
-			session.getFilterChain().addFirst("dump",
-					new NetworkDumpFilter(headers, raw));
+			session.getFilterChain().addFirst("dump", new NetworkDumpFilter(headers, raw));
 		}
 
-		//session.getFilterChain().addLast(
-		//        "logger", new LoggingFilter() );
+		//session.getFilterChain().addLast("logger", new LoggingFilter() );
 
 		if (!isClient) {
 			log.debug("Connecting..");
@@ -172,39 +159,32 @@ public class DebugProxyHandler extends IoHandlerAdapter implements
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public void messageReceived(IoSession session, Object in) {
+		if (log.isDebugEnabled()) {
+			if (in instanceof IoBuffer) {
+				log.debug("Handskake");
+				return;
+			}
+			try {
+				final Packet packet = (Packet) in;
+				final Object message = packet.getMessage();
+				final Header source = packet.getHeader();
 
-		if (!log.isDebugEnabled()) {
-			return;
-		}
-
-		if (in instanceof IoBuffer) {
-			log.debug("Handskake");
-			return;
-		}
-
-		try {
-
-			final Packet packet = (Packet) in;
-			final Object message = packet.getMessage();
-			final Header source = packet.getHeader();
-
-			log.debug("{}", source);
-			log.debug("{}", message);
-
-		} catch (RuntimeException e) {
-			log.error("Exception", e);
+				log.debug("{}", source);
+				log.debug("{}", message);
+			} catch (RuntimeException e) {
+				log.error("Exception", e);
+			}
 		}
 	}
 
 	/** {@inheritDoc} */
-    @Override
-	public void exceptionCaught(IoSession session, Throwable cause)
-			throws Exception {
-    	if (log.isDebugEnabled()) {
-    		log.debug("Exception caught", cause);
-    	}
+	@Override
+	public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
+		if (log.isDebugEnabled()) {
+			log.debug("Exception caught", cause);
+		}
 	}
 
 }

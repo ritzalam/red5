@@ -42,69 +42,79 @@ import org.red5.server.net.remoting.RemotingClient;
  * @see <a href="http://www.osflash.org/amf/recordset">osflash.org documentation</a>
  */
 public class RecordSet {
-    /**
-     * On demand fetching mode
-     */
+	/**
+	 * On demand fetching mode
+	 */
 	private static final String MODE_ONDEMAND = "ondemand";
-    /**
-     * Fetch all at once fetching mode
-     */
+
+	/**
+	 * Fetch all at once fetching mode
+	 */
 	private static final String MODE_FETCHALL = "fetchall";
-    /**
-     * Page-by-page fetching mode
-     */
+
+	/**
+	 * Page-by-page fetching mode
+	 */
 	private static final String MODE_PAGE = "page";
-    /**
-     * Total number of pages
-     */
+
+	/**
+	 * Total number of pages
+	 */
 	private int totalCount;
-    /**
-     * Recordset data
-     */
+
+	/**
+	 * Recordset data
+	 */
 	private List<List<Object>> data;
-    /**
-     * Recordset cursor
-     */
+
+	/**
+	 * Recordset cursor
+	 */
 	private int cursor;
 
-    /**
-     * Name of service
-     */
-    private String serviceName;
+	/**
+	 * Name of service
+	 */
+	private String serviceName;
 
-    /**
-     * Recordset column names set
-     */
-    private List<String> columns;
-    /**
-     * Recordset version
-     */
+	/**
+	 * Recordset column names set
+	 */
+	private List<String> columns;
+
+	/**
+	 * Recordset version
+	 */
 	private int version;
-    /**
-     * Recordset id
-     */
+
+	/**
+	 * Recordset id
+	 */
 	private Object id;
-    /**
-     * Remoting client that fetches data
-     */
+
+	/**
+	 * Remoting client that fetches data
+	 */
 	private RemotingClient client;
-    /**
-     * Fetching mode, on demand by default
-     */
+
+	/**
+	 * Fetching mode, on demand by default
+	 */
 	private String mode = MODE_ONDEMAND;
-    /**
-     * Page size
-     */
+
+	/**
+	 * Page size
+	 */
 	private int pageSize = 25;
 
-    /**
-     * Creates recordset from Input object
-     * @param input input
-     */
-    @SuppressWarnings({ "unchecked" })
+	/**
+	 * Creates recordset from Input object
+	 * @param input input
+	 */
+	@SuppressWarnings({ "unchecked" })
 	public RecordSet(Input input) {
-        // Create deserializer
-        Deserializer deserializer = new Deserializer();
+		// Create deserializer
+		Deserializer deserializer = new Deserializer();
 		Map<String, Object> dataMap = input.readKeyValues(deserializer);
 
 		Object map = dataMap.get("serverinfo");
@@ -112,7 +122,7 @@ public class RecordSet {
 		if (map != null) {
 			if (!(map instanceof Map)) {
 				throw new RuntimeException("Expected Map but got " + map.getClass().getName());
-			}			
+			}
 			serverInfo = (Map<String, Object>) map;
 			totalCount = (Integer) serverInfo.get("totalCount");
 			List<List<Object>> initialData = (List<List<Object>>) serverInfo.get("initialData");
@@ -125,7 +135,7 @@ public class RecordSet {
 			this.data = new ArrayList<List<Object>>(totalCount);
 			for (int i = 0; i < initialData.size(); i++) {
 				this.data.add(i + cursor - 1, initialData.get(i));
-			}		
+			}
 		} else {
 			throw new RuntimeException("Map (serverinfo) was null");
 		}
@@ -171,8 +181,7 @@ public class RecordSet {
 		this.pageSize = pageSize;
 	}
 
-
-    /**
+	/**
 	 * Return a list containing the names of the columns in the recordset.
 	 * 
 	 * @return Column names set
@@ -219,23 +228,19 @@ public class RecordSet {
 			count = 1;
 		}
 
-		result = client.invokeMethod(serviceName + ".getRecords", new Object[] {
-				id, start + 1, count });
+		result = client.invokeMethod(serviceName + ".getRecords", new Object[] { id, start + 1, count });
 		if (!(result instanceof RecordSetPage)) {
-			throw new RuntimeException("expected RecordSetPage but got "
-					+ result);
+			throw new RuntimeException("expected RecordSetPage but got " + result);
 		}
 
 		RecordSetPage page = (RecordSetPage) result;
 		if (page.getCursor() != start + 1) {
-			throw new RuntimeException("expected offset " + (start + 1)
-					+ " but got " + page.getCursor());
+			throw new RuntimeException("expected offset " + (start + 1) + " but got " + page.getCursor());
 		}
 
 		List<List<Object>> data = page.getData();
 		if (data.size() != count) {
-			throw new RuntimeException("expected " + count
-					+ " results but got " + data.size());
+			throw new RuntimeException("expected " + count + " results but got " + data.size());
 		}
 
 		// Store received items
@@ -249,7 +254,7 @@ public class RecordSet {
 	 * available yet, it will be received from the server.
 	 * 
 	 * @param index         Item index
-     * @return              Item from recordset
+	 * @return              Item from recordset
 	 */
 	public List<Object> getItemAt(int index) {
 		if (index < 0 || index >= totalCount) {
@@ -299,7 +304,7 @@ public class RecordSet {
 	 * 
 	 * @return serializable informations
 	 */
-	public Map<String,Object> serialize() {
+	public Map<String, Object> serialize() {
 		Map<String, Object> serverInfo = new HashMap<String, Object>();
 		serverInfo.put("totalCount", totalCount);
 		serverInfo.put("cursor", cursor);
@@ -308,7 +313,7 @@ public class RecordSet {
 		serverInfo.put("version", version);
 		serverInfo.put("id", id);
 		serverInfo.put("initialData", data);
-		
+
 		return serverInfo;
 	}
 }

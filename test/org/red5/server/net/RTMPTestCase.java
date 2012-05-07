@@ -58,7 +58,7 @@ public class RTMPTestCase extends TestCase implements Constants {
 	}
 
 	public void testHeaders() {
-		RTMP rtmp = new RTMP(RTMP.MODE_SERVER);
+		RTMP rtmp = new RTMP();
 		Header header = new Header();
 		header.setChannelId((byte) 0x12);
 		header.setDataType(TYPE_INVOKE);
