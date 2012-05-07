@@ -29,53 +29,74 @@ import org.red5.server.net.rtmp.codec.RTMPProtocolEncoder;
  */
 public class RTMPTCodecFactory extends RTMPCodecFactory {
 
-    /**
-     * RTMP decoder
-     */
+	/**
+	 * RTMP decoder
+	 */
 	private RTMPTProtocolDecoder decoder;
-	
-    /**
-     * RTMP encoder
-     */
-	private RTMPTProtocolEncoder encoder;
 
-    /**
-     * Initialization
-     */
-    public void init() {
+	/**
+	 * RTMP encoder
+	 */
+	private RTMPTProtocolEncoder encoder;
+	
+	private long baseTolerance = 5000;
+	
+	private boolean dropLiveFuture;
+	
+	/**
+	 * Initialization
+	 */
+	public void init() {
 		decoder = new RTMPTProtocolDecoder();
 		decoder.setDeserializer(deserializer);
 		encoder = new RTMPTProtocolEncoder();
 		encoder.setSerializer(serializer);
+		encoder.setBaseTolerance(baseTolerance);
+		encoder.setDropLiveFuture(dropLiveFuture);
 	}
 
 	/**
-     * Setter for deserializer.
-     *
-     * @param deserializer  Deserializer used by this codec factory.
-     */
-    public void setDeserializer(Deserializer deserializer) {
+	 * Setter for deserializer.
+	 *
+	 * @param deserializer  Deserializer used by this codec factory.
+	 */
+	public void setDeserializer(Deserializer deserializer) {
 		this.deserializer = deserializer;
 	}
 
 	/**
-     * Setter for serializer
-     *
-     * @param serializer Value to set for property 'serializer'.
-     */
-    public void setSerializer(Serializer serializer) {
+	 * Setter for serializer
+	 *
+	 * @param serializer Value to set for property 'serializer'.
+	 */
+	public void setSerializer(Serializer serializer) {
 		this.serializer = serializer;
+	}
+	
+	/**
+	 * @param baseTolerance the baseTolerance to set
+	 */
+	public void setBaseTolerance(long baseTolerance) {
+		this.baseTolerance = baseTolerance;
+	}
+
+	/**
+	 * @param dropLiveFuture the dropLiveFuture to set
+	 */
+	public void setDropLiveFuture(boolean dropLiveFuture) {
+		this.dropLiveFuture = dropLiveFuture;
 	}
 
 	/** {@inheritDoc} */
-    @Override
-    public RTMPProtocolDecoder getRTMPDecoder() {
+	@Override
+	public RTMPProtocolDecoder getRTMPDecoder() {
 		return decoder;
 	}
 
 	/** {@inheritDoc} */
-    @Override
-    public RTMPProtocolEncoder getRTMPEncoder() {
+	@Override
+	public RTMPProtocolEncoder getRTMPEncoder() {
 		return encoder;
 	}
+	
 }

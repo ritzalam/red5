@@ -95,6 +95,8 @@
 	<bean id="rtmptServlet"	class="org.red5.server.net.rtmpt.RTMPTServlet">
 		<property name="handler" ref="rtmptHandler" />
 		<property name="rtmpConnManager" ref="rtmptConnManager" />
+		<!-- Increasing this value results in better stream performance, but also increases the latency -->
+		<property name="targetResponseSize" value="${rtmpt.target_reponse_size}" />
 	</bean>
 	
 	<!-- RTMPT Connection -->
