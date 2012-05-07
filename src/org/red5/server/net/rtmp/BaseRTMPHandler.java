@@ -97,7 +97,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 	/** {@inheritDoc} */
 	public void connectionOpened(RTMPConnection conn, RTMP state) {
 		log.trace("connectionOpened - conn: {} state: {}", conn, state);
-		if (state.getMode() == RTMP.MODE_SERVER && appCtx != null) {
+		if (appCtx != null) {
 			ISchedulingService service = (ISchedulingService) appCtx.getBean(ISchedulingService.BEAN_NAME);
 			conn.startWaitForHandshake(service);
 		}
@@ -200,7 +200,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 		if (message instanceof IoBuffer) {
 			return;
 		}
-		// Increase number of sent messages
+		// increase number of sent messages
 		conn.messageSent((Packet) message);
 	}
 

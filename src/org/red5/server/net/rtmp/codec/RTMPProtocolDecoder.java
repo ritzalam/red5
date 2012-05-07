@@ -207,44 +207,27 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	public IoBuffer decodeHandshake(RTMP rtmp, IoBuffer in) {
 		log.debug("decodeHandshake - rtmp: {} buffer: {}", rtmp, in);
 		final int remaining = in.remaining();
-		if (rtmp.getMode() == RTMP.MODE_SERVER) {
-			if (rtmp.getState() == RTMP.STATE_CONNECT) {
-				if (remaining < HANDSHAKE_SIZE + 1) {
-					log.debug("Handshake init too small, buffering. remaining: {}", remaining);
-					rtmp.bufferDecoding(HANDSHAKE_SIZE + 1);
-				} else {
-					final IoBuffer hs = IoBuffer.allocate(HANDSHAKE_SIZE);
-					in.get(); // skip the header byte
-					BufferUtils.put(hs, in, HANDSHAKE_SIZE);
-					hs.flip();
-					rtmp.setState(RTMP.STATE_HANDSHAKE);
-					return hs;
-				}
-			} else if (rtmp.getState() == RTMP.STATE_HANDSHAKE) {
-				log.debug("Handshake reply");
-				if (remaining < HANDSHAKE_SIZE) {
-					log.debug("Handshake reply too small, buffering. remaining: {}", remaining);
-					rtmp.bufferDecoding(HANDSHAKE_SIZE);
-				} else {
-					in.skip(HANDSHAKE_SIZE);
-					rtmp.setState(RTMP.STATE_CONNECTED);
-					rtmp.continueDecoding();
-				}
+		if (rtmp.getState() == RTMP.STATE_CONNECT) {
+			if (remaining < HANDSHAKE_SIZE + 1) {
+				log.debug("Handshake init too small, buffering. remaining: {}", remaining);
+				rtmp.bufferDecoding(HANDSHAKE_SIZE + 1);
+			} else {
+				final IoBuffer hs = IoBuffer.allocate(HANDSHAKE_SIZE);
+				in.get(); // skip the header byte
+				BufferUtils.put(hs, in, HANDSHAKE_SIZE);
+				hs.flip();
+				rtmp.setState(RTMP.STATE_HANDSHAKE);
+				return hs;
 			}
-		} else {
-			// else, this is client mode.
-			if (rtmp.getState() == RTMP.STATE_CONNECT) {
-				final int size = (2 * HANDSHAKE_SIZE) + 1;
-				if (remaining < size) {
-					log.debug("Handshake init too small, buffering. remaining: {}", remaining);
-					rtmp.bufferDecoding(size);
-				} else {
-					final IoBuffer hs = IoBuffer.allocate(size);
-					BufferUtils.put(hs, in, size);
-					hs.flip();
-					rtmp.setState(RTMP.STATE_CONNECTED);
-					return hs;
-				}
+		} else if (rtmp.getState() == RTMP.STATE_HANDSHAKE) {
+			log.debug("Handshake reply");
+			if (remaining < HANDSHAKE_SIZE) {
+				log.debug("Handshake reply too small, buffering. remaining: {}", remaining);
+				rtmp.bufferDecoding(HANDSHAKE_SIZE);
+			} else {
+				in.skip(HANDSHAKE_SIZE);
+				rtmp.setState(RTMP.STATE_CONNECTED);
+				rtmp.continueDecoding();
 			}
 		}
 		return null;
@@ -486,7 +469,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				header.setStreamId(lastHeader.getStreamId());
 				header.setTimerBase(lastHeader.getTimerBase());
 				header.setTimerDelta(lastHeader.getTimerDelta());
-				if(lastHeader.getExtendedTimestamp() != 0) {
+				if (lastHeader.getExtendedTimestamp() != 0) {
 					timeValue = in.getInt();
 					header.setExtendedTimestamp(timeValue);
 					log.trace("HEADER_CONTINUE with extended timestamp: {}", timeValue);
@@ -819,9 +802,8 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		}
 
 		//TODO Handle NetStream.send? Where and how?
-
-		if (!(notify instanceof Invoke) && rtmp != null && rtmp.getMode() == RTMP.MODE_SERVER && header != null && header.getStreamId() != 0 && !isStreamCommand(action)) {
-			// Don't decode "NetStream.send" requests
+		if (!(notify instanceof Invoke) && rtmp != null && header != null && header.getStreamId() != 0 && !isStreamCommand(action)) {
+			// don't decode "NetStream.send" requests
 			in.position(start);
 			notify.setData(in.asReadOnlyBuffer());
 			return notify;

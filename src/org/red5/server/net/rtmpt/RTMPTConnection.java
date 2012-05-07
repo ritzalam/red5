@@ -70,7 +70,7 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	/** Constructs a new RTMPTConnection. */
 	RTMPTConnection() {
 		super(POLLING);
-		state = new RTMP(RTMP.MODE_SERVER);
+		state = new RTMP();
 		clientId = getNextClientId();
 	}
 
