@@ -36,7 +36,7 @@ public class RTMPMinaProtocolEncoder extends ProtocolEncoderAdapter {
 	protected static Logger log = LoggerFactory.getLogger(RTMPMinaProtocolEncoder.class);
 
 	private RTMPProtocolEncoder encoder = new RTMPProtocolEncoder();
-
+	
 	/** {@inheritDoc} */
 	public void encode(IoSession session, Object message, ProtocolEncoderOutput out) throws ProtocolCodecException {
 		final ProtocolState state = (ProtocolState) session.getAttribute(ProtocolState.SESSION_KEY);

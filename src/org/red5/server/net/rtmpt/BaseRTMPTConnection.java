@@ -189,9 +189,9 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 * @return a list of decoded objects
 	 */
 	public List<?> decode(IoBuffer data) {
-		log.debug("decode - state: {}", state);
+		log.debug("decode");
 		if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
-			// Connection is being closed, don't decode any new packets
+			// connection is being closed, don't decode any new packets
 			return Collections.EMPTY_LIST;
 		}
 		readBytes.addAndGet(data.limit());
@@ -207,9 +207,10 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 */
 	@Override
 	public void write(final Packet packet) {
-		log.debug("write - state: {}", state);		
+		log.debug("write - packet: {}", packet);		
+		log.trace("state: {}", state);		
 		if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
-			// Connection is being closed, don't send any new packets
+			// connection is being closed, don't send any new packets
 			return;
 		}
 		IoBuffer data;
@@ -220,9 +221,9 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 			return;
 		}
 		if (data != null) {
-			// Mark packet as being written
+			// mark packet as being written
 			writingMessage(packet);
-			//add to pending
+			// add to pending
 			pendingMessages.add(new PendingData(data, packet));
 		} else {
 			log.info("Response buffer was null after encoding");
@@ -230,33 +231,42 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	}
 
 	protected IoBuffer foldPendingMessages(int targetSize) {
-		if (pendingMessages.isEmpty()) {
+		log.debug("foldPendingMessages - target size: {}", targetSize);
+		if (!pendingMessages.isEmpty()) {
+			int sendSize = 0;
+			LinkedList<PendingData> sendList = new LinkedList<PendingData>();
+			while (!pendingMessages.isEmpty()) {
+				PendingData pendingMessage = pendingMessages.peek();
+				// get the buffer size
+				int limit = pendingMessage.getBuffer().limit();
+				if ((limit + sendSize) < targetSize) {
+					pendingMessage = pendingMessages.remove();
+					if (sendList.add(pendingMessage)) {
+						sendSize += limit;
+					}
+				} else {
+					break;
+				}
+			}
+			log.debug("Send size: {}", sendSize);
+			IoBuffer result = IoBuffer.allocate(sendSize);
+			for (PendingData pendingMessage : sendList) {
+				result.put(pendingMessage.getBuffer());
+				if (pendingMessage.getPacket() != null) {
+					try {
+						handler.messageSent(this, pendingMessage.getPacket());
+					} catch (Exception e) {
+						log.error("Could not notify stream subsystem about sent message", e);
+					}
+				}
+			}
+			sendList.clear();
+			result.flip();
+			writtenBytes.addAndGet(sendSize);
+			return result;
+		} else {
 			return null;
 		}
-		IoBuffer result = IoBuffer.allocate(2048);
-		result.setAutoExpand(true);
-		// We'll have to create a copy here to avoid endless recursion
-		List<Object> toNotify = new LinkedList<Object>();
-		while (!pendingMessages.isEmpty()) {
-			PendingData pendingMessage = pendingMessages.remove();
-			result.put(pendingMessage.getBuffer());
-			if (pendingMessage.getPacket() != null) {
-				toNotify.add(pendingMessage.getPacket());
-			}
-			if ((result.position() > targetSize)) {
-				break;
-			}
-		}
-		for (Object message : toNotify) {
-			try {
-				handler.messageSent(this, message);
-			} catch (Exception e) {
-				log.error("Could not notify stream subsystem about sent message.", e);
-			}
-		}
-		result.flip();
-		writtenBytes.addAndGet(result.limit());
-		return result;
 	}
 
 	public void setHandler(IRTMPHandler handler) {

@@ -84,7 +84,6 @@ public class RTMPTHandler extends RTMPHandler {
 		log.debug("url: {}", url);
 		String[] parts = url.split("/");
 		if (parts.length == 2) {
-			// TODO: is this a good default hostname?
 			return "";
 		} else {
 			String host = parts[2];

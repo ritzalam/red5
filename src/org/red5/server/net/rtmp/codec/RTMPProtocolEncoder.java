@@ -273,8 +273,6 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 					}
 					log.debug("Client buffer duration: {}", clientBufferDuration);
 				}
-			} else {
-				log.debug("Connection is null");
 			}
 
 			//TODO: how should we differ handling based on live or vod?

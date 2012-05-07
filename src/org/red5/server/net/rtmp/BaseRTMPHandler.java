@@ -221,14 +221,12 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 		log.debug("url: {}", url);
 		String[] parts = url.split("/");
 		if (parts.length == 2) {
-			// TODO: is this a good default hostname?
 			return "";
 		} else {
 			String host = parts[2];
-			// Strip out default port in case the client
-			// added the port explicitly.
+			// strip out default port in case the client added the port explicitly
 			if (host.endsWith(":1935")) {
-				// Remove default port from connection string
+				// remove default port from connection string
 				return host.substring(0, host.length() - 5);
 			}
 			return host;

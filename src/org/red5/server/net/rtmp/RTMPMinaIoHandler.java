@@ -127,12 +127,11 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		RTMPHandshake handshake = (RTMPHandshake) session.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
 		if (handshake != null) {
-			IoBuffer out = null;
-				if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
-					log.warn("Raw buffer after handshake, something odd going on");
-				}
-				log.debug("Handshake - server phase 1 - size: {}", in.remaining());
-			out = handshake.doHandshake(in);
+			if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
+				log.warn("Raw buffer after handshake, something odd going on");
+			}
+			log.debug("Handshake - server phase 1 - size: {}", in.remaining());
+			IoBuffer out = handshake.doHandshake(in);
 			if (out != null) {
 				log.debug("Output: {}", out);
 				session.write(out);
