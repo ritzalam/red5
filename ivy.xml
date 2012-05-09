@@ -60,7 +60,7 @@
 		<dependency name="jaudiotagger" rev="2.0.4-SNAPSHOT" />
 		<!-- JMX support -->
         <dependency org="net.sourceforge.cglib" name="com.springsource.net.sf.cglib" rev="2.2.0" transitive="false" />
-        <dependency org="org.aopalliance" name="com.springsource.org.aopalliance" rev="1.0.0" transitive="false" />		
+        <dependency org="org.aopalliance" name="com.springsource.org.aopalliance" rev="1.0.0" transitive="false" />
 		<!-- Testing support -->
 		<!-- until Eclipse updates their junit version, we have to use this -->
 		<dependency org="org.junit" name="com.springsource.org.junit" rev="4.8.1" conf="eclipse->*" transitive="false" />
