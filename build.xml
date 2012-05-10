@@ -27,10 +27,10 @@
 	<property name="testclass.dir" value="bin/testcases/classes"/>
 	<property name="testreports.dir" value="bin/testcases/testreports"/>
 	<property name="testdoc.dir" value="doc/test"/>
+    <!-- user overides for project properties -->
+    <property file="${user.home}/build.properties"/>
 	<!-- base project properties -->
 	<property file="build.properties"/>
-	<!-- user overides for project properties -->
-	<property file="${user.home}/build.properties"/>
 	<!-- Hudson auto-builds and release properties -->
 	<!-- Hudson will set BUILD_TAG when running -->
 	<condition property="archive.version" value="${red5.version}-build-${env.BUILD_TAG}">
