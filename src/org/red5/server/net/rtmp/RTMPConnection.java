@@ -844,18 +844,18 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 *            Pending call service id
 	 * @return Pending call service object
 	 */
-	protected IPendingServiceCall getPendingCall(int invokeId) {
+	public IPendingServiceCall getPendingCall(int invokeId) {
 		return pendingCalls.get(invokeId);
 	}
 
 	/**
-	 * Retrieve pending call service by id. The call will be removed afterwards.
+	 * Retrieves and removes the pending call service by id.
 	 * 
 	 * @param invokeId
 	 *            Pending call service id
 	 * @return Pending call service object
 	 */
-	protected IPendingServiceCall retrievePendingCall(int invokeId) {
+	public IPendingServiceCall retrievePendingCall(int invokeId) {
 		return pendingCalls.remove(invokeId);
 	}
 
@@ -1019,7 +1019,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * 
 	 * @param result Result to register
 	 */
-	protected void registerDeferredResult(DeferredResult result) {
+	public void registerDeferredResult(DeferredResult result) {
 		deferredResults.add(result);
 	}
 
@@ -1029,11 +1029,11 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * @param result
 	 *            Result to unregister
 	 */
-	protected void unregisterDeferredResult(DeferredResult result) {
+	public void unregisterDeferredResult(DeferredResult result) {
 		deferredResults.remove(result);
 	}
 
-	protected void rememberStreamBufferDuration(int streamId, int bufferDuration) {
+	public void rememberStreamBufferDuration(int streamId, int bufferDuration) {
 		streamBuffers.put(streamId - 1, bufferDuration);
 	}
 
