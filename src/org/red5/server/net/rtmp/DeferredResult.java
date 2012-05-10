@@ -32,43 +32,46 @@ import org.slf4j.LoggerFactory;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class DeferredResult {
-    /**
-     * Logger
-     */
+	/**
+	 * Logger
+	 */
 	protected static Logger log = LoggerFactory.getLogger(DeferredResult.class);
-    /**
-     * Weak reference to used channel
-     */
+
+	/**
+	 * Weak reference to used channel
+	 */
 	private WeakReference<Channel> channel;
-    /**
-     * Pending call object
-     */
-    private IPendingServiceCall call;
-    /**
-     * Invocation id
-     */
-    private int invokeId;
-    /**
-     * Results sent flag
-     */
-    private boolean resultSent = false;
-	
+
+	/**
+	 * Pending call object
+	 */
+	private IPendingServiceCall call;
+
+	/**
+	 * Invocation id
+	 */
+	private int invokeId;
+
+	/**
+	 * Results sent flag
+	 */
+	private boolean resultSent = false;
+
 	/**
 	 * Set the result of a method call and send to the caller.
 	 * 
 	 * @param result deferred result of the method call
 	 */
 	public void setResult(Object result) {
-		if (this.resultSent)
+		if (resultSent) {
 			throw new RuntimeException("You can only set the result once.");
-
+		}
 		this.resultSent = true;
 		Channel channel = this.channel.get();
 		if (channel == null) {
 			log.warn("The client is no longer connected.");
 			return;
 		}
-		
 		Invoke reply = new Invoke();
 		call.setResult(result);
 		reply.setCall(call);
@@ -85,31 +88,32 @@ public class DeferredResult {
 	public boolean wasSent() {
 		return resultSent;
 	}
-	
+
 	/**
-     * Setter for invoke Id.
-     *
-     * @param id  Invocation object identifier
-     */
-    protected void setInvokeId(int id) {
+	 * Setter for invoke Id.
+	 *
+	 * @param id  Invocation object identifier
+	 */
+	public void setInvokeId(int id) {
 		this.invokeId = id;
 	}
-	
+
 	/**
-     * Setter for service call.
-     *
-     * @param call  Service call
-     */
-    protected void setServiceCall(IPendingServiceCall call) {
+	 * Setter for service call.
+	 *
+	 * @param call  Service call
+	 */
+	public void setServiceCall(IPendingServiceCall call) {
 		this.call = call;
 	}
-	
+
 	/**
-     * Setter for channel.
-     *
-     * @param channel  Channel
-     */
-    protected void setChannel(Channel channel) {
+	 * Setter for channel.
+	 *
+	 * @param channel  Channel
+	 */
+	public void setChannel(Channel channel) {
 		this.channel = new WeakReference<Channel>(channel);
 	}
+	
 }
