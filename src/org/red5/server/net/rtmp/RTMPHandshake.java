@@ -262,7 +262,7 @@ public abstract class RTMPHandshake implements IHandshake {
 	/**
 	 * Create the initial bytes for a request / response.
 	 */
-	abstract void createHandshakeBytes();
+	protected abstract void createHandshakeBytes();
 	
 	/**
 	 * Determines the validation scheme for given input.

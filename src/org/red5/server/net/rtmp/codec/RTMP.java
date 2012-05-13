@@ -79,16 +79,6 @@ public class RTMP extends ProtocolState {
 	public static final byte STATE_EDGE_DISCONNECTING = 0x13;
 
 	/**
-	 * Client mode.
-	 */
-	//public static final boolean MODE_CLIENT = true;
-
-	/**
-	 * Server mode.
-	 */
-	//public static final boolean MODE_SERVER = false;
-
-	/**
 	 * Default chunk size. Packets are read and written chunk-by-chunk.
 	 */
 	public static final int DEFAULT_CHUNK_SIZE = 128;
@@ -97,11 +87,6 @@ public class RTMP extends ProtocolState {
 	 * RTMP state.
 	 */
 	private volatile byte state = STATE_CONNECT;
-
-	/**
-	 * Server mode by default.
-	 */
-	//private volatile boolean mode = MODE_SERVER;
 
 	/**
 	 * Debug flag.
