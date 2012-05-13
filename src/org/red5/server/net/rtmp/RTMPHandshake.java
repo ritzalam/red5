@@ -143,7 +143,7 @@ public abstract class RTMPHandshake implements IHandshake {
 	}
 	
 	public RTMPHandshake() {
-		log.debug("Handshake ctor");
+		log.trace("Handshake ctor");
 		try {
 			hmacSHA256 = Mac.getInstance("HmacSHA256");
 		} catch (SecurityException e) {
@@ -151,7 +151,7 @@ public abstract class RTMPHandshake implements IHandshake {
 		} catch (NoSuchAlgorithmException e) {
 			log.error("HMAC SHA256 does not exist");
 		}
-		//create our server handshake bytes
+		//create our handshake bytes
 		createHandshakeBytes();
 	}
 
