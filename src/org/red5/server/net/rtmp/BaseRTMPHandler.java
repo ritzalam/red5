@@ -248,7 +248,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 		if (pendingCall != null) {
 			// The client sent a response to a previously made call.
 			Object[] args = call.getArguments();
-			if ((args != null) && (args.length > 0)) {
+			if (args != null && args.length > 0) {
 				// TODO: can a client return multiple results?
 				pendingCall.setResult(args[0]);
 			}
