@@ -73,7 +73,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	/**
 	 * Serializer object.
 	 */
-	private Serializer serializer;
+	protected Serializer serializer;
 
 	/**
 	 * Tolerance (in milliseconds) for late media on streams. A set of levels based on this
@@ -745,14 +745,13 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	 */
 	protected void encodeNotifyOrInvoke(IoBuffer out, Notify invoke, RTMP rtmp) {
 		// TODO: tidy up here
-		// log.debug("Encode invoke");
 		Output output = new org.red5.io.amf.Output(out);
 		final IServiceCall call = invoke.getCall();
 		final boolean isPending = (call.getStatus() == Call.STATUS_PENDING);
 		log.debug("Call: {} pending: {}", call, isPending);
 		if (!isPending) {
 			log.debug("Call has been executed, send result");
-			serializer.serialize(output, call.isSuccess() ? "_result" : "_error"); // seems right
+			serializer.serialize(output, call.isSuccess() ? "_result" : "_error");
 		} else {
 			log.debug("This is a pending call, send request");
 			// for request we need to use AMF3 for client mode if the connection is AMF3
@@ -768,7 +767,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 		}
 
 		if (call.getServiceName() == null && "connect".equals(call.getServiceMethodName())) {
-			// Response to initial connect, always use AMF0
+			// response to initial connect, always use AMF0
 			output = new org.red5.io.amf.Output(out);
 		} else {
 			if (rtmp.getEncoding() == Encoding.AMF3) {

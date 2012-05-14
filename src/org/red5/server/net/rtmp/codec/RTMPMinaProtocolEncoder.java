@@ -58,6 +58,18 @@ public class RTMPMinaProtocolEncoder extends ProtocolEncoderAdapter {
 		}
 	}
 
+	/**
+	 * Sets an RTMP protocol encoder
+	 * @param encoder the RTMP encoder
+	 */
+	public void setEncoder(RTMPProtocolEncoder encoder) {
+		this.encoder = encoder;
+	}
+
+	/**
+	 * Returns an RTMP encoder
+	 * @return RTMP encoder
+	 */
 	public RTMPProtocolEncoder getEncoder() {
 		return encoder;
 	}
@@ -84,4 +96,5 @@ public class RTMPMinaProtocolEncoder extends ProtocolEncoderAdapter {
 	public void setDropLiveFuture(boolean dropLiveFuture) {
 		encoder.setDropLiveFuture(dropLiveFuture);
 	}
+
 }
