@@ -82,7 +82,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	/**
 	 * Deserializer
 	 */
-	private Deserializer deserializer;
+	protected Deserializer deserializer;
 
 	/** Constructs a new RTMPProtocolDecoder. */
 	public RTMPProtocolDecoder() {
@@ -175,7 +175,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 */
 	public Object decode(ProtocolState state, IoBuffer in) throws ProtocolException {
 		int start = in.position();
-		log.debug("Start: {}", start);
+		log.trace("Start: {}", start);
 		try {
 			final RTMP rtmp = (RTMP) state;
 			switch (rtmp.getState()) {

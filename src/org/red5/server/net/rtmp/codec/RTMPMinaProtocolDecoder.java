@@ -72,6 +72,14 @@ public class RTMPMinaProtocolDecoder extends ProtocolDecoderAdapter {
 	}
 
 	/**
+	 * Returns an RTMP decoder
+	 * @return RTMP decoder
+	 */
+	public RTMPProtocolDecoder getDecoder() {
+		return decoder;
+	}
+	
+	/**
 	 * Setter for deserializer.
 	 * 
 	 * @param deserializer Deserializer
@@ -80,8 +88,5 @@ public class RTMPMinaProtocolDecoder extends ProtocolDecoderAdapter {
 		decoder.setDeserializer(deserializer);
 	}
 
-	public RTMPProtocolDecoder getDecoder() {
-		return decoder;
-	}
 
 }
