@@ -160,9 +160,8 @@ public class Channel {
 				event.setInvokeId(connection.getInvokeId());
 				event.setCall(call);
 			}
-			// We send directly to the corresponding stream as for
-			// some status codes, no stream has been created and thus
-			// "getStreamByChannelId" will fail.
+			// We send directly to the corresponding stream as for some status codes, no stream has been created 
+			// and thus "getStreamByChannelId" will fail.
 			write(event, connection.getStreamIdForChannel(id));
 		}
 	}
