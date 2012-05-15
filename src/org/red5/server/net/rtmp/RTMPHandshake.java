@@ -135,6 +135,9 @@ public abstract class RTMPHandshake implements IHandshake {
 	// clients public key
 	protected byte[] outgoingPublicKey;
 	
+	// swf verification bytes
+	protected byte[] swfVerificationBytes;
+	
 	private Mac hmacSHA256;
 	
 	static {
@@ -423,6 +426,15 @@ public abstract class RTMPHandshake implements IHandshake {
 	 */
 	public Cipher getCipherIn() {
 		return cipherIn;
+	}
+	
+	/**
+	 * Returns the SWF verification bytes.
+	 * 
+	 * @return swf verification bytes
+	 */
+	public byte[] getSwfVerificationBytes() {
+		return swfVerificationBytes;
 	}
 	
 }
