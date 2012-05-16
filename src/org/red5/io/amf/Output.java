@@ -59,10 +59,7 @@ import org.w3c.dom.Document;
 public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 	protected static Logger log = LoggerFactory.getLogger(Output.class);
-
-	/**
-	 * Cache encoded strings... the TK way...
-	 */
+ 
 	private static Cache stringCache;
 
 	private static Cache serializeCache;
@@ -76,31 +73,26 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	private static CacheManager getCacheManager() {
 		if (cacheManager == null) {
 			if (System.getProperty("red5.root") != null) {
-				//    			we're running Red5 as a server.
+				// we're running Red5 as a server.
 				try {
 					cacheManager = new CacheManager(System.getProperty("red5.root") + File.separator + "conf" + File.separator + "ehcache.xml");
 				} catch (CacheException e) {
 					cacheManager = constructDefault();
 				}
 			} else {
-				//    			not a server, maybe running tests? 
+				// not a server, maybe running tests? 
 				cacheManager = constructDefault();
 			}
 		}
-
 		return cacheManager;
 	}
 
 	private static CacheManager constructDefault() {
-		CacheManager manager = new CacheManager();
-		if (!manager.cacheExists("org.red5.io.amf.Output.stringCache"))
-			manager.addCache("org.red5.io.amf.Output.stringCache");
-		if (!manager.cacheExists("org.red5.io.amf.Output.getterCache"))
-			manager.addCache("org.red5.io.amf.Output.getterCache");
-		if (!manager.cacheExists("org.red5.io.amf.Output.fieldCache"))
-			manager.addCache("org.red5.io.amf.Output.fieldCache");
-		if (!manager.cacheExists("org.red5.io.amf.Output.serializeCache"))
-			manager.addCache("org.red5.io.amf.Output.serializeCache");
+		CacheManager manager = CacheManager.getInstance();
+		manager.addCacheIfAbsent("org.red5.io.amf.Output.stringCache");
+		manager.addCacheIfAbsent("org.red5.io.amf.Output.getterCache");
+		manager.addCacheIfAbsent("org.red5.io.amf.Output.fieldCache");
+		manager.addCacheIfAbsent("org.red5.io.amf.Output.serializeCache");
 		return manager;
 	}
 
