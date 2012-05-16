@@ -363,8 +363,8 @@ public class Context implements IContext, ApplicationContextAware, ContextMXBean
 	 * @param path Path
 	 * @return Scope
 	 * 
-	 * @see org.red5.server.api.IScope
-	 * @see org.red5.server.Scope
+	 * @see org.red5.server.api.scope.IScope
+	 * @see org.red5.server.scope.Scope
 	 */
 	public IScope resolveScope(String host, String path) {
 		return scopeResolver.resolveScope(path);

@@ -36,8 +36,8 @@ import org.red5.server.util.ScopeUtils;
 /**
  * Generalizations of one of main Red5 object types, Scope.
  *
- * @see org.red5.server.api.IScope
- * @see org.red5.server.Scope
+ * @see org.red5.server.api.scope.IScope
+ * @see org.red5.server.scope.Scope
  */
 public abstract class BasicScope implements IBasicScope {
 

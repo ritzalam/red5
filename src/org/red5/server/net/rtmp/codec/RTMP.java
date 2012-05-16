@@ -205,9 +205,7 @@ public class RTMP extends ProtocolState {
 	private Encoding encoding = Encoding.AMF0;
 
 	/**
-	 * Creates RTMP object with initial mode.
-	 *
-	 * @param mode            Initial mode
+	 * Creates RTMP object; essentially for storing session information.
 	 */
 	public RTMP() {
 	}

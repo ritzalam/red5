@@ -36,7 +36,7 @@ public interface IApplication {
 	 * Called once when application or room starts
 	 * 
 	 * @param app Application or room level scope. See
-	 *            {@link org.red5.server.api.IScope} for details
+	 *            {@link org.red5.server.api.scope.IScope} for details
 	 * @return <code>true</code> continues application run, <code>false</code>
 	 *         terminates
 	 */
