@@ -104,7 +104,9 @@ public class StreamService implements IStreamService {
 		}
 	}
 
-	/** {@inheritDoc} */
+	/**
+	 * Close stream
+	 */
 	public void closeStream() {
 		closeStream(Red5.getConnectionLocal(), getCurrentStreamId());
 	}

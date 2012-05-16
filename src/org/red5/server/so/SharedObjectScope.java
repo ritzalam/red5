@@ -143,7 +143,6 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 		return so.getPath();
 	}
 
-	/** {@inheritDoc} */
 	public void setPath(String path) {
 		so.setPath(path);
 	}

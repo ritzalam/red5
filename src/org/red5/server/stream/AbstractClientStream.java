@@ -87,7 +87,10 @@ public abstract class AbstractClientStream extends AbstractStream implements ICl
 		return conn.get();
 	}
 
-	/** {@inheritDoc} */
+	/**
+	 *  Return stream state
+	 * @return StreamState
+	 */
 	public StreamState getState() {
 		try {
 			lock.acquireUninterruptibly();
@@ -97,7 +100,10 @@ public abstract class AbstractClientStream extends AbstractStream implements ICl
 		}
 	}
 
-	/** {@inheritDoc} */
+	/**
+	 * Sets the stream state
+	 * @param state
+	 */
 	public void setState(StreamState state) {
 		if (!this.state.equals(state)) {
 			try {
