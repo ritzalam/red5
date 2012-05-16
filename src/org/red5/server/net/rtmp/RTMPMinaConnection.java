@@ -120,8 +120,10 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 			// update our state
 			if (ioSession.containsAttribute(ProtocolState.SESSION_KEY)) {
 				RTMP rtmp = (RTMP) ioSession.getAttribute(ProtocolState.SESSION_KEY);
-				log.debug("RTMP state: {}", rtmp);
-				rtmp.setState(RTMP.STATE_DISCONNECTING);
+				if (rtmp != null) {
+					log.debug("RTMP state: {}", rtmp);
+					rtmp.setState(RTMP.STATE_DISCONNECTING);
+				}
 			}
 			// close now, no flushing, no waiting
 			CloseFuture future = ioSession.close(true);

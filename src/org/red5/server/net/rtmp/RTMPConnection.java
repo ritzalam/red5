@@ -450,63 +450,63 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 
 	/** {@inheritDoc} */
 	public IClientBroadcastStream newBroadcastStream(int streamId) {
-		if (!isValidStreamId(streamId)) {
-			return null;
-		}
-		// get ClientBroadcastStream defined as a prototype in red5-common.xml
-		ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
-		Integer buffer = streamBuffers.get(streamId - 1);
-		if (buffer != null) {
-			cbs.setClientBufferDuration(buffer);
-		}
-		cbs.setStreamId(streamId);
-		cbs.setConnection(this);
-		cbs.setName(createStreamName());
-		cbs.setScope(this.getScope());
+		if (isValidStreamId(streamId)) {
+			// get ClientBroadcastStream defined as a prototype in red5-common.xml
+			ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
+			Integer buffer = streamBuffers.get(streamId - 1);
+			if (buffer != null) {
+				cbs.setClientBufferDuration(buffer);
+			}
+			cbs.setStreamId(streamId);
+			cbs.setConnection(this);
+			cbs.setName(createStreamName());
+			cbs.setScope(this.getScope());
 
-		registerStream(cbs);
-		usedStreams.incrementAndGet();
-		return cbs;
+			registerStream(cbs);
+			usedStreams.incrementAndGet();
+			return cbs;
+		}
+		return null;
 	}
 
 	/** {@inheritDoc} */
 	public ISingleItemSubscriberStream newSingleItemSubscriberStream(int streamId) {
-		if (!isValidStreamId(streamId)) {
-			return null;
+		if (isValidStreamId(streamId)) {
+			// get SingleItemSubscriberStream defined as a prototype in red5-common.xml
+			SingleItemSubscriberStream siss = (SingleItemSubscriberStream) scope.getContext().getBean("singleItemSubscriberStream");
+			Integer buffer = streamBuffers.get(streamId - 1);
+			if (buffer != null) {
+				siss.setClientBufferDuration(buffer);
+			}
+			siss.setName(createStreamName());
+			siss.setConnection(this);
+			siss.setScope(this.getScope());
+			siss.setStreamId(streamId);
+			registerStream(siss);
+			usedStreams.incrementAndGet();
+			return siss;
 		}
-		// get SingleItemSubscriberStream defined as a prototype in red5-common.xml
-		SingleItemSubscriberStream siss = (SingleItemSubscriberStream) scope.getContext().getBean("singleItemSubscriberStream");
-		Integer buffer = streamBuffers.get(streamId - 1);
-		if (buffer != null) {
-			siss.setClientBufferDuration(buffer);
-		}
-		siss.setName(createStreamName());
-		siss.setConnection(this);
-		siss.setScope(this.getScope());
-		siss.setStreamId(streamId);
-		registerStream(siss);
-		usedStreams.incrementAndGet();
-		return siss;
+		return null;
 	}
 
 	/** {@inheritDoc} */
 	public IPlaylistSubscriberStream newPlaylistSubscriberStream(int streamId) {
-		if (!isValidStreamId(streamId)) {
-			return null;
+		if (isValidStreamId(streamId)) {
+			// get PlaylistSubscriberStream defined as a prototype in red5-common.xml
+			PlaylistSubscriberStream pss = (PlaylistSubscriberStream) scope.getContext().getBean("playlistSubscriberStream");
+			Integer buffer = streamBuffers.get(streamId - 1);
+			if (buffer != null) {
+				pss.setClientBufferDuration(buffer);
+			}
+			pss.setName(createStreamName());
+			pss.setConnection(this);
+			pss.setScope(this.getScope());
+			pss.setStreamId(streamId);
+			registerStream(pss);
+			usedStreams.incrementAndGet();
+			return pss;
 		}
-		// get PlaylistSubscriberStream defined as a prototype in red5-common.xml
-		PlaylistSubscriberStream pss = (PlaylistSubscriberStream) scope.getContext().getBean("playlistSubscriberStream");
-		Integer buffer = streamBuffers.get(streamId - 1);
-		if (buffer != null) {
-			pss.setClientBufferDuration(buffer);
-		}
-		pss.setName(createStreamName());
-		pss.setConnection(this);
-		pss.setScope(this.getScope());
-		pss.setStreamId(streamId);
-		registerStream(pss);
-		usedStreams.incrementAndGet();
-		return pss;
+		return null;
 	}
 
 	public void addClientStream(IClientStream stream) {
@@ -609,37 +609,31 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		// kill all the collections etc
 		if (channels != null) {
 			channels.clear();
-			channels = null;
 		} else {
 			log.trace("Channels collection was null");
 		}
 		if (streams != null) {
 			streams.clear();
-			streams = null;
 		} else {
 			log.trace("Streams collection was null");
 		}
 		if (pendingCalls != null) {
 			pendingCalls.clear();
-			pendingCalls = null;
 		} else {
 			log.trace("PendingCalls collection was null");
 		}
 		if (deferredResults != null) {
 			deferredResults.clear();
-			deferredResults = null;
 		} else {
 			log.trace("DeferredResults collection was null");
 		}
 		if (pendingVideos != null) {
 			pendingVideos.clear();
-			pendingVideos = null;
 		} else {
 			log.trace("PendingVideos collection was null");
 		}
 		if (streamBuffers != null) {
 			streamBuffers.clear();
-			streamBuffers = null;
 		} else {
 			log.trace("StreamBuffers collection was null");
 		}
