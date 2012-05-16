@@ -1171,21 +1171,27 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 *            Name of stream that is about to be published.
 	 */
 	public void FCPublish(String streamName) {
-		// Override if necessary.
 	}
 
 	/**
 	 * Notification method that is sent by FME when publishing of a stream ends.
 	 */
 	public void FCUnpublish() {
-		// Override if necessary.
 	}
 
 	/**
 	 * Notification method that is sent by FME when publishing of a stream ends.
 	 */
 	public void FCUnpublish(String streamName) {
-		// Override if necessary.
+	}
+
+	/**
+	 * Notification method that is sent by some clients just before playback starts.
+	 * 
+	 * @param streamName
+	 *            Name of stream that is about to be played.
+	 */
+	public void FCSubscribe(String streamName) {
 	}
 
 	/**
