@@ -104,8 +104,9 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 			// Save
 			store.save(so);
 		} else {
-			// Rename and set path
-			so.setName(name);
+			// fix for issue #209 http://code.google.com/p/red5/issues/detail?id=209
+			//so.setName(name); // rename is no longer supported
+			// set path
 			so.setPath(path);
 		}
 	}
