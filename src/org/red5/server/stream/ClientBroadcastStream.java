@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.StandardMBean;
@@ -458,8 +459,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 */
 	public void setPublishedName(String name) {
 		log.debug("setPublishedName: {}", name);
-		this.publishedName = name;
-		registerJMX();
+		// a publish name of "false" is a special case, used when stopping a stream
+		if (!"false".equals(name)) {
+			this.publishedName = name;
+			registerJMX();
+		}
 	}
 
 	/**
@@ -975,6 +979,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		try {
 			ObjectName oName = new ObjectName(String.format("org.red5.server:type=ClientBroadcastStream,publishedName=%s", publishedName));
 			mbs.registerMBean(new StandardMBean(this, ClientBroadcastStreamMXBean.class, true), oName);
+		} catch (InstanceAlreadyExistsException e) {
+			log.info("Instance already registered", e);				
 		} catch (Exception e) {
 			log.warn("Error on jmx registration", e);
 		}
