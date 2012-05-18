@@ -155,14 +155,14 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 	/** {@inheritDoc} */
 	@Override
 	public void messageReceived(IoSession session, Object message) throws Exception {
-		log.debug("messageReceived");
+		log.trace("messageReceived");
 		if (message instanceof IoBuffer) {
 			rawBufferRecieved((IoBuffer) message, session);
 		} else {
-			log.debug("Setting connection local");
+			log.trace("Setting connection local");
 			Red5.setConnectionLocal((IConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY));
 			handler.messageReceived(message, session);
-			log.debug("Removing connection local");
+			log.trace("Removing connection local");
 			Red5.setConnectionLocal(null);
 		}
 	}

@@ -120,7 +120,7 @@ public class ServiceInvoker implements IServiceInvoker {
 		IConnection conn = Red5.getConnectionLocal();
 		String methodName = call.getServiceMethodName();
 		log.debug("Service: {} name: {} method: {}", new Object[] { service, call.getServiceName(), methodName });
-		//pull off the prefixes since java doesnt allow this on a method name
+		// pull off the prefixes since java doesnt allow this on a method name
 		if (methodName.charAt(0) == '@') {
 			log.debug("Method name contained an illegal prefix, it will be removed: {}", methodName);
 			methodName = methodName.substring(1);
@@ -177,21 +177,19 @@ public class ServiceInvoker implements IServiceInvoker {
 			if (method.isAnnotationPresent(DeclarePrivate.class)) {
 				// Method may not be called by clients.
 				log.debug("Method {} is declared private.", method);
-				throw new NotAllowedException("you are not allowed to execute this method");
+				throw new NotAllowedException("Access denied, method is private");
 			}
-
 			final DeclareProtected annotation = method.getAnnotation(DeclareProtected.class);
 			if (annotation != null) {
 				if (!conn.getClient().hasPermission(conn, annotation.permission())) {
-					// Client doesn't have required permission
+					// client doesn't have required permission
 					log.debug("Client {} doesn't have required permission {} to call {}", new Object[] { conn.getClient(), annotation.permission(), method });
-					throw new NotAllowedException("you are not allowed to execute this method");
+					throw new NotAllowedException("Access denied, method is protected");
 				}
 			}
-
 			log.debug("Invoking method: {}", method.toString());
-
-			if (method.getReturnType() == Void.class) {
+			if (method.getReturnType().equals(Void.TYPE)) {
+				log.debug("result: void");
 				method.invoke(service, params);
 				call.setStatus(Call.STATUS_SUCCESS_VOID);
 			} else {
@@ -216,16 +214,14 @@ public class ServiceInvoker implements IServiceInvoker {
 			call.setException(invocationEx);
 			call.setStatus(Call.STATUS_INVOCATION_EXCEPTION);
 			if (!(invocationEx.getCause() instanceof ClientDetailsException)) {
-				// Only log if not handled by client
-				log.error("Error executing call: {}", call);
-				log.error("Service invocation error", invocationEx);
+				// only log if not handled by client
+				log.error("Error executing call: {}", call, invocationEx);
 			}
 			return false;
 		} catch (Exception ex) {
 			call.setException(ex);
 			call.setStatus(Call.STATUS_GENERAL_EXCEPTION);
-			log.error("Error executing call: {}", call);
-			log.error("Service invocation error", ex);
+			log.error("Error executing call: {}", call, ex);
 			return false;
 		}
 		return true;
