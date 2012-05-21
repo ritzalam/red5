@@ -216,7 +216,7 @@
 		<antcall target="retrieve" inheritAll="true" inheritRefs="true">
 			<param name="ivy.conf.name" value="java6"/>
 		</antcall>
-		<javac sourcepath="" srcdir="${src.dir}" destdir="${dest.dir}" classpathref="project.classpath" optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}" deprecation="${build.deprecation}" debug="${debug.state}" compiler="${compiler}" source="${java.target_version}" target="${java.target_version}" memoryInitialSize="128m" memoryMaximumSize="${memory.maximum}" excludes="${std_excludes}" listfiles="false" includeantruntime="false"/>
+		<javac sourcepath="" srcdir="${src.dir}" destdir="${dest.dir}" classpathref="project.classpath" optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}" deprecation="${build.deprecation}" debug="${debug.state}" compiler="${compiler}" source="${java.target_version}" target="${java.target_version}" memoryInitialSize="${memory.minimum}" memoryMaximumSize="${memory.maximum}" excludes="${std_excludes}" listfiles="false" includeantruntime="false"/>
 		<!-- touch this source file so that the revision number will be updated upon svn commit -->
 		<touch file="${src.dir}/org/red5/server/api/Red5.java"/>
 	</target>
@@ -227,7 +227,7 @@
 		<javac sourcepath="" srcdir="${src.dir}" destdir="${dest.dir}" classpathref="project.classpath"
 			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
 			 deprecation="${build.deprecation}" debug="${debug.state}" compiler="${compiler}"
-			 source="${java.target_version}" target="${java.target_version}" memoryMaximumSize="${memory.maximum}"
+			 source="${java.target_version}" target="${java.target_version}" memoryInitialSize="${memory.minimum}" memoryMaximumSize="${memory.maximum}"
 			 excludes="${std_excludes}" listfiles="false" includeantruntime="false"/>
 	</target>
 	<macrodef name="build-demo">
