@@ -25,7 +25,6 @@ import java.util.Set;
 import junit.framework.TestCase;
 
 import org.junit.Test;
-import org.red5.server.adapter.ApplicationAdapter;
 import org.red5.server.api.scope.IScope;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.scope.WebScope;
@@ -47,10 +46,13 @@ public class SharedObjectTest extends AbstractJUnit4SpringContextTests {
 
 	private static WebScope appScope;
 	
+	@SuppressWarnings("unused")
 	private String host = "localhost";
 	
+	@SuppressWarnings("unused")
 	private String appPath = "junit";
 	
+	@SuppressWarnings("unused")
 	private String roomPath = "/junit/room1";
 
 	static {
