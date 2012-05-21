@@ -13,6 +13,7 @@ public class SOApplication extends MultiThreadedApplicationAdapter {
 	/* (non-Javadoc)
 	 * @see org.red5.server.adapter.MultiThreadedApplicationAdapter#appStart(org.red5.server.api.scope.IScope)
 	 */
+	@SuppressWarnings("unused")
 	@Override
 	public boolean appStart(IScope app) {		
 		// create persistent SO

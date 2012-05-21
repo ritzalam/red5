@@ -50,8 +50,8 @@
 		<dependency org="org.objectweb.asm" name="com.springsource.org.objectweb.asm.commons" rev="3.2.0" transitive="false" />
 		<dependency org="org.antlr" name="com.springsource.org.antlr" rev="3.1.3" transitive="false" />
 		<dependency org="org.codehaus.groovy" name="com.springsource.org.codehaus.groovy" rev="1.7.0" transitive="false" />
-		<dependency name="jruby-complete" rev="1.1.6" />
-		<dependency name="jython" rev="2.5" />
+        <dependency org="org.jruby" name="jruby" rev="1.6.7.2"/>
+        <dependency org="org.python" name="jython-standalone" rev="2.5.2"/>
 		<dependency org="org.mozilla.javascript" name="com.springsource.org.mozilla.javascript" rev="1.7.0.R2" transitive="false" />
 		<dependency org="javax.xml.stream" name="com.springsource.javax.xml.stream" rev="1.0.1" transitive="false" />
 		<!-- Crypto -->
