@@ -660,25 +660,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			// TODO: throw other exception here?
 			throw new IOException("Stream is no longer connected");
 		}
+		// get connections scope
 		IScope scope = conn.getScope();
-		// Get stream filename generator
-		IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.class, DefaultStreamFilenameGenerator.class);
-		// Generate filename
-		recordingFilename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
-		// get file for that filename
-		File file = null;
-		if (generator.resolvesToAbsolutePath()) {
-			file = new File(recordingFilename);
-		} else {
-			try {
-				file = scope.getContext().getResource(recordingFilename).getFile();
-			} catch (FileNotFoundException fnfe) {
-				log.debug("File not found: {}", fnfe);
-				file = new File(String.format("%s/webapps/%s/%s", System.getProperty("red5.root"), scope.getContextPath(), recordingFilename));
-			}
-		}
-		log.debug("File path: {}", file.getCanonicalPath());
-		log.debug("File exists: {} writable: {}", file.exists(), file.canWrite());
+		// get the file for our filename
+		File file = getRecordFile(scope, name);
 		// If append mode is on...
 		if (!isAppend) {
 			if (file.exists()) {
@@ -883,8 +868,22 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 					Object handler = scope.getHandler();
 					if (handler instanceof IStreamAwareScopeHandler) {
 						if (recording) {
+							// callback for record start
 							((IStreamAwareScopeHandler) handler).streamRecordStart(this);
 						} else {
+							// delete any previously recorded versions of this now "live" stream per
+							// http://livedocs.adobe.com/flashmediaserver/3.0/hpdocs/help.html?content=00000186.html
+							try {
+								File file = getRecordFile(scope, publishedName);							
+								if (file.exists()) {
+									if (!file.delete()) {
+										log.debug("File was not deleted: {}", file.getAbsoluteFile());
+									}
+								}
+							} catch (Exception e) {
+								log.warn("Exception removing previously recorded file", e);
+							}
+							// callback for publish start
 							((IStreamAwareScopeHandler) handler).streamPublishStart(this);
 						}
 					}
@@ -973,6 +972,38 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		listeners.remove(listener);
 	}
 
+	/**
+	 * Get the file we'd be recording to based on scope and given name.
+	 * 
+	 * @param scope
+	 * @param name
+	 * @return file
+	 */
+	protected File getRecordFile(IScope scope, String name) {
+		// get stream filename generator
+		IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.class, DefaultStreamFilenameGenerator.class);
+		// generate filename
+		recordingFilename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
+		File file = null;
+		if (generator.resolvesToAbsolutePath()) {
+			file = new File(recordingFilename);
+		} else {
+			try {
+				file = scope.getContext().getResource(recordingFilename).getFile();
+				log.debug("File path: {}", file.getCanonicalPath());
+				log.debug("File exists: {} writable: {}", file.exists(), file.canWrite());
+			} catch (FileNotFoundException fnfe) {
+				log.debug("File not found: {}", fnfe);
+				String appScopeName = ScopeUtils.findApplication(scope).getName();
+				file = new File(String.format("%s/webapps/%s/%s", System.getProperty("red5.root"), appScopeName, recordingFilename));
+			} catch (IOException e) {
+				log.debug("File error: {}", e);
+			}
+		}
+		return file;
+	}
+
+	
 	protected void registerJMX() {
 		// register with jmx
 		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();

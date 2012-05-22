@@ -128,10 +128,10 @@ public class AttributeStore implements ICastingAttributeStore {
 		if (defaultValue == null) {
 			throw new NullPointerException("the default value may not be null");
 		}
-
 		Object result = attributes.putIfAbsent(name, defaultValue);
+		// if no previous value result will be null
 		if (result == null) {
-			// No previous value, the default has been set
+			// use the default value
 			result = defaultValue;
 		}
 		return result;
@@ -161,7 +161,7 @@ public class AttributeStore implements ICastingAttributeStore {
 		if (name != null) {
 			if (value != null) {
 				// update with new value
-				Object previous = attributes.putIfAbsent(name, value);
+				Object previous = attributes.put(name, value);
 				// previous will be null if the attribute didn't exist
 				return (previous == null || !value.equals(previous));
 			}
