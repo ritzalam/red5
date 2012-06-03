@@ -20,13 +20,12 @@
 		<dependency org="org.springframework" name="spring-expression" rev="3.1.1.RELEASE" />
 		<dependency org="org.springframework" name="spring-web" rev="3.1.1.RELEASE" />
 		<!-- Logging -->
-		<dependency org="org.slf4j" name="com.springsource.slf4j.api" rev="1.6.1" transitive="false" />
-		<dependency org="org.slf4j" name="com.springsource.slf4j.bridge" rev="1.6.1" transitive="false" />
-		<dependency name="jul-to-slf4j" rev="1.6.1" />
-		<dependency name="log4j-over-slf4j" rev="1.6.1" />
-		<dependency name="jcl-over-slf4j" rev="1.6.1" />
-		<dependency name="logback-classic" rev="0.9.28" />
-		<dependency name="logback-core" rev="0.9.28" />
+		<dependency org="org.slf4j" name="slf4j-api" rev="1.6.4" transitive="false" />
+		<dependency org="org.slf4j" name="jul-to-slf4j" rev="1.6.4" />
+		<dependency org="org.slf4j" name="log4j-over-slf4j" rev="1.6.4" />
+		<dependency org="org.slf4j" name="jcl-over-slf4j" rev="1.6.4" />
+		<dependency org="ch.qos.logback" name="logback-classic" rev="1.0.3" />
+		<dependency org="ch.qos.logback" name="logback-core" rev="1.0.3" />
 		<!-- General -->
 		<dependency org="org.apache.commons" name="commons-beanutils" rev="1.8.3" />
 		<dependency org="org.apache.commons" name="commons-codec" rev="1.6" />
