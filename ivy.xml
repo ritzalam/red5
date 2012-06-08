@@ -26,6 +26,7 @@
 		<dependency org="org.slf4j" name="jcl-over-slf4j" rev="1.6.4" />
 		<dependency org="ch.qos.logback" name="logback-classic" rev="1.0.3" />
 		<dependency org="ch.qos.logback" name="logback-core" rev="1.0.3" />
+		<dependency name="sysout-over-slf4j" rev="1.0.2" />
 		<!-- General -->
 		<dependency org="org.apache.commons" name="commons-beanutils" rev="1.8.3" />
 		<dependency org="org.apache.commons" name="commons-codec" rev="1.6" />

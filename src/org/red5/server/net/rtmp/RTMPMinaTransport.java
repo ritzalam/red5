@@ -77,6 +77,10 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 	protected boolean tcpNoDelay = true;
 
 	protected boolean useHeapBuffers = true;
+	
+	protected int sendBufferSize = 8192;
+	
+	protected int trafficClass = 0x08 | 0x10;
 
 	private void initIOHandler() {
 		if (ioHandler == null) {
@@ -100,19 +104,20 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 		acceptor = new NioSocketAcceptor(ioThreads);
 		// set acceptor props
 		acceptor.setHandler(ioHandler);
-		acceptor.setBacklog(50);
+		acceptor.setBacklog(12);
 		//get the current session config that would be used during create
 		SocketSessionConfig sessionConf = acceptor.getSessionConfig();
 		//reuse the addresses
 		sessionConf.setReuseAddress(true);
 		log.info("TCP No Delay: {}", tcpNoDelay);
 		sessionConf.setTcpNoDelay(tcpNoDelay);
+		sessionConf.setSendBufferSize(sendBufferSize);
 		// set the traffic class - http://docs.oracle.com/javase/6/docs/api/java/net/Socket.html#setTrafficClass(int)
 		// IPTOS_LOWCOST (0x02)
 		// IPTOS_RELIABILITY (0x04)
 		// IPTOS_THROUGHPUT (0x08) *
-		// IPTOS_LOWDELAY (0x10)
-		sessionConf.setTrafficClass(0x08);
+		// IPTOS_LOWDELAY (0x10) *
+		sessionConf.setTrafficClass(trafficClass);
 		// get info
 		log.info("Settings - send buffer size: {} recv buffer size: {} so linger: {} traffic class: {}",
 				new Object[] { sessionConf.getSendBufferSize(), sessionConf.getReceiveBufferSize(), sessionConf.getSoLinger(), sessionConf.getTrafficClass() });
@@ -187,6 +192,20 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 
 	public void setIoThreads(int ioThreads) {
 		this.ioThreads = ioThreads;
+	}
+
+	/**
+	 * @param sendBufferSize the sendBufferSize to set
+	 */
+	public void setSendBufferSize(int sendBufferSize) {
+		this.sendBufferSize = sendBufferSize;
+	}
+
+	/**
+	 * @param trafficClass the trafficClass to set
+	 */
+	public void setTrafficClass(int trafficClass) {
+		this.trafficClass = trafficClass;
 	}
 
 	public void setTcpNoDelay(boolean tcpNoDelay) {
