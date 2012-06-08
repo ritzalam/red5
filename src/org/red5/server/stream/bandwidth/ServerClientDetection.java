@@ -149,7 +149,7 @@ public class ServerClientDetection implements IPendingServiceCallback, IBandwidt
 
 	private void callBWCheck(Object payload) {
 		if (log.isTraceEnabled()) {
-			log.trace("callBWCheck: {} ", payload);
+			log.trace("callBWCheck: {}", payload);
 		} else {
 			log.debug("callBWCheck");
 		}
