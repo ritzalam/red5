@@ -19,7 +19,6 @@
 package org.red5.server.stream;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.Collection;
@@ -82,6 +81,7 @@ import org.red5.server.stream.message.StatusMessage;
 import org.red5.server.util.ScopeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
 import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
@@ -875,7 +875,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 							// http://livedocs.adobe.com/flashmediaserver/3.0/hpdocs/help.html?content=00000186.html
 							try {
 								File file = getRecordFile(scope, publishedName);							
-								if (file.exists()) {
+								if (file != null && file.exists()) {
 									if (!file.delete()) {
 										log.debug("File was not deleted: {}", file.getAbsoluteFile());
 									}
@@ -988,17 +988,18 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		if (generator.resolvesToAbsolutePath()) {
 			file = new File(recordingFilename);
 		} else {
-			try {
-				file = scope.getContext().getResource(recordingFilename).getFile();
-				log.debug("File path: {}", file.getCanonicalPath());
-				log.debug("File exists: {} writable: {}", file.exists(), file.canWrite());
-			} catch (FileNotFoundException fnfe) {
-				log.debug("File not found: {}", fnfe);
-				String appScopeName = ScopeUtils.findApplication(scope).getName();
-				file = new File(String.format("%s/webapps/%s/%s", System.getProperty("red5.root"), appScopeName, recordingFilename));
-			} catch (IOException e) {
-				log.debug("File error: {}", e);
-			}
+            Resource resource = scope.getContext().getResource(recordingFilename);
+            if (resource.exists()) {
+                try {
+                    file = resource.getFile();
+                    log.debug("File exists: {} writable: {}", file.exists(), file.canWrite());
+                } catch (IOException ioe) {
+                    log.error("File error: {}", ioe);
+                }
+            } else {
+                String appScopeName = ScopeUtils.findApplication(scope).getName();
+                file = new File(String.format("%s/webapps/%s/%s", System.getProperty("red5.root"), appScopeName, recordingFilename));
+            }
 		}
 		return file;
 	}

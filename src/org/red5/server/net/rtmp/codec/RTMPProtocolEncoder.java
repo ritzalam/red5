@@ -111,11 +111,11 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	 */
 	public IoBuffer encode(ProtocolState state, Object message) throws Exception {
 		try {
-			final RTMP rtmp = (RTMP) state;
 			if (message instanceof IoBuffer) {
 				return (IoBuffer) message;
 			} else {
-				return encodePacket(rtmp, (Packet) message);
+				log.debug("Message was not an IoBuffer");
+				return encodePacket((RTMP) state, (Packet) message);
 			}
 		} catch (RuntimeException e) {
 			log.error("Error encoding object: ", e);
@@ -172,7 +172,6 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 					BufferUtils.put(out, data, dataLen);
 				} else {
 					int extendedTimestamp = header.getExtendedTimestamp();
-
 					for (int i = 0; i < numChunks - 1; i++) {
 						BufferUtils.put(out, data, chunkSize);
 						dataLen -= chunkSize;

@@ -78,7 +78,9 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 
 	protected boolean useHeapBuffers = true;
 	
-	protected int sendBufferSize = 8192;
+	protected int sendBufferSize = 65536;
+
+	protected int receiveBufferSize = 65536;
 	
 	protected int trafficClass = 0x08 | 0x10;
 
@@ -112,6 +114,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 		log.info("TCP No Delay: {}", tcpNoDelay);
 		sessionConf.setTcpNoDelay(tcpNoDelay);
 		sessionConf.setSendBufferSize(sendBufferSize);
+		sessionConf.setReceiveBufferSize(receiveBufferSize);
 		// set the traffic class - http://docs.oracle.com/javase/6/docs/api/java/net/Socket.html#setTrafficClass(int)
 		// IPTOS_LOWCOST (0x02)
 		// IPTOS_RELIABILITY (0x04)
@@ -199,6 +202,13 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 	 */
 	public void setSendBufferSize(int sendBufferSize) {
 		this.sendBufferSize = sendBufferSize;
+	}
+
+	/**
+	 * @param receiveBufferSize the receiveBufferSize to set
+	 */
+	public void setReceiveBufferSize(int receiveBufferSize) {
+		this.receiveBufferSize = receiveBufferSize;
 	}
 
 	/**
