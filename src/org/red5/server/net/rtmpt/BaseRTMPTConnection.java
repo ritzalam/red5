@@ -100,7 +100,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	/**
 	 * Byte buffer
 	 */
-	private IoBuffer buffer;
+	private volatile IoBuffer buffer;
 
 	/**
 	 * RTMP events handler
@@ -125,7 +125,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	/** {@inheritDoc} */
 	@Override
 	public void close() {
-		log.debug("close - state: {}", state.getState());		
+		log.debug("close - state: {}", state.getState());
 		// Defer actual closing so we can send back pending messages to the client.
 		closing = true;
 	}
@@ -161,6 +161,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 */
 	@Override
 	public void writeRaw(IoBuffer packet) {
+		log.debug("Adding pending message from raw packet");
 		pendingMessages.add(new PendingData(packet));
 	}
 
@@ -179,6 +180,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	/** {@inheritDoc} */
 	@Override
 	public long getPendingMessages() {
+		log.debug("Checking pending queue size");
 		return pendingMessages.size();
 	}
 
@@ -207,66 +209,72 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 */
 	@Override
 	public void write(final Packet packet) {
-		log.debug("write - packet: {}", packet);		
-		log.trace("state: {}", state);		
+		log.debug("write - packet: {}", packet);
+		log.trace("state: {}", state);
 		if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
 			// connection is being closed, don't send any new packets
-			return;
-		}
-		IoBuffer data;
-		try {
-			data = encoder.encode(state, packet);
-		} catch (Exception e) {
-			log.error("Could not encode message {}", packet, e);
-			return;
-		}
-		if (data != null) {
-			// mark packet as being written
-			writingMessage(packet);
-			// add to pending
-			pendingMessages.add(new PendingData(data, packet));
+			log.debug("No write completed due to connection disconnecting");
 		} else {
-			log.info("Response buffer was null after encoding");
+			IoBuffer data = null;
+			try {
+				data = encoder.encode(state, packet);
+			} catch (Exception e) {
+				log.error("Could not encode message {}", packet, e);
+			}
+			if (data != null) {
+				// add to pending
+				log.debug("Adding pending message from packet");
+				pendingMessages.add(new PendingData(data, packet));
+			} else {
+				log.info("Response buffer was null after encoding");
+			}
 		}
 	}
 
 	protected IoBuffer foldPendingMessages(int targetSize) {
 		log.debug("foldPendingMessages - target size: {}", targetSize);
+		IoBuffer result = null;
 		if (!pendingMessages.isEmpty()) {
 			int sendSize = 0;
 			LinkedList<PendingData> sendList = new LinkedList<PendingData>();
 			while (!pendingMessages.isEmpty()) {
-				PendingData pendingMessage = pendingMessages.peek();
 				// get the buffer size
-				int limit = pendingMessage.getBuffer().limit();
+				int limit = pendingMessages.peek().getBuffer().limit();
 				if ((limit + sendSize) < targetSize) {
-					pendingMessage = pendingMessages.remove();
-					if (sendList.add(pendingMessage)) {
+					if (sendList.add(pendingMessages.poll())) {
 						sendSize += limit;
 					}
 				} else {
+					if (sendSize == 0) {
+						if (sendList.add(pendingMessages.poll())) {
+							sendSize = limit;
+						}
+					}
 					break;
 				}
 			}
 			log.debug("Send size: {}", sendSize);
-			IoBuffer result = IoBuffer.allocate(sendSize);
+			result = IoBuffer.allocate(sendSize);
 			for (PendingData pendingMessage : sendList) {
 				result.put(pendingMessage.getBuffer());
-				if (pendingMessage.getPacket() != null) {
+				Packet packet = pendingMessage.getPacket(); 
+				if (packet != null) {
 					try {
-						handler.messageSent(this, pendingMessage.getPacket());
+						handler.messageSent(this, packet);
+						// mark packet as being written
+						writingMessage(packet);
 					} catch (Exception e) {
 						log.error("Could not notify stream subsystem about sent message", e);
 					}
+				} else {
+					log.debug("Pending message did not have a packet");
 				}
 			}
 			sendList.clear();
 			result.flip();
 			writtenBytes.addAndGet(sendSize);
-			return result;
-		} else {
-			return null;
 		}
+		return result;
 	}
 
 	public void setHandler(IRTMPHandler handler) {
@@ -280,4 +288,5 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	public void setEncoder(RTMPProtocolEncoder encoder) {
 		this.encoder = (RTMPTProtocolEncoder) encoder;
 	}
+	
 }
