@@ -23,8 +23,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.red5.server.api.scope.IBroadcastScope;
 import org.red5.server.api.scope.IScope;
@@ -58,19 +56,12 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope, IPipe
 	/**
 	 * Number of components.
 	 */
-	private AtomicInteger compCounter;
+	private AtomicInteger compCounter = new AtomicInteger(0);
 
 	/**
-	 * Remove flag
+	 * Whether or not this "scope" has been removed
 	 */
-	private boolean hasRemoved;
-
-	/**
-	 * Lock for critical sections, to prevent concurrent modification. 
-	 * A "fairness" policy is used wherein the longest waiting thread
-	 * will be granted access before others.
-	 */
-	protected Lock lock = new ReentrantLock(true);
+	private volatile boolean removed;
 	
 	/**
 	 * Creates broadcast scope
@@ -81,8 +72,6 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope, IPipe
 		super(parent, ScopeType.BROADCAST, name, false);
 		pipe = new InMemoryPushPushPipe();
 		pipe.addPipeConnectionListener(this);
-		compCounter = new AtomicInteger(0);
-		hasRemoved = false;
 		keepOnDisconnect = true;
 	}
 
@@ -138,12 +127,7 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope, IPipe
 	 * @return               <code>true</code> on success, <code>false</code> otherwise
 	 */
 	public boolean subscribe(IConsumer consumer, Map<String, Object> paramMap) {
-		lock();
-		try {
-			return !hasRemoved && pipe.subscribe(consumer, paramMap);
-		} finally {
-			unlock();
-		}
+		return !removed && pipe.subscribe(consumer, paramMap);
 	}
 
 	/**
@@ -191,12 +175,7 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope, IPipe
 	 * @return                 <code>true</code> on success, <code>false</code> otherwise
 	 */
 	public boolean subscribe(IProvider provider, Map<String, Object> paramMap) {
-		lock();
-		try {
-			return !hasRemoved && pipe.subscribe(provider, paramMap);
-		} finally {
-			unlock();
-		}
+		return !removed && pipe.subscribe(provider, paramMap);
 	}
 
 	/**
@@ -205,12 +184,7 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope, IPipe
 	 * @return                 <code>true</code> on success, <code>false</code> otherwise
 	 */
 	public boolean unsubscribe(IProvider provider) {
-		lock();
-		try {
-			return pipe.unsubscribe(provider);
-		} finally {
-			unlock();
-		}
+		return pipe.unsubscribe(provider);
 	}
 
 	/**
@@ -244,29 +218,22 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope, IPipe
 			case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
 				compCounter.incrementAndGet();
 				break;
-
 			case PipeConnectionEvent.CONSUMER_DISCONNECT:
 			case PipeConnectionEvent.PROVIDER_DISCONNECT:
 				if (compCounter.decrementAndGet() <= 0) {
 					// XXX should we synchronize parent before removing?
 					if (hasParent()) {
-						IProviderService providerService = (IProviderService) getParent().getContext().getBean(IProviderService.BEAN_NAME);
-						providerService.unregisterBroadcastStream(getParent(), getName());
+						IScope parent = getParent();
+						IProviderService providerService = (IProviderService) parent.getContext().getBean(IProviderService.BEAN_NAME);
+						removed = providerService.unregisterBroadcastStream(parent, getName());
+					} else {
+						removed = true;
 					}
-					hasRemoved = true;
 				}
 				break;
 			default:
 				throw new UnsupportedOperationException("Event type not supported: " + event.getType());
 		}
-	}
-
-	public void lock() {
-		lock.lock();
-	}
-
-	public void unlock() {
-		lock.unlock();
 	}
 	
 	/**

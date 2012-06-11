@@ -922,7 +922,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	 *
 	 * @param serializer Serializer
 	 */
-	public void setSerializer(org.red5.io.object.Serializer serializer) {
+	public void setSerializer(Serializer serializer) {
 		this.serializer = serializer;
 	}
 
