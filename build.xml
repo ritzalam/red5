@@ -584,6 +584,10 @@
 		</copy>
 		<!-- zip the source instead of copying verbatim -->
 		<zip destfile="${dist.dir}/src.zip" basedir="${src.dir}" level="9"/>
+		<!-- move to the expected directory for windows installer -->
+		<move todir="${dist.dir}.java6">
+			<fileset dir="${dist.dir}"/>
+		</move>
 	</target>
 	<target name="dist-archive" depends="dist-installer" description="Create archive file for distribution">
 		<touch>

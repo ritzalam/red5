@@ -271,14 +271,21 @@ public class FileProvider implements IPassive, ISeekableProvider, IPullableProvi
 			reader.position(Long.MAX_VALUE);
 			return (int) keyFrameMeta.duration;
 		}
-		int frame = 0;
+		int frame = -1;
 		for (int i = 0; i < keyFrameMeta.positions.length; i++) {
 			if (keyFrameMeta.timestamps[i] > ts) {
+				frame = i;
 				break;
 			}
-			frame = i;
 		}
-		reader.position(keyFrameMeta.positions[frame]);
-		return keyFrameMeta.timestamps[frame];
+		
+		if(frame > -1){
+			reader.position(keyFrameMeta.positions[frame]);
+			return keyFrameMeta.timestamps[frame];
+		} else {
+			// Seek at or beyond EOF
+			reader.position(Long.MAX_VALUE);
+			return (int) keyFrameMeta.duration;
+		}
 	}
 }
