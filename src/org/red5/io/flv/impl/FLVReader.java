@@ -836,12 +836,12 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			long flvLength = Math.max(flvFile.length(), flv.length());
 			log.debug("File length: {}", flvLength);
 			if (flvLength > 13) {
-				flv.seek(flvLength - 4);
+				flv.seek(flvLength - (4 + 1));
 				int lastTagSize = flv.readInt();
 				log.debug("Last tag size: {}", lastTagSize);
 				if (lastTagSize > 0 && (lastTagSize < flvLength)) {
 					// jump right to where tag timestamp would be
-					flv.seek(flvLength - lastTagSize);
+					flv.seek(flvLength - (lastTagSize + 1));
 					// grab timestamp as a regular int
 					duration = flv.readInt();
 					// adjust value to match extended timestamp
