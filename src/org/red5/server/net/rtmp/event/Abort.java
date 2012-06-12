@@ -26,40 +26,45 @@ import java.io.ObjectOutput;
  * RTMP Abort event.
  * 
  * @author aclarke@xuggle.com
- *
  */
 public class Abort extends BaseEvent {
 
-	private int channelId=0;
-	public Abort()
-	{
+	private int channelId = 0;
+
+	public Abort() {
 		super(Type.SYSTEM);
 	}
+
 	public Abort(int channelId) {
 		this.channelId = channelId;
 	}
+
 	public byte getDataType() {
 		return TYPE_ABORT;
 	}
 
 	protected void releaseInternal() {
-	
+
 	}
+
 	public void setChannelId(int channelId) {
 		this.channelId = channelId;
 	}
+
 	public int getChannelId() {
 		return channelId;
 	}
+
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public String toString() {
 		return "Abort Channel: " + channelId;
 	}
+
 	@Override
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
-		channelId= in.readInt();
+		channelId = in.readInt();
 	}
 
 	@Override

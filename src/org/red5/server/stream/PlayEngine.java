@@ -146,8 +146,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 
 	/**
 	 * if we have more than 1 pending video frames, but less than maxPendingVideoFrames,
-	 * continue sending until there are this many sequential frames with more than 1
-	 * pending
+	 * continue sending until there are this many sequential frames with more than 1 pending
 	 */
 	private int maxSequentialPendingVideoFrames = 10;
 
@@ -906,6 +905,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 * @param message The message to send.
 	 */
 	private void doPushMessage(AbstractMessage message) {
+		log.info("doPushMessage: {}", message.getMessageType());
 		try {
 			msgOut.pushMessage(message);
 			if (message instanceof RTMPMessage) {
@@ -1324,47 +1324,46 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 					return;
 				}
 				if (body instanceof VideoData) {
-					IVideoStreamCodec videoCodec = null;
 					if (msgIn instanceof IBroadcastScope) {
 						IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn).getClientBroadcastStream();
 						if (stream != null && stream.getCodecInfo() != null) {
-							videoCodec = stream.getCodecInfo().getVideoCodec();
-						}
-					}
-					//dont try to drop frames if video codec is null - related to SN-77
-					if (videoCodec != null && videoCodec.canDropFrames()) {
-						if (!receiveVideo) {
-							// The client disabled video or the app doesn't have enough bandwidth
-							// allowed for this stream.
-							log.debug("Dropping packet because we cant receive video or token acquire failed");
-							videoFrameDropper.dropPacket(rtmpMessage);
-							return;
-						}
-						// Only check for frame dropping if the codec supports it
-						long pendingVideos = pendingVideoMessages();
-						if (!videoFrameDropper.canSendPacket(rtmpMessage, pendingVideos)) {
-							// Drop frame as it depends on other frames that were dropped before.
-							log.debug("Dropping packet because frame dropper says we cant send it");
-							return;
-						}
-						// increment the number of times we had pending video frames sequentially
-						if (pendingVideos > 1) {
-							numSequentialPendingVideoFrames++;
-						} else {
-							// reset number of sequential pending frames if 1 or 0 are pending.
-							numSequentialPendingVideoFrames = 0;
-						}
-						if (pendingVideos > maxPendingVideoFramesThreshold || numSequentialPendingVideoFrames > maxSequentialPendingVideoFrames) {
-							log.debug("Pending: {} Threshold: {} Sequential: {}", new Object[] { pendingVideos, maxPendingVideoFramesThreshold, numSequentialPendingVideoFrames });
-							// We drop because the client has insufficient bandwidth.
-							long now = System.currentTimeMillis();
-							if (bufferCheckInterval > 0 && now >= nextCheckBufferUnderrun) {
-								// Notify client about frame dropping (keyframe)
-								sendInsufficientBandwidthStatus(currentItem);
-								nextCheckBufferUnderrun = now + bufferCheckInterval;
+							IVideoStreamCodec videoCodec = stream.getCodecInfo().getVideoCodec();
+							//dont try to drop frames if video codec is null - related to SN-77
+							if (videoCodec != null && videoCodec.canDropFrames()) {
+								if (!receiveVideo) {
+									// The client disabled video or the app doesn't have enough bandwidth
+									// allowed for this stream.
+									log.debug("Dropping packet because we cant receive video or token acquire failed");
+									videoFrameDropper.dropPacket(rtmpMessage);
+									return;
+								}
+								// Only check for frame dropping if the codec supports it
+								long pendingVideos = pendingVideoMessages();
+								if (!videoFrameDropper.canSendPacket(rtmpMessage, pendingVideos)) {
+									// Drop frame as it depends on other frames that were dropped before.
+									log.debug("Dropping packet because frame dropper says we cant send it");
+									return;
+								}
+								// increment the number of times we had pending video frames sequentially
+								if (pendingVideos > 1) {
+									numSequentialPendingVideoFrames++;
+								} else {
+									// reset number of sequential pending frames if 1 or 0 are pending.
+									numSequentialPendingVideoFrames = 0;
+								}
+								if (pendingVideos > maxPendingVideoFramesThreshold || numSequentialPendingVideoFrames > maxSequentialPendingVideoFrames) {
+									log.debug("Pending: {} Threshold: {} Sequential: {}", new Object[] { pendingVideos, maxPendingVideoFramesThreshold, numSequentialPendingVideoFrames });
+									// We drop because the client has insufficient bandwidth.
+									long now = System.currentTimeMillis();
+									if (bufferCheckInterval > 0 && now >= nextCheckBufferUnderrun) {
+										// Notify client about frame dropping (keyframe)
+										sendInsufficientBandwidthStatus(currentItem);
+										nextCheckBufferUnderrun = now + bufferCheckInterval;
+									}
+									videoFrameDropper.dropPacket(rtmpMessage);
+									return;
+								}
 							}
-							videoFrameDropper.dropPacket(rtmpMessage);
-							return;
 						}
 					}
 				} else if (body instanceof AudioData) {
