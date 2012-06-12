@@ -22,8 +22,13 @@ import org.red5.server.messaging.AbstractMessage;
 import org.red5.server.net.rtmp.status.Status;
 
 public class StatusMessage extends AbstractMessage {
+	
 	private Status body;
 
+	{
+		this.messageType = "status";
+	}
+	
 	/**
      * Getter for property 'body'.
      *
