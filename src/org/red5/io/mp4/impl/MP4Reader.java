@@ -1141,69 +1141,71 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			//log.debug("Read tag - sample {} prevFrameSize {} audio: {} video: {}", new Object[]{currentSample, prevFrameSize, audioCount, videoCount});
 			//get the current frame
 			MP4Frame frame = frames.get(currentFrame);
-			log.debug("Playback #{} {}", currentFrame, frame);
-			int sampleSize = frame.getSize();
-			int time = (int) Math.round(frame.getTime() * 1000.0);
-			//log.debug("Read tag - dst: {} base: {} time: {}", new Object[]{frameTs, baseTs, time});
-			long samplePos = frame.getOffset();
-			//log.debug("Read tag - samplePos {}", samplePos);
-			//determine frame type and packet body padding
-			byte type = frame.getType();
-			//assume video type
-			int pad = 5;
-			if (type == TYPE_AUDIO) {
-				pad = 2;
-			}
-			//create a byte buffer of the size of the sample
-			ByteBuffer data = ByteBuffer.allocate(sampleSize + pad);
-			try {
-				//prefix is different for keyframes
-				if (type == TYPE_VIDEO) {
-					if (frame.isKeyFrame()) {
-						//log.debug("Writing keyframe prefix");
-						data.put(PREFIX_VIDEO_KEYFRAME);
-					} else {
-						//log.debug("Writing interframe prefix");
-						data.put(PREFIX_VIDEO_FRAME);
-					}
-					// match the sample with its ctts / mdhd adjustment time
-					int timeOffset = prevVideoTS != -1 ? time - prevVideoTS : 0;
-					data.put((byte) ((timeOffset >>> 16) & 0xff));
-					data.put((byte) ((timeOffset >>> 8) & 0xff));
-					data.put((byte) (timeOffset & 0xff));
-					if (log.isTraceEnabled()) {
-						byte[] prefix = new byte[5];
-						int p = data.position();
-						data.position(0);
-						data.get(prefix);
-						data.position(p);
-						log.trace("{}", prefix);
-					}
-					// track video frame count
-					videoCount++;
-					prevVideoTS = time;
-				} else {
-					//log.debug("Writing audio prefix");
-					data.put(PREFIX_AUDIO_FRAME);
-					// track audio frame count
-					audioCount++;
+			if (frame != null) {
+				log.debug("Playback #{} {}", currentFrame, frame);
+				int sampleSize = frame.getSize();
+				int time = (int) Math.round(frame.getTime() * 1000.0);
+				//log.debug("Read tag - dst: {} base: {} time: {}", new Object[]{frameTs, baseTs, time});
+				long samplePos = frame.getOffset();
+				//log.debug("Read tag - samplePos {}", samplePos);
+				//determine frame type and packet body padding
+				byte type = frame.getType();
+				//assume video type
+				int pad = 5;
+				if (type == TYPE_AUDIO) {
+					pad = 2;
 				}
-				// do we need to add the mdat offset to the sample position?
-				channel.position(samplePos);
-				// read from the channel
-				channel.read(data);
-			} catch (IOException e) {
-				log.error("Error on channel position / read", e);
+				//create a byte buffer of the size of the sample
+				ByteBuffer data = ByteBuffer.allocate(sampleSize + pad);
+				try {
+					//prefix is different for keyframes
+					if (type == TYPE_VIDEO) {
+						if (frame.isKeyFrame()) {
+							//log.debug("Writing keyframe prefix");
+							data.put(PREFIX_VIDEO_KEYFRAME);
+						} else {
+							//log.debug("Writing interframe prefix");
+							data.put(PREFIX_VIDEO_FRAME);
+						}
+						// match the sample with its ctts / mdhd adjustment time
+						int timeOffset = prevVideoTS != -1 ? time - prevVideoTS : 0;
+						data.put((byte) ((timeOffset >>> 16) & 0xff));
+						data.put((byte) ((timeOffset >>> 8) & 0xff));
+						data.put((byte) (timeOffset & 0xff));
+						if (log.isTraceEnabled()) {
+							byte[] prefix = new byte[5];
+							int p = data.position();
+							data.position(0);
+							data.get(prefix);
+							data.position(p);
+							log.trace("{}", prefix);
+						}
+						// track video frame count
+						videoCount++;
+						prevVideoTS = time;
+					} else {
+						//log.debug("Writing audio prefix");
+						data.put(PREFIX_AUDIO_FRAME);
+						// track audio frame count
+						audioCount++;
+					}
+					// do we need to add the mdat offset to the sample position?
+					channel.position(samplePos);
+					// read from the channel
+					channel.read(data);
+				} catch (IOException e) {
+					log.error("Error on channel position / read", e);
+				}
+				// chunk the data
+				IoBuffer payload = IoBuffer.wrap(data.array());
+				// create the tag
+				tag = new Tag(type, time, payload.limit(), payload, prevFrameSize);
+				//log.debug("Read tag - type: {} body size: {}", (type == TYPE_AUDIO ? "Audio" : "Video"), tag.getBodySize());
+				// increment the frame number
+				currentFrame++;
+				// set the frame / tag size
+				prevFrameSize = tag.getBodySize();
 			}
-			// chunk the data
-			IoBuffer payload = IoBuffer.wrap(data.array());
-			// create the tag
-			tag = new Tag(type, time, payload.limit(), payload, prevFrameSize);
-			//log.debug("Read tag - type: {} body size: {}", (type == TYPE_AUDIO ? "Audio" : "Video"), tag.getBodySize());
-			// increment the frame number
-			currentFrame++;
-			// set the frame / tag size
-			prevFrameSize = tag.getBodySize();
 		} catch (InterruptedException e) {
 			log.warn("Exception acquiring lock", e);
 		} finally {
