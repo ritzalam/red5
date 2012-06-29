@@ -11,65 +11,97 @@
 	<dependencies>
 		<dependency org="javax" name="javaee-api" rev="5.1.2" />
 		<!-- Spring -->
-		<dependency org="org.springframework" name="spring-aop" rev="3.1.1.RELEASE" />
-		<dependency org="org.springframework" name="spring-asm" rev="3.1.1.RELEASE" />
-		<dependency org="org.springframework" name="spring-beans" rev="3.1.1.RELEASE" />
-		<dependency org="org.springframework" name="spring-context" rev="3.1.1.RELEASE" />
-		<dependency org="org.springframework" name="spring-context-support" rev="3.1.1.RELEASE" />
-		<dependency org="org.springframework" name="spring-core" rev="3.1.1.RELEASE" />
-		<dependency org="org.springframework" name="spring-expression" rev="3.1.1.RELEASE" />
-		<dependency org="org.springframework" name="spring-web" rev="3.1.1.RELEASE" />
+		<dependency org="org.springframework" name="spring-aop"
+			rev="3.1.1.RELEASE" />
+		<dependency org="org.springframework" name="spring-asm"
+			rev="3.1.1.RELEASE" />
+		<dependency org="org.springframework" name="spring-beans"
+			rev="3.1.1.RELEASE" />
+		<dependency org="org.springframework" name="spring-context"
+			rev="3.1.1.RELEASE" />
+		<dependency org="org.springframework" name="spring-context-support"
+			rev="3.1.1.RELEASE" />
+		<dependency org="org.springframework" name="spring-core"
+			rev="3.1.1.RELEASE" />
+		<dependency org="org.springframework" name="spring-expression"
+			rev="3.1.1.RELEASE" />
+		<dependency org="org.springframework" name="spring-web"
+			rev="3.1.1.RELEASE" />
 		<!-- Logging -->
-		<dependency org="org.slf4j" name="slf4j-api" rev="1.6.4" transitive="false" />
+		<dependency org="org.slf4j" name="slf4j-api" rev="1.6.4"
+			transitive="false" />
 		<dependency org="org.slf4j" name="jul-to-slf4j" rev="1.6.4" />
 		<dependency org="org.slf4j" name="log4j-over-slf4j" rev="1.6.4" />
 		<dependency org="org.slf4j" name="jcl-over-slf4j" rev="1.6.4" />
-		<dependency org="ch.qos.logback" name="logback-classic" rev="1.0.3" />
+		<dependency org="ch.qos.logback" name="logback-classic"
+			rev="1.0.3" />
 		<dependency org="ch.qos.logback" name="logback-core" rev="1.0.3" />
 		<dependency name="sysout-over-slf4j" rev="1.0.2" />
 		<!-- General -->
-		<dependency org="org.apache.commons" name="commons-beanutils" rev="1.8.3" />
-		<dependency org="org.apache.commons" name="commons-codec" rev="1.6" />
-		<dependency org="org.apache.commons" name="commons-collections" rev="3.2.1" />
-		<dependency org="commons" name="httpcore" rev="4.1.3" />
-		<dependency org="commons" name="httpclient" rev="4.1.2" />
-		<dependency org="org.apache.commons" name="commons-lang3" rev="3.1" />
-		<dependency org="org.apache.commons" name="commons-modeler" rev="2.0.1" />
-		<dependency org="org.apache.commons" name="commons-pool" rev="1.5.6" />
+		<dependency org="org.apache.commons" name="commons-beanutils"
+			rev="1.8.3" />
+		<dependency org="org.apache.commons" name="commons-codec"
+			rev="1.6" />
+		<dependency org="org.apache.commons" name="commons-collections"
+			rev="3.2.1" />
+		<dependency org="org.apache.httpcomponents" name="httpcore"
+			rev="4.2.1">
+			<artifact name="httpcore" type="jar" />
+		</dependency>
+		<dependency org="org.apache.httpcomponents" name="httpclient"
+			rev="4.2">
+			<artifact name="httpclient" type="jar" />
+		</dependency>
+		<dependency org="org.apache.commons" name="commons-lang3"
+			rev="3.1" />
+		<dependency org="org.apache.commons" name="commons-modeler"
+			rev="2.0.1" />
+		<dependency org="org.apache.commons" name="commons-pool"
+			rev="1.5.6" />
 		<dependency org="org.quartz-scheduler" name="quartz" rev="1.8.5" />
 		<dependency org="net.sf.ehcache" name="ehcache-core" rev="2.5.0" />
 		<!-- XML -->
-		<dependency org="org.apache.xerces" name="com.springsource.org.apache.xerces" rev="2.9.1" />
+		<dependency org="org.apache.xerces" name="com.springsource.org.apache.xerces"
+			rev="2.9.1" />
 		<dependency name="xmlrpc" rev="2.0.1" />
 		<!-- Mina -->
 		<dependency org="mina" name="mina-integration-beans" rev="2.0.4" />
 		<dependency org="mina" name="mina-integration-jmx" rev="2.0.4" />
 		<dependency org="mina" name="mina-core" rev="2.0.4" />
 		<!-- Scripting -->
-		<dependency org="org.objectweb.asm" name="com.springsource.org.objectweb.asm" rev="3.2.0" transitive="false" />
-		<dependency org="org.objectweb.asm" name="com.springsource.org.objectweb.asm.commons" rev="3.2.0" transitive="false" />
-		<dependency org="org.antlr" name="com.springsource.org.antlr" rev="3.1.3" transitive="false" />
-		<dependency org="org.codehaus.groovy" name="com.springsource.org.codehaus.groovy" rev="1.7.0" transitive="false" />
-        <dependency org="org.jruby" name="jruby" rev="1.6.7.2"/>
-        <dependency org="org.python" name="jython-standalone" rev="2.5.2"/>
-		<dependency org="org.mozilla.javascript" name="com.springsource.org.mozilla.javascript" rev="1.7.0.R2" transitive="false" />
-		<dependency org="javax.xml.stream" name="com.springsource.javax.xml.stream" rev="1.0.1" transitive="false" />
+		<dependency org="org.objectweb.asm" name="com.springsource.org.objectweb.asm"
+			rev="3.2.0" transitive="false" />
+		<dependency org="org.objectweb.asm"
+			name="com.springsource.org.objectweb.asm.commons" rev="3.2.0"
+			transitive="false" />
+		<dependency org="org.antlr" name="com.springsource.org.antlr"
+			rev="3.1.3" transitive="false" />
+		<dependency org="org.codehaus.groovy" name="com.springsource.org.codehaus.groovy"
+			rev="1.7.0" transitive="false" />
+		<dependency org="org.jruby" name="jruby" rev="1.6.7.2" />
+		<dependency org="org.python" name="jython-standalone" rev="2.5.2" />
+		<dependency org="org.mozilla.javascript" name="com.springsource.org.mozilla.javascript"
+			rev="1.7.0.R2" transitive="false" />
+		<dependency org="javax.xml.stream" name="com.springsource.javax.xml.stream"
+			rev="1.0.1" transitive="false" />
 		<!-- Crypto -->
 		<dependency name="bcprov-jdk16" rev="145" conf="java6->*" />
 		<!-- MP3 -->
 		<dependency name="jaudiotagger" rev="2.0.4-SNAPSHOT" />
 		<!-- JMX support -->
-        <dependency org="net.sourceforge.cglib" name="com.springsource.net.sf.cglib" rev="2.2.0" transitive="false" />
-        <dependency org="org.aopalliance" name="com.springsource.org.aopalliance" rev="1.0.0" transitive="false" />
+		<dependency org="net.sourceforge.cglib" name="com.springsource.net.sf.cglib"
+			rev="2.2.0" transitive="false" />
+		<dependency org="org.aopalliance" name="com.springsource.org.aopalliance"
+			rev="1.0.0" transitive="false" />
 		<!-- Testing support -->
 		<!-- until Eclipse updates their junit version, we have to use this -->
-		<dependency org="org.junit" name="com.springsource.org.junit" rev="4.8.1" conf="eclipse->*" transitive="false" />
+		<dependency org="org.junit" name="com.springsource.org.junit"
+			rev="4.8.1" conf="eclipse->*" transitive="false" />
 		<dependency name="GroboUtils" rev="5-core" conf="eclipse->*" />
-		<dependency org="org.springframework" name="org.springframework.test" rev="3.1.1.RELEASE" conf="eclipse->*" transitive="false" />
-		<dependency org="org.springframework" name="org.springframework.transaction" rev="3.1.1.RELEASE" conf="eclipse->*" transitive="false" />
+		<dependency org="org.springframework" name="org.springframework.test"
+			rev="3.1.1.RELEASE" conf="eclipse->*" transitive="false" />
+		<dependency org="org.springframework" name="org.springframework.transaction"
+			rev="3.1.1.RELEASE" conf="eclipse->*" transitive="false" />
 	</dependencies>
-	<!--
-	Helpful notes
-	Spring bundles - http://ebr.springsource.com/repository/app/bundle 
-	-->
+	<!-- Helpful notes Spring bundles - http://ebr.springsource.com/repository/app/bundle -->
 </ivy-module>
