@@ -1764,6 +1764,10 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 					while (getLastMessageTimestamp() > 0 && !isClientBufferEmpty()) {
 						try {
 							Thread.sleep(10L);
+						} catch (InterruptedException e) {
+							if (log.isDebugEnabled()) {
+								log.warn("Exception during sleep in runDeferredStop", e);
+							}
 						}
 					}
 					log.trace("Buffer is empty, stop will proceed");
