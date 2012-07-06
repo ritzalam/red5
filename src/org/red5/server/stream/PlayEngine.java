@@ -905,7 +905,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 * @param message The message to send.
 	 */
 	private void doPushMessage(AbstractMessage message) {
-		log.info("doPushMessage: {}", message.getMessageType());
+		log.trace("doPushMessage: {}", message.getMessageType());
 		try {
 			msgOut.pushMessage(message);
 			if (message instanceof RTMPMessage) {
