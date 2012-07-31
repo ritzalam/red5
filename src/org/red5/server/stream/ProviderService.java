@@ -54,20 +54,12 @@ public class ProviderService implements IProviderService {
 		} else {
 			//"default" to VOD as a missing file will be picked up later on 
 			result = INPUT_TYPE.VOD;
-			File file = null;
-			try {
-				file = getStreamFile(scope, name);
-				if (file == null) {
-					if (type == -2) {
-						result = INPUT_TYPE.LIVE_WAIT;
-					}
-					log.debug("Requested stream: {} does not appear to be of VOD type", name);
+			File file = getStreamFile(scope, name);
+			if (file == null) {
+				if (type == -2) {
+					result = INPUT_TYPE.LIVE_WAIT;
 				}
-			} catch (IOException e) {
-				log.warn("Exception attempting to lookup file: {}", name, e);
-			} finally {
-				//null it to prevent leak or file locking
-				file = null;
+				log.debug("Requested stream: {} does not appear to be of VOD type", name);
 			}
 		}
 		return result;
@@ -120,13 +112,7 @@ public class ProviderService implements IProviderService {
 	/** {@inheritDoc} */
 	public File getVODProviderFile(IScope scope, String name) {
 		log.debug("getVODProviderFile - scope: {} name: {}", scope, name);
-		File file = null;
-		try {
-			log.trace("getVODProviderFile scope path: {} name: {}", scope.getContextPath(), name);
-			file = getStreamFile(scope, name);
-		} catch (IOException e) {
-			log.error("Problem getting file: {}", name, e);
-		}
+		File file = getStreamFile(scope, name);
 		if (file == null || !file.exists()) {
 			//if there is no file extension this is most likely a live stream
 			if (name.indexOf('.') > 0) {
@@ -188,7 +174,7 @@ public class ProviderService implements IProviderService {
 		return scope.getBasicScope(ScopeType.BROADCAST, name) == null;
 	}
 
-	private File getStreamFile(IScope scope, String name) throws IOException {
+	private File getStreamFile(IScope scope, String name) {
 		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils.getScopeService(scope, IStreamableFileFactory.class);
 		if (name.indexOf(':') == -1 && name.indexOf('.') == -1) {
 			// Default to .flv files if no prefix and no extension is given.
@@ -207,15 +193,21 @@ public class ProviderService implements IProviderService {
 		// get the filename
 		String filename = filenameGenerator.generateFilename(scope, name, GenerationType.PLAYBACK);
 		File file;
-		//most likely case first
-		if (!filenameGenerator.resolvesToAbsolutePath()) {
-			file = scope.getContext().getResource(filename).getFile();
-		} else {
-			file = new File(filename);
-		}
-		//check files existence
-		if (file != null && !file.exists()) {
-			//if it does not exist then null it out
+		try {
+			// most likely case first
+			if (!filenameGenerator.resolvesToAbsolutePath()) {
+				file = scope.getContext().getResource(filename).getFile();
+			} else {
+				file = new File(filename);
+			}
+			// check file existence
+			if (file != null && !file.exists()) {
+				// if it does not exist then null it out
+				file = null;
+			}
+		} catch (IOException e) {
+			log.warn("Exception attempting to lookup file: {}", name, e);
+			// null out the file (fix for issue #238)
 			file = null;
 		}
 		return file;

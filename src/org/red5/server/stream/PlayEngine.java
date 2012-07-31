@@ -1761,7 +1761,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			subscriberStream.getExecutor().schedule(new Runnable() {
 				public void run() {
 					log.trace("Ran deferred stop");
-					while (getLastMessageTimestamp() > 0 && !isClientBufferEmpty()) {
+					while (lastMessageTs > 0 && !isClientBufferEmpty()) {
 						try {
 							Thread.sleep(10L);
 						} catch (InterruptedException e) {
