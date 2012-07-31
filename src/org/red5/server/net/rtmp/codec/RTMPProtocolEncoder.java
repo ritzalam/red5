@@ -114,7 +114,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 			if (message instanceof IoBuffer) {
 				return (IoBuffer) message;
 			} else {
-				log.debug("Message was not an IoBuffer");
+				log.trace("Message was not an IoBuffer");
 				return encodePacket((RTMP) state, (Packet) message);
 			}
 		} catch (RuntimeException e) {
@@ -122,7 +122,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 		}
 		return null;
 	}
-
+	
 	/**
 	 * Encode packet.
 	 *
@@ -253,7 +253,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 				tardiness = Math.abs(tardiness);
 			}
 			//subtract the ping time / latency from the tardiness value
-			log.debug("Connection: {}", conn);
+			log.trace("Connection: {}", conn);
 			if (conn != null) {
 				log.debug("Last ping time for connection: {}", conn.getLastPingTime());
 				tardiness -= conn.getLastPingTime();
@@ -270,7 +270,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 							tardiness -= clientBufferDuration;
 						}
 					}
-					log.debug("Client buffer duration: {}", clientBufferDuration);
+					log.trace("Client buffer duration: {}", clientBufferDuration);
 				}
 			}
 

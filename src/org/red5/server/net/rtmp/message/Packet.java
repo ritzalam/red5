@@ -30,93 +30,109 @@ import org.red5.server.net.rtmp.event.IRTMPEvent;
  * RTMP packet. Consists of packet header, data and event context.
  */
 public class Packet implements Externalizable {
-	
+
 	private static final long serialVersionUID = -6415050845346626950L;
-    
+
 	/**
-     * Header
-     */
+	 * Header
+	 */
 	private Header header;
-    
+
 	/**
-     * RTMP event
-     */
+	 * RTMP event
+	 */
 	private IRTMPEvent message;
-    
+
 	/**
-     * Packet data
-     */
+	 * Packet data
+	 */
 	private IoBuffer data;
 
 	public Packet() {
-		data = null;
-		header = null;
-	}
-    /**
-     * Create packet with given header
-     * @param header       Packet header
-     */
-    public Packet(Header header) {
-		this.header = header;
-		data = IoBuffer.allocate(header.getSize(), false);
-		// Workaround for SN-19: BufferOverflowException
-		// Size is checked in RTMPProtocolDecoder
-		data.setAutoExpand(true);
 	}
 
-    /**
-     * Create packet with given header and event context
-     * @param header     RTMP header
-     * @param event      RTMP message
-     */
-    public Packet(Header header, IRTMPEvent event) {
+	/**
+	 * Create packet with given header
+	 * @param header       Packet header
+	 */
+	public Packet(Header header) {
+		this.header = header;
+		data = IoBuffer.allocate(header.getSize()).setAutoExpand(true);
+	}
+
+	/**
+	 * Create packet with given header and event context
+	 * @param header     RTMP header
+	 * @param event      RTMP message
+	 */
+	public Packet(Header header, IRTMPEvent event) {
 		this.header = header;
 		this.message = event;
 	}
 
 	/**
-     * Getter for header
-     *
-     * @return  Packet header
-     */
-    public Header getHeader() {
+	 * Getter for header
+	 *
+	 * @return  Packet header
+	 */
+	public Header getHeader() {
 		return header;
 	}
 
 	/**
-     * Setter for event context
-     *
-     * @param message  RTMP event context
-     */
-    public void setMessage(IRTMPEvent message) {
+	 * Setter for event context
+	 *
+	 * @param message  RTMP event context
+	 */
+	public void setMessage(IRTMPEvent message) {
 		this.message = message;
 	}
 
 	/**
-     * Getter for event context
-     *
-     * @return RTMP event context
-     */
-    public IRTMPEvent getMessage() {
+	 * Getter for event context
+	 *
+	 * @return RTMP event context
+	 */
+	public IRTMPEvent getMessage() {
 		return message;
 	}
 
 	/**
-     * Setter for data
-     *
-     * @param data Packet data
-     */
-    public void setData(IoBuffer data) {
-		this.data = data;
+	 * Setter for data
+	 *
+	 * @param buffer Packet data
+	 */
+	public void setData(IoBuffer buffer) {
+		this.data.put(buffer.buf()).flip();
 	}
 
 	/**
-     * Getter for data
-     *
-     * @return Packet data
-     */
-    public IoBuffer getData() {
+	 * Getter for data
+	 *
+	 * @return Packet data
+	 */
+	public IoBuffer getData() {
 		return data;
+	}
+
+	/**
+	 * Returns whether or not the packet has a data buffer.
+	 * 
+	 * @return true if data buffer exists and false otherwise
+	 */
+	public boolean hasData() {
+		return data != null;
+	}
+
+	/**
+	 * Clears the data buffer.
+	 */
+	public void clearData() {
+		if (data != null) {
+			data.clear();
+			data.free();
+			data = null;
+		}
 	}
 
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
@@ -130,4 +146,5 @@ public class Packet implements Externalizable {
 		out.writeObject(header);
 		out.writeObject(message);
 	}
+
 }
