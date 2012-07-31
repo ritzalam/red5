@@ -300,7 +300,7 @@ public class RTMPTServlet extends HttpServlet {
 		} else {
 			// no more messages to send...
 			if (client.isClosing()) {
-				// Tell client to close connection
+				// tell client to close connection
 				returnMessage((byte) 0, resp);
 			} else {
 				returnMessage(client.getPollingDelay(), resp);
