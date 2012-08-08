@@ -32,6 +32,7 @@ import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.StandardMBean;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
@@ -281,8 +282,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 					if (codecInfo instanceof StreamCodecInfo) {
 						info = (StreamCodecInfo) codecInfo;
 					}
+					//log.trace("Stream codec info: {}", info);
 					if (rtmpEvent instanceof AudioData) {
-						// SplitmediaLabs - begin AAC fix
 						IAudioStreamCodec audioStreamCodec = null;
 						if (checkAudioCodec) {
 							audioStreamCodec = AudioCodecFactory.getAudioCodec(buf);
@@ -326,7 +327,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 						//event / stream listeners will not be notified of invokes
 						return;
 					} else if (rtmpEvent instanceof Notify) {
-						//TDJ: store METADATA
+						// store the metadata
 						Notify notifyEvent = (Notify) rtmpEvent;
 						if (metaData == null && notifyEvent.getHeader().getDataType() == Notify.TYPE_STREAM_METADATA) {
 							try {
@@ -460,7 +461,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	public void setPublishedName(String name) {
 		log.debug("setPublishedName: {}", name);
 		// a publish name of "false" is a special case, used when stopping a stream
-		if (!"false".equals(name)) {
+		if (StringUtils.isNotEmpty(name) && !"false".equals(name)) {
 			this.publishedName = name;
 			registerJMX();
 		}
@@ -874,7 +875,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 							// delete any previously recorded versions of this now "live" stream per
 							// http://livedocs.adobe.com/flashmediaserver/3.0/hpdocs/help.html?content=00000186.html
 							try {
-								File file = getRecordFile(scope, publishedName);							
+								File file = getRecordFile(scope, publishedName);
 								if (file != null && file.exists()) {
 									if (!file.delete()) {
 										log.debug("File was not deleted: {}", file.getAbsoluteFile());
@@ -988,43 +989,44 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		if (generator.resolvesToAbsolutePath()) {
 			file = new File(recordingFilename);
 		} else {
-            Resource resource = scope.getContext().getResource(recordingFilename);
-            if (resource.exists()) {
-                try {
-                    file = resource.getFile();
-                    log.debug("File exists: {} writable: {}", file.exists(), file.canWrite());
-                } catch (IOException ioe) {
-                    log.error("File error: {}", ioe);
-                }
-            } else {
-                String appScopeName = ScopeUtils.findApplication(scope).getName();
-                file = new File(String.format("%s/webapps/%s/%s", System.getProperty("red5.root"), appScopeName, recordingFilename));
-            }
+			Resource resource = scope.getContext().getResource(recordingFilename);
+			if (resource.exists()) {
+				try {
+					file = resource.getFile();
+					log.debug("File exists: {} writable: {}", file.exists(), file.canWrite());
+				} catch (IOException ioe) {
+					log.error("File error: {}", ioe);
+				}
+			} else {
+				String appScopeName = ScopeUtils.findApplication(scope).getName();
+				file = new File(String.format("%s/webapps/%s/%s", System.getProperty("red5.root"), appScopeName, recordingFilename));
+			}
 		}
 		return file;
 	}
 
-	
 	protected void registerJMX() {
 		// register with jmx
 		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
 		try {
-			ObjectName oName = new ObjectName(String.format("org.red5.server:type=ClientBroadcastStream,publishedName=%s", publishedName));
+			ObjectName oName = new ObjectName(String.format("org.red5.server:type=ClientBroadcastStream,scope=%s,publishedName=%s", getScope().getName(), publishedName));
 			mbs.registerMBean(new StandardMBean(this, ClientBroadcastStreamMXBean.class, true), oName);
 		} catch (InstanceAlreadyExistsException e) {
-			log.info("Instance already registered", e);				
+			log.info("Instance already registered", e);
 		} catch (Exception e) {
 			log.warn("Error on jmx registration", e);
 		}
 	}
 
 	protected void unregisterJMX() {
-		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-		try {
-			ObjectName oName = new ObjectName(String.format("org.red5.server:type=ClientBroadcastStream,publishedName=%s", publishedName));
-			mbs.unregisterMBean(oName);
-		} catch (Exception e) {
-			log.warn("Exception unregistering", e);
+		if (StringUtils.isNotEmpty(publishedName) && !"false".equals(publishedName)) {
+			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+			try {
+				ObjectName oName = new ObjectName(String.format("org.red5.server:type=ClientBroadcastStream,scope=%s,publishedName=%s", getScope().getName(), publishedName));
+				mbs.unregisterMBean(oName);
+			} catch (Exception e) {
+				log.warn("Exception unregistering", e);
+			}
 		}
 	}
 
