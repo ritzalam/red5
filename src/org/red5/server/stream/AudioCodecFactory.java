@@ -64,18 +64,19 @@ public class AudioCodecFactory {
      */
 	public static IAudioStreamCodec getAudioCodec(IoBuffer data) {
 		IAudioStreamCodec result = null;
-		//get the codec identifying byte
-		int codecId = (data.get() & 0xf0) >> 4;		
 		try {
+			//get the codec identifying byte
+			int codecId = (data.get() & 0xf0) >> 4;		
     		switch (codecId) {
     			case 10: //aac 
     				result = (IAudioStreamCodec) Class.forName("org.red5.server.stream.codec.AACAudio").newInstance();
     				break;
+    			// TODO add SPEEX support?
     		}
+    		data.rewind();
 		} catch (Exception ex) {
 			log.error("Error creating codec instance", ex);			
 		}
-		data.rewind();
 		//if codec is not found do the old-style loop
 		if (result == null) {
     		for (IAudioStreamCodec storedCodec: codecs) {

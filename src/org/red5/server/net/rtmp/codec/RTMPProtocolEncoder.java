@@ -141,7 +141,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 			ChunkSize chunkSizeMsg = (ChunkSize) message;
 			rtmp.setWriteChunkSize(chunkSizeMsg.getSize());
 		}
-		//normally the message is expected not to be dropped
+		// normally the message is expected not to be dropped
 		if (!dropMessage(rtmp, channelId, message)) {
 			data = encodeMessage(rtmp, header, message);
 			if (data != null) {

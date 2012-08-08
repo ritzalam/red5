@@ -236,16 +236,16 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 		} else {
 			IoBuffer data = null;
 			try {
-				data = encoder.encode(state, packet);
+				data = encoder.encodePacket(state, packet);
+				if (data != null) {
+					// add to pending
+					log.debug("Adding pending message from packet");
+					pendingMessages.add(new PendingData(data, packet));
+				} else {
+					log.warn("Response buffer was null after encoding");
+				}
 			} catch (Exception e) {
 				log.error("Could not encode message {}", packet, e);
-			}
-			if (data != null) {
-				// add to pending
-				log.debug("Adding pending message from packet");
-				pendingMessages.add(new PendingData(data, packet));
-			} else {
-				log.warn("Response buffer was null after encoding");
 			}
 		}
 	}

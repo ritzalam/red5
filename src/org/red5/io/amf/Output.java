@@ -103,7 +103,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 	/**
 	 * Creates output with given byte buffer
-	 * @param buf         Bute buffer
+	 * @param buf         Byte buffer
 	 */
 	public Output(IoBuffer buf) {
 		super();
