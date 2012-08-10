@@ -224,16 +224,20 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		if (livePipe != null) {
 			livePipe.unsubscribe((IProvider) this);
 		}
+		recordingFilename = null;
+		appending = false;
 		if (recordPipe != null) {
 			recordPipe.unsubscribe((IProvider) this);
 			((AbstractPipe) recordPipe).close();
 			recordPipe = null;
 		}
 		if (recording) {
+			recording = false;
 			sendRecordStopNotify();
+			notifyRecordingStop();
 		}
 		sendPublishStopNotify();
-		// TODO: can we sent the client something to make sure he stops sending data?
+		// TODO: can we send the client something to make sure he stops sending data?
 		connMsgOut.unsubscribe(this);
 		notifyBroadcastClose();
 		// deregister with jmx
@@ -347,53 +351,53 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 					// note this timestamp is set in event/body but not in the associated header
 					try {
 						// route to recording
-						if (recording) {
-							if (recordPipe != null) {
-								// get the current size of the buffer / data
-								int bufferLimit = buf.limit();
-								if (bufferLimit > 0) {
-									// make a copy for the record pipe
-									buf.mark();
-									byte[] buffer = new byte[bufferLimit];
-									buf.get(buffer);
-									buf.reset();
-									// Create new RTMP message, initialize it and push through pipe
-									RTMPMessage msg = null;
-									if (rtmpEvent instanceof AudioData) {
-										AudioData audio = new AudioData(IoBuffer.wrap(buffer));
-										audio.setTimestamp(eventTime);
-										msg = RTMPMessage.build(audio);
-									} else if (rtmpEvent instanceof VideoData) {
-										VideoData video = new VideoData(IoBuffer.wrap(buffer));
-										video.setTimestamp(eventTime);
-										msg = RTMPMessage.build(video);
-									} else if (rtmpEvent instanceof Notify) {
-										Notify not = new Notify(IoBuffer.wrap(buffer));
-										not.setTimestamp(eventTime);
-										msg = RTMPMessage.build(not);
-									} else {
-										log.info("Data was not of A/V type: {}", rtmpEvent.getType());
-										msg = RTMPMessage.build(rtmpEvent, eventTime);
-									}
-									// push it down to the recorder
-									recordPipe.pushMessage(msg);
-								} else if (bufferLimit == 0 && rtmpEvent instanceof AudioData) {
-									log.debug("Stream data size was 0, sending empty audio message");
-									// allow for 0 byte audio packets
-									AudioData audio = new AudioData(IoBuffer.allocate(0));
+						//						if (recording) {
+						if (recordPipe != null) {
+							// get the current size of the buffer / data
+							int bufferLimit = buf.limit();
+							if (bufferLimit > 0) {
+								// make a copy for the record pipe
+								buf.mark();
+								byte[] buffer = new byte[bufferLimit];
+								buf.get(buffer);
+								buf.reset();
+								// Create new RTMP message, initialize it and push through pipe
+								RTMPMessage msg = null;
+								if (rtmpEvent instanceof AudioData) {
+									AudioData audio = new AudioData(IoBuffer.wrap(buffer));
 									audio.setTimestamp(eventTime);
-									RTMPMessage msg = RTMPMessage.build(audio);
-									// push it down to the recorder
-									recordPipe.pushMessage(msg);
+									msg = RTMPMessage.build(audio);
+								} else if (rtmpEvent instanceof VideoData) {
+									VideoData video = new VideoData(IoBuffer.wrap(buffer));
+									video.setTimestamp(eventTime);
+									msg = RTMPMessage.build(video);
+								} else if (rtmpEvent instanceof Notify) {
+									Notify not = new Notify(IoBuffer.wrap(buffer));
+									not.setTimestamp(eventTime);
+									msg = RTMPMessage.build(not);
 								} else {
-									log.debug("Stream data size was 0, recording pipe will not be notified");
+									log.info("Data was not of A/V type: {}", rtmpEvent.getType());
+									msg = RTMPMessage.build(rtmpEvent, eventTime);
 								}
+								// push it down to the recorder
+								recordPipe.pushMessage(msg);
+							} else if (bufferLimit == 0 && rtmpEvent instanceof AudioData) {
+								log.debug("Stream data size was 0, sending empty audio message");
+								// allow for 0 byte audio packets
+								AudioData audio = new AudioData(IoBuffer.allocate(0));
+								audio.setTimestamp(eventTime);
+								RTMPMessage msg = RTMPMessage.build(audio);
+								// push it down to the recorder
+								recordPipe.pushMessage(msg);
 							} else {
-								log.debug("Record pipe was null, message was not pushed");
+								log.debug("Stream data size was 0, recording pipe will not be notified");
 							}
-						} else {
-							log.trace("Recording not active");
+						} else if (recording) {
+							log.debug("Record pipe was null, message was not pushed");
 						}
+						//						} else {
+						//							log.trace("Recording not active");
+						//						}
 						// route to live
 						if (livePipe != null) {
 							// create new RTMP message, initialize it and push through pipe
@@ -515,13 +519,27 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	}
 
 	/**
-	 *  Notifies handler on stream broadcast stop
+	 *  Notifies handler on stream broadcast close
 	 */
 	private void notifyBroadcastClose() {
 		IStreamAwareScopeHandler handler = getStreamAwareHandler();
 		if (handler != null) {
 			try {
 				handler.streamBroadcastClose(this);
+			} catch (Throwable t) {
+				log.error("Error in notifyBroadcastClose", t);
+			}
+		}
+	}
+
+	/**
+	 *  Notifies handler on stream recording stop
+	 */
+	private void notifyRecordingStop() {
+		IStreamAwareScopeHandler handler = getStreamAwareHandler();
+		if (handler != null) {
+			try {
+				handler.streamRecordStop(this);
 			} catch (Throwable t) {
 				log.error("Error in notifyBroadcastClose", t);
 			}
@@ -947,10 +965,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		if (recording) {
 			recording = false;
 			appending = false;
-			recordingFilename = null;
-			recordPipe.unsubscribe(recordingFile);
 			sendRecordStopNotify();
-			recordPipe = null;
+			notifyRecordingStop();
 		}
 	}
 

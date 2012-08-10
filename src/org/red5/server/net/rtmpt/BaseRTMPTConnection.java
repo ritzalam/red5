@@ -306,6 +306,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 
 	public void setEncoder(RTMPProtocolEncoder encoder) {
 		this.encoder = (RTMPTProtocolEncoder) encoder;
+		this.encoder.setConnection(this);
 	}
 	
 }
