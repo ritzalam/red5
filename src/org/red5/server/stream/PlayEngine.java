@@ -69,6 +69,7 @@ import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.net.rtmp.status.StatusCodes;
+import org.red5.server.net.rtmpt.RTMPTConnection;
 import org.red5.server.stream.codec.StreamCodecInfo;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.ResetMessage;
@@ -184,6 +185,11 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 * Scheduled future job that makes sure messages are sent to the client.
 	 */
 	private volatile ScheduledFuture<?> pullAndPushFuture;
+
+	/**
+	 * Scheduled future job that closes stream after buffer runs out.
+	 */
+	private volatile ScheduledFuture<?> deferredStopFuture;
 
 	/**
 	 * Monitor guarding completion of a given push/pull run.
@@ -721,6 +727,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	public void seek(int position) throws IllegalStateException, OperationNotSupportedException {
 		// add this pending seek operation to the list
 		pendingOperations.add(new SeekRunnable(position));
+		cancelDeferredStop();
 	}
 
 	/**
@@ -957,6 +964,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		int ts = messageOut.getBody().getTimestamp();
 		if (log.isTraceEnabled()) {
 			log.trace("sendMessage: streamStartTS={}, length={}, streamOffset={}, timestamp={}", new Object[] { streamStartTS, currentItem.getLength(), streamOffset, ts });
+			final long delta = System.currentTimeMillis() - playbackStart;
+			log.trace("clientBufferDetails: timestamp {} delta {} buffered {}", new Object[] { lastMessageTs, delta, lastMessageTs - delta });
 		}
 
 		// don't reset streamStartTS to 0 for live streams 
@@ -1352,7 +1361,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 									numSequentialPendingVideoFrames = 0;
 								}
 								if (pendingVideos > maxPendingVideoFramesThreshold || numSequentialPendingVideoFrames > maxSequentialPendingVideoFrames) {
-									log.debug("Pending: {} Threshold: {} Sequential: {}", new Object[] { pendingVideos, maxPendingVideoFramesThreshold, numSequentialPendingVideoFrames });
+									log.debug("Pending: {} Threshold: {} Sequential: {}", new Object[] { pendingVideos, maxPendingVideoFramesThreshold,
+											numSequentialPendingVideoFrames });
 									// We drop because the client has insufficient bandwidth.
 									long now = System.currentTimeMillis();
 									if (bufferCheckInterval > 0 && now >= nextCheckBufferUnderrun) {
@@ -1537,6 +1547,27 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	}
 
 	/**
+	 * Schedule a stop to be run from a separate thread to allow the background thread to stop cleanly.
+	 */
+	private void runDeferredStop() {
+		// Stop current jobs from running.
+		clearWaitJobs();
+		// Schedule deferred stop executor.
+		log.trace("Ran deferred stop");
+		if (deferredStopFuture == null)
+			deferredStopFuture = subscriberStream.getExecutor().scheduleAtFixedRate(new DeferredStopRunnable(), 1, 10, TimeUnit.MILLISECONDS);
+	}
+
+	private void cancelDeferredStop() {
+		log.debug("Clear wait jobs");
+		if (deferredStopFuture != null) {
+			log.debug("Deferred stop cancelled: {}", deferredStopFuture.cancel(false));
+			deferredStopFuture = null;
+		}
+		ensurePullAndPushRunning();
+	}
+
+	/**
 	 * Runnable worker to handle seek operations.
 	 */
 	private final class SeekRunnable implements Runnable {
@@ -1628,11 +1659,16 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				doPushMessage(audioMessage);
 				audioMessage.getBody().release();
 			}
+
 			if (!messageSent && subscriberStream.getState() == StreamState.PLAYING) {
+				boolean isRTMPTPlayback = subscriberStream.getConnection() instanceof RTMPTConnection;
+
 				// send all frames from last keyframe up to requested position and fill client buffer
 				if (sendCheckVideoCM(msgIn)) {
 					final long clientBuffer = subscriberStream.getClientBufferDuration();
 					IMessage msg = null;
+					int msgSent = 0;
+
 					do {
 						try {
 							msg = msgIn != null ? msgIn.pullMessage() : null;
@@ -1650,13 +1686,16 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 								if (!checkSendMessageEnabled(rtmpMessage)) {
 									continue;
 								}
+								msgSent++;
 								sendMessage(rtmpMessage);
 							}
 						} catch (Throwable err) {
 							log.error("Error while pulling message", err);
 							msg = null;
 						}
-					} while (msg != null);
+					} while (!isRTMPTPlayback && (msg != null));
+
+					log.trace("msgSent: {}", msgSent);
 					playbackStart = System.currentTimeMillis() - lastMessageTs;
 				}
 			}
@@ -1742,7 +1781,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 						}
 					}
 				} catch (IOException err) {
-					// We couldn't get more data, stop stream.
+					// we couldn't get more data, stop stream.
 					log.error("Error while getting message", err);
 					runDeferredStop();
 				} finally {
@@ -1754,26 +1793,15 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			}
 		}
 
-		/**
-		 * Schedule a stop to be run from a separate thread to allow the background thread to stop cleanly.
-		 */
-		private void runDeferredStop() {
-			subscriberStream.getExecutor().schedule(new Runnable() {
-				public void run() {
-					log.trace("Ran deferred stop");
-					while (lastMessageTs > 0 && !isClientBufferEmpty()) {
-						try {
-							Thread.sleep(10L);
-						} catch (InterruptedException e) {
-							if (log.isDebugEnabled()) {
-								log.warn("Exception during sleep in runDeferredStop", e);
-							}
-						}
-					}
-					log.trace("Buffer is empty, stop will proceed");
-					stop();
-				}
-			}, 1, TimeUnit.MILLISECONDS);
+	}
+
+	private class DeferredStopRunnable implements Runnable {
+
+		public void run() {
+			if (getLastMessageTimestamp() > 0 && isClientBufferEmpty()) {
+				log.trace("Buffer is empty, stop will proceed");
+				stop();
+			}
 		}
 
 	}

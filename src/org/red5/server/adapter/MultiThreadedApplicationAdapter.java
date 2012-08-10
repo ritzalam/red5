@@ -1318,7 +1318,14 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	public void streamRecordStart(IBroadcastStream stream) {
 		// log w3c connect event
 		IConnection connection = Red5.getConnectionLocal();
-		log.info("W3C x-category:stream x-event:record c-ip:{} x-sname:{} x-file-name:{}",
+		log.info("W3C x-category:stream x-event:record-start c-ip:{} x-sname:{} x-file-name:{}",
+				new Object[] { connection != null ? connection.getRemoteAddress() : "0.0.0.0", stream.getName(), stream.getSaveFilename() });
+	}
+
+	public void streamRecordStop(IBroadcastStream stream) {
+		// log w3c connect event
+		IConnection connection = Red5.getConnectionLocal();
+		log.info("W3C x-category:stream x-event:record-stop c-ip:{} x-sname:{} x-file-name:{}",
 				new Object[] { connection != null ? connection.getRemoteAddress() : "0.0.0.0", stream.getName(), stream.getSaveFilename() });
 	}
 

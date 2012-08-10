@@ -255,8 +255,12 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 			//subtract the ping time / latency from the tardiness value
 			log.trace("Connection: {}", conn);
 			if (conn != null) {
-				log.debug("Last ping time for connection: {}", conn.getLastPingTime());
-				tardiness -= conn.getLastPingTime();
+				int lastPingTime = conn.getLastPingTime();
+				log.debug("Last ping time for connection: {}", lastPingTime);
+				if (lastPingTime > 0) {
+					tardiness -= lastPingTime;
+				}
+				
 				//subtract the buffer time
 				int streamId = conn.getStreamIdForChannel(channelId);
 				IClientStream stream = conn.getStreamById(streamId);
