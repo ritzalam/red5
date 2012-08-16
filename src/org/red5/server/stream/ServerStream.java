@@ -40,6 +40,7 @@ import org.red5.server.api.stream.IStreamPacket;
 import org.red5.server.api.stream.ResourceExistException;
 import org.red5.server.api.stream.ResourceNotFoundException;
 import org.red5.server.api.stream.StreamState;
+import org.red5.server.api.stream.support.SimplePlayItem;
 import org.red5.server.messaging.IFilter;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
@@ -68,6 +69,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public class ServerStream extends AbstractStream implements IServerStream, IFilter, IPushableConsumer, IPipeConnectionListener {
 	/**
@@ -143,6 +145,11 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	protected String recordingFilename;
 
 	/**
+	 * Provider service
+	 */
+	private IProviderService providerService;
+
+	/**
 	 * Scheduling service
 	 */
 	private ISchedulingService scheduler;
@@ -150,12 +157,12 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	/**
 	 * Live broadcasting scheduled job name
 	 */
-	private String liveJobName;
+	private volatile String liveJobName;
 
 	/**
 	 * VOD scheduled job name
 	 */
-	private String vodJobName;
+	private volatile String vodJobName;
 
 	/**
 	 * VOD start timestamp
@@ -193,6 +200,11 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 
 	/** {@inheritDoc} */
 	public void addItem(IPlayItem item, int index) {
+		IPlayItem prev = items.get(index);
+		if (prev != null && prev instanceof SimplePlayItem) {
+			// since it replaces the item in the current spot, reset the items time so the sort will work
+			((SimplePlayItem) item).setCreated(((SimplePlayItem) prev).getCreated() - 1);
+		}
 		items.add(index, item);
 		if (index <= currentItemIndex) {
 			// item was added before the currently playing
@@ -217,12 +229,17 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 
 	/** {@inheritDoc} */
 	public void removeAllItems() {
+		currentItemIndex = 0;
 		items.clear();
 	}
 
 	/** {@inheritDoc} */
 	public int getItemSize() {
 		return items.size();
+	}
+
+	public CopyOnWriteArrayList<IPlayItem> getItems() {
+		return items;
 	}
 
 	/** {@inheritDoc} */
@@ -327,7 +344,6 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 		try {
 			IScope scope = getScope();
 			IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.class, DefaultStreamFilenameGenerator.class);
-
 			String filename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
 			// Get file for that filename
 			File file;
@@ -338,21 +354,17 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 			}
 			if (!isAppend) {
 				if (file.exists()) {
-					// Per livedoc of FCS/FMS:
-					// When "live" or "record" is used,
-					// any previously recorded stream with the same stream URI is deleted.
-					if (!file.delete())
-						throw new IOException("file could not be deleted");
+					// Per livedoc of FCS/FMS: When "live" or "record" is used, any previously recorded stream with the same stream URI is deleted.
+					if (!file.delete()) {
+						throw new IOException("File could not be deleted");
+					}
 				}
 			} else {
 				if (!file.exists()) {
-					// Per livedoc of FCS/FMS:
-					// If a recorded stream at the same URI does not already exist,
-					// "append" creates the stream as though "record" was passed.
+					// Per livedoc of FCS/FMS: If a recorded stream at the same URI does not already exist, "append" creates the stream as though "record" was passed.
 					isAppend = false;
 				}
 			}
-
 			if (!file.exists()) {
 				// Make sure the destination directory exists
 				String path = file.getAbsolutePath();
@@ -439,16 +451,20 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 		if (publishedName == null) {
 			throw new IllegalStateException("A published name is needed to start");
 		}
-		// publish this server-side stream
-		IProviderService providerService = (IProviderService) getScope().getContext().getBean(IProviderService.BEAN_NAME);
-		providerService.registerBroadcastStream(getScope(), publishedName, this);
+		try {
+			providerService = (IProviderService) getScope().getContext().getBean(IProviderService.BEAN_NAME);
+			// publish this server-side stream
+			providerService.registerBroadcastStream(getScope(), publishedName, this);
+			scheduler = (ISchedulingService) getScope().getContext().getBean(ISchedulingService.BEAN_NAME);
+		} catch (NullPointerException npe) {
+			log.warn("Context beans were not available; this is ok during unit testing", npe);
+		}
 		Map<String, Object> recordParamMap = new HashMap<String, Object>();
 		recordPipe = new InMemoryPushPushPipe();
 		recordParamMap.put("record", null);
 		recordPipe.subscribe((IProvider) this, recordParamMap);
 		recordingFilename = null;
-		scheduler = (ISchedulingService) getScope().getContext().getBean(ISchedulingService.BEAN_NAME);
-		state = StreamState.STOPPED;
+		setState(StreamState.STOPPED);
 		currentItemIndex = -1;
 		nextItem();
 	}
@@ -456,51 +472,51 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	/**
 	 * Stop this server-side stream
 	 */
-	public synchronized void stop() {
-		if (state != StreamState.PLAYING && state != StreamState.PAUSED) {
-			return;
+	public void stop() {
+		if (state == StreamState.PLAYING || state == StreamState.PAUSED) {
+			if (liveJobName != null) {
+				scheduler.removeScheduledJob(liveJobName);
+				liveJobName = null;
+			}
+			if (vodJobName != null) {
+				scheduler.removeScheduledJob(vodJobName);
+				vodJobName = null;
+			}
+			if (msgIn != null) {
+				msgIn.unsubscribe(this);
+				msgIn = null;
+			}
+			if (nextRTMPMessage != null) {
+				nextRTMPMessage.getBody().release();
+			}
+			setState(StreamState.STOPPED);
 		}
-		if (liveJobName != null) {
-			scheduler.removeScheduledJob(liveJobName);
-			liveJobName = null;
-		}
-		if (vodJobName != null) {
-			scheduler.removeScheduledJob(vodJobName);
-			vodJobName = null;
-		}
-		if (msgIn != null) {
-			msgIn.unsubscribe(this);
-			msgIn = null;
-		}
-		if (nextRTMPMessage != null) {
-			nextRTMPMessage.getBody().release();
-		}
-		state = StreamState.STOPPED;
 	}
 
 	/** {@inheritDoc} */
 	public void pause() {
-		if (state == StreamState.PLAYING) {
-			state = StreamState.PAUSED;
-		} else if (state == StreamState.PAUSED) {
-			state = StreamState.PLAYING;
-			vodStartTS = 0;
-			serverStartTS = System.currentTimeMillis();
-			scheduleNextMessage();
+		switch (state) {
+			case PLAYING:
+				setState(StreamState.PAUSED);
+				break;
+			case PAUSED:
+				setState(StreamState.PLAYING);
+				vodStartTS = 0;
+				serverStartTS = System.currentTimeMillis();
+				scheduleNextMessage();
 		}
 	}
 
 	/** {@inheritDoc} */
 	public void seek(int position) {
-		if (state != StreamState.PLAYING && state != StreamState.PAUSED) {
-			// Can't seek when stopped/closed
-			return;
+		// seek only allowed when playing or paused
+		if (state == StreamState.PLAYING || state == StreamState.PAUSED) {
+			sendVODSeekCM(msgIn, position);
 		}
-		sendVODSeekCM(msgIn, position);
 	}
 
 	/** {@inheritDoc} */
-	public synchronized void close() {
+	public void close() {
 		if (state == StreamState.PLAYING || state == StreamState.PAUSED) {
 			stop();
 		}
@@ -509,7 +525,7 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 		}
 		recordPipe.unsubscribe((IProvider) this);
 		notifyBroadcastClose();
-		state = StreamState.CLOSED;
+		setState(StreamState.CLOSED);
 	}
 
 	/** {@inheritDoc} */
@@ -549,53 +565,51 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	/**
 	 * Play a specific IPlayItem.
 	 * The strategy for now is VOD first, Live second.
-	 * Should be called in a synchronized context.
 	 *
 	 * @param item        Item to play
 	 */
 	protected void play(IPlayItem item) {
-		// Return if already playing
-		if (state != StreamState.STOPPED) {
-			return;
-		}
-		// Assume this is not live stream
-		boolean isLive = false;
-		// Get provider service from Spring bean factory
-		IProviderService providerService = (IProviderService) getScope().getContext().getBean(IProviderService.BEAN_NAME);
-		msgIn = providerService.getVODProviderInput(getScope(), item.getName());
-		if (msgIn == null) {
-			msgIn = providerService.getLiveProviderInput(getScope(), item.getName(), true);
-			isLive = true;
-		}
-		if (msgIn == null) {
-			log.warn("ABNORMAL Can't get both VOD and Live input from providerService");
-			return;
-		}
-		state = StreamState.PLAYING;
-		currentItem = item;
-		sendResetMessage();
-		msgIn.subscribe(this, null);
-		if (isLive) {
-			if (item.getLength() >= 0) {
-				liveJobName = scheduler.addScheduledOnceJob(item.getLength(), new IScheduledJob() {
-					public void execute(ISchedulingService service) {
-						synchronized (ServerStream.this) {
+		// dont play unless we are stopped
+		if (state == StreamState.STOPPED) {
+			// assume this is not live stream
+			boolean isLive = false;
+			if (providerService != null) {
+				msgIn = providerService.getVODProviderInput(getScope(), item.getName());
+				if (msgIn == null) {
+					msgIn = providerService.getLiveProviderInput(getScope(), item.getName(), true);
+					isLive = true;
+				}
+				if (msgIn == null) {
+					log.warn("ABNORMAL Can't get both VOD and Live input from providerService");
+					return;
+				}
+			}
+			setState(StreamState.PLAYING);
+			currentItem = item;
+			sendResetMessage();
+			if (msgIn != null) {
+				msgIn.subscribe(this, null);
+			}
+			if (isLive) {
+				if (item.getLength() >= 0) {
+					liveJobName = scheduler.addScheduledOnceJob(item.getLength(), new IScheduledJob() {
+						public void execute(ISchedulingService service) {
 							if (liveJobName == null) {
 								return;
 							}
 							liveJobName = null;
 							onItemEnd();
 						}
-					}
-				});
+					});
+				}
+			} else {
+				long start = item.getStart();
+				if (start < 0) {
+					start = 0;
+				}
+				sendVODInitCM(msgIn, (int) start);
+				startBroadcastVOD();
 			}
-		} else {
-			long start = item.getStart();
-			if (start < 0) {
-				start = 0;
-			}
-			sendVODInitCM(msgIn, (int) start);
-			startBroadcastVOD();
 		}
 	}
 
@@ -611,9 +625,12 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	 * @param message     Message
 	 */
 	private void pushMessage(IMessage message) throws IOException {
-		msgOut.pushMessage(message);
-		recordPipe.pushMessage(message);
-
+		if (msgOut != null) {
+			msgOut.pushMessage(message);
+		}
+		if (recordPipe != null) {
+			recordPipe.pushMessage(message);
+		}
 		// Notify listeners about received packet
 		if (message instanceof RTMPMessage) {
 			final IRTMPEvent rtmpEvent = ((RTMPMessage) message).getBody();
@@ -695,14 +712,12 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	protected void scheduleNextMessage() {
 		boolean first = nextRTMPMessage == null;
 		long delta;
-
 		while (true) {
 			nextRTMPMessage = getNextRTMPMessage();
 			if (nextRTMPMessage == null) {
 				onItemEnd();
 				return;
 			}
-
 			IRTMPEvent rtmpEvent = nextRTMPMessage.getBody();
 			// filter all non-AV messages
 			if (!(rtmpEvent instanceof VideoData) && !(rtmpEvent instanceof AudioData)) {
@@ -714,14 +729,13 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 				vodStartTS = nextTS;
 				first = false;
 			}
-
 			delta = nextTS - vodStartTS - (System.currentTimeMillis() - serverStartTS);
 			if (delta < WAIT_THRESHOLD) {
 				if (!doPushMessage()) {
 					return;
 				}
 				if (state != StreamState.PLAYING) {
-					// Stream is paused, don't load more messages
+					// Stream is not playing, don't load more messages
 					nextRTMPMessage = null;
 					return;
 				}
@@ -732,20 +746,18 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 		vodJobName = scheduler.addScheduledOnceJob(delta, new IScheduledJob() {
 			/** {@inheritDoc} */
 			public void execute(ISchedulingService service) {
-				synchronized (ServerStream.this) {
-					if (vodJobName == null) {
-						return;
-					}
-					vodJobName = null;
-					if (!doPushMessage()) {
-						return;
-					}
-					if (state == StreamState.PLAYING) {
-						scheduleNextMessage();
-					} else {
-						// Stream is paused, don't load more messages
-						nextRTMPMessage = null;
-					}
+				if (vodJobName == null) {
+					return;
+				}
+				vodJobName = null;
+				if (!doPushMessage()) {
+					return;
+				}
+				if (state == StreamState.PLAYING) {
+					scheduleNextMessage();
+				} else {
+					// Stream is paused, don't load more messages
+					nextRTMPMessage = null;
 				}
 			}
 		});
@@ -784,7 +796,7 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 			// Pull message from message input object...
 			try {
 				message = msgIn.pullMessage();
-			} catch (IOException err) {
+			} catch (Exception err) {
 				log.error("Error while pulling message.", err);
 				message = null;
 			}
@@ -803,19 +815,21 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	 * @param start            Start timestamp
 	 */
 	private void sendVODInitCM(IMessageInput msgIn, int start) {
-		// Create new out-of-band control message
-		OOBControlMessage oobCtrlMsg = new OOBControlMessage();
-		// Set passive type
-		oobCtrlMsg.setTarget(IPassive.KEY);
-		// Set service name of init
-		oobCtrlMsg.setServiceName("init");
-		// Create map for parameters
-		Map<String, Object> paramMap = new HashMap<String, Object>(1);
-		// Put start timestamp into Map of params
-		paramMap.put("startTS", start);
-		// Attach to OOB control message and send it
-		oobCtrlMsg.setServiceParamMap(paramMap);
-		msgIn.sendOOBControlMessage(this, oobCtrlMsg);
+		if (msgIn != null) {
+			// Create new out-of-band control message
+			OOBControlMessage oobCtrlMsg = new OOBControlMessage();
+			// Set passive type
+			oobCtrlMsg.setTarget(IPassive.KEY);
+			// Set service name of init
+			oobCtrlMsg.setServiceName("init");
+			// Create map for parameters
+			Map<String, Object> paramMap = new HashMap<String, Object>(1);
+			// Put start timestamp into Map of params
+			paramMap.put("startTS", start);
+			// Attach to OOB control message and send it
+			oobCtrlMsg.setServiceParamMap(paramMap);
+			msgIn.sendOOBControlMessage(this, oobCtrlMsg);
+		}
 	}
 
 	/**
@@ -832,32 +846,29 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 		paramMap.put("position", Integer.valueOf(position));
 		oobCtrlMsg.setServiceParamMap(paramMap);
 		msgIn.sendOOBControlMessage(this, oobCtrlMsg);
-		synchronized (this) {
-			// Reset properties
-			vodStartTS = 0;
-			serverStartTS = System.currentTimeMillis();
-			if (nextRTMPMessage != null) {
-				try {
-					pushMessage(nextRTMPMessage);
-				} catch (IOException err) {
-					log.error("Error while sending message.", err);
-				}
-				nextRTMPMessage.getBody().release();
-				nextRTMPMessage = null;
-			}
-			ResetMessage reset = new ResetMessage();
+		// Reset properties
+		vodStartTS = 0;
+		serverStartTS = System.currentTimeMillis();
+		if (nextRTMPMessage != null) {
 			try {
-				pushMessage(reset);
+				pushMessage(nextRTMPMessage);
 			} catch (IOException err) {
 				log.error("Error while sending message.", err);
 			}
-			scheduleNextMessage();
+			nextRTMPMessage.getBody().release();
+			nextRTMPMessage = null;
 		}
+		ResetMessage reset = new ResetMessage();
+		try {
+			pushMessage(reset);
+		} catch (IOException err) {
+			log.error("Error while sending message.", err);
+		}
+		scheduleNextMessage();
 	}
 
 	/**
 	 * Move to the next item updating the currentItemIndex.
-	 * Should be called in synchronized context.
 	 */
 	protected void moveToNext() {
 		if (currentItemIndex >= items.size()) {
@@ -872,7 +883,6 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 
 	/**
 	 * Move to the previous item updating the currentItemIndex.
-	 * Should be called in synchronized context.
 	 */
 	protected void moveToPrevious() {
 		if (currentItemIndex >= items.size()) {
@@ -896,4 +906,5 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	public void removeStreamListener(IStreamListener listener) {
 		listeners.remove(listener);
 	}
+
 }
