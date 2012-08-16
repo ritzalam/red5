@@ -19,11 +19,9 @@
 package org.red5.server.stream;
 
 import java.lang.ref.WeakReference;
-import java.util.concurrent.Semaphore;
 
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
-import org.red5.server.api.stream.StreamState;
 
 /**
  * Abstract base for client streams
@@ -49,11 +47,6 @@ public abstract class AbstractClientStream extends AbstractStream implements ICl
 	 * Buffer duration in ms as requested by the client
 	 */
 	private int clientBufferDuration;
-
-	/**
-	 * Lock for protecting critical sections
-	 */
-	private final Semaphore lock = new Semaphore(1, true);
 
 	/**
 	 * Setter for stream id
@@ -85,34 +78,6 @@ public abstract class AbstractClientStream extends AbstractStream implements ICl
 	 */
 	public IStreamCapableConnection getConnection() {
 		return conn.get();
-	}
-
-	/**
-	 *  Return stream state
-	 * @return StreamState
-	 */
-	public StreamState getState() {
-		try {
-			lock.acquireUninterruptibly();
-			return state;
-		} finally {
-			lock.release();
-		}
-	}
-
-	/**
-	 * Sets the stream state
-	 * @param state
-	 */
-	public void setState(StreamState state) {
-		if (!this.state.equals(state)) {
-			try {
-				lock.acquireUninterruptibly();
-				this.state = state;
-			} finally {
-				lock.release();
-			}
-		}
 	}
 
 	/** {@inheritDoc} */

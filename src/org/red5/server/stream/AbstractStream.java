@@ -18,6 +18,8 @@
 
 package org.red5.server.stream;
 
+import java.util.concurrent.Semaphore;
+
 import org.red5.server.api.scope.IScope;
 import org.red5.server.api.scope.IScopeHandler;
 import org.red5.server.api.stream.IStream;
@@ -37,7 +39,7 @@ public abstract class AbstractStream implements IStream {
     /**
      * Current state
      */
-    protected StreamState state = StreamState.UNINIT;
+	protected StreamState state = StreamState.UNINIT;
     
 	/**
      *  Stream name
@@ -63,6 +65,11 @@ public abstract class AbstractStream implements IStream {
 	 * Timestamp the stream was created.
 	 */
 	protected long creationTime;
+	
+	/**
+	 * Lock for protecting critical sections
+	 */
+	protected final Semaphore lock = new Semaphore(1, true);
 	
     /**
      *  Return stream name
@@ -130,6 +137,34 @@ public abstract class AbstractStream implements IStream {
 		this.scope = scope;
 	}
 
+	/**
+	 * Return stream state
+	 * @return StreamState
+	 */
+	public StreamState getState() {
+		try {
+			lock.acquireUninterruptibly();
+			return state;
+		} finally {
+			lock.release();
+		}
+	}
+
+	/**
+	 * Sets the stream state
+	 * @param state
+	 */
+	public void setState(StreamState state) {
+		if (!this.state.equals(state)) {
+			try {
+				lock.acquireUninterruptibly();
+				this.state = state;
+			} finally {
+				lock.release();
+			}
+		}
+	}	
+	
     /**
      * Return stream aware scope handler or null if scope is null
      * @return      IStreamAwareScopeHandler implementation
