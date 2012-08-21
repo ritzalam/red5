@@ -58,9 +58,6 @@ import org.slf4j.LoggerFactory;
  */
 public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 
-	/**
-	 * Logger
-	 */
 	protected static Logger log = LoggerFactory.getLogger(MP3Reader.class);
 
 	/**
@@ -484,14 +481,18 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 			tagType |= (header.isStereo() ? IoConstants.FLAG_TYPE_STEREO : IoConstants.FLAG_TYPE_MONO);
 			body.put(tagType);
 			body.putInt(header.getData());
-
-			ByteBuffer in = ByteBuffer.allocate(frameSize - 4).order(ByteOrder.BIG_ENDIAN);
-			channel.read(in);
-			in.flip();
-			body.put(in);
-			body.flip();
-
-			tag.setBody(body);
+			int bufferSize = (frameSize - 4);
+			log.trace("Allocating {} buffer", bufferSize);
+			if (bufferSize > 0) {
+				ByteBuffer in = ByteBuffer.allocate(bufferSize).order(ByteOrder.BIG_ENDIAN);
+				channel.read(in);
+				in.flip();
+				body.put(in);
+				body.flip();
+				tag.setBody(body);
+			} else {
+				log.warn("Buffer size was invalid: {}", bufferSize);
+			}
 		} catch (InterruptedException e) {
 			log.warn("Exception acquiring lock", e);
 		} catch (Exception e) {
