@@ -157,7 +157,7 @@ public class ProviderService implements IProviderService {
 	/** {@inheritDoc} */
 	public boolean unregisterBroadcastStream(IScope scope, String name, IBroadcastStream bs) {
 		log.debug("Unregistering - name: {} stream: {} scope: {}", new Object[] { name, bs, scope });
-		if (log.isDebugEnabled()) {
+		if (log.isTraceEnabled()) {
 			((Scope) scope).dump();
 		}
 		IBroadcastScope broadcastScope = scope.getBroadcastScope(name);
@@ -206,7 +206,10 @@ public class ProviderService implements IProviderService {
 				file = null;
 			}
 		} catch (IOException e) {
-			log.warn("Exception attempting to lookup file: {}", name, e);
+			log.info("Exception attempting to lookup file: {}", e.getMessage());
+			if (log.isDebugEnabled()) {
+				log.warn("Exception attempting to lookup file: {}", name, e);
+			}
 			// null out the file (fix for issue #238)
 			file = null;
 		}
