@@ -198,9 +198,9 @@ public class FLVWriter implements ITagWriter {
 					dat.delete();
 					dat.createNewFile();
 				}
-				this.dataFile = new RandomAccessFile(dat, "rws");
+				this.dataFile = new RandomAccessFile(dat, "rw");
 				// the final version of the file will go here
-				this.file = new RandomAccessFile(file, "rws");
+				this.file = new RandomAccessFile(file, "rw");
 			}
 		} catch (Exception e) {
 			log.error("Failed to create FLV writer", e);
