@@ -18,23 +18,28 @@
 
 package org.red5.server.stream;
 
-
 import java.io.File;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import javax.management.StandardMBean;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.IConnection;
-import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
-import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.event.IEventListener;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.api.statistics.IClientBroadcastStreamStatistics;
 import org.red5.server.api.statistics.support.StatisticsCounter;
 import org.red5.server.api.stream.IAudioStreamCodec;
@@ -74,8 +79,11 @@ import org.red5.server.stream.codec.StreamCodecInfo;
 import org.red5.server.stream.consumer.FileConsumer;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.StatusMessage;
+import org.red5.server.util.ScopeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
+import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
  * Represents live stream broadcasted from client. As Flash Media Server, Red5 supports
@@ -93,6 +101,7 @@ import org.slf4j.LoggerFactory;
  * @author Paul Gregoire (mondain@gmail.com)
  * @author Vladimir Hmelyoff (vlhm@splitmedialabs.com)
  */
+@ManagedResource(objectName = "org.red5.server:type=ClientBroadcastStream", description = "ClientBroadcastStream")
 public class ClientBroadcastStream extends AbstractClientStream implements IClientBroadcastStream, IFilter, IPushableConsumer, IPipeConnectionListener, IEventDispatcher,
 		IClientBroadcastStreamStatistics, ClientBroadcastStreamMXBean {
 
@@ -133,18 +142,15 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 */
 	protected IMessageOutput connMsgOut;
 
-	/** Stores timestamp of first packet. */
+	/** 
+	 * Stores timestamp of first packet
+	 */
 	protected long firstPacketTime = -1;
 
 	/**
 	 * Pipe for live streaming
 	 */
 	protected IPipe livePipe;
-
-	/**
-	 * MBean object name used for de/registration purposes.
-	 */
-	//private ObjectName oName;
 
 	/**
 	 * Stream published name
@@ -209,7 +215,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 * Closes stream, unsubscribes provides, sends stoppage notifications and broadcast close notification.
 	 */
 	public void close() {
-		log.info("Close");
+		log.info("Stream close");
 		if (closed) {
 			// Already closed
 			return;
@@ -218,20 +224,24 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		if (livePipe != null) {
 			livePipe.unsubscribe((IProvider) this);
 		}
+		recordingFilename = null;
+		appending = false;
 		if (recordPipe != null) {
 			recordPipe.unsubscribe((IProvider) this);
 			((AbstractPipe) recordPipe).close();
 			recordPipe = null;
 		}
 		if (recording) {
+			recording = false;
 			sendRecordStopNotify();
+			notifyRecordingStop();
 		}
 		sendPublishStopNotify();
-		// TODO: can we sent the client something to make sure he stops sending data?
+		// TODO: can we send the client something to make sure he stops sending data?
 		connMsgOut.unsubscribe(this);
 		notifyBroadcastClose();
 		// deregister with jmx
-		//JMXAgent.unregisterMBean(oName);
+		unregisterJMX();
 	}
 
 	/**
@@ -276,8 +286,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 					if (codecInfo instanceof StreamCodecInfo) {
 						info = (StreamCodecInfo) codecInfo;
 					}
+					//log.trace("Stream codec info: {}", info);
 					if (rtmpEvent instanceof AudioData) {
-						// SplitmediaLabs - begin AAC fix
 						IAudioStreamCodec audioStreamCodec = null;
 						if (checkAudioCodec) {
 							audioStreamCodec = AudioCodecFactory.getAudioCodec(buf);
@@ -321,7 +331,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 						//event / stream listeners will not be notified of invokes
 						return;
 					} else if (rtmpEvent instanceof Notify) {
-						//TDJ: store METADATA
+						// store the metadata
 						Notify notifyEvent = (Notify) rtmpEvent;
 						if (metaData == null && notifyEvent.getHeader().getDataType() == Notify.TYPE_STREAM_METADATA) {
 							try {
@@ -341,53 +351,53 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 					// note this timestamp is set in event/body but not in the associated header
 					try {
 						// route to recording
-						if (recording) {
-							if (recordPipe != null) {
-								// get the current size of the buffer / data
-								int bufferLimit = buf.limit();
-								if (bufferLimit > 0) {
-									// make a copy for the record pipe
-									buf.mark();
-									byte[] buffer = new byte[bufferLimit];
-									buf.get(buffer);
-									buf.reset();
-									// Create new RTMP message, initialize it and push through pipe
-									RTMPMessage msg = null;
-									if (rtmpEvent instanceof AudioData) {
-										AudioData audio = new AudioData(IoBuffer.wrap(buffer));
-										audio.setTimestamp(eventTime);
-										msg = RTMPMessage.build(audio);
-									} else if (rtmpEvent instanceof VideoData) {
-										VideoData video = new VideoData(IoBuffer.wrap(buffer));
-										video.setTimestamp(eventTime);
-										msg = RTMPMessage.build(video);
-									} else if (rtmpEvent instanceof Notify) {
-										Notify not = new Notify(IoBuffer.wrap(buffer));
-										not.setTimestamp(eventTime);
-										msg = RTMPMessage.build(not);
-									} else {
-										log.info("Data was not of A/V type: {}", rtmpEvent.getType());
-										msg = RTMPMessage.build(rtmpEvent, eventTime);
-									}
-									// push it down to the recorder
-									recordPipe.pushMessage(msg);
-								} else if (bufferLimit == 0 && rtmpEvent instanceof AudioData) {
-									log.debug("Stream data size was 0, sending empty audio message");
-									// allow for 0 byte audio packets
-									AudioData audio = new AudioData(IoBuffer.allocate(0));
+						//						if (recording) {
+						if (recordPipe != null) {
+							// get the current size of the buffer / data
+							int bufferLimit = buf.limit();
+							if (bufferLimit > 0) {
+								// make a copy for the record pipe
+								buf.mark();
+								byte[] buffer = new byte[bufferLimit];
+								buf.get(buffer);
+								buf.reset();
+								// Create new RTMP message, initialize it and push through pipe
+								RTMPMessage msg = null;
+								if (rtmpEvent instanceof AudioData) {
+									AudioData audio = new AudioData(IoBuffer.wrap(buffer));
 									audio.setTimestamp(eventTime);
-									RTMPMessage msg = RTMPMessage.build(audio);
-									// push it down to the recorder
-									recordPipe.pushMessage(msg);
+									msg = RTMPMessage.build(audio);
+								} else if (rtmpEvent instanceof VideoData) {
+									VideoData video = new VideoData(IoBuffer.wrap(buffer));
+									video.setTimestamp(eventTime);
+									msg = RTMPMessage.build(video);
+								} else if (rtmpEvent instanceof Notify) {
+									Notify not = new Notify(IoBuffer.wrap(buffer));
+									not.setTimestamp(eventTime);
+									msg = RTMPMessage.build(not);
 								} else {
-									log.debug("Stream data size was 0, recording pipe will not be notified");
+									log.info("Data was not of A/V type: {}", rtmpEvent.getType());
+									msg = RTMPMessage.build(rtmpEvent, eventTime);
 								}
+								// push it down to the recorder
+								recordPipe.pushMessage(msg);
+							} else if (bufferLimit == 0 && rtmpEvent instanceof AudioData) {
+								log.debug("Stream data size was 0, sending empty audio message");
+								// allow for 0 byte audio packets
+								AudioData audio = new AudioData(IoBuffer.allocate(0));
+								audio.setTimestamp(eventTime);
+								RTMPMessage msg = RTMPMessage.build(audio);
+								// push it down to the recorder
+								recordPipe.pushMessage(msg);
 							} else {
-								log.debug("Record pipe was null, message was not pushed");
+								log.debug("Stream data size was 0, recording pipe will not be notified");
 							}
-						} else {
-							log.trace("Recording not active");
+						} else if (recording) {
+							log.debug("Record pipe was null, message was not pushed");
 						}
+						//						} else {
+						//							log.trace("Recording not active");
+						//						}
 						// route to live
 						if (livePipe != null) {
 							// create new RTMP message, initialize it and push through pipe
@@ -454,18 +464,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 */
 	public void setPublishedName(String name) {
 		log.debug("setPublishedName: {}", name);
-		//check to see if we are setting the name to the same string
-		/*
-		if (!name.equals(publishedName)) {
-			// update an attribute
-			JMXAgent.updateMBeanAttribute(oName, "publishedName", name);
-		} else {
-			//create a new mbean for this instance with the new name
-			oName = JMXFactory.createObjectName("type", "ClientBroadcastStream", "publishedName", name);
-			JMXAgent.registerMBean(this, this.getClass().getName(), ClientBroadcastStreamMBean.class, oName);
+		// a publish name of "false" is a special case, used when stopping a stream
+		if (StringUtils.isNotEmpty(name) && !"false".equals(name)) {
+			this.publishedName = name;
+			registerJMX();
 		}
-		*/
-		this.publishedName = name;
 	}
 
 	/**
@@ -516,13 +519,27 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	}
 
 	/**
-	 *  Notifies handler on stream broadcast stop
+	 *  Notifies handler on stream broadcast close
 	 */
 	private void notifyBroadcastClose() {
 		IStreamAwareScopeHandler handler = getStreamAwareHandler();
 		if (handler != null) {
 			try {
 				handler.streamBroadcastClose(this);
+			} catch (Throwable t) {
+				log.error("Error in notifyBroadcastClose", t);
+			}
+		}
+	}
+
+	/**
+	 *  Notifies handler on stream recording stop
+	 */
+	private void notifyRecordingStop() {
+		IStreamAwareScopeHandler handler = getStreamAwareHandler();
+		if (handler != null) {
+			try {
+				handler.streamRecordStop(this);
 			} catch (Throwable t) {
 				log.error("Error in notifyBroadcastClose", t);
 			}
@@ -662,26 +679,14 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			// TODO: throw other exception here?
 			throw new IOException("Stream is no longer connected");
 		}
+		// get connections scope
 		IScope scope = conn.getScope();
-		// Get stream filename generator
-		IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.class, DefaultStreamFilenameGenerator.class);
-		// Generate filename
-		recordingFilename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
-		// Get file for that filename
-		File file;
-		if (generator.resolvesToAbsolutePath()) {
-			file = new File(recordingFilename);
-		} else {
-			file = scope.getContext().getResource(recordingFilename).getFile();
-		}
-		//
-		log.debug("File exists: {} writable: {}", file.exists(), file.canWrite());
+		// get the file for our filename
+		File file = getRecordFile(scope, name);
 		// If append mode is on...
 		if (!isAppend) {
 			if (file.exists()) {
-				// Per livedoc of FCS/FMS:
-				// When "live" or "record" is used,
-				// any previously recorded stream with the same stream URI is deleted.
+				// when "live" or "record" is used, any previously recorded stream with the same stream URI is deleted.
 				if (!file.delete()) {
 					throw new IOException(String.format("File: %s could not be deleted", file.getName()));
 				}
@@ -690,9 +695,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			if (file.exists()) {
 				appending = true;
 			} else {
-				// Per livedoc of FCS/FMS:
-				// If a recorded stream at the same URI does not already exist,
-				// "append" creates the stream as though "record" was passed.
+				// if a recorded stream at the same URI does not already exist, "append" creates the stream as though "record" was passed.
 				isAppend = false;
 			}
 		}
@@ -876,7 +879,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 
 	private void sendStartNotifications(IEventListener source) {
 		if (sendStartNotification) {
-			// Notify handler that stream starts recording/publishing
+			// notify handler that stream starts recording/publishing
 			sendStartNotification = false;
 			if (source instanceof IConnection) {
 				IScope scope = ((IConnection) source).getScope();
@@ -884,14 +887,28 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 					Object handler = scope.getHandler();
 					if (handler instanceof IStreamAwareScopeHandler) {
 						if (recording) {
+							// callback for record start
 							((IStreamAwareScopeHandler) handler).streamRecordStart(this);
 						} else {
+							// delete any previously recorded versions of this now "live" stream per
+							// http://livedocs.adobe.com/flashmediaserver/3.0/hpdocs/help.html?content=00000186.html
+							try {
+								File file = getRecordFile(scope, publishedName);
+								if (file != null && file.exists()) {
+									if (!file.delete()) {
+										log.debug("File was not deleted: {}", file.getAbsoluteFile());
+									}
+								}
+							} catch (Exception e) {
+								log.warn("Exception removing previously recorded file", e);
+							}
+							// callback for publish start
 							((IStreamAwareScopeHandler) handler).streamPublishStart(this);
 						}
 					}
 				}
 			}
-			// Send start notifications
+			// send start notifications
 			sendPublishStartNotify();
 			if (recording) {
 				sendRecordStartNotify();
@@ -936,6 +953,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 
 	/** {@inheritDoc} */
 	public void stop() {
+		log.info("Stream stop");
 		stopRecording();
 		close();
 	}
@@ -947,10 +965,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		if (recording) {
 			recording = false;
 			appending = false;
-			recordingFilename = null;
-			recordPipe.unsubscribe(recordingFile);
 			sendRecordStopNotify();
-			recordPipe = null;
+			notifyRecordingStop();
 		}
 	}
 
@@ -971,6 +987,63 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	/** {@inheritDoc} */
 	public void removeStreamListener(IStreamListener listener) {
 		listeners.remove(listener);
+	}
+
+	/**
+	 * Get the file we'd be recording to based on scope and given name.
+	 * 
+	 * @param scope
+	 * @param name
+	 * @return file
+	 */
+	protected File getRecordFile(IScope scope, String name) {
+		// get stream filename generator
+		IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.class, DefaultStreamFilenameGenerator.class);
+		// generate filename
+		recordingFilename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
+		File file = null;
+		if (generator.resolvesToAbsolutePath()) {
+			file = new File(recordingFilename);
+		} else {
+			Resource resource = scope.getContext().getResource(recordingFilename);
+			if (resource.exists()) {
+				try {
+					file = resource.getFile();
+					log.debug("File exists: {} writable: {}", file.exists(), file.canWrite());
+				} catch (IOException ioe) {
+					log.error("File error: {}", ioe);
+				}
+			} else {
+				String appScopeName = ScopeUtils.findApplication(scope).getName();
+				file = new File(String.format("%s/webapps/%s/%s", System.getProperty("red5.root"), appScopeName, recordingFilename));
+			}
+		}
+		return file;
+	}
+
+	protected void registerJMX() {
+		// register with jmx
+		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+		try {
+			ObjectName oName = new ObjectName(String.format("org.red5.server:type=ClientBroadcastStream,scope=%s,publishedName=%s", getScope().getName(), publishedName));
+			mbs.registerMBean(new StandardMBean(this, ClientBroadcastStreamMXBean.class, true), oName);
+		} catch (InstanceAlreadyExistsException e) {
+			log.info("Instance already registered", e);
+		} catch (Exception e) {
+			log.warn("Error on jmx registration", e);
+		}
+	}
+
+	protected void unregisterJMX() {
+		if (StringUtils.isNotEmpty(publishedName) && !"false".equals(publishedName)) {
+			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+			try {
+				ObjectName oName = new ObjectName(String.format("org.red5.server:type=ClientBroadcastStream,scope=%s,publishedName=%s", getScope().getName(), publishedName));
+				mbs.unregisterMBean(oName);
+			} catch (Exception e) {
+				log.warn("Exception unregistering", e);
+			}
+		}
 	}
 
 }

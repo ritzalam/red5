@@ -21,11 +21,7 @@ package org.red5.server.stream.consumer;
 import java.io.File;
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -41,8 +37,7 @@ import org.red5.io.ITag;
 import org.red5.io.ITagWriter;
 import org.red5.io.StreamableFileFactory;
 import org.red5.io.flv.impl.Tag;
-import org.red5.server.api.IScope;
-import org.red5.server.api.ScopeUtils;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
@@ -59,6 +54,7 @@ import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.stream.IStreamData;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.ResetMessage;
+import org.red5.server.util.ScopeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
@@ -90,7 +86,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	/**
 	 * Queue to hold data for delayed writing
 	 */
-	private List<QueuedData> queue = Collections.emptyList();
+	private PriorityQueue<QueuedData> queue;
 
 	/**
 	 * Reentrant lock
@@ -151,17 +147,12 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	/**
 	 * Number of queued items needed before writes are initiated
 	 */
-	private int queueThreshold = 42;
+	private int queueThreshold = -1;
 
 	/**
 	 * Percentage of the queue which is sliced for writing
 	 */
 	private int percentage = 25;
-
-	/**
-	 * Size of the slice of queued data to write at a time
-	 */
-	private int sliceLength = (queueThreshold / (100 / percentage));
 
 	/**
 	 * Whether or not to use a queue for delaying file writes. The queue is useful
@@ -272,46 +263,16 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 				} finally {
 					readLock.unlock();
 				}
-				// when we reach the threshold, sort the entire queue and spawn a worker
-				// to write a slice of the data
-				if (queueSize >= queueThreshold) {
-					Object writeResult = null;
-					// check for existing future
-					if (writerFuture != null) {
-						try {
-							// timeout 1/2 second for every slice entry
-							long timeout = sliceLength * 500L;
-							//wait n seconds for a result from the last writer
-							writeResult = writerFuture.get(timeout, TimeUnit.MILLISECONDS);
-						} catch (Exception e) {
-							log.warn("Exception waiting for write result", e);
-							return;
-						}
-					}
-					log.debug("Write future result (expect null): {}", writeResult);
-					// get the slice
-					final QueuedData[] slice = new QueuedData[sliceLength];
-					log.trace("Slice length: {}", slice.length);
-					writeLock.lock();
-					try {
-						// sort the queue
-						Collections.sort(queue);
-						log.trace("Queue length: {}", queue.size());
-						for (int q = 0; q < sliceLength; q++) {
-							slice[q] = queue.remove(0);
-						}
-						log.trace("Queue length (after removal): {}", queue.size());
-					} finally {
-						writeLock.unlock();
-					}
-					// spawn a writer
-					writerFuture = scheduledExecutorService.submit(new Runnable() {
-						public void run() {
-							log.trace("Spawning queue writer thread");
-							doWrites(slice);
-						}
-					});
-				}
+
+                if (msg instanceof VideoData) {
+                    writeQueuedDataSlice(
+                            createTimestampLimitedSlice(msg.getTimestamp())
+                    );
+                } else if (queueThreshold >= 0 && queueSize >= queueThreshold) {
+                    writeQueuedDataSlice(
+                            createFixedLengthSlice(queueThreshold / (100 / percentage))
+                    );
+                }
 
 			}
 		} else if (message instanceof ResetMessage) {
@@ -319,7 +280,75 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		}
 	}
 
-	/**
+    private void writeQueuedDataSlice(final QueuedData[] slice) {
+        if ( acquireWriteFuture(slice.length) ) {
+            // spawn a writer
+            writerFuture = scheduledExecutorService.submit(new Runnable() {
+                public void run() {
+                    log.trace("Spawning queue writer thread");
+                    doWrites(slice);
+                }
+            });
+        }
+    }
+
+    private QueuedData[] createFixedLengthSlice(int sliceLength) {
+        log.debug("Creating data slice to write of length {}.", sliceLength);
+        // get the slice
+        final QueuedData[] slice = new QueuedData[sliceLength];
+        log.trace("Slice length: {}", slice.length);
+        writeLock.lock();
+        try {
+            // sort the queue
+            log.trace("Queue length: {}", queue.size());
+            for (int q = 0; q < sliceLength; q++) {
+                slice[q] = queue.remove();
+            }
+            log.trace("Queue length (after removal): {}", queue.size());
+        } finally {
+            writeLock.unlock();
+        }
+        return slice;
+    }
+
+    private QueuedData[] createTimestampLimitedSlice(int timestamp) {
+        log.debug("Creating data slice up until timestamp {}.", timestamp);
+
+        // get the slice
+        final ArrayList<QueuedData> slice = new ArrayList<QueuedData>();
+        writeLock.lock();
+        try {
+            // sort the queue
+            log.trace("Queue length: {}", queue.size());
+            QueuedData data;
+            do {
+                data = queue.remove();
+                slice.add(data);
+            } while (! queue.isEmpty() && data.getTimestamp() <= timestamp) ;
+            log.trace("Queue length (after removal): {}", queue.size());
+        } finally {
+            writeLock.unlock();
+        }
+        return slice.toArray(new QueuedData[slice.size()]);
+    }
+
+    private boolean acquireWriteFuture(long timeout) {
+        Object writeResult = null;
+        // check for existing future
+        if (writerFuture != null) {
+            try {
+                //wait n seconds for a result from the last writer
+                writeResult = writerFuture.get(timeout, TimeUnit.MILLISECONDS);
+            } catch (Exception e) {
+                log.warn("Exception waiting for write result", e);
+                return false;
+            }
+        }
+        log.debug("Write future result (expect null): {}", writeResult);
+        return true;
+    }
+
+    /**
 	 * Out-of-band control message handler
 	 *
 	 * @param source            Source of message
@@ -366,7 +395,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		log.debug("Init");
 		// if we plan to use a queue, create one
 		if (delayWrite) {
-			queue = new ArrayList<QueuedData>();
+			queue = new PriorityQueue<QueuedData>(queueThreshold <= 0 ? 11 : queueThreshold );
 			// add associated locks
 			reentrantLock = new ReentrantReadWriteLock();
 			writeLock = reentrantLock.writeLock();
@@ -421,24 +450,17 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 			}
 			writerFuture = null;
 			if (delayWrite) {
-				//write all the queued items
+				// write all the queued items
 				doWrites();
+				// clear the queue
+				queue.clear();
+				queue = null;
 			}
 			//close the writer
 			writer.close();
 			writer = null;
 		}
-		if (delayWrite && queue != null) {
-			writeLock.lock();
-			try {
-				//clear the queue
-				queue.clear();
-				queue = null;
-			} finally {
-				writeLock.unlock();
-			}
-		}
-		//clear file ref
+		// clear file ref
 		file = null;
 	}
 
@@ -654,24 +676,6 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	 */
 	public int getQueueThreshold() {
 		return queueThreshold;
-	}
-
-	/**
-	 * Sets the amount of queued data items to be written at a time.
-	 * 
-	 * @param sliceLength
-	 */
-	public void setSliceLength(int sliceLength) {
-		this.sliceLength = sliceLength;
-	}
-
-	/**
-	 * Returns the amount of queued data items to be written at a time.
-	 * 
-	 * @return sliceLength
-	 */
-	public int getSliceLength() {
-		return sliceLength;
 	}
 
 	/**

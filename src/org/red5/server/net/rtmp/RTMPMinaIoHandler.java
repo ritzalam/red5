@@ -24,9 +24,10 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.logging.LoggingFilter;
+import org.red5.server.api.IConnection;
+import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
-import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmpe.RTMPEIoFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,19 +48,9 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 	protected IRTMPHandler handler;
 
 	/**
-	 * Mode
-	 */
-	protected boolean mode = RTMP.MODE_SERVER;
-
-	/**
 	 * Application context
 	 */
 	protected ApplicationContext appCtx;
-
-	/**
-	 * RTMP protocol codec factory
-	 */
-	protected ProtocolCodecFactory codecFactory;
 
 	protected IRTMPConnManager rtmpConnManager;
 
@@ -68,11 +59,12 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 	public void sessionCreated(IoSession session) throws Exception {
 		log.debug("Session created");
 		// moved protocol state from connection object to RTMP object
-		RTMP rtmp = new RTMP(mode);
+		RTMP rtmp = new RTMP();
 		session.setAttribute(ProtocolState.SESSION_KEY, rtmp);
 		//add rtmpe filter
 		session.getFilterChain().addFirst("rtmpeFilter", new RTMPEIoFilter());
 		//add protocol filter next
+		ProtocolCodecFactory codecFactory = (ProtocolCodecFactory) appCtx.getBean("rtmpCodecFactory");
 		session.getFilterChain().addLast("protocolFilter", new ProtocolCodecFilter(codecFactory));
 		if (log.isTraceEnabled()) {
 			session.getFilterChain().addLast("logger", new LoggingFilter());
@@ -83,26 +75,8 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		conn.setState(rtmp);
 		//add the connection
 		session.setAttribute(RTMPConnection.RTMP_CONNECTION_KEY, conn);
-		//create inbound or outbound handshaker
-		if (rtmp.getMode() == RTMP.MODE_CLIENT) {
-			// create an outbound handshake
-			OutboundHandshake outgoingHandshake = new OutboundHandshake();
-			//if handler is rtmpe client set encryption on the protocol state
-			//if (handler instanceof RTMPEClient) {
-				//rtmp.setEncrypted(true);
-				//set the handshake type to encrypted as well
-				//outgoingHandshake.setHandshakeType(RTMPConnection.RTMP_ENCRYPTED);
-			//}
-			//add the handshake
-			session.setAttribute(RTMPConnection.RTMP_HANDSHAKE, outgoingHandshake);
-			// set a reference to the connection on the client
-			if (handler instanceof BaseRTMPClientHandler) {
-				((BaseRTMPClientHandler) handler).setConnection((RTMPConnection) conn);
-			}
-		} else {
-			//add the handshake
-			session.setAttribute(RTMPConnection.RTMP_HANDSHAKE, new InboundHandshake());
-		}
+		//add the inbound handshake
+		session.setAttribute(RTMPConnection.RTMP_HANDSHAKE, new InboundHandshake());
 	}
 
 	/** {@inheritDoc} */
@@ -112,14 +86,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		super.sessionOpened(session);
 		// get protocol state
 		RTMP rtmp = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
-		if (rtmp.getMode() == RTMP.MODE_CLIENT) {
-			log.debug("Handshake - client phase 1");
-			//get the handshake from the session
-			RTMPHandshake handshake = (RTMPHandshake) session.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
-			session.write(handshake.doHandshake(null));
-		} else {
-			handler.connectionOpened((RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY), rtmp);
-		}
+		handler.connectionOpened((RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY), rtmp);
 	}
 
 	/** {@inheritDoc} */
@@ -130,18 +97,18 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		log.debug("RTMP state: {}", rtmp);
 		RTMPMinaConnection conn = (RTMPMinaConnection) session.removeAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		try {
-    		conn.sendPendingServiceCallsCloseError();
-    		// fire-off closed event
-    		handler.connectionClosed(conn, rtmp);
-    		// clear any session attributes we may have previously set
-    		// TODO: verify this cleanup code is necessary. The session is over and will be garbage collected surely?
-    		session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
+			conn.sendPendingServiceCallsCloseError();
+			// fire-off closed event
+			handler.connectionClosed(conn, rtmp);
+			// clear any session attributes we may have previously set
+			// TODO: verify this cleanup code is necessary. The session is over and will be garbage collected surely?
+			session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
 			session.removeAttribute(RTMPConnection.RTMPE_CIPHER_IN);
 			session.removeAttribute(RTMPConnection.RTMPE_CIPHER_OUT);
 		} finally {
 			// DW we *always* remove the connection from the RTMP manager even if unexpected exception gets thrown e.g. by handler.connectionClosed
 			// Otherwise connection stays around forever, and everything it references e.g. Client, ...
-    		rtmpConnManager.removeConnection(conn.getId());
+			rtmpConnManager.removeConnection(conn.getId());
 		}
 	}
 
@@ -160,33 +127,22 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		RTMPHandshake handshake = (RTMPHandshake) session.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
 		if (handshake != null) {
-			IoBuffer out = null;
-			conn.getWriteLock().lock();
-			try {
-				if (rtmp.getMode() == RTMP.MODE_SERVER) {
-					if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
-						log.warn("Raw buffer after handshake, something odd going on");
-					}
-					log.debug("Handshake - server phase 1 - size: {}", in.remaining());
-				} else {
-					log.debug("Handshake - client phase 2 - size: {}", in.remaining());
-				}
-				out = handshake.doHandshake(in);
-			} finally {
-				conn.getWriteLock().unlock();
-				if (out != null) {
-					log.debug("Output: {}", out);
-					session.write(out);
-					//if we are connected and doing encryption, add the ciphers
-					if (rtmp.getState() == RTMP.STATE_CONNECTED) {
-						// remove handshake from session now that we are connected
-						//session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
-		    			// if we are using encryption then put the ciphers in the session
-		        		if (handshake.getHandshakeType() == RTMPConnection.RTMP_ENCRYPTED) {
-		        			log.debug("Adding ciphers to the session");
-		        			session.setAttribute(RTMPConnection.RTMPE_CIPHER_IN, handshake.getCipherIn());
-		        			session.setAttribute(RTMPConnection.RTMPE_CIPHER_OUT, handshake.getCipherOut());
-		        		}
+			if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
+				log.warn("Raw buffer after handshake, something odd going on");
+			}
+			log.debug("Handshake - server phase 1 - size: {}", in.remaining());
+			IoBuffer out = handshake.doHandshake(in);
+			if (out != null) {
+				log.debug("Output: {}", out);
+				session.write(out);
+				//if we are connected and doing encryption, add the ciphers
+				if (rtmp.getState() == RTMP.STATE_CONNECTED) {
+					// remove handshake from session now that we are connected
+					// if we are using encryption then put the ciphers in the session
+					if (handshake.getHandshakeType() == RTMPConnection.RTMP_ENCRYPTED) {
+						log.debug("Adding ciphers to the session");
+						session.setAttribute(RTMPConnection.RTMPE_CIPHER_IN, handshake.getCipherIn());
+						session.setAttribute(RTMPConnection.RTMPE_CIPHER_OUT, handshake.getCipherOut());
 					}
 				}
 			}
@@ -199,11 +155,15 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 	/** {@inheritDoc} */
 	@Override
 	public void messageReceived(IoSession session, Object message) throws Exception {
-		log.debug("messageReceived");
+		log.trace("messageReceived");
 		if (message instanceof IoBuffer) {
 			rawBufferRecieved((IoBuffer) message, session);
 		} else {
+			log.trace("Setting connection local");
+			Red5.setConnectionLocal((IConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY));
 			handler.messageReceived(message, session);
+			log.trace("Removing connection local");
+			Red5.setConnectionLocal(null);
 		}
 	}
 
@@ -213,14 +173,6 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		log.debug("messageSent");
 		final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		handler.messageSent(conn, message);
-		if (mode == RTMP.MODE_CLIENT) {
-			if (message instanceof IoBuffer) {
-				if (((IoBuffer) message).limit() == Constants.HANDSHAKE_SIZE) {
-					RTMP rtmp = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
-					handler.connectionOpened(conn, rtmp);
-				}
-			}
-		}
 	}
 
 	/** {@inheritDoc} */
@@ -239,25 +191,6 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 	 */
 	public void setHandler(IRTMPHandler handler) {
 		this.handler = handler;
-	}
-
-	/**
-	 * Setter for mode.
-	 *
-	 * @param mode <code>true</code> if handler should work in server mode,
-	 *            <code>false</code> otherwise
-	 */
-	public void setMode(boolean mode) {
-		this.mode = mode;
-	}
-
-	/**
-	 * Setter for codec factory.
-	 *
-	 * @param codecFactory RTMP protocol codec factory
-	 */
-	public void setCodecFactory(ProtocolCodecFactory codecFactory) {
-		this.codecFactory = codecFactory;
 	}
 
 	public void setRtmpConnManager(IRTMPConnManager rtmpConnManager) {

@@ -30,14 +30,15 @@ import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.amf.Input;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Deserializer;
-import org.red5.server.api.IScope;
 import org.red5.server.api.persistence.IPersistable;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.net.servlet.ServletUtils;
 import org.red5.server.so.SharedObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.web.context.support.ServletContextResource;
 
 /**
  * Simple file-based persistence for objects. Lowers memory usage if used instead of RAM memory storage.
@@ -85,7 +86,6 @@ public class FilePersistence extends RamPersistence {
 	public FilePersistence(ResourcePatternResolver resolver) {
 		super(resolver);
 		setPath(path);
-		storeThread = FilePersistenceThread.getInstance();
 	}
 
 	/**
@@ -95,7 +95,6 @@ public class FilePersistence extends RamPersistence {
 	public FilePersistence(IScope scope) {
 		super(scope);
 		setPath(path);
-		storeThread = FilePersistenceThread.getInstance();
 	}
 
 	/**
@@ -104,15 +103,39 @@ public class FilePersistence extends RamPersistence {
 	 * @param path  New path
 	 */
 	public void setPath(String path) {
+		log.debug("Set path: {}", path);
 		Resource rootFile = resources.getResource(path);
 		try {
-			rootDir = rootFile.getFile().getAbsolutePath();
+			// check for existence
+			if (!rootFile.exists()) {
+				log.debug("Persistence directory does not exist");
+				if (rootFile instanceof ServletContextResource) {
+					ServletContextResource servletResource = (ServletContextResource) rootFile;
+					String contextPath = servletResource.getServletContext().getContextPath();
+					log.debug("Persistence context path: {}", contextPath);
+					if ("/".equals(contextPath)) {
+						contextPath = "/root";
+					}
+					rootDir = String.format("%s/webapps%s/persistence", System.getProperty("red5.root"), contextPath);
+					log.debug("Persistence directory path: {}", rootDir);
+					File persistDir = new File(rootDir);
+					if (!persistDir.mkdir()) {
+						log.warn("Persistence directory creation failed");
+					} else {
+						log.debug("Persistence directory access - read: {} write: {}", persistDir.canRead(), persistDir.canWrite());
+					}
+					persistDir = null;
+				}
+			} else {
+				rootDir = rootFile.getFile().getAbsolutePath();
+			}
 			log.debug("Root dir: {} path: {}", rootDir, path);
 			this.path = path;
 		} catch (IOException err) {
-			log.error("I/O exception thrown when setting file path to " + path);
-			throw (new RuntimeException(err));
+			log.error("I/O exception thrown when setting file path to {}", path, err);
+			throw new RuntimeException(err);
 		}
+		storeThread = FilePersistenceThread.getInstance();
 	}
 
 	/**
@@ -196,7 +219,6 @@ public class FilePersistence extends RamPersistence {
 		if (id.startsWith(path)) {
 			id = id.substring(path.length() + 1);
 		}
-
 		return super.getObjectPath(id, name);
 	}
 
@@ -266,13 +288,12 @@ public class FilePersistence extends RamPersistence {
 				Deserializer deserializer = new Deserializer();
 				String className = deserializer.deserialize(in, String.class);
 				if (result == null) {
-					// We need to create the object first
+					// we need to create the object first
 					try {
 						Class<?> theClass = Class.forName(className);
 						Constructor<?> constructor = null;
 						try {
-							// Try to create object by calling constructor with Input stream as
-							// parameter.
+							// try to create object by calling constructor with Input stream as parameter
 							for (Class<?> interfaceClass : in.getClass().getInterfaces()) {
 								constructor = theClass.getConstructor(new Class[] { interfaceClass });
 								if (constructor != null) {
@@ -282,16 +303,13 @@ public class FilePersistence extends RamPersistence {
 							if (constructor == null) {
 								throw new NoSuchMethodException();
 							}
-
 							result = (IPersistable) constructor.newInstance(in);
 						} catch (NoSuchMethodException err) {
-							// No valid constructor found, use empty
-							// constructor.
+							// no valid constructor found, use empty constructor
 							result = (IPersistable) theClass.newInstance();
 							result.deserialize(in);
 						} catch (InvocationTargetException err) {
-							// Error while invoking found constructor, use empty
-							// constructor.
+							// error while invoking found constructor, use empty constructor
 							result = (IPersistable) theClass.newInstance();
 							result.deserialize(in);
 						}
@@ -299,14 +317,13 @@ public class FilePersistence extends RamPersistence {
 						log.error("Unknown class {}", className);
 						return null;
 					} catch (IllegalAccessException iae) {
-						log.error("Illegal access.", iae);
+						log.error("Illegal access", iae);
 						return null;
 					} catch (InstantiationException ie) {
 						log.error("Could not instantiate class {}", className);
 						return null;
 					}
-
-					// Set object's properties
+					// set object's properties
 					result.setName(getObjectName(name));
 					result.setPath(getObjectPath(name, result.getName()));
 				} else {
@@ -316,7 +333,6 @@ public class FilePersistence extends RamPersistence {
 						log.error("The classes differ: {} != {}", resultClass, className);
 						return null;
 					}
-
 					result.deserialize(in);
 				}
 			} finally {
@@ -332,7 +348,6 @@ public class FilePersistence extends RamPersistence {
 			log.error("Could not load file at {}", filename);
 			return null;
 		}
-
 		return result;
 	}
 
@@ -344,7 +359,6 @@ public class FilePersistence extends RamPersistence {
 			// Object has already been loaded
 			return result;
 		}
-
 		return doLoad(path + '/' + name + extension);
 	}
 
@@ -355,7 +369,6 @@ public class FilePersistence extends RamPersistence {
 			// Already loaded
 			return true;
 		}
-
 		return (doLoad(getObjectFilename(object), object) != null);
 	}
 

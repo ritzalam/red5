@@ -18,9 +18,9 @@
 
 package org.red5.server.api.stream;
 
-import java.util.List;
+import java.util.Set;
 
-import org.red5.server.api.IScope;
+import org.red5.server.api.scope.IScope;
 
 public interface IBroadcastStreamService {
 
@@ -50,6 +50,6 @@ public interface IBroadcastStreamService {
 	 * @param scope the scope to search for streams
 	 * @return set containing all broadcast names
 	 */
-	public List<String> getBroadcastStreamNames(IScope scope);
+	public Set<String> getBroadcastStreamNames(IScope scope);
 
 }

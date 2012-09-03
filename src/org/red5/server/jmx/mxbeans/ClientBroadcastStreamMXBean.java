@@ -24,7 +24,6 @@ import javax.management.MXBean;
 
 import org.red5.server.api.stream.ResourceExistException;
 import org.red5.server.api.stream.ResourceNotFoundException;
-import org.red5.server.messaging.IProvider;
 
 /**
  * Represents live stream broadcasted from client. As Flash Media Server, Red5 supports
@@ -52,8 +51,6 @@ public interface ClientBroadcastStreamMXBean {
 			ResourceNotFoundException, ResourceExistException;
 
 	public String getSaveFilename();
-
-	public IProvider getProvider();
 
 	public String getPublishedName();
 

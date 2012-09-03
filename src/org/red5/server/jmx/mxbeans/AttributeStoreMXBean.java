@@ -18,7 +18,6 @@
 
 package org.red5.server.jmx.mxbeans;
 
-import java.util.Map;
 import java.util.Set;
 
 import javax.management.MXBean;
@@ -33,14 +32,6 @@ import javax.management.MXBean;
 public interface AttributeStoreMXBean {
 
 	public Set<String> getAttributeNames();
-
-	public Map<String, Object> getAttributes();
-
-	public boolean setAttribute(String name, Object value);
-
-	public Object getAttribute(String name);
-
-	public Object getAttribute(String name, Object defaultValue);
 
 	public boolean hasAttribute(String name);
 

@@ -27,8 +27,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -36,9 +36,9 @@ import javax.management.openmbean.CompositeData;
 
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
-import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
 import org.red5.server.api.persistence.IPersistable;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.stream.bandwidth.ClientServerDetection;
 import org.red5.server.stream.bandwidth.ServerClientDetection;
 import org.slf4j.Logger;
@@ -76,7 +76,7 @@ public class Client extends AttributeStore implements IClient {
 	 * Client registry where Client is registered
 	 */
 	protected WeakReference<ClientRegistry> registry;
-	
+
 	/**
 	 * Whether or not the bandwidth has been checked.
 	 */
@@ -91,6 +91,7 @@ public class Client extends AttributeStore implements IClient {
 	 */
 	@ConstructorProperties({ "id", "registry" })
 	public Client(String id, ClientRegistry registry) {
+		super();
 		this.id = id;
 		// use a weak reference to prevent any hard-links to the registry
 		this.registry = new WeakReference<ClientRegistry>(registry);
@@ -101,15 +102,20 @@ public class Client extends AttributeStore implements IClient {
 	 *  Disconnects client from Red5 application
 	 */
 	public void disconnect() {
-		log.debug("Disconnect - id: {}, closing {} connections", id, getConnections().size());
-		// close all connections held to Red5 by client
-		for (IConnection con : getConnections()) {
-			try {
-				con.close();
-			} catch (Exception e) {
-				// closing a connection calls into application code, so exception possible
-				log.error("Unexpected exception closing connection {}", e);
+		log.debug("Disconnect - id: {}", id);
+		if (connToScope != null && !connToScope.isEmpty()) {
+			log.debug("Closing {} connections", connToScope.size());
+			// close all connections held to Red5 by client
+			for (IConnection con : getConnections()) {
+				try {
+					con.close();
+				} catch (Exception e) {
+					// closing a connection calls into application code, so exception possible
+					log.error("Unexpected exception closing connection {}", e);
+				}
 			}
+		} else {
+			log.debug("Connection map is empty or null");
 		}
 		// unregister client
 		removeInstance();
@@ -308,6 +314,10 @@ public class Client extends AttributeStore implements IClient {
 			instance.setCreationTime((Long) cd.get("creationTime"));
 			instance.setAttribute(PERMISSIONS, cd.get(PERMISSIONS));
 		}
+		if (cd.containsKey("attributes")) {
+			AttributeStore attrs = (AttributeStore) cd.get("attributes");
+			instance.setAttributes(attrs);
+		}
 		return instance;
 	}
 
@@ -356,5 +366,5 @@ public class Client extends AttributeStore implements IClient {
 	public String toString() {
 		return "Client: " + id;
 	}
-	
+
 }

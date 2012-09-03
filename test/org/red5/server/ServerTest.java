@@ -25,7 +25,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.red5.server.api.IGlobalScope;
+import org.red5.server.api.scope.IGlobalScope;
+import org.red5.server.scope.GlobalScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

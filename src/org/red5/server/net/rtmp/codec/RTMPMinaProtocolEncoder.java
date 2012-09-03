@@ -23,8 +23,6 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolEncoderAdapter;
 import org.apache.mina.filter.codec.ProtocolEncoderOutput;
-import org.red5.server.api.IConnection;
-import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.slf4j.Logger;
@@ -36,25 +34,17 @@ import org.slf4j.LoggerFactory;
 public class RTMPMinaProtocolEncoder extends ProtocolEncoderAdapter {
 
 	protected static Logger log = LoggerFactory.getLogger(RTMPMinaProtocolEncoder.class);
-	
+
 	private RTMPProtocolEncoder encoder = new RTMPProtocolEncoder();
 	
 	/** {@inheritDoc} */
-    public void encode(IoSession session, Object message, ProtocolEncoderOutput out) throws ProtocolCodecException {
-
-    	final ProtocolState state = (ProtocolState) session.getAttribute(ProtocolState.SESSION_KEY);
-
-		RTMPConnection conn = (RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
-		final IConnection prevConn = Red5.getConnectionLocal();
-		conn.getWriteLock().lock();
+	public void encode(IoSession session, Object message, ProtocolEncoderOutput out) throws ProtocolCodecException {
+		final ProtocolState state = (ProtocolState) session.getAttribute(ProtocolState.SESSION_KEY);
+		// pass the connection to the encoder for its use
+		encoder.setConnection((RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY));
 		try {
-			// Set thread local here so we have the connection during decoding of packets
-			Red5.setConnectionLocal(conn);
-
-			// We need to synchronize on the output and flush the
-			// generated data to prevent two packages to the same channel
-			// to be sent in different order thus resulting in wrong
-			// headers being generated.
+			// We need to synchronize on the output and flush the generated data to prevent two packages to the same channel
+			// to be sent in different order thus resulting in wrong headers being generated.
 			final IoBuffer buf = encoder.encode(state, message);
 			if (buf != null) {
 				out.write(buf);
@@ -64,17 +54,26 @@ public class RTMPMinaProtocolEncoder extends ProtocolEncoderAdapter {
 				log.trace("Response buffer was null after encoding");
 			}
 		} catch (Exception ex) {
-			log.error("", ex);
-		} finally {
-			conn.getWriteLock().unlock();
-			Red5.setConnectionLocal(prevConn);
+			log.error("Exception during encode", ex);
 		}
 	}
 
-    public RTMPProtocolEncoder getEncoder() {
+	/**
+	 * Sets an RTMP protocol encoder
+	 * @param encoder the RTMP encoder
+	 */
+	public void setEncoder(RTMPProtocolEncoder encoder) {
+		this.encoder = encoder;
+	}
+
+	/**
+	 * Returns an RTMP encoder
+	 * @return RTMP encoder
+	 */
+	public RTMPProtocolEncoder getEncoder() {
 		return encoder;
 	}
-    
+
 	/**
 	 * Setter for serializer.
 	 *
@@ -83,18 +82,19 @@ public class RTMPMinaProtocolEncoder extends ProtocolEncoderAdapter {
 	public void setSerializer(org.red5.io.object.Serializer serializer) {
 		encoder.setSerializer(serializer);
 	}
-    
+
 	/**
 	 * Setter for baseTolerance
 	 * */
 	public void setBaseTolerance(long baseTolerance) {
 		encoder.setBaseTolerance(baseTolerance);
 	}
-	
+
 	/**
 	 * Setter for dropLiveFuture
 	 * */
-	public void setDropLiveFuture (boolean dropLiveFuture) {
+	public void setDropLiveFuture(boolean dropLiveFuture) {
 		encoder.setDropLiveFuture(dropLiveFuture);
-	}    
+	}
+
 }

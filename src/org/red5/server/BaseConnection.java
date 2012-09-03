@@ -26,17 +26,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
-import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
+import org.red5.server.api.scope.IBasicScope;
+import org.red5.server.api.scope.IScope;
+import org.red5.server.scope.Scope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,9 +126,9 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	protected volatile boolean closed;
 
 	/**
-	 * Lock used on in the connections to protect read and write operations
+	 * Used to protect mulit-threaded operations on write
 	 */
-	private final ReadWriteLock lock = new ReentrantReadWriteLock();
+	private final Semaphore writeLock = new Semaphore(1, true);
 
 	/**
 	 * Used for generation of client ids that may be shared across the server
@@ -194,17 +193,10 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	}
 
 	/**
-	 * @return lock for read only operations
-	 */
-	public Lock getReadLock() {
-		return lock.readLock();
-	}
-
-	/**
 	 * @return lock for changing state operations
 	 */
-	public Lock getWriteLock() {
-		return lock.writeLock();
+	public Semaphore getLock() {
+		return writeLock;
 	}
 
 	/**
@@ -308,7 +300,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	 * @return             true on success, false otherwise
 	 */
 	public boolean connect(IScope newScope) {
-		return connect(newScope, new Object[]{});
+		return connect(newScope, new Object[] {});
 	}
 
 	/**
@@ -324,24 +316,14 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 				log.debug("Param: {}", e);
 			}
 		}
-		Lock lock = getWriteLock();
-		lock.lock();
-		try {
-			final Scope oldScope = scope;
-			scope = (Scope) newScope;
-			/*
-			 * DW correct sequence is to disconnect from old scope(s), then reconnect to new scopes. This is necessary because there
-			 * may be an intersection between the old and new hierarchies.
-			 */
-			if (oldScope != null)
-				oldScope.disconnect(this);
-			if (!scope.connect(this, params))
-				return false;
-			// success
-			return true;
-		} finally {
-			lock.unlock();
+		final Scope oldScope = scope;
+		scope = (Scope) newScope;
+		// disconnect from old scope(s), then reconnect to new scopes. 
+		// this is necessary because there may be an intersection between the hierarchies.
+		if (oldScope != null) {
+			oldScope.disconnect(this);
 		}
+		return scope.connect(this, params);
 	}
 
 	/**
@@ -356,16 +338,11 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	 *  Closes connection
 	 */
 	public void close() {
-		getWriteLock().lock();
-		try {
-			if (closed || scope == null) {
-				log.debug("Close, not connected nothing to do.");
-				return;
-			}
-			closed = true;
-		} finally {
-			getWriteLock().unlock();
+		if (closed || scope == null) {
+			log.debug("Close, not connected nothing to do.");
+			return;
 		}
+		closed = true;
 		log.debug("Close, disconnect from scope, and children");
 		try {
 			// Unregister all child scopes first

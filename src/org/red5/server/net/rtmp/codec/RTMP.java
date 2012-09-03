@@ -79,16 +79,6 @@ public class RTMP extends ProtocolState {
 	public static final byte STATE_EDGE_DISCONNECTING = 0x13;
 
 	/**
-	 * Client mode.
-	 */
-	public static final boolean MODE_CLIENT = true;
-
-	/**
-	 * Server mode.
-	 */
-	public static final boolean MODE_SERVER = false;
-
-	/**
 	 * Default chunk size. Packets are read and written chunk-by-chunk.
 	 */
 	public static final int DEFAULT_CHUNK_SIZE = 128;
@@ -97,11 +87,6 @@ public class RTMP extends ProtocolState {
 	 * RTMP state.
 	 */
 	private volatile byte state = STATE_CONNECT;
-
-	/**
-	 * Server mode by default.
-	 */
-	private volatile boolean mode = MODE_SERVER;
 
 	/**
 	 * Debug flag.
@@ -220,21 +205,9 @@ public class RTMP extends ProtocolState {
 	private Encoding encoding = Encoding.AMF0;
 
 	/**
-	 * Creates RTMP object with initial mode.
-	 *
-	 * @param mode            Initial mode
+	 * Creates RTMP object; essentially for storing session information.
 	 */
-	public RTMP(boolean mode) {
-		this.mode = mode;
-	}
-
-	/**
-	 * Return current mode.
-	 *
-	 * @return  Current mode
-	 */
-	public boolean getMode() {
-		return mode;
+	public RTMP() {
 	}
 
 	/**
@@ -285,9 +258,8 @@ public class RTMP extends ProtocolState {
 	 */
 	private void freePackets(Map<Integer, Packet> packets) {
 		for (Packet packet : packets.values()) {
-			if (packet != null && packet.getData() != null) {
-				packet.getData().free();
-				packet.setData(null);
+			if (packet != null) {
+				packet.clearData();
 			}
 		}
 		packets.clear();
@@ -359,9 +331,8 @@ public class RTMP extends ProtocolState {
 	 */
 	public void setLastReadPacket(int channelId, Packet packet) {
 		Packet prevPacket = readPackets.put(channelId, packet);
-		if (prevPacket != null && prevPacket.getData() != null) {
-			prevPacket.getData().free();
-			prevPacket.setData(null);
+		if (prevPacket != null) {
+			prevPacket.clearData();
 		}
 	}
 
@@ -503,7 +474,7 @@ public class RTMP extends ProtocolState {
 	 */
 	@Override
 	public String toString() {
-		return "RTMP [state=" + states[state] + ", client-mode=" + mode + ", debug=" + debug + ", encrypted=" + encrypted + ", lastReadChannel=" + lastReadChannel + ", lastWriteChannel="
+		return "RTMP [state=" + states[state] + ", debug=" + debug + ", encrypted=" + encrypted + ", lastReadChannel=" + lastReadChannel + ", lastWriteChannel="
 				+ lastWriteChannel + ", readHeaders=" + readHeaders + ", writeHeaders=" + writeHeaders + ", readPacketHeaders=" + readPacketHeaders + ", readPackets="
 				+ readPackets + ", writePackets=" + writePackets + ", writeTimestamps=" + writeTimestamps + ", liveTimestamps=" + liveTimestamps + ", readChunkSize="
 				+ readChunkSize + ", writeChunkSize=" + writeChunkSize + ", encoding=" + encoding + "]";

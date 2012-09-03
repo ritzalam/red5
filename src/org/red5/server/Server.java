@@ -29,11 +29,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.red5.server.api.IConnection;
-import org.red5.server.api.IGlobalScope;
-import org.red5.server.api.IScope;
 import org.red5.server.api.IServer;
 import org.red5.server.api.listeners.IConnectionListener;
 import org.red5.server.api.listeners.IScopeListener;
+import org.red5.server.api.scope.IGlobalScope;
+import org.red5.server.api.scope.IScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -326,7 +326,7 @@ public class Server implements IServer, ApplicationContextAware, InitializingBea
 	 * @param scope
 	 *            the scope that was created
 	 */
-	protected void notifyScopeCreated(final IScope scope) {
+	public void notifyScopeCreated(final IScope scope) {
 		Runnable notification = new Runnable(){
 			public void run() {				
         		for (IScopeListener listener : scopeListeners) {
@@ -343,7 +343,7 @@ public class Server implements IServer, ApplicationContextAware, InitializingBea
 	 * @param scope
 	 *            the scope that was removed
 	 */
-	protected void notifyScopeRemoved(final IScope scope) {
+	public void notifyScopeRemoved(final IScope scope) {
 		Runnable notification = new Runnable(){
 			public void run() {		
         		for (IScopeListener listener : scopeListeners) {
@@ -360,7 +360,7 @@ public class Server implements IServer, ApplicationContextAware, InitializingBea
 	 * @param conn
 	 *            the new connection
 	 */
-	protected void notifyConnected(final IConnection conn) {
+	public void notifyConnected(final IConnection conn) {
 		Runnable notification = new Runnable(){
 			public void run() {
 				for (IConnectionListener listener : connectionListeners) {
@@ -377,7 +377,7 @@ public class Server implements IServer, ApplicationContextAware, InitializingBea
 	 * @param conn
 	 *            the disconnected connection
 	 */
-	protected void notifyDisconnected(final IConnection conn) {
+	public void notifyDisconnected(final IConnection conn) {
 		Runnable notification = new Runnable(){
 			public void run() {
         		for (IConnectionListener listener : connectionListeners) {

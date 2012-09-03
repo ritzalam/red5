@@ -135,6 +135,9 @@ public abstract class RTMPHandshake implements IHandshake {
 	// clients public key
 	protected byte[] outgoingPublicKey;
 	
+	// swf verification bytes
+	protected byte[] swfVerificationBytes;
+	
 	private Mac hmacSHA256;
 	
 	static {
@@ -143,7 +146,7 @@ public abstract class RTMPHandshake implements IHandshake {
 	}
 	
 	public RTMPHandshake() {
-		log.debug("Handshake ctor");
+		log.trace("Handshake ctor");
 		try {
 			hmacSHA256 = Mac.getInstance("HmacSHA256");
 		} catch (SecurityException e) {
@@ -151,7 +154,7 @@ public abstract class RTMPHandshake implements IHandshake {
 		} catch (NoSuchAlgorithmException e) {
 			log.error("HMAC SHA256 does not exist");
 		}
-		//create our server handshake bytes
+		//create our handshake bytes
 		createHandshakeBytes();
 	}
 
@@ -262,7 +265,7 @@ public abstract class RTMPHandshake implements IHandshake {
 	/**
 	 * Create the initial bytes for a request / response.
 	 */
-	abstract void createHandshakeBytes();
+	protected abstract void createHandshakeBytes();
 	
 	/**
 	 * Determines the validation scheme for given input.
@@ -423,6 +426,15 @@ public abstract class RTMPHandshake implements IHandshake {
 	 */
 	public Cipher getCipherIn() {
 		return cipherIn;
+	}
+	
+	/**
+	 * Returns the SWF verification bytes.
+	 * 
+	 * @return swf verification bytes
+	 */
+	public byte[] getSwfVerificationBytes() {
+		return swfVerificationBytes;
 	}
 	
 }

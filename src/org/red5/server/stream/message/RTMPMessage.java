@@ -19,6 +19,7 @@
 package org.red5.server.stream.message;
 
 import org.red5.server.messaging.AbstractMessage;
+import org.red5.server.net.rtmp.RTMPType;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 
 /**
@@ -35,6 +36,7 @@ public class RTMPMessage extends AbstractMessage {
 	 */
 	private RTMPMessage(IRTMPEvent body) {
 		this.body = body;
+		this.setMessageType(RTMPType.valueOf(body.getDataType()));
 	}
 	
 	/**
@@ -46,6 +48,7 @@ public class RTMPMessage extends AbstractMessage {
 	private RTMPMessage(IRTMPEvent body, int eventTime) {
 		this.body = body;
 		this.body.setTimestamp(eventTime);
+		this.setMessageType(RTMPType.valueOf(body.getDataType()));
 	}
 	
 	/**

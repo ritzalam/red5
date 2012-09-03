@@ -27,7 +27,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.red5.server.BaseConnection;
 import org.red5.server.api.scheduling.ISchedulingService;
-import org.red5.server.net.mrtmp.EdgeRTMPMinaConnection;
 import org.red5.server.net.rtmpt.RTMPTConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,24 +45,23 @@ public class RTMPConnManager implements IRTMPConnManager, ApplicationContextAwar
 	private ApplicationContext appCtx;
 
 	public RTMPConnection createConnection(Class<?> connCls) {
-		if (!RTMPConnection.class.isAssignableFrom(connCls)) {
-			return null;
-		}
-		try {
-			RTMPConnection conn = createConnectionInstance(connCls);
-			lock.writeLock().lock();
+		RTMPConnection conn = null;
+		if (RTMPConnection.class.isAssignableFrom(connCls)) {
 			try {
-				int clientId = BaseConnection.getNextClientId();
-				conn.setId(clientId);
-				connMap.put(clientId, conn);
-				log.debug("Connection created, id: {}", conn.getId());
-			} finally {
-				lock.writeLock().unlock();
+				conn = createConnectionInstance(connCls);
+				lock.writeLock().lock();
+				try {
+					int clientId = BaseConnection.getNextClientId();
+					conn.setId(clientId);
+					connMap.put(clientId, conn);
+					log.debug("Connection created, id: {}", conn.getId());
+				} finally {
+					lock.writeLock().unlock();
+				}
+			} catch (Exception e) {
 			}
-			return conn;
-		} catch (Exception e) {
-			return null;
 		}
+		return conn;
 	}
 
 	public RTMPConnection getConnection(int clientId) {
@@ -104,8 +102,6 @@ public class RTMPConnManager implements IRTMPConnManager, ApplicationContextAwar
 		RTMPConnection conn = null;
 		if (cls == RTMPMinaConnection.class) {
 			conn = (RTMPMinaConnection) appCtx.getBean("rtmpMinaConnection");
-		} else if (cls == EdgeRTMPMinaConnection.class) {
-			conn = (EdgeRTMPMinaConnection) appCtx.getBean("rtmpEdgeMinaConnection");
 		} else if (cls == RTMPTConnection.class) {
 			conn = (RTMPTConnection) appCtx.getBean("rtmptConnection");
 		} else {

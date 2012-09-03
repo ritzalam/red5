@@ -18,12 +18,12 @@
 
 package org.red5.server.api;
 
-
 import java.util.Iterator;
 import java.util.Map;
 
 import org.red5.server.api.listeners.IConnectionListener;
 import org.red5.server.api.listeners.IScopeListener;
+import org.red5.server.api.scope.IGlobalScope;
 
 /**
  * The interface that represents the Red5 server.
@@ -71,8 +71,7 @@ public interface IServer {
 	 * @return <code>true</code> if the name was mapped, otherwise
 	 *         <code>false</code>
 	 */
-	public boolean addMapping(String hostName, String contextPath,
-			String globalName);
+	public boolean addMapping(String hostName, String contextPath, String globalName);
 
 	/**
 	 * Unregister a previously mapped global scope.

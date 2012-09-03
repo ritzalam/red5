@@ -18,7 +18,7 @@
 
 package org.red5.server.service;
 
-import org.red5.server.api.IScope;
+import org.red5.server.api.scope.IScope;
 
 /**
  * Resolve services that have been configured in the context of a scope.
@@ -29,7 +29,7 @@ import org.red5.server.api.IScope;
 public class ContextServiceResolver implements IServiceResolver {
 
 	/** {@inheritDoc} */
-    public Object resolveService(IScope scope, String serviceName) {
+	public Object resolveService(IScope scope, String serviceName) {
 		Object service;
 		try {
 			service = scope.getContext().lookupService(serviceName);

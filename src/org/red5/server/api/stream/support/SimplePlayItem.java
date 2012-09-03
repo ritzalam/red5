@@ -24,8 +24,10 @@ import org.red5.server.messaging.IMessageInput;
 /**
  * Simple playlist item implementation
  */
-public class SimplePlayItem implements IPlayItem {
+public class SimplePlayItem implements IPlayItem, Comparable<SimplePlayItem> {
 
+	private long created = System.nanoTime();
+	
 	/**
 	 * Playlist item name
 	 */
@@ -111,6 +113,20 @@ public class SimplePlayItem implements IPlayItem {
 		this.msgInput = msgInput;
 	}
 
+	/**
+	 * @return the created
+	 */
+	public long getCreated() {
+		return created;
+	}
+
+	/**
+	 * @param created the created to set
+	 */
+	public void setCreated(long created) {
+		this.created = created;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -139,6 +155,16 @@ public class SimplePlayItem implements IPlayItem {
 		return true;
 	}
 
+	@Override
+	public int compareTo(SimplePlayItem that) {
+		if (created > that.getCreated()) {
+			return -1;
+		} else if (created < that.getCreated()) {
+			return 1;
+		}
+		return 0;
+	}	
+	
 	/**
 	 * Builder for SimplePlayItem
 	 * 
@@ -161,6 +187,14 @@ public class SimplePlayItem implements IPlayItem {
 	public static SimplePlayItem build(String name, long start, long length) {
 		SimplePlayItem playItem = new SimplePlayItem(name, start, length);
 		return playItem;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "SimplePlayItem [created=" + created + ", name=" + name + ", start=" + start + ", length=" + length + "]";
 	}
 	
 }

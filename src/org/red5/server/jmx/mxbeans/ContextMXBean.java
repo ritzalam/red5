@@ -24,9 +24,9 @@ import javax.management.MXBean;
 
 import org.red5.server.api.IClientRegistry;
 import org.red5.server.api.IMappingStrategy;
-import org.red5.server.api.IScope;
-import org.red5.server.api.IScopeHandler;
 import org.red5.server.api.persistence.IPersistenceStore;
+import org.red5.server.api.scope.IScope;
+import org.red5.server.api.scope.IScopeHandler;
 import org.red5.server.api.service.IServiceInvoker;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;

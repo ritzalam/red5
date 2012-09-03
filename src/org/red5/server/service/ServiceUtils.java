@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.red5.server.api.IConnection;
+import org.red5.server.util.ConversionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,8 +65,7 @@ public class ServiceUtils {
 		int numParams = (args == null) ? 0 : args.length;
 		Method method = null;
 		try {
-			//try to skip the listing of all the methods by checking for exactly what
-			//we want first
+			//try to skip the listing of all the methods by checking for exactly what we want first
 			Class<?>[] params = ConversionUtils.convertParams(args);
 			if (log.isDebugEnabled()) {
 				for (Class<?> clazz : params) {
@@ -85,11 +85,10 @@ public class ServiceUtils {
 		} else if (methods.size() == 1 && args == null) {
 			return new Object[] { methods.get(0), null };
 		} else if (methods.size() > 1) {
-			log.debug("Multiple methods found with same name and parameter count.");
-			log.debug("Parameter conversion will be attempted in order.");
+			log.debug("Multiple methods found with same name and parameter count. Parameter conversion will be attempted in order.");
 		}
 		Object[] params = null;
-		// First search for method with exact parameters
+		// search for method with exact parameters
 		for (int i = 0; i < methods.size(); i++) {
 			method = methods.get(i);
 			boolean valid = true;
@@ -104,13 +103,13 @@ public class ServiceUtils {
 				return new Object[] { method, args };
 			}
 		}
-		// Then try to convert parameters
+		// try to convert parameters
 		for (int i = 0; i < methods.size(); i++) {
 			try {
 				method = methods.get(i);
 				params = ConversionUtils.convertParams(args, method.getParameterTypes());
 				if (args.length > 0 && (args[0] instanceof IConnection) && (!(params[0] instanceof IConnection))) {
-					// Don't convert first IConnection parameter
+					// don't convert first IConnection parameter
 					continue;
 				}
 				return new Object[] { method, params };

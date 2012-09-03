@@ -21,7 +21,7 @@ package org.red5.server;
 import java.io.File;
 import java.util.Random;
 
-import org.red5.server.api.IScope;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.api.stream.IStreamFilenameGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

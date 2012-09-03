@@ -18,7 +18,7 @@
 
 package org.red5.server.api.stream;
 
-import org.red5.server.api.IScopeHandler;
+import org.red5.server.api.scope.IScopeHandler;
 
 /**
  * A scope handler that is stream aware.
@@ -44,9 +44,16 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
 	public void streamRecordStart(IBroadcastStream stream);
 
 	/**
+	 * A broadcast stream stops being recorded. This will be called
+	 * when the record-stop notification is sent to the Flash client.
+	 *
+	 * @param stream stream
+	 */
+	public void streamRecordStop(IBroadcastStream stream);
+
+	/**
 	 * Notified when a broadcaster starts.
 	 * 
-	 * @param stream stream
 	 */
 	public void streamBroadcastStart(IBroadcastStream stream);
 
@@ -113,7 +120,6 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
 	 * @param item item
 	 * @param position position
 	 */
-	public void streamPlayItemSeek(ISubscriberStream stream, IPlayItem item, int position);	
-	
-	
+	public void streamPlayItemSeek(ISubscriberStream stream, IPlayItem item, int position);
+
 }

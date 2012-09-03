@@ -24,7 +24,7 @@ import java.io.IOException;
 
 import org.python.core.Py;
 import org.python.core.PyFunction;
-import org.python.core.PyJavaInstance;
+import org.python.core.PyJavaType;
 import org.python.core.PyObject;
 import org.python.core.PySystemState;
 import org.python.util.PythonInterpreter;
@@ -144,7 +144,7 @@ public class JythonScriptFactory implements ScriptFactory {
 				} else {
 					PyObject[] args = new PyObject[arguments.length];
 					for (int i = 0; i < arguments.length; i++) {
-						args[i] = new PyJavaInstance(arguments[i]);
+						args[i] = PyJavaType.wrapJavaObject(arguments[i]);
 					}
 					_this = ((PyFunction) getInstance).__call__(args);
 				}

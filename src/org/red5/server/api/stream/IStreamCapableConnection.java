@@ -35,6 +35,7 @@ public interface IStreamCapableConnection extends IConnection {
 	 * @return              Reserved stream id
 	 */
 	int reserveStreamId();
+
 	int reserveStreamId(int id);
 
 	/**

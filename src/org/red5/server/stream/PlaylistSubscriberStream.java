@@ -27,9 +27,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IContext;
-import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
 import org.red5.server.api.scheduling.ISchedulingService;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.api.statistics.IPlaylistSubscriberStreamStatistics;
 import org.red5.server.api.stream.IPlayItem;
 import org.red5.server.api.stream.IPlaylistController;
@@ -580,13 +580,13 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 			items.set(index, newItem);
 			result = true;
 		} catch (Exception e) {
-			
+
 		} finally {
 			read.unlock();
-		}		
+		}
 		return result;
 	}
-	
+
 	/**
 	 * Move the current item to the next in list.
 	 */
@@ -632,6 +632,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 							} catch (Throwable t) {
 								log.error("error notify streamPlayItemSeek", t);
 							}
+							// clear thread local reference
+							Red5.setConnectionLocal(null);
 						}
 					};
 				}
@@ -654,6 +656,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 							} catch (Throwable t) {
 								log.error("error notify streamPlayItemPause", t);
 							}
+							// clear thread local reference
+							Red5.setConnectionLocal(null);
 						}
 					};
 				}
@@ -675,8 +679,9 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 								handler.streamPlayItemResume(stream, item, position);
 							} catch (Throwable t) {
 								log.error("error notify streamPlayItemResume", t);
-
 							}
+							// clear thread local reference
+							Red5.setConnectionLocal(null);
 						}
 					};
 				}
@@ -697,6 +702,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 							} catch (Throwable t) {
 								log.error("error notify streamPlayItemPlay", t);
 							}
+							// clear thread local reference
+							Red5.setConnectionLocal(null);
 						}
 					};
 				}
@@ -713,6 +720,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 							} catch (Throwable t) {
 								log.error("error notify streamSubscriberClose", t);
 							}
+							// clear thread local reference
+							Red5.setConnectionLocal(null);
 						}
 					};
 				}
@@ -729,6 +738,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 							} catch (Throwable t) {
 								log.error("error notify streamSubscriberStart", t);
 							}
+							// clear thread local reference
+							Red5.setConnectionLocal(null);
 						}
 					};
 				}
@@ -749,6 +760,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 							} catch (Throwable t) {
 								log.error("error notify streamPlaylistItemStop", t);
 							}
+							// clear thread local reference
+							Red5.setConnectionLocal(null);
 						}
 					};
 				}
@@ -794,36 +807,22 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 
 	/** {@inheritDoc} */
 	public double getEstimatedBufferFill() {
-		//check to see if any messages have been sent
+		// check to see if any messages have been sent
 		int lastMessageTs = engine.getLastMessageTimestamp();
 		if (lastMessageTs < 0) {
-			// Nothing has been sent yet
+			// nothing has been sent yet
 			return 0.0;
 		}
-
-		// Buffer size as requested by the client
+		// buffer size as requested by the client
 		final long buffer = getClientBufferDuration();
 		if (buffer == 0) {
 			return 100.0;
 		}
-
-		// Duration the stream is playing
+		// duration the stream is playing
 		final long delta = System.currentTimeMillis() - engine.getPlaybackStart();
-		// Expected amount of data present in client buffer
+		// expected amount of data present in client buffer
 		final long buffered = lastMessageTs - delta;
 		return (buffered * 100.0) / buffer;
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public StreamState getState() {
-		return state;
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public void setState(StreamState state) {
-		this.state = state;
 	}
 
 	/**

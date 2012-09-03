@@ -18,9 +18,9 @@
 
 package org.red5.server.stream;
 
-import org.red5.server.api.IScope;
-import org.red5.server.api.ScopeUtils;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.api.stream.IStreamFilenameGenerator;
+import org.red5.server.util.ScopeUtils;
 
 /**
  * Default filename generator for streams. The files will be stored in a

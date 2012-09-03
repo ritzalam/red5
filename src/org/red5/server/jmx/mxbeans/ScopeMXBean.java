@@ -18,20 +18,11 @@
 
 package org.red5.server.jmx.mxbeans;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.Set;
 
 import javax.management.MXBean;
 
-import org.red5.server.api.IBasicScope;
-import org.red5.server.api.IClient;
-import org.red5.server.api.IConnection;
-import org.red5.server.api.IContext;
-import org.red5.server.api.IScope;
-import org.red5.server.api.IScopeHandler;
-import org.springframework.core.io.Resource;
+import org.red5.server.api.scope.ScopeType;
 
 /**
  * An MBean interface for the scope object.
@@ -114,31 +105,13 @@ public interface ScopeMXBean {
 	 * @param name               Child scope name
 	 * @return                   <code>true</code> if scope has child node with given name and type, <code>false</code> otherwise
 	 */
-	public boolean hasChildScope(String type, String name);
-
-	/**
-	 * Return child scope names iterator
-	 * @return                   Child scope names iterator
-	 */
-	public Iterator<String> getScopeNames();
-
-	/**
-	 * Return set of clients
-	 * @return                   Set of clients bound to scope
-	 */
-	public Set<IClient> getClients();
+	public boolean hasChildScope(ScopeType type, String name);
 
 	/**
 	 * Check if scope has a context
 	 * @return                   <code>true</code> if scope has context, <code>false</code> otherwise
 	 */
 	public boolean hasContext();
-
-	/**
-	 * Return scope context. If scope doesn't have context, parent's context is returns, and so forth.
-	 * @return                   Scope context or parent context
-	 */
-	public IContext getContext();
 
 	/**
 	 * Return scope context path
@@ -165,18 +138,6 @@ public interface ScopeMXBean {
 	public boolean hasHandler();
 
 	/**
-	 * Return scope handler or parent's scope handler if this scope doesn't have one
-	 * @return                     Scope handler (or parent's one)
-	 */
-	public IScopeHandler getHandler();
-
-	/**
-	 * Return parent scope
-	 * @return                      Parent scope
-	 */
-	public IScope getParent();
-
-	/**
 	 * Check if scope has parent scope
 	 * @return                      <code>true</code> if scope has parent scope, <code>false</code> otherwise`
 	 */
@@ -195,27 +156,6 @@ public interface ScopeMXBean {
 	public int getDepth();
 
 	/**
-	 * Return array of resources from path string, usually used with pattern path
-	 * @param path           Resources path
-	 * @return               Resources
-	 * @throws IOException   I/O exception
-	 */
-	public Resource[] getResources(String path) throws IOException;
-
-	/**
-	 * Return resource located at given path
-	 * @param path           Resource path
-	 * @return               Resource
-	 */
-	public Resource getResource(String path);
-
-	/**
-	 * Return connection iterator
-	 * @return                Connections iterator
-	 */
-	public Collection<Set<IConnection>> getConnections();
-
-	/**
 	 * Create child scope with given name
 	 * @param name           Child scope name
 	 * @return               <code>true</code> on success, <code>false</code> otherwise
@@ -223,46 +163,10 @@ public interface ScopeMXBean {
 	public boolean createChildScope(String name);
 
 	/**
-	 * Return base scope of given type with given name
-	 * @param type           Scope type
-	 * @param name           Scope name
-	 * @return               Basic scope object
-	 */
-	public IBasicScope getBasicScope(String type, String name);
-
-	/**
-	 * Return basic scope names iterator
-	 * @param type           Scope type
-	 * @return               Iterator
-	 */
-	public Iterator<String> getBasicScopeNames(String type);
-
-	/**
-	 * Return child scope by name
-	 * @param name           Scope name
-	 * @return               Child scope with given name
-	 */
-	public IScope getScope(String name);
-
-	/**
-	 * Register service handler by name
-	 * @param name       Service handler name
-	 * @param handler    Service handler
-	 */
-	public void registerServiceHandler(String name, Object handler);
-
-	/**
 	 * Unregisters service handler by name
 	 * @param name        Service handler name
 	 */
 	public void unregisterServiceHandler(String name);
-
-	/**
-	 * Return service handler by name
-	 * @param name        Handler name
-	 * @return            Service handler with given name
-	 */
-	public Object getServiceHandler(String name);
 
 	/**
 	 * Return set of service handler names

@@ -18,7 +18,7 @@
 
 package org.red5.server.exception;
 
-import org.red5.server.api.IScope;
+import org.red5.server.api.scope.IScope;
 
 /**
  * Scope not found, thrown when child scope wasn't found.

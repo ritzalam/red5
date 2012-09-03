@@ -20,7 +20,7 @@ package org.red5.server.api.so;
 
 import java.util.Set;
 
-import org.red5.server.api.IScopeService;
+import org.red5.server.api.scope.IScopeService;
 
 /**
  * Service that supports protecting access to shared objects.
@@ -41,14 +41,14 @@ public interface ISharedObjectSecurityService extends IScopeService {
 	 * @param handler Handler to add.
 	 */
 	public void registerSharedObjectSecurity(ISharedObjectSecurity handler);
-	
+
 	/**
 	 * Remove handler that protects shared objects.
 	 * 
 	 * @param handler Handler to remove.
 	 */
 	public void unregisterSharedObjectSecurity(ISharedObjectSecurity handler);
-	
+
 	/**
 	 * Get handlers that protect shared objects.
 	 * 

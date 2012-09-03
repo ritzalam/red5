@@ -82,7 +82,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	/**
 	 * Deserializer
 	 */
-	private Deserializer deserializer;
+	protected Deserializer deserializer;
 
 	/** Constructs a new RTMPProtocolDecoder. */
 	public RTMPProtocolDecoder() {
@@ -175,7 +175,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 */
 	public Object decode(ProtocolState state, IoBuffer in) throws ProtocolException {
 		int start = in.position();
-		log.debug("Start: {}", start);
+		log.trace("Start: {}", start);
 		try {
 			final RTMP rtmp = (RTMP) state;
 			switch (rtmp.getState()) {
@@ -207,44 +207,27 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	public IoBuffer decodeHandshake(RTMP rtmp, IoBuffer in) {
 		log.debug("decodeHandshake - rtmp: {} buffer: {}", rtmp, in);
 		final int remaining = in.remaining();
-		if (rtmp.getMode() == RTMP.MODE_SERVER) {
-			if (rtmp.getState() == RTMP.STATE_CONNECT) {
-				if (remaining < HANDSHAKE_SIZE + 1) {
-					log.debug("Handshake init too small, buffering. remaining: {}", remaining);
-					rtmp.bufferDecoding(HANDSHAKE_SIZE + 1);
-				} else {
-					final IoBuffer hs = IoBuffer.allocate(HANDSHAKE_SIZE);
-					in.get(); // skip the header byte
-					BufferUtils.put(hs, in, HANDSHAKE_SIZE);
-					hs.flip();
-					rtmp.setState(RTMP.STATE_HANDSHAKE);
-					return hs;
-				}
-			} else if (rtmp.getState() == RTMP.STATE_HANDSHAKE) {
-				log.debug("Handshake reply");
-				if (remaining < HANDSHAKE_SIZE) {
-					log.debug("Handshake reply too small, buffering. remaining: {}", remaining);
-					rtmp.bufferDecoding(HANDSHAKE_SIZE);
-				} else {
-					in.skip(HANDSHAKE_SIZE);
-					rtmp.setState(RTMP.STATE_CONNECTED);
-					rtmp.continueDecoding();
-				}
+		if (rtmp.getState() == RTMP.STATE_CONNECT) {
+			if (remaining < HANDSHAKE_SIZE + 1) {
+				log.debug("Handshake init too small, buffering. remaining: {}", remaining);
+				rtmp.bufferDecoding(HANDSHAKE_SIZE + 1);
+			} else {
+				final IoBuffer hs = IoBuffer.allocate(HANDSHAKE_SIZE);
+				in.get(); // skip the header byte
+				BufferUtils.put(hs, in, HANDSHAKE_SIZE);
+				hs.flip();
+				rtmp.setState(RTMP.STATE_HANDSHAKE);
+				return hs;
 			}
-		} else {
-			// else, this is client mode.
-			if (rtmp.getState() == RTMP.STATE_CONNECT) {
-				final int size = (2 * HANDSHAKE_SIZE) + 1;
-				if (remaining < size) {
-					log.debug("Handshake init too small, buffering. remaining: {}", remaining);
-					rtmp.bufferDecoding(size);
-				} else {
-					final IoBuffer hs = IoBuffer.allocate(size);
-					BufferUtils.put(hs, in, size);
-					hs.flip();
-					rtmp.setState(RTMP.STATE_CONNECTED);
-					return hs;
-				}
+		} else if (rtmp.getState() == RTMP.STATE_HANDSHAKE) {
+			log.debug("Handshake reply");
+			if (remaining < HANDSHAKE_SIZE) {
+				log.debug("Handshake reply too small, buffering. remaining: {}", remaining);
+				rtmp.bufferDecoding(HANDSHAKE_SIZE);
+			} else {
+				in.skip(HANDSHAKE_SIZE);
+				rtmp.setState(RTMP.STATE_CONNECTED);
+				rtmp.continueDecoding();
 			}
 		}
 		return null;
@@ -297,18 +280,42 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 			throw new ProtocolException("Bad channel id: " + channelId);
 		}
 		// Get the header size and length
-		int headerLength = RTMPUtils.getHeaderLength(RTMPUtils.decodeHeaderSize(headerValue, byteCount));
+		byte headerSize = RTMPUtils.decodeHeaderSize(headerValue, byteCount);
+		int headerLength = RTMPUtils.getHeaderLength(headerSize);
+		Header lastHeader = rtmp.getLastReadHeader(channelId);
+		
 		headerLength += byteCount - 1;
-		if (headerLength + byteCount - 1 > remaining) {
-			log.debug("Header too small, buffering. remaining: {}", remaining);
+		switch (headerSize) {
+			case HEADER_NEW:
+			case HEADER_SAME_SOURCE:
+			case HEADER_TIMER_CHANGE:
+				if (remaining >= headerLength) {
+					int timeValue = RTMPUtils.readUnsignedMediumInt(in);
+					if (timeValue == 0xffffff) {
+						headerLength += 4;
+					}
+				}
+				break;
+			
+			case HEADER_CONTINUE:
+				if(lastHeader.getExtendedTimestamp() != 0) {
+					headerLength += 4;
+				}
+				break;
+
+			default:
+				throw new ProtocolException("Unexpected header size " + headerSize + " check for error");
+		}
+		
+		if (remaining < headerLength) {
+			log.debug("Header too small (hlen: {}), buffering. remaining: {}", headerLength, remaining);
 			in.position(position);
-			rtmp.bufferDecoding(headerLength + byteCount - 1);
+			rtmp.bufferDecoding(headerLength);
 			return null;
 		}
 		// Move the position back to the start
 		in.position(position);
 
-		Header lastHeader = rtmp.getLastReadHeader(channelId);
 		final Header header = decodeHeader(in, lastHeader);
 		if (header == null) {
 			throw new ProtocolException("Header is null, check for error");
@@ -486,7 +493,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				header.setStreamId(lastHeader.getStreamId());
 				header.setTimerBase(lastHeader.getTimerBase());
 				header.setTimerDelta(lastHeader.getTimerDelta());
-				if(lastHeader.getExtendedTimestamp() != 0) {
+				if (lastHeader.getExtendedTimestamp() != 0) {
 					timeValue = in.getInt();
 					header.setExtendedTimestamp(timeValue);
 					log.trace("HEADER_CONTINUE with extended timestamp: {}", timeValue);
@@ -819,9 +826,8 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		}
 
 		//TODO Handle NetStream.send? Where and how?
-
-		if (!(notify instanceof Invoke) && rtmp != null && rtmp.getMode() == RTMP.MODE_SERVER && header != null && header.getStreamId() != 0 && !isStreamCommand(action)) {
-			// Don't decode "NetStream.send" requests
+		if (!(notify instanceof Invoke) && rtmp != null && header != null && header.getStreamId() != 0 && !isStreamCommand(action)) {
+			// don't decode "NetStream.send" requests
 			in.position(start);
 			notify.setData(in.asReadOnlyBuffer());
 			return notify;
@@ -1013,7 +1019,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	public FlexMessage decodeFlexMessage(IoBuffer in, RTMP rtmp) {
 		// TODO: Unknown byte, probably encoding as with Flex SOs?
 		byte flexByte = in.get();
-		log.warn("Flex byte: {}", flexByte);
+		log.trace("Flex byte: {}", flexByte);
 		// Encoding of message params can be mixed - some params may be in AMF0, others in AMF3,
 		// but according to AMF3 spec, we should collect AMF3 references for the whole message body (through all params)
 		org.red5.io.amf3.Input.RefStorage refStorage = new org.red5.io.amf3.Input.RefStorage();
@@ -1034,7 +1040,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				// Check for AMF3 encoding of parameters
 				byte objectEncodingType = in.get();
 				in.position(in.position() - 1);
-				log.warn("Object encoding: {}", objectEncodingType);
+				log.debug("Object encoding: {}", objectEncodingType);
 				switch (objectEncodingType) {
 					case AMF.TYPE_AMF3_OBJECT:
 					case AMF3.TYPE_VECTOR_NUMBER:

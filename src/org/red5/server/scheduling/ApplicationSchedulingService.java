@@ -19,24 +19,26 @@
 
 package org.red5.server.scheduling;
 
+import java.lang.management.ManagementFactory;
 import java.util.Properties;
 
-import javax.management.MalformedObjectNameException;
+import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.management.StandardMBean;
 import javax.servlet.ServletContext;
 
 import org.quartz.impl.StdSchedulerFactory;
 import org.red5.logging.Red5LoggerFactory;
-import org.red5.server.jmx.JMXAgent;
-import org.red5.server.jmx.JMXFactory;
 import org.red5.server.jmx.mxbeans.QuartzSchedulingServiceMXBean;
 import org.slf4j.Logger;
+import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
  * This class can be used to initialize Quartz for a Red5 application.
  *
  * @author Paul Gregoire (mondain@gmail.com)
  */
+@ManagedResource(objectName = "org.red5.server:type=ApplicationSchedulingService,name=default")
 public class ApplicationSchedulingService extends QuartzSchedulingService {
 
 	private static Logger log = Red5LoggerFactory.getLogger(ApplicationSchedulingService.class);
@@ -101,20 +103,35 @@ public class ApplicationSchedulingService extends QuartzSchedulingService {
 		}
 	}
 
-	public void registerJMX() {
+	protected void registerJMX() {
 		//register with jmx server
-		if (instanceId == null) {
-			JMXAgent.registerMBean(this, this.getClass().getName(), QuartzSchedulingServiceMXBean.class);
-		} else {
-			try {
-				ObjectName oName = new ObjectName(JMXFactory.getDefaultDomain()
-						+ ":type=ApplicationSchedulingService,name=" + applicationName + ",instanceId=" + instanceId);
-				JMXAgent.registerMBean(this, this.getClass().getName(), QuartzSchedulingServiceMXBean.class, oName);
-			} catch (MalformedObjectNameException e) {
-				log.warn("Error in jmx registration setup", e);
+		MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
+		try {
+			ObjectName oName = null;
+			if (instanceId == null) {
+				oName = new ObjectName("org.red5.server:type=ApplicationSchedulingService,applicationName=" + applicationName);
+			} else {
+				oName = new ObjectName("org.red5.server:type=ApplicationSchedulingService,applicationName=" + applicationName + ",instanceId=" + instanceId);
 			}
+			mbeanServer.registerMBean(new StandardMBean(this, QuartzSchedulingServiceMXBean.class, true), oName);
+		} catch (Exception e) {
+			log.warn("Error on jmx registration", e);
 		}
+	}
 
+	protected void unregisterJMX() {
+		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+		try {
+			ObjectName oName = null;
+			if (instanceId == null) {
+				oName = new ObjectName("org.red5.server:type=ApplicationSchedulingService,applicationName=" + applicationName);
+			} else {
+				oName = new ObjectName("org.red5.server:type=ApplicationSchedulingService,applicationName=" + applicationName + ",instanceId=" + instanceId);
+			}
+			mbs.unregisterMBean(oName);
+		} catch (Exception e) {
+			log.warn("Exception unregistering", e);
+		}
 	}
 
 }

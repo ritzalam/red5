@@ -34,6 +34,7 @@ import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.DummySession;
 import org.apache.mina.core.session.IoSession;
 import org.red5.logging.Red5LoggerFactory;
+import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.IRTMPConnManager;
 import org.red5.server.net.rtmp.RTMPConnection;
@@ -74,10 +75,9 @@ public class RTMPTServlet extends HttpServlet {
 
 	/**
 	 * Try to generate responses that contain at least 32768 bytes data.
-	 * Increasing this value results in better stream performance, but also
-	 * increases the latency.
+	 * Increasing this value results in better stream performance, but also increases the latency.
 	 */
-	private static final int RESPONSE_TARGET_SIZE = 32768;
+	private static int targetResponseSize = 32768;
 
 	/**
 	 * Web app context
@@ -117,6 +117,15 @@ public class RTMPTServlet extends HttpServlet {
 	 */
 	public void setIdent2(String ident2) {
 		RTMPTServlet.ident2 = ident2;
+	}
+
+	/**
+	 * Sets the target size for responses
+	 * 
+	 * @param targetResponseSize the targetResponseSize to set
+	 */
+	public void setTargetResponseSize(int targetResponseSize) {
+		RTMPTServlet.targetResponseSize = targetResponseSize;
 	}
 
 	/**
@@ -285,13 +294,13 @@ public class RTMPTServlet extends HttpServlet {
 	 */
 	protected void returnPendingMessages(RTMPTConnection client, HttpServletResponse resp) throws IOException {
 		log.debug("returnPendingMessages {}", client);
-		IoBuffer data = client.getPendingMessages(RESPONSE_TARGET_SIZE);
+		IoBuffer data = client.getPendingMessages(targetResponseSize);
 		if (data != null) {
 			returnMessage(client, data, resp);
 		} else {
 			// no more messages to send...
 			if (client.isClosing()) {
-				// Tell client to close connection
+				// tell client to close connection
 				returnMessage((byte) 0, resp);
 			} else {
 				returnMessage(client.getPollingDelay(), resp);
@@ -342,17 +351,15 @@ public class RTMPTServlet extends HttpServlet {
 	 */
 	protected void handleClose(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		log.debug("handleClose");
-		// Skip sent data
+		// skip sent data
 		skipData(req);
 		// get the associated connection
 		RTMPTConnection connection = getClientConnection(req);
 		if (connection == null) {
 			handleBadRequest(String.format("Close: unknown client with id: %s", getClientId(req)), resp);
 			return;
-		}
-		
+		}		
 		removeConnection(connection.getId());
-
 		handler.connectionClosed(connection, connection.getState());
 		returnMessage((byte) 0, resp);
 		connection.realClose();
@@ -381,14 +388,12 @@ public class RTMPTServlet extends HttpServlet {
 			handleBadRequest("Connection already closed", resp);
 			return;
 		}
-
-		// Put the received data in a ByteBuffer
+		// put the received data in a ByteBuffer
 		int length = req.getContentLength();
 		IoBuffer data = IoBuffer.allocate(length);
 		ServletUtils.copy(req.getInputStream(), data.asOutputStream());
 		data.flip();
-
-		// Decode the objects in the data
+		// decode the objects in the data
 		List<?> messages = connection.decode(data);
 		data.free();
 		data = null;
@@ -396,8 +401,7 @@ public class RTMPTServlet extends HttpServlet {
 			returnMessage(connection.getPollingDelay(), resp);
 			return;
 		}
-
-		// Execute the received RTMP messages
+		// execute the received RTMP messages
 		IoSession session = new DummySession();
 		session.setAttribute(RTMPConnection.RTMP_CONNECTION_KEY, connection);
 		session.setAttribute(ProtocolState.SESSION_KEY, connection.getState());
@@ -408,8 +412,7 @@ public class RTMPTServlet extends HttpServlet {
 				log.error("Could not process message", e);
 			}
 		}
-
-		// Send results to client
+		// send results to client
 		returnPendingMessages(connection, resp);
 	}
 
@@ -427,7 +430,7 @@ public class RTMPTServlet extends HttpServlet {
 	 */
 	protected void handleIdle(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		log.debug("handleIdle");
-		// Skip sent data
+		// skip sent data
 		skipData(req);
 		// get associated connection
 		RTMPTConnection connection = getClientConnection(req);
@@ -435,7 +438,7 @@ public class RTMPTServlet extends HttpServlet {
 			handleBadRequest("Idle: unknown client with id: " + getClientId(req), resp);
 			return;
 		} else if (connection.isClosing()) {
-			// Tell client to close the connection
+			// tell client to close the connection
 			returnMessage((byte) 0, resp);
 			connection.realClose();
 			return;
@@ -444,7 +447,6 @@ public class RTMPTServlet extends HttpServlet {
 			handleBadRequest("Connection already closed", resp);
 			return;
 		}
-
 		returnPendingMessages(connection, resp);
 	}
 
@@ -472,10 +474,8 @@ public class RTMPTServlet extends HttpServlet {
 		}
 		//get the path
 		String path = req.getServletPath();
-		// Since the only current difference in the type of request
-		// that we are interested in is the 'second' character, we can double
-		// the speed of this entry point by using a switch on the second
-		// character.
+		// since the only current difference in the type of request that we are interested in is the 'second' character, we can double
+		// the speed of this entry point by using a switch on the second character.
 		char p = path.charAt(1);
 		switch (p) {
 			case 'o': // OPEN_REQUEST
@@ -520,7 +520,8 @@ public class RTMPTServlet extends HttpServlet {
 			default:
 				handleBadRequest(String.format("RTMPT command %s is not supported.", path), resp);
 		}
-
+		// clear thread local reference
+		Red5.setConnectionLocal(null);
 	}
 
 	/** {@inheritDoc} */
@@ -557,11 +558,14 @@ public class RTMPTServlet extends HttpServlet {
 	}
 
 	protected RTMPTConnection getConnection(int clientId) {
-		RTMPTConnection connection = (RTMPTConnection) rtmpConnManager.getConnection(clientId);
-		if (connection == null) {
+		RTMPTConnection conn = (RTMPTConnection) rtmpConnManager.getConnection(clientId);
+		if (conn != null) {
+			// clear thread local reference
+			Red5.setConnectionLocal(conn);
+		} else {
 			log.warn("Null connection for clientId: {}", clientId);
 		}
-		return connection;
+		return conn;
 	}
 
 	protected RTMPTConnection createConnection() {
@@ -570,6 +574,8 @@ public class RTMPTServlet extends HttpServlet {
 		conn.setDecoder(handler.getCodecFactory().getRTMPDecoder());
 		conn.setEncoder(handler.getCodecFactory().getRTMPEncoder());
 		handler.connectionOpened(conn, conn.getState());
+		// set thread local reference
+		Red5.setConnectionLocal(conn);
 		return conn;
 	}
 

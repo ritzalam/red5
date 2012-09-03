@@ -18,14 +18,15 @@
 
 package org.red5.server.net.rtmpt;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.mina.core.buffer.IoBuffer;
-import org.red5.server.api.Red5;
 import org.red5.server.net.rtmp.IRTMPHandler;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.codec.RTMP;
@@ -51,31 +52,49 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 */
 	private RTMPTProtocolEncoder encoder;
 
+	/**
+	 * Holder for data destined for a requester that is not ready to be sent.
+	 */
 	private static class PendingData {
-		private IoBuffer buffer;
+		
+		// simple packet
+		private final Packet packet;
 
-		private Packet packet;
+		// encoded packet data
+		private final byte[] byteBuffer;
 
 		private PendingData(IoBuffer buffer, Packet packet) {
-			this.buffer = buffer;
+			int size = buffer.limit();
+			this.byteBuffer = new byte[size];
+			buffer.get(byteBuffer);
 			this.packet = packet;
+			log.debug("Buffer: {}", Arrays.toString(ArrayUtils.subarray(byteBuffer, 0, 32)));
 		}
 
 		private PendingData(IoBuffer buffer) {
-			this.buffer = buffer;
+			int size = buffer.limit();
+			this.byteBuffer = new byte[size];
+			buffer.get(byteBuffer);
+			this.packet = null;
+			log.debug("Buffer: {}", Arrays.toString(ArrayUtils.subarray(byteBuffer, 0, 32)));
 		}
 
-		public IoBuffer getBuffer() {
-			return buffer;
+		public byte[] getBuffer() {
+			log.debug("Get buffer: {}", Arrays.toString(ArrayUtils.subarray(byteBuffer, 0, 32)));
+			return byteBuffer;
 		}
 
 		public Packet getPacket() {
 			return packet;
 		}
 
-		public String toString() {
-			return getClass().getName() + "(buffer=" + buffer + "; packet=" + packet + ")";
+		public int getBufferSize() {
+			if (byteBuffer != null) {
+				return byteBuffer.length;
+			}
+			return 0;
 		}
+		
 	}
 
 	/**
@@ -101,7 +120,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	/**
 	 * Byte buffer
 	 */
-	private IoBuffer buffer;
+	private volatile IoBuffer buffer;
 
 	/**
 	 * RTMP events handler
@@ -110,8 +129,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 
 	public BaseRTMPTConnection(String type) {
 		super(type);
-		this.buffer = IoBuffer.allocate(2048);
-		this.buffer.setAutoExpand(true);
+		this.buffer = IoBuffer.allocate(0).setAutoExpand(true);
 	}
 
 	/**
@@ -126,8 +144,8 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	/** {@inheritDoc} */
 	@Override
 	public void close() {
-		log.debug("close - state: {}", state.getState());		
-		// Defer actual closing so we can send back pending messages to the client.
+		log.debug("close - state: {}", state.getState());
+		// defer actual closing so we can send back pending messages to the client
 		closing = true;
 	}
 
@@ -161,7 +179,8 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 * @param packet the buffer containing the raw data
 	 */
 	@Override
-	public void rawWrite(IoBuffer packet) {
+	public void writeRaw(IoBuffer packet) {
+		log.debug("Adding pending message from raw packet");
 		pendingMessages.add(new PendingData(packet));
 	}
 
@@ -180,6 +199,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	/** {@inheritDoc} */
 	@Override
 	public long getPendingMessages() {
+		log.debug("Checking pending queue size");
 		return pendingMessages.size();
 	}
 
@@ -190,13 +210,11 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 * @return a list of decoded objects
 	 */
 	public List<?> decode(IoBuffer data) {
-		log.debug("decode - state: {}", state);
+		log.debug("decode");
 		if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
-			// Connection is being closed, don't decode any new packets
+			// connection is being closed, don't decode any new packets
 			return Collections.EMPTY_LIST;
 		}
-		//set the local connection
-		Red5.setConnectionLocal(this);
 		readBytes.addAndGet(data.limit());
 		buffer.put(data);
 		buffer.flip();
@@ -210,55 +228,71 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 */
 	@Override
 	public void write(final Packet packet) {
-		log.debug("write - state: {}", state);		
+		log.debug("write - packet: {}", packet);
+		log.trace("state: {}", state);
 		if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
-			// Connection is being closed, don't send any new packets
-			return;
-		}
-		IoBuffer data;
-		try {
-			data = encoder.encode(state, packet);
-		} catch (Exception e) {
-			log.error("Could not encode message {}", packet, e);
-			return;
-		}
-		if (data != null) {
-			// Mark packet as being written
-			writingMessage(packet);
-			//add to pending
-			pendingMessages.add(new PendingData(data, packet));
+			// connection is being closed, don't send any new packets
+			log.debug("No write completed due to connection disconnecting");
 		} else {
-			log.info("Response buffer was null after encoding");
+			IoBuffer data = null;
+			try {
+				data = encoder.encodePacket(state, packet);
+				if (data != null) {
+					// add to pending
+					log.debug("Adding pending message from packet");
+					pendingMessages.add(new PendingData(data, packet));
+				} else {
+					log.warn("Response buffer was null after encoding");
+				}
+			} catch (Exception e) {
+				log.error("Could not encode message {}", packet, e);
+			}
 		}
 	}
 
 	protected IoBuffer foldPendingMessages(int targetSize) {
-		if (pendingMessages.isEmpty()) {
-			return null;
-		}
-		IoBuffer result = IoBuffer.allocate(2048);
-		result.setAutoExpand(true);
-		// We'll have to create a copy here to avoid endless recursion
-		List<Object> toNotify = new LinkedList<Object>();
-		while (!pendingMessages.isEmpty()) {
-			PendingData pendingMessage = pendingMessages.remove();
-			result.put(pendingMessage.getBuffer());
-			if (pendingMessage.getPacket() != null) {
-				toNotify.add(pendingMessage.getPacket());
+		log.debug("foldPendingMessages - target size: {}", targetSize);
+		IoBuffer result = null;
+		if (!pendingMessages.isEmpty()) {
+			int sendSize = 0;
+			LinkedList<PendingData> sendList = new LinkedList<PendingData>();
+			while (!pendingMessages.isEmpty()) {
+				// get the buffer size
+				int limit = pendingMessages.peek().getBufferSize();
+				if ((limit + sendSize) < targetSize) {
+					if (sendList.add(pendingMessages.poll())) {
+						sendSize += limit;
+					}
+				} else {
+					if (sendSize == 0) {
+						if (sendList.add(pendingMessages.poll())) {
+							sendSize = limit;
+						}
+					}
+					break;
+				}
 			}
-			if ((result.position() > targetSize)) {
-				break;
+			log.debug("Send size: {}", sendSize);
+			result = IoBuffer.allocate(sendSize);
+			for (PendingData pendingMessage : sendList) {
+				result.put(pendingMessage.getBuffer());
+				Packet packet = pendingMessage.getPacket(); 
+				if (packet != null) {
+					try {
+						handler.messageSent(this, packet);
+						// mark packet as being written
+						writingMessage(packet);
+					} catch (Exception e) {
+						log.error("Could not notify stream subsystem about sent message", e);
+					}
+				} else {
+					log.debug("Pending message did not have a packet");
+				}
 			}
+			sendList.clear();
+			result.flip();
+			writtenBytes.addAndGet(sendSize);
 		}
-		for (Object message : toNotify) {
-			try {
-				handler.messageSent(this, message);
-			} catch (Exception e) {
-				log.error("Could not notify stream subsystem about sent message.", e);
-			}
-		}
-		result.flip();
-		writtenBytes.addAndGet(result.limit());
 		return result;
 	}
 
@@ -272,5 +306,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 
 	public void setEncoder(RTMPProtocolEncoder encoder) {
 		this.encoder = (RTMPTProtocolEncoder) encoder;
+		this.encoder.setConnection(this);
 	}
+	
 }

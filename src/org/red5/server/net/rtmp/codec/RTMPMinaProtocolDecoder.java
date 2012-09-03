@@ -26,49 +26,59 @@ import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoderAdapter;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 import org.red5.io.object.Deserializer;
-import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
-import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.message.Constants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * RTMP protocol decoder.
  */
 public class RTMPMinaProtocolDecoder extends ProtocolDecoderAdapter {
 
+	protected static Logger log = LoggerFactory.getLogger(RTMPMinaProtocolDecoder.class);
+
 	private RTMPProtocolDecoder decoder = new RTMPProtocolDecoder();
-	
+
 	/** {@inheritDoc} */
-    public void decode(IoSession session, IoBuffer in, ProtocolDecoderOutput out) throws ProtocolCodecException {
-    	//get our state
+	public void decode(IoSession session, IoBuffer in, ProtocolDecoderOutput out) throws ProtocolCodecException {
+		//get our state
 		final ProtocolState state = (ProtocolState) session.getAttribute(ProtocolState.SESSION_KEY);
-		//get the connection from the session
-		RTMPConnection conn = (RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
-		conn.getWriteLock().lock();
-		try {
-			// Set thread local here so we have the connection during decoding of packets
-			Red5.setConnectionLocal(conn);
-			//create a buffer and store it on the session
-			IoBuffer buf = (IoBuffer) session.getAttribute("buffer");
-			if (buf == null) {
-				buf = IoBuffer.allocate(Constants.HANDSHAKE_SIZE);
-				buf.setAutoExpand(true);
-				session.setAttribute("buffer", buf);
+		//create a buffer and store it on the session
+		IoBuffer buf = (IoBuffer) session.getAttribute("buffer");
+		if (buf == null) {
+			buf = IoBuffer.allocate(Constants.HANDSHAKE_SIZE);
+			buf.setAutoExpand(true);
+			session.setAttribute("buffer", buf);
+		}
+		buf.put(in);
+		buf.flip();
+		//construct any objects from the decoded bugger
+		List<?> objects = decoder.decodeBuffer(state, buf);
+		if (objects != null) {
+			for (Object object : objects) {
+				out.write(object);
 			}
-			buf.put(in);
-			buf.flip();
-			//construct any objects from the decoded bugger
-			List<?> objects = decoder.decodeBuffer(state, buf);
-			if (objects != null) {
-				for (Object object : objects) {
-					out.write(object);
-				}
-			}
-		} finally {
-			conn.getWriteLock().unlock();
 		}
 	}
 
+	/**
+	 * Sets the RTMP protocol decoder.
+	 * 
+	 * @param decoder
+	 */
+	public void setDecoder(RTMPProtocolDecoder decoder) {
+		this.decoder = decoder;
+	}
+
+	/**
+	 * Returns an RTMP decoder
+	 * @return RTMP decoder
+	 */
+	public RTMPProtocolDecoder getDecoder() {
+		return decoder;
+	}
+	
 	/**
 	 * Setter for deserializer.
 	 * 
@@ -76,10 +86,7 @@ public class RTMPMinaProtocolDecoder extends ProtocolDecoderAdapter {
 	 */
 	public void setDeserializer(Deserializer deserializer) {
 		decoder.setDeserializer(deserializer);
-	}    
-    
-	public RTMPProtocolDecoder getDecoder() {
-		return decoder;
 	}
+
 
 }

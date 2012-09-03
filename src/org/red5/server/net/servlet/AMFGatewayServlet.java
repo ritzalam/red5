@@ -30,11 +30,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.IContext;
-import org.red5.server.api.IGlobalScope;
-import org.red5.server.api.IScope;
 import org.red5.server.api.IServer;
 import org.red5.server.api.Red5;
 import org.red5.server.api.remoting.IRemotingConnection;
+import org.red5.server.api.scope.IGlobalScope;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.api.service.IServiceInvoker;
 import org.red5.server.net.remoting.RemotingConnection;
 import org.red5.server.net.remoting.codec.RemotingCodecFactory;
@@ -197,6 +197,8 @@ public class AMFGatewayServlet extends HttpServlet {
 			if (conn != null) {
 				((RemotingConnection) conn).cleanup();
 			}
+			// clear thread local reference
+			Red5.setConnectionLocal(null);
 		}
 	}
 

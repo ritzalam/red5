@@ -30,8 +30,7 @@ import org.red5.io.ITagReader;
 import org.red5.io.StreamableFileFactory;
 import org.red5.io.flv.IKeyFrameDataAnalyzer;
 import org.red5.io.flv.IKeyFrameDataAnalyzer.KeyFrameMeta;
-import org.red5.server.api.IScope;
-import org.red5.server.api.ScopeUtils;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
 import org.red5.server.messaging.IPassive;
@@ -41,16 +40,17 @@ import org.red5.server.messaging.IPullableProvider;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.event.AudioData;
+import org.red5.server.net.rtmp.event.FlexStreamSend;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Unknown;
 import org.red5.server.net.rtmp.event.VideoData;
-import org.red5.server.net.rtmp.event.FlexStreamSend;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.stream.ISeekableProvider;
 import org.red5.server.stream.IStreamTypeAwareProvider;
 import org.red5.server.stream.message.RTMPMessage;
+import org.red5.server.util.ScopeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -125,7 +125,7 @@ public class FileProvider implements IPassive, ISeekableProvider, IPullableProvi
 	/** {@inheritDoc} */
 	public synchronized IMessage pullMessage(IPipe pipe) throws IOException {
 		if (this.pipe == pipe) {
-			if (this.reader == null) {
+			if (reader == null) {
 				init();
 			}
 			if (reader.hasMoreTags()) {
@@ -163,7 +163,7 @@ public class FileProvider implements IPassive, ISeekableProvider, IPullableProvi
 				// TODO send OOBCM to notify EOF
 				// Do not unsubscribe if there aren't any more tags, as this kills VOD seek while in buffer
 				// this.pipe.unsubscribe(this);
-			}			
+			}
 		}
 		return null;
 	}
@@ -241,10 +241,10 @@ public class FileProvider implements IPassive, ISeekableProvider, IPullableProvi
 	/**
 	 * Reset
 	 */
-	private synchronized void uninit() {
-		if (this.reader != null) {
-			this.reader.close();
-			this.reader = null;
+	private void uninit() {
+		if (reader != null) {
+			reader.close();
+			reader = null;
 		}
 	}
 
@@ -271,14 +271,21 @@ public class FileProvider implements IPassive, ISeekableProvider, IPullableProvi
 			reader.position(Long.MAX_VALUE);
 			return (int) keyFrameMeta.duration;
 		}
-		int frame = 0;
+		int frame = -1;
 		for (int i = 0; i < keyFrameMeta.positions.length; i++) {
 			if (keyFrameMeta.timestamps[i] > ts) {
+				frame = i;
 				break;
 			}
-			frame = i;
 		}
-		reader.position(keyFrameMeta.positions[frame]);
-		return keyFrameMeta.timestamps[frame];
+		
+		if(frame > -1){
+			reader.position(keyFrameMeta.positions[frame]);
+			return keyFrameMeta.timestamps[frame];
+		} else {
+			// Seek at or beyond EOF
+			reader.position(Long.MAX_VALUE);
+			return (int) keyFrameMeta.duration;
+		}
 	}
 }

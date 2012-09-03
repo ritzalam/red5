@@ -18,7 +18,7 @@
 
 package org.red5.server.api.stream.support;
 
-import org.red5.server.api.IScope;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.api.stream.IStreamPlaybackSecurity;
 import org.red5.server.api.stream.IStreamPublishSecurity;
 
@@ -28,8 +28,7 @@ import org.red5.server.api.stream.IStreamPublishSecurity;
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
-public class DenyAllStreamAccess implements IStreamPublishSecurity,
-		IStreamPlaybackSecurity {
+public class DenyAllStreamAccess implements IStreamPublishSecurity, IStreamPlaybackSecurity {
 
 	/** {@inheritDoc} */
 	public boolean isPublishAllowed(IScope scope, String name, String mode) {
@@ -37,8 +36,7 @@ public class DenyAllStreamAccess implements IStreamPublishSecurity,
 	}
 
 	/** {@inheritDoc} */
-	public boolean isPlaybackAllowed(IScope scope, String name, int start,
-			int length, boolean flushPlaylist) {
+	public boolean isPlaybackAllowed(IScope scope, String name, int start, int length, boolean flushPlaylist) {
 		return false;
 	}
 

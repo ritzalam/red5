@@ -18,7 +18,7 @@
 
 package org.red5.server.service;
 
-import org.red5.server.api.IScope;
+import org.red5.server.api.scope.IScope;
 
 /**
  * Resolves service names in custom configured services of a scope.
@@ -30,7 +30,7 @@ import org.red5.server.api.IScope;
 public class ScopeServiceResolver implements IServiceResolver {
 
 	/** {@inheritDoc} */
-    public Object resolveService(IScope scope, String serviceName) {
+	public Object resolveService(IScope scope, String serviceName) {
 		return scope.getServiceHandler(serviceName);
 	}
 

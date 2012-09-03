@@ -498,7 +498,9 @@ public final class ClassLoaderBuilder {
 					String v = topVersion[2].toLowerCase();
 					if (v.length() > 1) {
 						topVersion[2] = deleteAny(v, ALPHABET);
-					} else {
+					}
+					// after alpha removal, string is any digits or single char
+					if (topVersion[2].length() == 1) {
 						//if is a only a letter use its index as a version
 						char ch = v.charAt(0);
 						if (!Character.isDigit(ch)) {
@@ -507,8 +509,14 @@ public final class ClassLoaderBuilder {
 					}
 				}
 				//System.out.println("AOB " + checkVers + " | " + topVersion[0] + " length: " + topVersion.length);
-				int topVersionNumber = topVersion.length == 1 ? Integer.valueOf(topVersion[0]) : Integer.valueOf(
+				int topVersionNumber;
+				try{
+					topVersionNumber = topVersion.length == 1 ? Integer.valueOf(topVersion[0]) : Integer.valueOf(
 						topVersion[0] + topVersion[1] + (topVersion.length > 2 ? topVersion[2] : '0')).intValue();
+				} catch (NumberFormatException nfe){
+					topVersionNumber = 0;
+					System.err.println("Error parsing topVers:"+ topVers);
+				}
 
 				String[] checkVersion = punct.split(checkVers);
 				//System.out.println("checkVersion (" + checkVers + "): " + checkVersion[0] + " length: " + checkVersion.length);
@@ -518,7 +526,9 @@ public final class ClassLoaderBuilder {
 					String v = checkVersion[2].toLowerCase();
 					if (v.length() > 1) {
 						checkVersion[2] = deleteAny(v, ALPHABET);
-					} else {
+					} 
+					// after alpha removal, string is any digits or single char
+					if (checkVersion[2].length() == 1) {
 						//if is a only a letter use its index as a version
 						char ch = v.charAt(0);
 						if (!Character.isDigit(ch)) {
@@ -526,8 +536,16 @@ public final class ClassLoaderBuilder {
 						}
 					}
 				}
-				int checkVersionNumber = checkVersion.length == 1 ? Integer.valueOf(checkVersion[0]) : Integer.valueOf(
+				int checkVersionNumber;
+				try{
+					checkVersionNumber = checkVersion.length == 1 ? Integer.valueOf(checkVersion[0]) : Integer.valueOf(
 						checkVersion[0] + checkVersion[1] + (checkVersion.length > 2 ? checkVersion[2] : '0')).intValue();
+				} catch (NumberFormatException nfe){
+					checkVersionNumber=0;
+					System.err.println("Error parsing checkVers:"+ checkVers);
+				}
+
+				// Check version numbers
 				if (topVersionNumber >= checkVersionNumber) {
 					//remove it
 					removalList.add(check);

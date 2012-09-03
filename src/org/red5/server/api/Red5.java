@@ -24,6 +24,8 @@ import java.util.Map;
 
 import javax.management.openmbean.CompositeData;
 
+import org.red5.server.api.scope.IScope;
+
 /**
  * Utility class for accessing Red5 API objects.
  *
@@ -42,9 +44,11 @@ import javax.management.openmbean.CompositeData;
  *   
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
- * @author Paul Gregoire (mondain@gmail.com) 
+ * @author Paul Gregoire (mondain@gmail.com)    
  */
 public final class Red5 {
+
+	//private static Logger log = LoggerFactory.getLogger(Red5.class);
 
 	/**
 	 * Current connection thread. Each connection of Red5 application runs in a
@@ -60,7 +64,7 @@ public final class Red5 {
 	/**
 	 * Current server version with revision
 	 */
-	public static final String VERSION = "Red5 Server 1.0.0 RC2 $Rev$";
+	public static final String VERSION = "Red5 Server 1.0.0 RC3 $Rev$";
 
 	/**
 	 * Current server version for fmsVer requests 
@@ -106,12 +110,13 @@ public final class Red5 {
 	 * @param connection     Thread local connection
 	 */
 	public static void setConnectionLocal(IConnection connection) {
+		//log.info("Set connection: {}", connection);
 		if (connection != null) {
-    		connThreadLocal.set(new WeakReference<IConnection>(connection));
-    		IScope scope = connection.getScope();
-    		if (scope != null) {
-    			Thread.currentThread().setContextClassLoader(scope.getClassLoader());
-    		}
+			connThreadLocal.set(new WeakReference<IConnection>(connection));
+			IScope scope = connection.getScope();
+			if (scope != null) {
+				Thread.currentThread().setContextClassLoader(scope.getClassLoader());
+			}
 		} else {
 			// use null to clear the value
 			connThreadLocal.remove();

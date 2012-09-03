@@ -29,21 +29,22 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.red5.server.BaseConnection;
-import org.red5.server.BasicScope;
 import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.IContext;
-import org.red5.server.api.IScope;
-import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.persistence.IPersistenceStore;
+import org.red5.server.api.scope.IScope;
+import org.red5.server.api.scope.ScopeType;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectListener;
 import org.red5.server.api.so.ISharedObjectSecurity;
 import org.red5.server.api.so.ISharedObjectSecurityService;
 import org.red5.server.api.statistics.ISharedObjectStatistics;
 import org.red5.server.net.rtmp.status.StatusCodes;
+import org.red5.server.scope.BasicScope;
 import org.red5.server.service.ServiceUtils;
+import org.red5.server.util.ScopeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +65,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 	/**
 	 * Server-side listeners
 	 */
-	private Set<ISharedObjectListener> serverListeners = new CopyOnWriteArraySet<ISharedObjectListener>();
+	private CopyOnWriteArraySet<ISharedObjectListener> serverListeners = new CopyOnWriteArraySet<ISharedObjectListener>();
 
 	/**
 	 * Event handlers
@@ -74,12 +75,12 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 	/**
 	 * Security handlers
 	 */
-	private Set<ISharedObjectSecurity> securityHandlers = new CopyOnWriteArraySet<ISharedObjectSecurity>();
+	private CopyOnWriteArraySet<ISharedObjectSecurity> securityHandlers = new CopyOnWriteArraySet<ISharedObjectSecurity>();
 
 	/**
 	 * Scoped shared object
 	 */
-	protected SharedObject so;
+	protected volatile SharedObject so;
 
 	/**
 	 * Creates shared object with given parent scope, name, persistence flag state and store object
@@ -89,22 +90,23 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 	 * @param store                     Persistence store
 	 */
 	public SharedObjectScope(IScope parent, String name, boolean persistent, IPersistenceStore store) {
-		super(parent, TYPE, name, persistent);
-		// Create shared object wrapper around the attributes
+		super(parent, ScopeType.SHARED_OBJECT, name, persistent);
+		// create shared object wrapper around the attributes
 		String path = parent.getContextPath();
 		if ("".equals(path) || path.charAt(0) != '/') {
 			path = '/' + path;
 		}
 		// Load SO
-		so = (SharedObject) store.load(TYPE + path + '/' + name);
+		so = (SharedObject) store.load(ScopeType.SHARED_OBJECT + path + '/' + name);
 		// Create if it doesn't exist
 		if (so == null) {
-			so = new SharedObject(attributes, name, path, persistent, store);
+			so = new SharedObject(name, path, persistent, store);
 			// Save
 			store.save(so);
 		} else {
-			// Rename and set path
-			so.setName(name);
+			// fix for issue #209 http://code.google.com/p/red5/issues/detail?id=209
+			//so.setName(name); // rename is no longer supported
+			// set path
 			so.setPath(path);
 		}
 	}
@@ -138,26 +140,12 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 
 	/** {@inheritDoc} */
 	@Override
-	public void setName(String name) {
-		so.setName(name);
-	}
-
-	/** {@inheritDoc} */
-	@Override
 	public String getPath() {
 		return so.getPath();
 	}
 
-	/** {@inheritDoc} */
-	@Override
 	public void setPath(String path) {
 		so.setPath(path);
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public String getType() {
-		return so.getType();
 	}
 
 	/** {@inheritDoc} */
@@ -311,7 +299,6 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 	public void addEventListener(IEventListener listener) {
 		super.addEventListener(listener);
 		so.register(listener);
-
 		for (ISharedObjectListener soListener : serverListeners) {
 			soListener.onSharedObjectConnect(this);
 		}
@@ -374,6 +361,66 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 	@Override
 	public Set<String> getAttributeNames() {
 		return so.getAttributeNames();
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public Boolean getBoolAttribute(String name) {
+		return so.getBoolAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public Byte getByteAttribute(String name) {
+		return so.getByteAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public Double getDoubleAttribute(String name) {
+		return so.getDoubleAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public Integer getIntAttribute(String name) {
+		return so.getIntAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public List<?> getListAttribute(String name) {
+		return so.getListAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public Long getLongAttribute(String name) {
+		return so.getLongAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public Map<?, ?> getMapAttribute(String name) {
+		return so.getMapAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public Set<?> getSetAttribute(String name) {
+		return so.getSetAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public Short getShortAttribute(String name) {
+		return so.getShortAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public String getStringAttribute(String name) {
+		return so.getStringAttribute(name);
 	}
 
 	/** {@inheritDoc} */
@@ -756,4 +803,5 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 	public ISharedObjectStatistics getStatistics() {
 		return so;
 	}
+	
 }

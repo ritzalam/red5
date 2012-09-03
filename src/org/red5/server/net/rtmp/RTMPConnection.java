@@ -18,26 +18,24 @@
 
 package org.red5.server.net.rtmp;
 
-import static org.red5.server.api.ScopeUtils.getScopeService;
-
 import java.beans.ConstructorProperties;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.BaseConnection;
-import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCall;
@@ -65,6 +63,7 @@ import org.red5.server.stream.OutputStream;
 import org.red5.server.stream.PlaylistSubscriberStream;
 import org.red5.server.stream.SingleItemSubscriberStream;
 import org.red5.server.stream.StreamService;
+import org.red5.server.util.ScopeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,7 +115,10 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 */
 	private ConcurrentMap<Integer, IClientStream> streams = new ConcurrentHashMap<Integer, IClientStream>();
 
-	private final BitSet reservedStreams = new BitSet();
+	/**
+	 * Reserved stream ids
+	 */
+	private volatile BitSet reservedStreams = new BitSet();
 
 	/**
 	 * Identifier for remote calls.
@@ -133,7 +135,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * 
 	 * @see org.red5.server.net.rtmp.DeferredResult
 	 */
-	private HashSet<DeferredResult> deferredResults = new HashSet<DeferredResult>();
+	private CopyOnWriteArraySet<DeferredResult> deferredResults = new CopyOnWriteArraySet<DeferredResult>();
 
 	/**
 	 * Last ping round trip time
@@ -178,7 +180,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	/**
 	 * Number of bytes the client reported to have received.
 	 */
-	private long clientBytesRead = 0;
+	private AtomicLong clientBytesRead = new AtomicLong(0L);
 
 	/**
 	 * Map for pending video packets and stream IDs.
@@ -287,15 +289,10 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	}
 
 	private void unscheduleWaitForHandshakeJob() {
-		getWriteLock().lock();
-		try {
-			if (waitForHandshakeJob != null) {
-				schedulingService.removeScheduledJob(waitForHandshakeJob);
-				waitForHandshakeJob = null;
-				log.debug("Removed waitForHandshakeJob for: {}", getId());
-			}
-		} finally {
-			getWriteLock().unlock();
+		if (waitForHandshakeJob != null) {
+			schedulingService.removeScheduledJob(waitForHandshakeJob);
+			waitForHandshakeJob = null;
+			log.debug("Removed waitForHandshakeJob for: {}", getId());
 		}
 	}
 
@@ -358,16 +355,15 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * @return Channel by id
 	 */
 	public Channel getChannel(int channelId) {
-        if (channels == null) {
-            return new Channel(null, channelId);
-        }
-        
-		final Channel value = new Channel(this, channelId);
-		Channel result = channels.putIfAbsent(channelId, value);
-		if (result == null) {
-			result = value;
+		if (channels != null) {
+			Channel channel = channels.putIfAbsent(channelId, new Channel(this, channelId));
+			if (channel == null) {
+				channel = channels.get(channelId);
+			}
+			return channel;
+		} else {
+			return new Channel(null, channelId);
 		}
-		return result;
 	}
 
 	/**
@@ -391,17 +387,12 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	/** {@inheritDoc} */
 	public int reserveStreamId() {
 		int result = -1;
-		getWriteLock().lock();
-		try {
-			for (int i = 0; true; i++) {
-				if (!reservedStreams.get(i)) {
-					reservedStreams.set(i);
-					result = i;
-					break;
-				}
+		for (int i = 0; true; i++) {
+			if (!reservedStreams.get(i)) {
+				reservedStreams.set(i);
+				result = i;
+				break;
 			}
-		} finally {
-			getWriteLock().unlock();
 		}
 		return result + 1;
 	}
@@ -409,20 +400,34 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	/** {@inheritDoc} */
 	public int reserveStreamId(int id) {
 		int result = -1;
-		getWriteLock().lock();
-		try{
-			if(!reservedStreams.get(id-1)){
-				reservedStreams.set(id-1);
-				result = id-1;
-			}else{
-				result = reserveStreamId();
-			}
-		}finally{
-			getWriteLock().unlock();
+		if (!reservedStreams.get(id - 1)) {
+			reservedStreams.set(id - 1);
+			result = id - 1;
+		} else {
+			result = reserveStreamId();
 		}
 		return result;
 	}
-	
+
+	/**
+	 * Returns whether or not a given stream id is valid.
+	 * 
+	 * @param streamId
+	 * @return true if its valid, false if its invalid
+	 */
+	public boolean isValidStreamId(int streamId) {
+		int index = streamId - 1;
+		if (index < 0 || !reservedStreams.get(index)) {
+			// stream id has not been reserved before
+			return false;
+		}
+		if (streams.get(streamId - 1) != null) {
+			// another stream already exists with this id
+			return false;
+		}
+		return true;
+	}
+
 	/**
 	 * Creates output stream object from stream id. Output stream consists of
 	 * audio, data and video channels.
@@ -434,6 +439,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 */
 	public OutputStream createOutputStream(int streamId) {
 		int channelId = (4 + ((streamId - 1) * 5));
+		log.debug("Channel id range start: {}", channelId);
 		final Channel data = getChannel(channelId++);
 		final Channel video = getChannel(channelId++);
 		final Channel audio = getChannel(channelId++);
@@ -444,121 +450,71 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 
 	/** {@inheritDoc} */
 	public IClientBroadcastStream newBroadcastStream(int streamId) {
-		getReadLock().lock();
-		try {
-			int index = streamId - 1;
-			if (index < 0 || !reservedStreams.get(index)) {
-				// StreamId has not been reserved before
-				return null;
+		if (isValidStreamId(streamId)) {
+			// get ClientBroadcastStream defined as a prototype in red5-common.xml
+			ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
+			Integer buffer = streamBuffers.get(streamId - 1);
+			if (buffer != null) {
+				cbs.setClientBufferDuration(buffer);
 			}
-		} finally {
-			getReadLock().unlock();
-		}
+			cbs.setStreamId(streamId);
+			cbs.setConnection(this);
+			cbs.setName(createStreamName());
+			cbs.setScope(this.getScope());
 
-		if (streams.get(streamId - 1) != null) {
-			// Another stream already exists with this id
-			return null;
+			registerStream(cbs);
+			usedStreams.incrementAndGet();
+			return cbs;
 		}
-		/**
-		 * Picking up the ClientBroadcastStream defined as a spring
-		 * prototype in red5-common.xml
-		 */
-		ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
-		Integer buffer = streamBuffers.get(streamId - 1);
-		if (buffer != null) {
-			cbs.setClientBufferDuration(buffer);
-		}
-		cbs.setStreamId(streamId);
-		cbs.setConnection(this);
-		cbs.setName(createStreamName());
-		cbs.setScope(this.getScope());
-
-		registerStream(cbs);
-		usedStreams.incrementAndGet();
-		return cbs;
+		return null;
 	}
 
 	/** {@inheritDoc} */
 	public ISingleItemSubscriberStream newSingleItemSubscriberStream(int streamId) {
-		getReadLock().lock();
-		try {
-			int index = streamId - 1;
-			if (index < 0 || !reservedStreams.get(streamId - 1)) {
-				// StreamId has not been reserved before
-				return null;
+		if (isValidStreamId(streamId)) {
+			// get SingleItemSubscriberStream defined as a prototype in red5-common.xml
+			SingleItemSubscriberStream siss = (SingleItemSubscriberStream) scope.getContext().getBean("singleItemSubscriberStream");
+			Integer buffer = streamBuffers.get(streamId - 1);
+			if (buffer != null) {
+				siss.setClientBufferDuration(buffer);
 			}
-		} finally {
-			getReadLock().unlock();
+			siss.setName(createStreamName());
+			siss.setConnection(this);
+			siss.setScope(this.getScope());
+			siss.setStreamId(streamId);
+			registerStream(siss);
+			usedStreams.incrementAndGet();
+			return siss;
 		}
-
-		if (streams.get(streamId - 1) != null) {
-			// Another stream already exists with this id
-			return null;
-		}
-		/**
-		 * Picking up the SingleItemSubscriberStream defined as a Spring
-		 * prototype in red5-common.xml
-		 */
-		SingleItemSubscriberStream siss = (SingleItemSubscriberStream) scope.getContext().getBean("singleItemSubscriberStream");
-		Integer buffer = streamBuffers.get(streamId - 1);
-		if (buffer != null) {
-			siss.setClientBufferDuration(buffer);
-		}
-		siss.setName(createStreamName());
-		siss.setConnection(this);
-		siss.setScope(this.getScope());
-		siss.setStreamId(streamId);
-		registerStream(siss);
-		usedStreams.incrementAndGet();
-		return siss;
+		return null;
 	}
 
 	/** {@inheritDoc} */
 	public IPlaylistSubscriberStream newPlaylistSubscriberStream(int streamId) {
-		getReadLock().lock();
-		try {
-			int index = streamId - 1;
-			if (index < 0 || !reservedStreams.get(streamId - 1)) {
-				// StreamId has not been reserved before
-				return null;
+		if (isValidStreamId(streamId)) {
+			// get PlaylistSubscriberStream defined as a prototype in red5-common.xml
+			PlaylistSubscriberStream pss = (PlaylistSubscriberStream) scope.getContext().getBean("playlistSubscriberStream");
+			Integer buffer = streamBuffers.get(streamId - 1);
+			if (buffer != null) {
+				pss.setClientBufferDuration(buffer);
 			}
-		} finally {
-			getReadLock().unlock();
+			pss.setName(createStreamName());
+			pss.setConnection(this);
+			pss.setScope(this.getScope());
+			pss.setStreamId(streamId);
+			registerStream(pss);
+			usedStreams.incrementAndGet();
+			return pss;
 		}
-
-		if (streams.get(streamId - 1) != null) {
-			// Another stream already exists with this id
-			return null;
-		}
-		/**
-		 * Picking up the PlaylistSubscriberStream defined as a Spring
-		 * prototype in red5-common.xml
-		 */
-		PlaylistSubscriberStream pss = (PlaylistSubscriberStream) scope.getContext().getBean("playlistSubscriberStream");
-		Integer buffer = streamBuffers.get(streamId - 1);
-		if (buffer != null) {
-			pss.setClientBufferDuration(buffer);
-		}
-		pss.setName(createStreamName());
-		pss.setConnection(this);
-		pss.setScope(this.getScope());
-		pss.setStreamId(streamId);
-		registerStream(pss);
-		usedStreams.incrementAndGet();
-		return pss;
+		return null;
 	}
 
 	public void addClientStream(IClientStream stream) {
 		int streamId = stream.getStreamId();
-		getWriteLock().lock();
-		try {
-			if (reservedStreams.get(streamId - 1)) {
-				return;
-			}
-			reservedStreams.set(streamId - 1);
-		} finally {
-			getWriteLock().unlock();
+		if (reservedStreams.get(streamId - 1)) {
+			return;
 		}
+		reservedStreams.set(streamId - 1);
 		streams.put(streamId - 1, stream);
 		usedStreams.incrementAndGet();
 	}
@@ -632,17 +588,12 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	/** {@inheritDoc} */
 	@Override
 	public void close() {
-		getWriteLock().lock();
-		try {
-			if (keepAliveJobName != null) {
-				schedulingService.removeScheduledJob(keepAliveJobName);
-				keepAliveJobName = null;
-			}
-		} finally {
-			getWriteLock().unlock();
+		if (keepAliveJobName != null) {
+			schedulingService.removeScheduledJob(keepAliveJobName);
+			keepAliveJobName = null;
 		}
 		Red5.setConnectionLocal(this);
-		IStreamService streamService = (IStreamService) getScopeService(scope, IStreamService.class, StreamService.class);
+		IStreamService streamService = (IStreamService) ScopeUtils.getScopeService(scope, IStreamService.class, StreamService.class);
 		if (streamService != null) {
 			for (Map.Entry<Integer, IClientStream> entry : streams.entrySet()) {
 				IClientStream stream = entry.getValue();
@@ -658,40 +609,36 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		// kill all the collections etc
 		if (channels != null) {
 			channels.clear();
-			channels = null;
 		} else {
 			log.trace("Channels collection was null");
 		}
 		if (streams != null) {
 			streams.clear();
-			streams = null;
 		} else {
 			log.trace("Streams collection was null");
 		}
 		if (pendingCalls != null) {
 			pendingCalls.clear();
-			pendingCalls = null;
 		} else {
 			log.trace("PendingCalls collection was null");
 		}
 		if (deferredResults != null) {
 			deferredResults.clear();
-			deferredResults = null;
 		} else {
 			log.trace("DeferredResults collection was null");
 		}
 		if (pendingVideos != null) {
 			pendingVideos.clear();
-			pendingVideos = null;
 		} else {
 			log.trace("PendingVideos collection was null");
 		}
 		if (streamBuffers != null) {
 			streamBuffers.clear();
-			streamBuffers = null;
 		} else {
 			log.trace("StreamBuffers collection was null");
 		}
+		// clear thread local reference
+		Red5.setConnectionLocal(null);
 	}
 
 	/**
@@ -717,14 +664,9 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 
 	/** {@inheritDoc} */
 	public void unreserveStreamId(int streamId) {
-		getWriteLock().lock();
-		try {
-			deleteStreamById(streamId);
-			if (streamId > 0) {
-				reservedStreams.clear(streamId - 1);
-			}
-		} finally {
-			getWriteLock().unlock();
+		deleteStreamById(streamId);
+		if (streamId > 0) {
+			reservedStreams.clear(streamId - 1);
 		}
 	}
 
@@ -750,13 +692,6 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	}
 
 	/**
-	 * Write raw byte buffer.
-	 * 
-	 * @param out IoBuffer
-	 */
-	public abstract void rawWrite(IoBuffer out);
-
-	/**
 	 * Write packet.
 	 * 
 	 * @param out Packet
@@ -764,19 +699,21 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	public abstract void write(Packet out);
 
 	/**
+	 * Write raw byte buffer.
+	 * 
+	 * @param out IoBuffer
+	 */
+	public abstract void writeRaw(IoBuffer out);
+
+	/**
 	 * Update number of bytes to read next value.
 	 */
 	protected void updateBytesRead() {
-		getWriteLock().lock();
-		try {
-			long bytesRead = getReadBytes();
-			if (bytesRead >= nextBytesRead) {
-				BytesRead sbr = new BytesRead((int) bytesRead);
-				getChannel(2).write(sbr);
-				nextBytesRead += bytesReadInterval;
-			}
-		} finally {
-			getWriteLock().unlock();
+		long bytesRead = getReadBytes();
+		if (bytesRead >= nextBytesRead) {
+			BytesRead sbr = new BytesRead((int) bytesRead);
+			getChannel(2).write(sbr);
+			nextBytesRead += bytesReadInterval;
 		}
 	}
 
@@ -786,13 +723,8 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * @param bytes Number of bytes
 	 */
 	public void receivedBytesRead(int bytes) {
-		getWriteLock().lock();
-		try {
-			log.debug("Client received {} bytes, written {} bytes, {} messages pending", new Object[] { bytes, getWrittenBytes(), getPendingMessages() });
-			clientBytesRead = bytes;
-		} finally {
-			getWriteLock().unlock();
-		}
+		log.debug("Client received {} bytes, written {} bytes, {} messages pending", new Object[] { bytes, getWrittenBytes(), getPendingMessages() });
+		clientBytesRead.addAndGet(bytes);
 	}
 
 	/**
@@ -801,12 +733,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * @return Number of bytes
 	 */
 	public long getClientBytesRead() {
-		getReadLock().lock();
-		try {
-			return clientBytesRead;
-		} finally {
-			getReadLock().unlock();
-		}
+		return clientBytesRead.get();
 	}
 
 	/** {@inheritDoc} */
@@ -911,18 +838,18 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 *            Pending call service id
 	 * @return Pending call service object
 	 */
-	protected IPendingServiceCall getPendingCall(int invokeId) {
+	public IPendingServiceCall getPendingCall(int invokeId) {
 		return pendingCalls.get(invokeId);
 	}
 
 	/**
-	 * Retrieve pending call service by id. The call will be removed afterwards.
+	 * Retrieves and removes the pending call service by id.
 	 * 
 	 * @param invokeId
 	 *            Pending call service id
 	 * @return Pending call service object
 	 */
-	protected IPendingServiceCall retrievePendingCall(int invokeId) {
+	public IPendingServiceCall retrievePendingCall(int invokeId) {
 		return pendingCalls.remove(invokeId);
 	}
 
@@ -958,7 +885,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 */
 	public void messageReceived() {
 		readMessages.incrementAndGet();
-		// Trigger generation of BytesRead messages
+		// trigger generation of BytesRead messages
 		updateBytesRead();
 	}
 
@@ -1086,13 +1013,8 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * 
 	 * @param result Result to register
 	 */
-	protected void registerDeferredResult(DeferredResult result) {
-		getWriteLock().lock();
-		try {
-			deferredResults.add(result);
-		} finally {
-			getWriteLock().unlock();
-		}
+	public void registerDeferredResult(DeferredResult result) {
+		deferredResults.add(result);
 	}
 
 	/**
@@ -1101,16 +1023,11 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * @param result
 	 *            Result to unregister
 	 */
-	protected void unregisterDeferredResult(DeferredResult result) {
-		getWriteLock().lock();
-		try {
-			deferredResults.remove(result);
-		} finally {
-			getWriteLock().unlock();
-		}
+	public void unregisterDeferredResult(DeferredResult result) {
+		deferredResults.remove(result);
 	}
 
-	protected void rememberStreamBufferDuration(int streamId, int bufferDuration) {
+	public void rememberStreamBufferDuration(int streamId, int bufferDuration) {
 		streamBuffers.put(streamId - 1, bufferDuration);
 	}
 

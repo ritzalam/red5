@@ -18,10 +18,6 @@
 
 package org.red5.server.adapter;
 
-import static org.red5.server.api.ScopeUtils.getScopeService;
-import static org.red5.server.api.ScopeUtils.isApp;
-import static org.red5.server.api.ScopeUtils.isRoom;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -41,13 +37,13 @@ import org.red5.io.StreamableFileFactory;
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
-import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
-import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.plugin.IRed5Plugin;
 import org.red5.server.api.plugin.IRed5PluginHandler;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
+import org.red5.server.api.scope.IBroadcastScope;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.api.service.ServiceUtils;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectSecurity;
@@ -55,7 +51,6 @@ import org.red5.server.api.so.ISharedObjectSecurityService;
 import org.red5.server.api.so.ISharedObjectService;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IBroadcastStreamService;
-import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IOnDemandStream;
 import org.red5.server.api.stream.IOnDemandStreamService;
 import org.red5.server.api.stream.IPlayItem;
@@ -75,11 +70,11 @@ import org.red5.server.plugin.PluginRegistry;
 import org.red5.server.plugin.Red5Plugin;
 import org.red5.server.scheduling.QuartzSchedulingService;
 import org.red5.server.so.SharedObjectService;
-import org.red5.server.stream.IBroadcastScope;
 import org.red5.server.stream.IProviderService;
 import org.red5.server.stream.PlaylistSubscriberStream;
 import org.red5.server.stream.ProviderService;
 import org.red5.server.stream.StreamService;
+import org.red5.server.util.ScopeUtils;
 import org.slf4j.Logger;
 
 /**
@@ -325,9 +320,9 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 			}
 		}
 		boolean success = false;
-		if (isApp(scope)) {
+		if (ScopeUtils.isApp(scope)) {
 			success = appConnect(conn, params);
-		} else if (isRoom(scope)) {
+		} else if (ScopeUtils.isRoom(scope)) {
 			success = roomConnect(conn, params);
 		}
 		return success;
@@ -404,18 +399,18 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 		if (!super.start(scope)) {
 			return false;
 		}
-		if (isApp(scope)) {
+		if (ScopeUtils.isApp(scope)) {
 			boolean started = appStart(scope);
 			// fix for issue 91
 			if (started) {
-    			// we dont allow connections until we are started
-    			super.setCanConnect(true);
-    			// we also dont allow service calls until started
-    			super.setCanCallService(true);
+				// we dont allow connections until we are started
+				super.setCanConnect(true);
+				// we also dont allow service calls until started
+				super.setCanCallService(true);
 			}
 			return started;
 		} else {
-			return isRoom(scope) && roomStart(scope);
+			return ScopeUtils.isRoom(scope) && roomStart(scope);
 		}
 	}
 
@@ -443,9 +438,9 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 				log.info("W3C x-category:session x-event:disconnect c-ip:{} c-client-id:{}", conn.getRemoteAddress(), client.getId());
 			}
 		}
-		if (isApp(scope)) {
+		if (ScopeUtils.isApp(scope)) {
 			appDisconnect(conn);
-		} else if (isRoom(scope)) {
+		} else if (ScopeUtils.isRoom(scope)) {
 			roomDisconnect(conn);
 		}
 		super.disconnect(conn, scope);
@@ -462,13 +457,13 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 */
 	@Override
 	public void stop(IScope scope) {
-		if (isApp(scope)) {
+		if (ScopeUtils.isApp(scope)) {
 			appStop(scope);
 			// we dont allow connections after we stop
 			super.setCanConnect(false);
 			// we also dont allow service calls 
-			super.setCanCallService(false);			
-		} else if (isRoom(scope)) {
+			super.setCanCallService(false);
+		} else if (ScopeUtils.isRoom(scope)) {
 			roomStop(scope);
 		}
 		super.stop(scope);
@@ -491,10 +486,10 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 		if (!super.join(client, scope)) {
 			return false;
 		}
-		if (isApp(scope)) {
+		if (ScopeUtils.isApp(scope)) {
 			return appJoin(client, scope);
 		} else {
-			return isRoom(scope) && roomJoin(client, scope);
+			return ScopeUtils.isRoom(scope) && roomJoin(client, scope);
 		}
 	}
 
@@ -513,9 +508,9 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	@Override
 	public void leave(IClient client, IScope scope) {
 		log.debug("leave: {} << {}", client, scope);
-		if (isApp(scope)) {
+		if (ScopeUtils.isApp(scope)) {
 			appLeave(client, scope);
-		} else if (isRoom(scope)) {
+		} else if (ScopeUtils.isRoom(scope)) {
 			roomLeave(client, scope);
 		}
 		super.leave(client, scope);
@@ -760,16 +755,13 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	/* Wrapper around ISharedObjectService */
 
 	/**
-	 * Creates a new shared object for given scope. Server-side shared objects
-	 * (also known as Remote SO) are special kind of objects those variable are
-	 * synchronized between clients. To get an instance of RSO at client-side,
-	 * use <code>SharedObject.getRemote()</code>.
+	 * Creates a new shared object for given scope. Server-side shared objects (also known as Remote SO) are special kind of 
+	 * objects those variable are synchronized between clients. To get an instance of RSO at client-side, use 
+	 * <code>SharedObject.getRemote()</code>.
 	 * 
-	 * SharedObjects can be persistent and transient. Persistent RSO are
-	 * stateful, i.e. store their data between sessions. If you need to store
-	 * some data on server while clients go back and forth use persistent SO
-	 * (just use <code>true</code> ), otherwise prefer usage of transient for
-	 * extra performance.
+	 * SharedObjects can be persistent and transient. Persistent RSO are stateful, i.e. store their data between sessions. 
+	 * If you need to store some data on server while clients go back and forth use persistent SO (just use <code>true</code> ),
+	 * otherwise prefer usage of transient for extra performance.
 	 * 
 	 * @param scope
 	 *            Scope that shared object belongs to
@@ -780,7 +772,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * @return <code>true</code> if SO was created, <code>false</code> otherwise
 	 */
 	public boolean createSharedObject(IScope scope, String name, boolean persistent) {
-		ISharedObjectService service = (ISharedObjectService) getScopeService(scope, ISharedObjectService.class, SharedObjectService.class, false);
+		ISharedObjectService service = (ISharedObjectService) ScopeUtils.getScopeService(scope, ISharedObjectService.class, SharedObjectService.class, false);
 		return service.createSharedObject(scope, name, persistent);
 	}
 
@@ -794,7 +786,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * @return Shared object instance with name given
 	 */
 	public ISharedObject getSharedObject(IScope scope, String name) {
-		ISharedObjectService service = (ISharedObjectService) getScopeService(scope, ISharedObjectService.class, SharedObjectService.class, false);
+		ISharedObjectService service = (ISharedObjectService) ScopeUtils.getScopeService(scope, ISharedObjectService.class, SharedObjectService.class, false);
 		return service.getSharedObject(scope, name);
 	}
 
@@ -810,7 +802,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * @return Shared object instance with name given
 	 */
 	public ISharedObject getSharedObject(IScope scope, String name, boolean persistent) {
-		ISharedObjectService service = (ISharedObjectService) getScopeService(scope, ISharedObjectService.class, SharedObjectService.class, false);
+		ISharedObjectService service = (ISharedObjectService) ScopeUtils.getScopeService(scope, ISharedObjectService.class, SharedObjectService.class, false);
 		return service.getSharedObject(scope, name, persistent);
 	}
 
@@ -821,7 +813,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 *            Scope that SO belong to
 	 */
 	public Set<String> getSharedObjectNames(IScope scope) {
-		ISharedObjectService service = (ISharedObjectService) getScopeService(scope, ISharedObjectService.class, SharedObjectService.class, false);
+		ISharedObjectService service = (ISharedObjectService) ScopeUtils.getScopeService(scope, ISharedObjectService.class, SharedObjectService.class, false);
 		return service.getSharedObjectNames(scope);
 	}
 
@@ -834,7 +826,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 *            Name of SharedObject
 	 */
 	public boolean hasSharedObject(IScope scope, String name) {
-		ISharedObjectService service = (ISharedObjectService) getScopeService(scope, ISharedObjectService.class, SharedObjectService.class, false);
+		ISharedObjectService service = (ISharedObjectService) ScopeUtils.getScopeService(scope, ISharedObjectService.class, SharedObjectService.class, false);
 		return service.hasSharedObject(scope, name);
 	}
 
@@ -842,18 +834,18 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 
 	/** {@inheritDoc} */
 	public boolean hasBroadcastStream(IScope scope, String name) {
-		IProviderService service = (IProviderService) getScopeService(scope, IProviderService.class, ProviderService.class);
+		IProviderService service = (IProviderService) ScopeUtils.getScopeService(scope, IProviderService.class, ProviderService.class);
 		return (service.getLiveProviderInput(scope, name, false) != null);
 	}
 
 	/** {@inheritDoc} */
 	public IBroadcastStream getBroadcastStream(IScope scope, String name) {
-		IStreamService service = (IStreamService) getScopeService(scope, IStreamService.class, StreamService.class);
+		IStreamService service = (IStreamService) ScopeUtils.getScopeService(scope, IStreamService.class, StreamService.class);
 		if (service instanceof StreamService) {
 			IBroadcastScope bs = ((StreamService) service).getBroadcastScope(scope, name);
 			if (bs != null) {
-				return (IClientBroadcastStream) bs.getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
-			}			
+				return bs.getClientBroadcastStream();
+			}
 		}
 		return null;
 	}
@@ -875,8 +867,8 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 *            Scope to retrieve broadcasted stream names
 	 * @return List of broadcasted stream names.
 	 */
-	public List<String> getBroadcastStreamNames(IScope scope) {
-		IProviderService service = (IProviderService) getScopeService(scope, IProviderService.class, ProviderService.class);
+	public Set<String> getBroadcastStreamNames(IScope scope) {
+		IProviderService service = (IProviderService) ScopeUtils.getScopeService(scope, IProviderService.class, ProviderService.class);
 		return service.getBroadcastStreamNames(scope);
 	}
 
@@ -892,7 +884,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 *         <code>false</code> otherwise.
 	 */
 	public boolean hasOnDemandStream(IScope scope, String name) {
-		IProviderService service = (IProviderService) getScopeService(scope, IProviderService.class, ProviderService.class);
+		IProviderService service = (IProviderService) ScopeUtils.getScopeService(scope, IProviderService.class, ProviderService.class);
 		IMessageInput msgIn = service.getVODProviderInput(scope, name);
 		if (msgIn instanceof AbstractPipe) {
 			((AbstractPipe) msgIn).close();
@@ -914,7 +906,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 */
 	public IOnDemandStream getOnDemandStream(IScope scope, String name) {
 		log.warn("This won't work until the refactoring of the streaming code is complete.");
-		IOnDemandStreamService service = (IOnDemandStreamService) getScopeService(scope, IOnDemandStreamService.class, StreamService.class, false);
+		IOnDemandStreamService service = (IOnDemandStreamService) ScopeUtils.getScopeService(scope, IOnDemandStreamService.class, StreamService.class, false);
 		return service.getOnDemandStream(scope, name);
 	}
 
@@ -931,7 +923,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 */
 	public ISubscriberStream getSubscriberStream(IScope scope, String name) {
 		log.warn("This won't work until the refactoring of the streaming code is complete.");
-		ISubscriberStreamService service = (ISubscriberStreamService) getScopeService(scope, ISubscriberStreamService.class, StreamService.class, false);
+		ISubscriberStreamService service = (ISubscriberStreamService) ScopeUtils.getScopeService(scope, ISubscriberStreamService.class, StreamService.class, false);
 		return service.getSubscriberStream(scope, name);
 	}
 
@@ -948,7 +940,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * @return Name of the scheduled job
 	 */
 	public String addScheduledJob(int interval, IScheduledJob job) {
-		ISchedulingService service = (ISchedulingService) getScopeService(scope, ISchedulingService.class, QuartzSchedulingService.class, false);
+		ISchedulingService service = (ISchedulingService) ScopeUtils.getScopeService(scope, ISchedulingService.class, QuartzSchedulingService.class, false);
 		return service.addScheduledJob(interval, job);
 	}
 
@@ -965,7 +957,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * @return Name of the scheduled job
 	 */
 	public String addScheduledOnceJob(long timeDelta, IScheduledJob job) {
-		ISchedulingService service = (ISchedulingService) getScopeService(scope, ISchedulingService.class, QuartzSchedulingService.class, false);
+		ISchedulingService service = (ISchedulingService) ScopeUtils.getScopeService(scope, ISchedulingService.class, QuartzSchedulingService.class, false);
 		return service.addScheduledOnceJob(timeDelta, job);
 	}
 
@@ -981,7 +973,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * @return Name of the scheduled job
 	 */
 	public String addScheduledOnceJob(Date date, IScheduledJob job) {
-		ISchedulingService service = (ISchedulingService) getScopeService(scope, ISchedulingService.class, QuartzSchedulingService.class, false);
+		ISchedulingService service = (ISchedulingService) ScopeUtils.getScopeService(scope, ISchedulingService.class, QuartzSchedulingService.class, false);
 		return service.addScheduledOnceJob(date, job);
 	}
 
@@ -998,7 +990,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * @return the name of the scheduled job
 	 */
 	public String addScheduledJobAfterDelay(int interval, IScheduledJob job, int delay) {
-		ISchedulingService service = (ISchedulingService) getScopeService(scope, ISchedulingService.class, QuartzSchedulingService.class, false);
+		ISchedulingService service = (ISchedulingService) ScopeUtils.getScopeService(scope, ISchedulingService.class, QuartzSchedulingService.class, false);
 		return service.addScheduledJobAfterDelay(interval, job, delay);
 	}
 
@@ -1009,7 +1001,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 *            Scheduled job name
 	 */
 	public void pauseScheduledJob(String name) {
-		ISchedulingService service = (ISchedulingService) getScopeService(scope, ISchedulingService.class, QuartzSchedulingService.class, false);
+		ISchedulingService service = (ISchedulingService) ScopeUtils.getScopeService(scope, ISchedulingService.class, QuartzSchedulingService.class, false);
 		service.pauseScheduledJob(name);
 	}
 
@@ -1020,7 +1012,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 *            Scheduled job name
 	 */
 	public void resumeScheduledJob(String name) {
-		ISchedulingService service = (ISchedulingService) getScopeService(scope, ISchedulingService.class, QuartzSchedulingService.class, false);
+		ISchedulingService service = (ISchedulingService) ScopeUtils.getScopeService(scope, ISchedulingService.class, QuartzSchedulingService.class, false);
 		service.resumeScheduledJob(name);
 	}
 
@@ -1031,7 +1023,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 *            Scheduled job name
 	 */
 	public void removeScheduledJob(String name) {
-		ISchedulingService service = (ISchedulingService) getScopeService(scope, ISchedulingService.class, QuartzSchedulingService.class, false);
+		ISchedulingService service = (ISchedulingService) ScopeUtils.getScopeService(scope, ISchedulingService.class, QuartzSchedulingService.class, false);
 		service.removeScheduledJob(name);
 	}
 
@@ -1041,7 +1033,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * @return List of scheduled job names as list of Strings.
 	 */
 	public List<String> getScheduledJobNames() {
-		ISchedulingService service = (ISchedulingService) getScopeService(scope, ISchedulingService.class, QuartzSchedulingService.class, false);
+		ISchedulingService service = (ISchedulingService) ScopeUtils.getScopeService(scope, ISchedulingService.class, QuartzSchedulingService.class, false);
 		return service.getScheduledJobNames();
 	}
 
@@ -1055,7 +1047,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 */
 	public double getStreamLength(String name) {
 		double duration = 0;
-		IProviderService provider = (IProviderService) getScopeService(scope, IProviderService.class, ProviderService.class);
+		IProviderService provider = (IProviderService) ScopeUtils.getScopeService(scope, IProviderService.class, ProviderService.class);
 		File file = provider.getVODProviderFile(scope, name);
 		if (file != null && file.canRead()) {
 			IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils.getScopeService(scope, IStreamableFileFactory.class, StreamableFileFactory.class);
@@ -1083,7 +1075,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 
 	/** {@inheritDoc} */
 	public boolean clearSharedObjects(IScope scope, String name) {
-		ISharedObjectService service = (ISharedObjectService) getScopeService(scope, ISharedObjectService.class, SharedObjectService.class, false);
+		ISharedObjectService service = (ISharedObjectService) ScopeUtils.getScopeService(scope, ISharedObjectService.class, SharedObjectService.class, false);
 
 		return service.clearSharedObjects(scope, name);
 	}
@@ -1179,21 +1171,27 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 *            Name of stream that is about to be published.
 	 */
 	public void FCPublish(String streamName) {
-		// Override if necessary.
 	}
 
 	/**
 	 * Notification method that is sent by FME when publishing of a stream ends.
 	 */
 	public void FCUnpublish() {
-		// Override if necessary.
 	}
 
 	/**
 	 * Notification method that is sent by FME when publishing of a stream ends.
 	 */
 	public void FCUnpublish(String streamName) {
-		// Override if necessary.
+	}
+
+	/**
+	 * Notification method that is sent by some clients just before playback starts.
+	 * 
+	 * @param streamName
+	 *            Name of stream that is about to be played.
+	 */
+	public void FCSubscribe(String streamName) {
 	}
 
 	/**
@@ -1320,7 +1318,14 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	public void streamRecordStart(IBroadcastStream stream) {
 		// log w3c connect event
 		IConnection connection = Red5.getConnectionLocal();
-		log.info("W3C x-category:stream x-event:record c-ip:{} x-sname:{} x-file-name:{}",
+		log.info("W3C x-category:stream x-event:record-start c-ip:{} x-sname:{} x-file-name:{}",
+				new Object[] { connection != null ? connection.getRemoteAddress() : "0.0.0.0", stream.getName(), stream.getSaveFilename() });
+	}
+
+	public void streamRecordStop(IBroadcastStream stream) {
+		// log w3c connect event
+		IConnection connection = Red5.getConnectionLocal();
+		log.info("W3C x-category:stream x-event:record-stop c-ip:{} x-sname:{} x-file-name:{}",
 				new Object[] { connection != null ? connection.getRemoteAddress() : "0.0.0.0", stream.getName(), stream.getSaveFilename() });
 	}
 

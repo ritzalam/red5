@@ -19,7 +19,7 @@
 package org.red5.server.api;
 
 import org.red5.server.BaseConnection;
-import org.red5.server.Scope;
+import org.red5.server.scope.Scope;
 
 public class TestConnection extends BaseConnection {
 

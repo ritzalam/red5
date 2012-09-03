@@ -26,12 +26,11 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.red5.io.utils.ObjectMap;
 import org.red5.server.BaseConnection;
-import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IContext;
-import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
-import org.red5.server.api.ScopeUtils;
+import org.red5.server.api.scope.IBroadcastScope;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IClientStream;
@@ -52,6 +51,7 @@ import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.net.rtmp.status.StatusCodes;
+import org.red5.server.util.ScopeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,7 +104,9 @@ public class StreamService implements IStreamService {
 		}
 	}
 
-	/** {@inheritDoc} */
+	/**
+	 * Close stream
+	 */
 	public void closeStream() {
 		closeStream(Red5.getConnectionLocal(), getCurrentStreamId());
 	}
@@ -145,7 +147,7 @@ public class StreamService implements IStreamService {
 				if (stream instanceof IClientBroadcastStream) {
 					// this is a broadcasting stream (from Flash Player to Red5)
 					IClientBroadcastStream bs = (IClientBroadcastStream) stream;
-					IBroadcastScope bsScope = (IBroadcastScope) connection.getScope().getBasicScope(IBroadcastScope.TYPE, bs.getPublishedName());
+					IBroadcastScope bsScope = connection.getScope().getBroadcastScope(bs.getPublishedName());
 					if (bsScope != null && connection instanceof BaseConnection) {
 						((BaseConnection) connection).unregisterBasicScope(bsScope);
 					}
@@ -602,7 +604,7 @@ public class StreamService implements IStreamService {
 				// TODO handle registration failure
 				if (providerService.registerBroadcastStream(conn.getScope(), name, bs)) {
 					bsScope = getBroadcastScope(conn.getScope(), name);
-					bsScope.setAttribute(IBroadcastScope.STREAM_ATTRIBUTE, bs);
+					bsScope.setClientBroadcastStream(bs);
 					if (conn instanceof BaseConnection) {
 						((BaseConnection) conn).registerBasicScope(bsScope);
 					}
@@ -614,7 +616,7 @@ public class StreamService implements IStreamService {
 				} else if (IClientStream.MODE_APPEND.equals(mode)) {
 					bs.start();
 					bs.saveAs(name, true);
-				} else if (IClientStream.MODE_PUBLISH.equals(mode) || IClientStream.MODE_LIVE.equals(mode)) {
+				} else {
 					bs.start();
 				}
 				bs.startPublishing();
@@ -701,11 +703,7 @@ public class StreamService implements IStreamService {
 	 * @return               Broadcast scope
 	 */
 	public IBroadcastScope getBroadcastScope(IScope scope, String name) {
-		IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE, name);
-		if (basicScope instanceof IBroadcastScope) {
-			return (IBroadcastScope) basicScope;
-		}
-		return null;
+		return scope.getBroadcastScope(name);
 	}
 
 	/**

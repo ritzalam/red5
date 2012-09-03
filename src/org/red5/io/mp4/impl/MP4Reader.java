@@ -34,6 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import java.util.concurrent.Semaphore;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mina.core.buffer.IoBuffer;
@@ -218,6 +219,8 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	 * for the key frames or samples.
 	 */
 	private LinkedList<Integer> seekPoints;
+
+	private final Semaphore lock = new Semaphore(1, true);
 
 	/** Constructs a new MP4Reader. */
 	MP4Reader() {
@@ -534,11 +537,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 													log.debug("Record count: {}", records.size());
 													MP4Atom.TimeSampleRecord rec = records.firstElement();
 													log.debug("Record data: Consecutive samples={} Duration={}", rec.getConsecutiveSamples(), rec.getSampleDuration());
-													//if we have 1 record then all samples have the same duration
-													if (records.size() > 1) {
-														//TODO: handle audio samples with varying durations
-														log.info("Audio samples have differing durations, audio playback may fail");
-													}
+													//if we have 1 record it means all samples have the same duration
 													audioSampleDuration = rec.getSampleDuration();
 												}
 											}
@@ -710,11 +709,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 													log.debug("Record count: {}", records.size());
 													MP4Atom.TimeSampleRecord rec = records.firstElement();
 													log.debug("Record data: Consecutive samples={} Duration={}", rec.getConsecutiveSamples(), rec.getSampleDuration());
-													//if we have 1 record then all samples have the same duration
-													if (records.size() > 1) {
-														//TODO: handle video samples with varying durations
-														log.info("Video samples have differing durations, video playback may fail");
-													}
+													//if we have 1 record it means all samples have the same duration
 													videoSampleDuration = rec.getSampleDuration();
 												}
 												//ctts - (composition) time to sample
@@ -1118,7 +1113,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 				body.put(new byte[] { (byte) 0xaf, (byte) 0 }); //prefix
 				body.put(audioDecoderBytes);
 				body.put((byte) 0x06); //suffix
-				tag = new Tag(IoConstants.TYPE_AUDIO, timestamp, body.position(), null, tag.getBodySize());
+				tag = new Tag(IoConstants.TYPE_AUDIO, timestamp, body.position(), null, 0);
 				body.flip();
 				tag.setBody(body);
 				//add tag
@@ -1132,80 +1127,90 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	/**
 	 * Packages media data for return to providers
 	 */
-	public synchronized ITag readTag() {
-		//log.debug("Read tag");
-		//empty-out the pre-streaming tags first
-		if (!firstTags.isEmpty()) {
-			//log.debug("Returning pre-tag");
-			// Return first tags before media data
-			return firstTags.removeFirst();
-		}
-		//log.debug("Read tag - sample {} prevFrameSize {} audio: {} video: {}", new Object[]{currentSample, prevFrameSize, audioCount, videoCount});
-		//get the current frame
-		MP4Frame frame = frames.get(currentFrame);
-		log.debug("Playback #{} {}", currentFrame, frame);
-		int sampleSize = frame.getSize();
-		int time = (int) Math.round(frame.getTime() * 1000.0);
-		//log.debug("Read tag - dst: {} base: {} time: {}", new Object[]{frameTs, baseTs, time});
-		long samplePos = frame.getOffset();
-		//log.debug("Read tag - samplePos {}", samplePos);
-		//determine frame type and packet body padding
-		byte type = frame.getType();
-		//assume video type
-		int pad = 5;
-		if (type == TYPE_AUDIO) {
-			pad = 2;
-		}
-		//create a byte buffer of the size of the sample
-		ByteBuffer data = ByteBuffer.allocate(sampleSize + pad);
+	public ITag readTag() {
+		ITag tag = null;
 		try {
-			//prefix is different for keyframes
-			if (type == TYPE_VIDEO) {
-				if (frame.isKeyFrame()) {
-					//log.debug("Writing keyframe prefix");
-					data.put(PREFIX_VIDEO_KEYFRAME);
-				} else {
-					//log.debug("Writing interframe prefix");
-					data.put(PREFIX_VIDEO_FRAME);
-				}
-				// match the sample with its ctts / mdhd adjustment time
-				int timeOffset = prevVideoTS != -1 ? time - prevVideoTS : 0;
-				data.put((byte) ((timeOffset >>> 16) & 0xff));
-				data.put((byte) ((timeOffset >>> 8) & 0xff));
-				data.put((byte) (timeOffset & 0xff));
-				if (log.isTraceEnabled()) {
-					byte[] prefix = new byte[5];
-					int p = data.position();
-					data.position(0);
-					data.get(prefix);
-					data.position(p);
-					log.trace("{}", prefix);
-				}
-				// track video frame count
-				videoCount++;
-				prevVideoTS = time;
-			} else {
-				//log.debug("Writing audio prefix");
-				data.put(PREFIX_AUDIO_FRAME);
-				// track audio frame count
-				audioCount++;
+			lock.acquire();
+			//log.debug("Read tag");
+			//empty-out the pre-streaming tags first
+			if (!firstTags.isEmpty()) {
+				//log.debug("Returning pre-tag");
+				// Return first tags before media data
+				return firstTags.removeFirst();
 			}
-			// do we need to add the mdat offset to the sample position?
-			channel.position(samplePos);
-			// read from the channel
-			channel.read(data);
-		} catch (IOException e) {
-			log.error("Error on channel position / read", e);
+			//log.debug("Read tag - sample {} prevFrameSize {} audio: {} video: {}", new Object[]{currentSample, prevFrameSize, audioCount, videoCount});
+			//get the current frame
+			MP4Frame frame = frames.get(currentFrame);
+			if (frame != null) {
+				log.debug("Playback #{} {}", currentFrame, frame);
+				int sampleSize = frame.getSize();
+				int time = (int) Math.round(frame.getTime() * 1000.0);
+				//log.debug("Read tag - dst: {} base: {} time: {}", new Object[]{frameTs, baseTs, time});
+				long samplePos = frame.getOffset();
+				//log.debug("Read tag - samplePos {}", samplePos);
+				//determine frame type and packet body padding
+				byte type = frame.getType();
+				//assume video type
+				int pad = 5;
+				if (type == TYPE_AUDIO) {
+					pad = 2;
+				}
+				//create a byte buffer of the size of the sample
+				ByteBuffer data = ByteBuffer.allocate(sampleSize + pad);
+				try {
+					//prefix is different for keyframes
+					if (type == TYPE_VIDEO) {
+						if (frame.isKeyFrame()) {
+							//log.debug("Writing keyframe prefix");
+							data.put(PREFIX_VIDEO_KEYFRAME);
+						} else {
+							//log.debug("Writing interframe prefix");
+							data.put(PREFIX_VIDEO_FRAME);
+						}
+						// match the sample with its ctts / mdhd adjustment time
+						int timeOffset = prevVideoTS != -1 ? time - prevVideoTS : 0;
+						data.put((byte) ((timeOffset >>> 16) & 0xff));
+						data.put((byte) ((timeOffset >>> 8) & 0xff));
+						data.put((byte) (timeOffset & 0xff));
+						if (log.isTraceEnabled()) {
+							byte[] prefix = new byte[5];
+							int p = data.position();
+							data.position(0);
+							data.get(prefix);
+							data.position(p);
+							log.trace("{}", prefix);
+						}
+						// track video frame count
+						videoCount++;
+						prevVideoTS = time;
+					} else {
+						//log.debug("Writing audio prefix");
+						data.put(PREFIX_AUDIO_FRAME);
+						// track audio frame count
+						audioCount++;
+					}
+					// do we need to add the mdat offset to the sample position?
+					channel.position(samplePos);
+					// read from the channel
+					channel.read(data);
+				} catch (IOException e) {
+					log.error("Error on channel position / read", e);
+				}
+				// chunk the data
+				IoBuffer payload = IoBuffer.wrap(data.array());
+				// create the tag
+				tag = new Tag(type, time, payload.limit(), payload, prevFrameSize);
+				//log.debug("Read tag - type: {} body size: {}", (type == TYPE_AUDIO ? "Audio" : "Video"), tag.getBodySize());
+				// increment the frame number
+				currentFrame++;
+				// set the frame / tag size
+				prevFrameSize = tag.getBodySize();
+			}
+		} catch (InterruptedException e) {
+			log.warn("Exception acquiring lock", e);
+		} finally {
+			lock.release();
 		}
-		// chunk the data
-		IoBuffer payload = IoBuffer.wrap(data.array());
-		// create the tag
-		ITag tag = new Tag(type, time, payload.limit(), payload, prevFrameSize);
-		//log.debug("Read tag - type: {} body size: {}", (type == TYPE_AUDIO ? "Audio" : "Video"), tag.getBodySize());
-		// increment the frame number
-		currentFrame++;
-		// set the frame / tag size
-		prevFrameSize = tag.getBodySize();
 		//log.debug("Tag: {}", tag);
 		return tag;
 	}
@@ -1359,7 +1364,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 							} catch (IOException e) {
 								log.warn("Exception during audio analysis", e);
 							}
-						}						
+						}
 						// exclude data that is not within the mdat box
 						if ((moovOffset < mdatOffset && pos > mdatOffset) || (moovOffset > mdatOffset && pos < moovOffset)) {
 							//create a frame
@@ -1473,12 +1478,23 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		KeyFrameMeta result = new KeyFrameMeta();
 		result.audioOnly = hasAudio && !hasVideo;
 		result.duration = duration;
-		result.positions = new long[seekPoints.size()];
-		result.timestamps = new int[seekPoints.size()];
-		for (int idx = 0; idx < seekPoints.size(); idx++) {
-			final Integer ts = seekPoints.get(idx);
-			result.positions[idx] = timePosMap.get(ts);
-			result.timestamps[idx] = ts;
+		if (result.audioOnly) {
+			result.positions = new long[frames.size()];
+			result.timestamps = new int[frames.size()];
+			result.audioOnly = true;
+			for (int i = 0; i < result.positions.length; i++) {
+				frames.get(i).setKeyFrame(true);
+				result.positions[i] = frames.get(i).getOffset();
+				result.timestamps[i] = (int) Math.round(frames.get(i).getTime() * 1000.0);
+			}
+		} else {
+			result.positions = new long[seekPoints.size()];
+			result.timestamps = new int[seekPoints.size()];
+			for (int idx = 0; idx < seekPoints.size(); idx++) {
+				final Integer ts = seekPoints.get(idx);
+				result.positions[idx] = timePosMap.get(ts);
+				result.timestamps[idx] = ts;
+			}
 		}
 		return result;
 	}

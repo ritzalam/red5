@@ -18,8 +18,8 @@
 
 package org.red5.server.api.stream;
 
-import org.red5.server.api.IScope;
-import org.red5.server.api.IScopeService;
+import org.red5.server.api.scope.IScope;
+import org.red5.server.api.scope.IScopeService;
 
 public interface ISubscriberStreamService extends IScopeService {
 

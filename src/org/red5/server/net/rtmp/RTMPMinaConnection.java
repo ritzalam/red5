@@ -19,19 +19,23 @@
 package org.red5.server.net.rtmp;
 
 import java.beans.ConstructorProperties;
+import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.concurrent.Semaphore;
 
+import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.management.StandardMBean;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.filterchain.IoFilterChain;
+import org.apache.mina.core.future.CloseFuture;
+import org.apache.mina.core.future.IoFutureListener;
 import org.apache.mina.core.session.IoSession;
-import org.red5.server.api.IScope;
-import org.red5.server.jmx.JMXAgent;
-import org.red5.server.jmx.JMXFactory;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.jmx.mxbeans.RTMPMinaConnectionMXBean;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
@@ -40,6 +44,7 @@ import org.red5.server.net.rtmp.event.ServerBW;
 import org.red5.server.net.rtmp.message.Packet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
  * Represents an RTMP connection using Mina.
@@ -48,6 +53,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Paul Gregoire
  */
+@ManagedResource
 public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnectionMXBean {
 
 	protected static Logger log = LoggerFactory.getLogger(RTMPMinaConnection.class);
@@ -65,56 +71,13 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	protected int defaultServerBandwidth = 10000000;
 
 	protected int defaultClientBandwidth = 10000000;
-	
-	protected boolean bandwidthDetection = true;
 
-	{
-		log.debug("RTMPMinaConnection created");
-	}
+	protected boolean bandwidthDetection = true;
 
 	/** Constructs a new RTMPMinaConnection. */
 	@ConstructorProperties(value = { "persistent" })
 	public RTMPMinaConnection() {
 		super(PERSISTENT);
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public void close() {
-		super.close();
-		if (ioSession != null) {
-			IoFilterChain filters = ioSession.getFilterChain();
-			//check if it exists and remove
-			if (filters.contains("bandwidthFilter")) {
-				ioSession.getFilterChain().remove("bandwidthFilter");
-			}
-			// update our state
-			if (ioSession.containsAttribute(ProtocolState.SESSION_KEY)) {
-				RTMP rtmp = (RTMP) ioSession.getAttribute(ProtocolState.SESSION_KEY);
-				log.debug("RTMP state: {}", rtmp);
-				rtmp.setState(RTMP.STATE_DISCONNECTING);
-			}
-			// accept no further incoming data
-			ioSession.suspendRead();
-			// close now, no flushing, no waiting
-			ioSession.close(true);
-			// only close socket after all pending data has been sent, this does not
-			// work as expected when using RTMPE
-			//CloseFuture future = ioSession.close(false);
-			// wait until the connection is closed
-			//future.awaitUninterruptibly();
-			// now connection should be closed.
-			//if (!future.isClosed()) {
-			// force the close
-			//	ioSession.close(true);				
-			//}
-		}
-		//de-register with JMX
-		try {
-			JMXAgent.unregisterMBean(oName);
-		} catch (Exception e) {
-			//sometimes the client is not registered in jmx
-		}
 	}
 
 	@SuppressWarnings("cast")
@@ -133,30 +96,50 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 				if (bandwidthDetection && !client.isBandwidthChecked()) {
 					client.checkBandwidth();
 				}
-				// register with jmx
-				try {
-					String cName = this.getClass().getName();
-					if (cName.indexOf('.') != -1) {
-						cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
-					}
-					String hostStr = host;
-					int port = 1935;
-					if (host != null && host.indexOf(":") > -1) {
-						String[] arr = host.split(":");
-						hostStr = arr[0];
-						port = Integer.parseInt(arr[1]);
-					}
-					// Create a new mbean for this instance
-					oName = JMXFactory.createObjectName("type", cName, "connectionType", type, "host", hostStr, "port", port + "", "clientId", client.getId());
-					JMXAgent.registerMBean(this, this.getClass().getName(), RTMPMinaConnectionMXBean.class, oName);
-				} catch (Exception e) {
-					log.warn("Exception registering mbean", e);
-				}
 			} else {
 				log.warn("Client was null");
 			}
+			registerJMX();
 		}
 		return success;
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public void close() {
+		super.close();
+		if (ioSession != null) {
+			// accept no further incoming data
+			ioSession.suspendRead();
+			// clear the filter chain
+			IoFilterChain filters = ioSession.getFilterChain();
+			//check if it exists and remove
+			if (filters.contains("bandwidthFilter")) {
+				ioSession.getFilterChain().remove("bandwidthFilter");
+			}
+			// update our state
+			if (ioSession.containsAttribute(ProtocolState.SESSION_KEY)) {
+				RTMP rtmp = (RTMP) ioSession.getAttribute(ProtocolState.SESSION_KEY);
+				if (rtmp != null) {
+					log.debug("RTMP state: {}", rtmp);
+					rtmp.setState(RTMP.STATE_DISCONNECTING);
+				}
+			}
+			// close now, no flushing, no waiting
+			CloseFuture future = ioSession.close(true);
+			// wait for one second
+			future.addListener(new IoFutureListener<CloseFuture>() {
+				public void operationComplete(CloseFuture future) {
+					if (future.isClosed()) {
+						log.debug("Connection is closed");
+					} else {
+						log.debug("Connection is not yet closed");
+					}
+					//de-register with JMX
+					unregisterJMX();
+				}
+			});
+		}
 	}
 
 	/**
@@ -223,7 +206,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	public void setBandwidthDetection(boolean bandwidthDetection) {
 		this.bandwidthDetection = bandwidthDetection;
 	}
-	
+
 	/** {@inheritDoc} */
 	@Override
 	public long getPendingMessages() {
@@ -259,21 +242,13 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	@Override
 	public boolean isConnected() {
 		// XXX Paul: not sure isClosing is actually working as we expect here
-		return super.isConnected() && (ioSession != null && ioSession.isConnected()); // && !ioSession.isClosing();
+		return super.isConnected() && (ioSession != null && ioSession.isConnected());
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	protected void onInactive() {
 		this.close();
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public void rawWrite(IoBuffer out) {
-		if (ioSession != null) {
-			ioSession.write(out);
-		}
 	}
 
 	/**
@@ -300,8 +275,82 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	@Override
 	public void write(Packet out) {
 		if (ioSession != null) {
-			writingMessage(out);
-			ioSession.write(out);
+			final Semaphore lock = getLock();
+			log.trace("Write lock wait count: {}", lock.getQueueLength());
+			while (!closed) {
+				try {
+					lock.acquire();
+				} catch (InterruptedException e) {
+					log.warn("Interrupted while waiting for write lock", e);
+					continue;
+				}
+				try {
+					log.debug("Writing message");
+					writingMessage(out);
+					ioSession.write(out);
+					break;
+				} finally {
+					lock.release();
+				}
+			}
+		}
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public void writeRaw(IoBuffer out) {
+		if (ioSession != null) {
+			final Semaphore lock = getLock();
+			while (!closed) {
+				try {
+					lock.acquire();
+				} catch (InterruptedException e) {
+					log.warn("Interrupted while waiting for write lock", e);
+					continue;
+				}
+				try {
+					log.debug("Writing raw message");
+					ioSession.write(out);
+					break;
+				} finally {
+					lock.release();
+				}
+			}
+		}
+	}
+
+	protected void registerJMX() {
+		// register with jmx
+		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+		try {
+			String cName = this.getClass().getName();
+			if (cName.indexOf('.') != -1) {
+				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
+			}
+			String hostStr = host;
+			int port = 1935;
+			if (host != null && host.indexOf(":") > -1) {
+				String[] arr = host.split(":");
+				hostStr = arr[0];
+				port = Integer.parseInt(arr[1]);
+			}
+			// Create a new mbean for this instance
+			oName = new ObjectName(String.format("org.red5.server:type=%s,connectionType=%s,host=%s,port=%d,clientId=%s", cName, type, hostStr, port, client.getId()));
+			mbs.registerMBean(new StandardMBean(this, RTMPMinaConnectionMXBean.class, true), oName);
+		} catch (Exception e) {
+			log.warn("Error on jmx registration", e);
+		}
+	}
+
+	protected void unregisterJMX() {
+		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+		if (oName != null && mbs.isRegistered(oName)) {
+			try {
+				mbs.unregisterMBean(oName);
+			} catch (Exception e) {
+				log.warn("Exception unregistering: {}", oName, e);
+			}
+			oName = null;
 		}
 	}
 

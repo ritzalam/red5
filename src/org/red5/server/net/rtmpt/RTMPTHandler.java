@@ -84,7 +84,6 @@ public class RTMPTHandler extends RTMPHandler {
 		log.debug("url: {}", url);
 		String[] parts = url.split("/");
 		if (parts.length == 2) {
-			// TODO: is this a good default hostname?
 			return "";
 		} else {
 			String host = parts[2];
@@ -112,7 +111,7 @@ public class RTMPTHandler extends RTMPHandler {
 		log.debug("Writing handshake reply, handskake size: {}", in.remaining());
 		RTMPHandshake shake = new InboundHandshake();
 		shake.setHandshakeType(RTMPConnection.RTMP_NON_ENCRYPTED);
-		conn.rawWrite(shake.doHandshake(in));
+		conn.writeRaw(shake.doHandshake(in));
 	}
 
 	/** {@inheritDoc} */

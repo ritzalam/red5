@@ -19,10 +19,10 @@
 package org.red5.server.stream;
 
 import java.io.File;
-import java.util.List;
+import java.util.Set;
 
-import org.red5.server.api.IScope;
-import org.red5.server.api.IScopeService;
+import org.red5.server.api.scope.IScope;
+import org.red5.server.api.scope.IScopeService;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.messaging.IMessageInput;
 
@@ -101,7 +101,7 @@ public interface IProviderService extends IScopeService {
 	 * @param scope         Scope to get stream names from
 	 * @return              List of stream names
 	 */
-	List<String> getBroadcastStreamNames(IScope scope);
+	Set<String> getBroadcastStreamNames(IScope scope);
 
 	/**
 	 * Unregister a broadcast stream of a specific name from a scope.

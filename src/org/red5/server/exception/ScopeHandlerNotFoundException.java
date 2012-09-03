@@ -25,11 +25,11 @@ public class ScopeHandlerNotFoundException extends RuntimeException {
 
 	private static final long serialVersionUID = 1894151808129303439L;
 
-    /**
-     * Create exception from given scope handler name
-     * @param handlerName            Scope handler name
-     */
-    public ScopeHandlerNotFoundException(String handlerName) {
+	/**
+	 * Create exception from given scope handler name
+	 * @param handlerName            Scope handler name
+	 */
+	public ScopeHandlerNotFoundException(String handlerName) {
 		super("No scope handler found: " + handlerName);
 	}
 

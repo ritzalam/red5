@@ -9,9 +9,6 @@
 	<property name="java.home" value="${env.JDK_HOME}"/>
 	<property name="src.dir" value="src"/>
 	<property name="dist.dir" value="dist"/>
-	<property name="cluster.dir" value="cluster"/>
-	<property name="origindist.dir" value="${cluster.dir}/origin"/>
-	<property name="edgedist.dir" value="${cluster.dir}/edge"/>
 	<property name="log.dir" value="log"/>
 	<property name="lib.dir" value="lib"/>
 	<property name="plugins.dir" value="plugins"/>
@@ -22,7 +19,7 @@
 	<property name="javadoc.dir" value="doc/api"/>
 	<property name="debug.state" value="true"/>
 	<!-- Documentation properties -->
-	<property name="doc.ref.dir" value="doc/reference"/>
+	<property name="doc.ref.dir" value="../../../doc/trunk/reference"/>
 	<property name="doc.ref.lib" value="${doc.ref.dir}/lib"/>
 	<property name="javadoc.style" value="${doc.ref.dir}/styles/javadoc.css"/>
 	<!-- unit testing -->
@@ -30,10 +27,10 @@
 	<property name="testclass.dir" value="bin/testcases/classes"/>
 	<property name="testreports.dir" value="bin/testcases/testreports"/>
 	<property name="testdoc.dir" value="doc/test"/>
+    <!-- user overides for project properties -->
+    <property file="${user.home}/build.properties"/>
 	<!-- base project properties -->
 	<property file="build.properties"/>
-	<!-- user overides for project properties -->
-	<property file="${user.home}/build.properties"/>
 	<!-- Hudson auto-builds and release properties -->
 	<!-- Hudson will set BUILD_TAG when running -->
 	<condition property="archive.version" value="${red5.version}-build-${env.BUILD_TAG}">
@@ -133,9 +130,6 @@
 		<mkdir dir="${dist.dir}"/>
 		<mkdir dir="${log.dir}"/>
 		<mkdir dir="${dist.dir}/${log.dir}"/>
-		<mkdir dir="${cluster.dir}"/>
-		<mkdir dir="${origindist.dir}"/>
-		<mkdir dir="${edgedist.dir}"/>
 		<mkdir dir="${testclass.dir}"/>
 		<mkdir dir="${testreports.dir}"/>
 	</target>
@@ -145,7 +139,6 @@
 		<delete file="ivy.log"/>
 		<delete dir="${classes.dir}"/>
 		<delete dir="${dist.dir}"/>
-		<delete dir="${cluster.dir}"/>
 		<delete dir="${javadoc.dir}"/>
 		<delete dir="${testdoc.dir}"/>
 		<delete includeemptydirs="true">
@@ -223,11 +216,7 @@
 		<antcall target="retrieve" inheritAll="true" inheritRefs="true">
 			<param name="ivy.conf.name" value="java6"/>
 		</antcall>
-		<javac sourcepath="" srcdir="${src.dir}" destdir="${dest.dir}" classpathref="project.classpath"
-			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
-			 deprecation="${build.deprecation}" debug="${debug.state}" compiler="${compiler}"
-			 source="${java.target_version}" target="${java.target_version}" memoryMaximumSize="${memory.maximum}"
-			 excludes="${std_excludes}" listfiles="false" includeantruntime="false"/>
+		<javac sourcepath="" srcdir="${src.dir}" destdir="${dest.dir}" classpathref="project.classpath" optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}" deprecation="${build.deprecation}" debug="${debug.state}" compiler="${compiler}" source="${java.target_version}" target="${java.target_version}" memoryInitialSize="${memory.minimum}" memoryMaximumSize="${memory.maximum}" excludes="${std_excludes}" listfiles="false" includeantruntime="false"/>
 		<!-- touch this source file so that the revision number will be updated upon svn commit -->
 		<touch file="${src.dir}/org/red5/server/api/Red5.java"/>
 	</target>
@@ -238,7 +227,7 @@
 		<javac sourcepath="" srcdir="${src.dir}" destdir="${dest.dir}" classpathref="project.classpath"
 			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
 			 deprecation="${build.deprecation}" debug="${debug.state}" compiler="${compiler}"
-			 source="${java.target_version}" target="${java.target_version}" memoryMaximumSize="${memory.maximum}"
+			 source="${java.target_version}" target="${java.target_version}" memoryInitialSize="${memory.minimum}" memoryMaximumSize="${memory.maximum}"
 			 excludes="${std_excludes}" listfiles="false" includeantruntime="false"/>
 	</target>
 	<macrodef name="build-demo">
@@ -595,6 +584,10 @@
 		</copy>
 		<!-- zip the source instead of copying verbatim -->
 		<zip destfile="${dist.dir}/src.zip" basedir="${src.dir}" level="9"/>
+		<!-- move to the expected directory for windows installer -->
+		<move todir="${dist.dir}.java6">
+			<fileset dir="${dist.dir}"/>
+		</move>
 	</target>
 	<target name="dist-archive" depends="dist-installer" description="Create archive file for distribution">
 		<touch>
@@ -639,51 +632,6 @@
 				<include name="${dist.dir}/*.sh"/>
 			</zipfileset>
 		</zip>
-	</target>
-	<target name="dist-edge" depends="dist-origin">
-		<!-- Copies edge build and then puts config into place. -->
-
-		<copy todir="${edgedist.dir}/">
-			<fileset dir="${dist.dir}">
-				<exclude name="**/build.properties"/>
-				<exclude name="**/build.xml"/>
-				<exclude name="**/Makefile"/>
-				<exclude name="**/doc/**"/>
-				<exclude name="**/conf/red5-origin.xml"/>
-				<exclude name="**/conf/red5-origin-core.xml"/>
-				<exclude name="**/conf/red5.xml"/>
-				<exclude name="**/docs/**"/>
-				<exclude name="**/dumps/**"/>
-				<exclude name="**/src/**"/>
-				<exclude name="**/swf/**"/>
-				<exclude name="**/webapps/**"/>
-			</fileset>
-		</copy>
-		<copy todir="${edgedist.dir}/webapps">
-			<fileset file="${dist.dir}/webapps/red5-default.xml"/>
-		</copy>
-		<move tofile="${edgedist.dir}/conf/red5.xml" file="${edgedist.dir}/conf/red5-edge.xml"
-			 overwrite="true"/>
-		<chmod file="${edgedist.dir}/red5.sh" perm="755"/>
-		<chmod file="${edgedist.dir}/red5-shutdown.sh" perm="755"/>
-	</target>
-	<target name="dist-origin" depends="dist-installer">
-		<!-- Copies dist build and then puts config into place. -->
-
-		<copy todir="${origindist.dir}/">
-			<fileset dir="${dist.dir}">
-				<exclude name="**/conf/red5.xml"/>
-			</fileset>
-		</copy>
-		<move tofile="${origindist.dir}/conf/red5.xml" file="${dist.dir}/conf/red5-origin.xml"
-			 overwrite="true"/>
-		<chmod file="${origindist.dir}/red5.sh" perm="755"/>
-		<chmod file="${origindist.dir}/red5-shutdown.sh" perm="755"/>
-	</target>
-	<target name="dist-cluster" description="Create Edge/Origin distribution" depends="dist-edge">
-		<copy tofile="${cluster.dir}/Readme.txt" file="${dist.dir}/doc/HOWTO-Clustering.txt" overwrite="true"/>
-		<echo>Edge configured in: ${edgedist.dir}</echo>
-		<echo>Origin configured in: ${origindist.dir}</echo>
 	</target>
 	<target name="dist-macosx" description="Create Mac OSX installer">
 		<ant antfile="install/macosx/build.xml" inheritAll="false"/>
@@ -1037,11 +985,6 @@
 			<arg line="-J-Djava.util.logging.config.file=${config.dir}/management.logging.properties -J-Djava.security.manager -J-Djava.security.policy=${config.dir}/red5.policy -J-Djavax.net.ssl.trustStore=${config.dir}/truststore.jmx -J-Djavax.net.ssl.trustStorePassword=password -J-Djavax.net.ssl.keyStore=${config.dir}/keystore.jmx -J-Djavax.net.ssl.keyStorePassword=password -J-Dssl.debug=true -J-Djava.security.debug=ssl service:jmx:rmi:///jndi/rmi://localhost:9999/red5"/>
 		</exec>
 	</target>
-
-
-
-	
-
 	<!-- 
 		Requirements:
 		1. Go here: http://subclipse.tigris.org/svnant.html
@@ -1064,7 +1007,6 @@
 		<typedef resource="org/tigris/subversion/svnant/svnantlib.xml" classpath="svnant.jar"/>
 		<svn>
 			<!-- we are three levels down -->
-
 			<checkout url="${svn.url}" revision="HEAD" destPath="../../../"/>
 		</svn>
 	</target>

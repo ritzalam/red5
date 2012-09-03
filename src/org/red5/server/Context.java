@@ -25,12 +25,12 @@ import javax.management.openmbean.CompositeData;
 
 import org.red5.server.api.IClientRegistry;
 import org.red5.server.api.IContext;
-import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IMappingStrategy;
-import org.red5.server.api.IScope;
-import org.red5.server.api.IScopeHandler;
-import org.red5.server.api.IScopeResolver;
 import org.red5.server.api.persistence.IPersistenceStore;
+import org.red5.server.api.scope.IGlobalScope;
+import org.red5.server.api.scope.IScope;
+import org.red5.server.api.scope.IScopeHandler;
+import org.red5.server.api.scope.IScopeResolver;
 import org.red5.server.api.service.IServiceInvoker;
 import org.red5.server.exception.ScopeHandlerNotFoundException;
 import org.red5.server.jmx.mxbeans.ContextMXBean;
@@ -51,7 +51,6 @@ import org.springframework.core.io.Resource;
  */
 public class Context implements IContext, ApplicationContextAware, ContextMXBean {
 
-	// Initialize Logging
 	public static Logger logger = LoggerFactory.getLogger(Context.class);
 
 	/**
@@ -364,8 +363,8 @@ public class Context implements IContext, ApplicationContextAware, ContextMXBean
 	 * @param path Path
 	 * @return Scope
 	 * 
-	 * @see org.red5.server.api.IScope
-	 * @see org.red5.server.Scope
+	 * @see org.red5.server.api.scope.IScope
+	 * @see org.red5.server.scope.Scope
 	 */
 	public IScope resolveScope(String host, String path) {
 		return scopeResolver.resolveScope(path);

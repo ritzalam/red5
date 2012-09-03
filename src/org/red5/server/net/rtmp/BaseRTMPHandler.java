@@ -23,7 +23,6 @@ import java.util.Set;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.IoSession;
-import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.service.IPendingServiceCall;
@@ -98,7 +97,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 	/** {@inheritDoc} */
 	public void connectionOpened(RTMPConnection conn, RTMP state) {
 		log.trace("connectionOpened - conn: {} state: {}", conn, state);
-		if (state.getMode() == RTMP.MODE_SERVER && appCtx != null) {
+		if (appCtx != null) {
 			ISchedulingService service = (ISchedulingService) appCtx.getBean(ISchedulingService.BEAN_NAME);
 			conn.startWaitForHandshake(service);
 		}
@@ -115,8 +114,6 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 			final Channel channel = conn.getChannel(header.getChannelId());
 			final IClientStream stream = conn.getStreamById(header.getStreamId());
 			log.trace("Message received, header: {}", header);
-			// Thread local performance ? Should we benchmark
-			Red5.setConnectionLocal(conn);
 			// XXX: HACK HACK HACK to support stream ids
 			BaseRTMPHandler.setStreamId(header.getStreamId());
 			// increase number of received messages
@@ -203,7 +200,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 		if (message instanceof IoBuffer) {
 			return;
 		}
-		// Increase number of sent messages
+		// increase number of sent messages
 		conn.messageSent((Packet) message);
 	}
 
@@ -224,14 +221,12 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 		log.debug("url: {}", url);
 		String[] parts = url.split("/");
 		if (parts.length == 2) {
-			// TODO: is this a good default hostname?
 			return "";
 		} else {
 			String host = parts[2];
-			// Strip out default port in case the client
-			// added the port explicitly.
+			// strip out default port in case the client added the port explicitly
 			if (host.endsWith(":1935")) {
-				// Remove default port from connection string
+				// remove default port from connection string
 				return host.substring(0, host.length() - 5);
 			}
 			return host;
@@ -253,7 +248,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 		if (pendingCall != null) {
 			// The client sent a response to a previously made call.
 			Object[] args = call.getArguments();
-			if ((args != null) && (args.length > 0)) {
+			if (args != null && args.length > 0) {
 				// TODO: can a client return multiple results?
 				pendingCall.setResult(args[0]);
 			}

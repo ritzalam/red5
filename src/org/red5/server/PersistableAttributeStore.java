@@ -213,13 +213,12 @@ public class PersistableAttributeStore extends AttributeStore implements IPersis
 	/** {@inheritDoc} */
 	@Override
 	public Object getAttribute(String name, Object defaultValue) {
-		if (name == null)
+		if (name == null) {
 			return null;
-
+		}
 		if (defaultValue == null) {
 			throw new NullPointerException("the default value may not be null");
 		}
-
 		Object result = attributes.putIfAbsent(name, defaultValue);
 		if (result == null) {
 			// The default value has been set

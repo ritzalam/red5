@@ -20,25 +20,25 @@ package org.red5.server.stream;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.Set;
 
 import org.red5.io.IStreamableFileFactory;
 import org.red5.io.IStreamableFileService;
 import org.red5.logging.Red5LoggerFactory;
-import org.red5.server.BasicScope;
-import org.red5.server.Scope;
-import org.red5.server.api.IBasicScope;
-import org.red5.server.api.IScope;
-import org.red5.server.api.ScopeUtils;
+import org.red5.server.api.scope.IBroadcastScope;
+import org.red5.server.api.scope.IScope;
+import org.red5.server.api.scope.ScopeType;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IStreamFilenameGenerator;
 import org.red5.server.api.stream.IStreamFilenameGenerator.GenerationType;
 import org.red5.server.messaging.IMessageInput;
 import org.red5.server.messaging.IPipe;
 import org.red5.server.messaging.InMemoryPullPullPipe;
+import org.red5.server.scope.BasicScope;
+import org.red5.server.scope.BroadcastScope;
+import org.red5.server.scope.Scope;
 import org.red5.server.stream.provider.FileProvider;
+import org.red5.server.util.ScopeUtils;
 import org.slf4j.Logger;
 
 public class ProviderService implements IProviderService {
@@ -48,27 +48,18 @@ public class ProviderService implements IProviderService {
 	/** {@inheritDoc} */
 	public INPUT_TYPE lookupProviderInput(IScope scope, String name, int type) {
 		INPUT_TYPE result = INPUT_TYPE.NOT_FOUND;
-		if (scope.getBasicScope(IBroadcastScope.TYPE, name) != null) {
+		if (scope.getBasicScope(ScopeType.BROADCAST, name) != null) {
 			//we have live input
 			result = INPUT_TYPE.LIVE;
 		} else {
-            //"default" to VOD as a missing file will be picked up later on 
-		 	result = INPUT_TYPE.VOD;  			
-		 	File file = null;
-			try {
-				file = getStreamFile(scope, name);
-				if (file == null) {
-					if(type == -2) {
-						result = INPUT_TYPE.LIVE_WAIT;
-					}
-					log.debug("Requested stream: {} does not appear to be of VOD type", name);
+			//"default" to VOD as a missing file will be picked up later on 
+			result = INPUT_TYPE.VOD;
+			File file = getStreamFile(scope, name);
+			if (file == null) {
+				if (type == -2) {
+					result = INPUT_TYPE.LIVE_WAIT;
 				}
-			} catch (IOException e) {
-				log.warn("Exception attempting to lookup file: {}", name, e);
-				log.warn("Exception {}", e);
-			} finally {
-				//null it to prevent leak or file locking
-				file = null;				
+				log.debug("Requested stream: {} does not appear to be of VOD type", name);
 			}
 		}
 		return result;
@@ -90,23 +81,20 @@ public class ProviderService implements IProviderService {
 			((Scope) scope).dump();
 		}
 		//make sure the create is actually needed
-		IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE, name);
-		if (basicScope == null) {
+		IBroadcastScope broadcastScope = scope.getBroadcastScope(name);
+		if (broadcastScope == null) {
 			if (needCreate) {
-				// Re-check if another thread already created the scope
-				basicScope = scope.getBasicScope(IBroadcastScope.TYPE, name);
-				if (basicScope == null) {
-					basicScope = new BroadcastScope(scope, name);
-					scope.addChildScope(basicScope);
+				// re-check if another thread already created the scope
+				broadcastScope = scope.getBroadcastScope(name);
+				if (broadcastScope == null) {
+					broadcastScope = new BroadcastScope(scope, name);
+					scope.addChildScope(broadcastScope);
 				}
 			} else {
 				return null;
 			}
 		}
-		if (!(basicScope instanceof IBroadcastScope)) {
-			return null;
-		}
-		return (IBroadcastScope) basicScope;
+		return broadcastScope;
 	}
 
 	/** {@inheritDoc} */
@@ -124,13 +112,7 @@ public class ProviderService implements IProviderService {
 	/** {@inheritDoc} */
 	public File getVODProviderFile(IScope scope, String name) {
 		log.debug("getVODProviderFile - scope: {} name: {}", scope, name);
-		File file = null;
-		try {
-			log.trace("getVODProviderFile scope path: {} name: {}", scope.getContextPath(), name);
-			file = getStreamFile(scope, name);
-		} catch (IOException e) {
-			log.error("Problem getting file: {}", name, e);
-		}
+		File file = getStreamFile(scope, name);
 		if (file == null || !file.exists()) {
 			//if there is no file extension this is most likely a live stream
 			if (name.indexOf('.') > 0) {
@@ -138,7 +120,6 @@ public class ProviderService implements IProviderService {
 			} else {
 				log.trace("VOD file {} was not found, may be live stream", name);
 			}
-			return null;
 		}
 		return file;
 	}
@@ -149,35 +130,23 @@ public class ProviderService implements IProviderService {
 		if (log.isDebugEnabled()) {
 			((Scope) scope).dump();
 		}
-		boolean status = false;
-		IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE, name);
-		if (basicScope == null) {
+		IBroadcastScope broadcastScope = scope.getBroadcastScope(name);
+		if (broadcastScope == null) {
 			log.debug("Creating a new scope");
-			basicScope = new BroadcastScope(scope, name);
-			if (scope.addChildScope(basicScope)) {
+			broadcastScope = new BroadcastScope(scope, name);
+			if (scope.addChildScope(broadcastScope)) {
 				log.debug("Broadcast scope added");
 			} else {
 				log.warn("Broadcast scope was not added to {}", scope);
 			}
 		}
-		if (basicScope instanceof IBroadcastScope) {
-			log.debug("Subscribing scope {} to provider {}", basicScope, bs.getProvider());
-			status = ((IBroadcastScope) basicScope).subscribe(bs.getProvider(), null);
-		}
-		return status;
+		log.debug("Subscribing scope {} to provider {}", broadcastScope, bs.getProvider());
+		return broadcastScope.subscribe(bs.getProvider(), null);
 	}
 
 	/** {@inheritDoc} */
-	public List<String> getBroadcastStreamNames(IScope scope) {
-		// TODO: return result of "getBasicScopeNames" when the api has
-		// changed to not return iterators
-		List<String> result = new ArrayList<String>();
-		Iterator<String> it = scope.getBasicScopeNames(IBroadcastScope.TYPE);
-		while (it.hasNext()) {
-			result.add(it.next());
-		}
-		it = null;
-		return result;
+	public Set<String> getBroadcastStreamNames(IScope scope) {
+		return scope.getBasicScopeNames(ScopeType.BROADCAST);
 	}
 
 	/** {@inheritDoc} */
@@ -188,37 +157,25 @@ public class ProviderService implements IProviderService {
 	/** {@inheritDoc} */
 	public boolean unregisterBroadcastStream(IScope scope, String name, IBroadcastStream bs) {
 		log.debug("Unregistering - name: {} stream: {} scope: {}", new Object[] { name, bs, scope });
-		if (log.isDebugEnabled()) {
+		if (log.isTraceEnabled()) {
 			((Scope) scope).dump();
 		}
-		boolean status = false;
-		IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE, name);
-		if (basicScope instanceof IBroadcastScope) {
-			if (bs != null) {
-				log.debug("Unsubscribing scope {} from provider {}", basicScope, bs.getProvider());
-				((IBroadcastScope) basicScope).unsubscribe(bs.getProvider());
-			}
-			//if the scope has no listeners try to remove it
-			if (!((BasicScope) basicScope).hasEventListeners()) {
-				log.debug("Scope has no event listeners attempting removal");
-				scope.removeChildScope(basicScope);
-			}
-			if (log.isDebugEnabled()) {
-				//verify that scope was removed
-				if (scope.getBasicScope(IBroadcastScope.TYPE, name) == null) {
-					log.debug("Scope was removed");
-				} else {
-					log.debug("Scope was not removed");
-				}
-			}
-			status = true;
+		IBroadcastScope broadcastScope = scope.getBroadcastScope(name);
+		if (bs != null) {
+			log.debug("Unsubscribing scope {} from provider {}", broadcastScope, bs.getProvider());
+			broadcastScope.unsubscribe(bs.getProvider());
 		}
-		return status;
+		// if the scope has no listeners try to remove it
+		if (!((BasicScope) broadcastScope).hasEventListeners()) {
+			log.debug("Scope has no event listeners attempting removal");
+			scope.removeChildScope(broadcastScope);
+		}
+		// verify that scope was removed
+		return scope.getBasicScope(ScopeType.BROADCAST, name) == null;
 	}
 
-	private File getStreamFile(IScope scope, String name) throws IOException {
-		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils.getScopeService(scope,
-				IStreamableFileFactory.class);
+	private File getStreamFile(IScope scope, String name) {
+		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils.getScopeService(scope, IStreamableFileFactory.class);
 		if (name.indexOf(':') == -1 && name.indexOf('.') == -1) {
 			// Default to .flv files if no prefix and no extension is given.
 			name = "flv:" + name;
@@ -230,25 +187,33 @@ public class ProviderService implements IProviderService {
 				break;
 			}
 		}
-
-		IStreamFilenameGenerator filenameGenerator = (IStreamFilenameGenerator) ScopeUtils.getScopeService(scope,
-				IStreamFilenameGenerator.class, DefaultStreamFilenameGenerator.class);
-
+		// look for a custom filename gen class
+		IStreamFilenameGenerator filenameGenerator = (IStreamFilenameGenerator) ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.class,
+				DefaultStreamFilenameGenerator.class);
+		// get the filename
 		String filename = filenameGenerator.generateFilename(scope, name, GenerationType.PLAYBACK);
 		File file;
-		//most likely case first
-		if (!filenameGenerator.resolvesToAbsolutePath()) {
-			file = scope.getContext().getResource(filename).getFile();
-		} else {
-			file = new File(filename);
-		}
-		//check files existence
-		if (file != null && !file.exists()) {
-			//if it does not exist then null it out
+		try {
+			// most likely case first
+			if (!filenameGenerator.resolvesToAbsolutePath()) {
+				file = scope.getContext().getResource(filename).getFile();
+			} else {
+				file = new File(filename);
+			}
+			// check file existence
+			if (file != null && !file.exists()) {
+				// if it does not exist then null it out
+				file = null;
+			}
+		} catch (IOException e) {
+			log.info("Exception attempting to lookup file: {}", e.getMessage());
+			if (log.isDebugEnabled()) {
+				log.warn("Exception attempting to lookup file: {}", name, e);
+			}
+			// null out the file (fix for issue #238)
 			file = null;
 		}
 		return file;
-
 	}
 
 }

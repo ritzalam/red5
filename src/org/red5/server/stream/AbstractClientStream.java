@@ -32,7 +32,7 @@ public abstract class AbstractClientStream extends AbstractStream implements ICl
 	 *  Stream identifier. Unique across server.
 	 */
 	private int streamId;
-	
+
 	/**
 	 * Stream name of the broadcasting stream.
 	 */
@@ -49,22 +49,6 @@ public abstract class AbstractClientStream extends AbstractStream implements ICl
 	private int clientBufferDuration;
 
 	/**
-	 * Return stream id
-	 * @return           Stream id
-	 */
-	public int getStreamId() {
-		return streamId;
-	}
-
-	/**
-	 * Return connection associated with stream
-	 * @return           Stream capable connection object
-	 */
-	public IStreamCapableConnection getConnection() {
-		return conn.get();
-	}
-
-	/**
 	 * Setter for stream id
 	 * @param streamId       Stream id
 	 */
@@ -73,11 +57,27 @@ public abstract class AbstractClientStream extends AbstractStream implements ICl
 	}
 
 	/**
+	 * Return stream id
+	 * @return           Stream id
+	 */
+	public int getStreamId() {
+		return streamId;
+	}
+
+	/**
 	 * Setter for stream capable connection
 	 * @param conn           IStreamCapableConnection object
 	 */
 	public void setConnection(IStreamCapableConnection conn) {
 		this.conn = new WeakReference<IStreamCapableConnection>(conn);
+	}
+
+	/**
+	 * Return connection associated with stream
+	 * @return           Stream capable connection object
+	 */
+	public IStreamCapableConnection getConnection() {
+		return conn.get();
 	}
 
 	/** {@inheritDoc} */
@@ -107,5 +107,5 @@ public abstract class AbstractClientStream extends AbstractStream implements ICl
 	public String getBroadcastStreamPublishName() {
 		return broadcastStreamPublishName;
 	}
-		
+
 }

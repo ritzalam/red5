@@ -20,8 +20,6 @@ package org.red5.server.jmx.mxbeans;
 
 import javax.management.MXBean;
 
-import org.springframework.context.ApplicationContext;
-
 /**
  * Red5 applications loader
  */
@@ -32,11 +30,9 @@ public interface ContextLoaderMXBean extends ShutdownMXBean {
 
 	public void init() throws Exception;
 
-	public void uninit();	
-
-	public ApplicationContext getContext(String name);
-
-	public ApplicationContext getParentContext();
+	public void shutdown();	
+	
+	public void setParentContext(String parentContextKey, String appContextId);
 
 	public String getContextsConfig();
 
