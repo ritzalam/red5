@@ -153,6 +153,53 @@ public class Red5LoggerFactory {
 		}
 		return logger;
 	}
+	
+	@SuppressWarnings({ "rawtypes" })
+	public static Logger getLogger(String name, String contextName) {
+		Logger logger = null;
+		try {
+			//check for logback
+			Class cs = Class.forName("ch.qos.logback.classic.selector.ContextSelector");
+			//trigger an exception if the class doesn't actually exist
+			cs.getDeclaredMethods();
+			// get the class for static binding
+			cs = Class.forName("org.slf4j.impl.StaticLoggerBinder");
+			// get its declared methods
+			Method[] methods = cs.getDeclaredMethods();
+			for (Method method : methods) {
+				//ensure method exists
+				if (method.getName().equals("getContextSelector")) {
+					//System.out.println("Logger context selector method found");
+					//get the context selector
+					StaticLoggerBinder binder = StaticLoggerBinder.getSingleton();
+					Method m1 = binder.getClass().getMethod("getContextSelector", (Class[]) null);
+					ContextSelector selector = (ContextSelector) m1.invoke(binder, (Object[]) null);
+					//get the context for the given context name or default if null
+					LoggerContext ctx = null;
+					if (contextName != null && contextName.length() > 0) {
+						ctx = selector.getLoggerContext(contextName);
+					}
+					// and if we get here, fall back to the default context
+					if (ctx == null) {
+						ctx = selector.getLoggerContext();
+					}
+					//debug
+					//StatusPrinter.print(ctx);
+					//get the logger from the context or default context
+					logger = ((ctx != null) ? ctx.getLogger(name) : selector.getDefaultLoggerContext().getLogger(name));
+					break;
+				}
+			}
+		} catch (Exception e) {
+			//no logback, use whatever logger is in-place
+			System.err.printf("Exception %s", e.getMessage());
+		}
+		if (logger == null) {
+			//no logback, use whatever logger is in-place
+			logger = LoggerFactory.getLogger(name);
+		}
+		return logger;
+	}
 
 	public static ContextSelector getContextSelector() {
 		ContextSelector selector = null;

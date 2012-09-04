@@ -63,12 +63,17 @@ public class Deserializer {
 				result = in.readNumber(target);
 				break;
 			case DataTypes.CORE_STRING:
-				if (target != null && ((Class) target).isEnum()) {
-					log.warn("Enum target specified");
-					String name = in.readString(target);
-					result = Enum.valueOf((Class) target, name);
-				} else {
-					result = in.readString(target);
+				try {
+					if (target != null && ((Class) target).isEnum()) {
+						log.warn("Enum target specified");
+						String name = in.readString(target);
+						result = Enum.valueOf((Class) target, name);
+					} else {
+						result = in.readString(target);
+					}
+				} catch (RuntimeException e) {
+					log.error("failed to deserialize " + target, e);
+					throw e;
 				}
 				break;
 			case DataTypes.CORE_DATE:

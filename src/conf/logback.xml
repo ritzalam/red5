@@ -1,45 +1,93 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-	<!-- Uncomment if you are using the logback plugin for eclipse
-	<consolePlugin/>
-	-->
-	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-		<encoder>
-			<pattern>[%p] [%thread] %logger - %msg%n</pattern>
-		</encoder>		
-	</appender>
-	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
-		<File>log/red5.log</File>
-		<Append>false</Append>
-		<encoder>
-			<pattern>%d{ISO8601} [%thread] %-5level %logger{35} - %msg%n</pattern>
-		</encoder>		
-	</appender>
-	<appender name="ERRORFILE" class="ch.qos.logback.core.FileAppender">
-		<File>log/error.log</File>
-		<Append>false</Append>
-    	<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-      		<level>WARN</level>
-    	</filter>
-		<encoder>
-			<pattern>%d{ISO8601} [%thread] %-5level %logger{35} - %msg%n</pattern>
-		</encoder>		
-	</appender>
-	<root>
-		<level value="INFO" />
-		<appender-ref ref="CONSOLE" />
-		<appender-ref ref="FILE" />
-		<!--
-		<appender-ref ref="ERRORFILE" />
-		-->
-	</root>
-	<logger name="org.springframework">
-		<level value="INFO" />
-	</logger>
-	<logger name="org.apache">
-		<level value="INFO" />
-	</logger>
-	<logger name="ch.qos">
-		<level value="WARN" />
-	</logger>
+
+    <!--
+    Uncomment if you are using the logback plugin for eclipse
+	<consolePlugin/>
+    -->
+
+    <appender
+        name="CONSOLE"
+        class="ch.qos.logback.core.ConsoleAppender" >
+
+        <encoder>
+
+            <pattern>
+[%p] [%thread] %logger - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <appender
+        name="FILE"
+        class="ch.qos.logback.core.FileAppender" >
+
+        <File>
+log/red5.log
+        </File>
+
+        <Append>
+false
+        </Append>
+
+        <encoder>
+
+            <pattern>
+%d{ISO8601} [%thread] %-5level %logger{35} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <appender
+        name="ERRORFILE"
+        class="ch.qos.logback.core.FileAppender" >
+
+        <File>
+log/error.log
+        </File>
+
+        <Append>
+false
+        </Append>
+
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter" >
+
+            <level>
+WARN
+            </level>
+        </filter>
+
+        <encoder>
+
+            <pattern>
+%d{ISO8601} [%thread] %-5level %logger{35} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <root>
+
+        <level value="INFO" />
+
+        <appender-ref ref="CONSOLE" />
+
+        <appender-ref ref="FILE" />
+        <!-- <appender-ref ref="ERRORFILE" /> -->
+    </root>
+
+    <logger name="org.springframework" >
+
+        <level value="INFO" />
+    </logger>
+
+    <logger name="org.apache" >
+
+        <level value="INFO" />
+    </logger>
+
+    <logger name="ch.qos" >
+
+        <level value="WARN" />
+    </logger>
+
 </configuration>

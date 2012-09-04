@@ -33,32 +33,36 @@ import org.slf4j.LoggerFactory;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class QuartzSchedulingServiceJob implements Job {
-    /**
-     * Scheduling service constant
-     */
-    protected static final String SCHEDULING_SERVICE = "scheduling_service";
+	/**
+	 * Scheduling service constant
+	 */
+	protected static final String SCHEDULING_SERVICE = "scheduling_service";
 
-    /**
-     * Scheduled job constant
-     */
-    protected static final String SCHEDULED_JOB = "scheduled_job";
+	/**
+	 * Scheduled job constant
+	 */
+	protected static final String SCHEDULED_JOB = "scheduled_job";
 
-    /**
-     * Logger
-     */
-    private Logger log = LoggerFactory.getLogger(QuartzSchedulingServiceJob.class);
+	/**
+	 * Logger
+	 */
+	private Logger log = LoggerFactory.getLogger(QuartzSchedulingServiceJob.class);
 
-    /** {@inheritDoc} */
-    public void execute(JobExecutionContext arg0) throws JobExecutionException {
-		ISchedulingService service = (ISchedulingService) arg0.getJobDetail()
-				.getJobDataMap().get(SCHEDULING_SERVICE);
-		IScheduledJob job = (IScheduledJob) arg0.getJobDetail().getJobDataMap()
-				.get(SCHEDULED_JOB);
-        try {
-            job.execute(service);
-        } catch (Throwable e) {
-            log.error("Job {} execution failed", job.toString(), e);
-        }
-    }
+	/** {@inheritDoc} */
+	public void execute(JobExecutionContext arg0) throws JobExecutionException {
+		ISchedulingService service = null;
+		IScheduledJob job = null;
+		try {
+			service = (ISchedulingService) arg0.getJobDetail().getJobDataMap().get(SCHEDULING_SERVICE);
+			job = (IScheduledJob) arg0.getJobDetail().getJobDataMap().get(SCHEDULED_JOB);
+			job.execute(service);
+		} catch (Throwable e) {
+			if (job == null) {
+				log.error("Job not found");
+			} else {
+				log.error("Job {} execution failed", job.toString(), e);
+			}
+		}
+	}
 
 }

@@ -41,6 +41,7 @@ import org.red5.server.api.scope.IScope;
 import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.service.IServiceCapableConnection;
+import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.scope.Scope;
 import org.red5.server.scope.WebScope;
 import org.slf4j.Logger;
@@ -398,6 +399,16 @@ public class ServiceInvokerTest extends AbstractJUnit4SpringContextTests {
 
 		@Override
 		public void notify(String method, Object[] params) {
+		}
+
+		@Override
+		public void status(Status status) {
+
+		}
+
+		@Override
+		public void status(Status status, int channel) {
+			
 		}
 
 	}

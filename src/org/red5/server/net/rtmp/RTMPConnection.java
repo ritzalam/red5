@@ -56,6 +56,7 @@ import org.red5.server.net.rtmp.event.Ping;
 import org.red5.server.net.rtmp.event.ServerBW;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.message.Packet;
+import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.service.Call;
 import org.red5.server.service.PendingCall;
 import org.red5.server.stream.ClientBroadcastStream;
@@ -817,6 +818,21 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	public void notify(String method, Object[] params) {
 		IServiceCall call = new Call(method, params);
 		notify(call);
+	}
+	
+	/** {@inheritDoc} */
+	public void status(Status status)
+	{
+		status(status, 3);
+	}
+	
+	/** {@inheritDoc} */
+	public void status(Status status, int channel)
+	{
+		if( status != null )
+		{
+			getChannel(channel).sendStatus(status);
+		}
 	}
 
 	/** {@inheritDoc} */
