@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.red5.server.io;
+package org.red5.io;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -30,6 +30,8 @@ import junit.framework.Assert;
 import junit.framework.TestCase;
 
 import org.apache.commons.beanutils.BeanMap;
+import org.red5.io.model.CircularRefBean;
+import org.red5.io.model.SimpleJavaBean;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Input;
 import org.red5.io.object.Output;
