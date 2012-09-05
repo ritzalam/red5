@@ -2,6 +2,6 @@ acceptedTypes=[inherited]
 eclipse.preferences.version=1
 ivy_conf_path=file\:ivysettings.xml
 javadocTypes=[inherited]
-org.apache.ivyde.eclipse.standaloneretrieve=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?><setuplist><setup name\="dependencies"><ivysettings loadondemand\="false" path\="${workspace_loc\:red5_server/ivysettings.xml}"/><ivyxml path\="ivy.xml"/><retrieve confs\="eclipse,utest,java6,default" pattern\="lib/[artifact]-[revision].[ext]" sync\="false" types\="*"/></setup><setup name\="dependencies"><ivysettings loadondemand\="false" path\="${workspace_loc\:red5_server/ivysettings.xml}"/><ivyxml path\="ivy.xml"/><retrieve confs\="eclipse,utest,java6,default" pattern\="lib/[artifact]-[revision].[ext]" sync\="false" types\="*"/></setup></setuplist>
+org.apache.ivyde.eclipse.standaloneretrieve=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?><setuplist><setup name\="dependencies"><ivysettings loadondemand\="false" path\="${workspace_loc\:red5_server/ivysettings.xml}"/><ivyxml path\="ivy.xml"/><retrieve confs\="default,utest" pattern\="lib/[artifact]-[revision].[ext]" sync\="false" types\="jar"/></setup></setuplist>
 retreive.pattern=lib/[artifact]-[revision].[ext]
 sourceTypes=[inherited]
