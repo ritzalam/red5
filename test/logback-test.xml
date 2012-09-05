@@ -9,7 +9,7 @@
   </appender>
    
   <appender class="ch.qos.logback.core.FileAppender" name="FILE">
-    <File>log/red5.log</File>
+    <File>log/red5-test.log</File>
     <Append>false</Append>
     <encoder>
       <pattern>%d{ISO8601} [%thread] %-5level %logger{35} - %msg%n</pattern>
@@ -17,11 +17,15 @@
   </appender>
    
   <root>
-    <level value="INFO"/>
+    <level value="DEBUG"/>
     <appender-ref ref="CONSOLE"/>
     <appender-ref ref="FILE"/>
   </root>
    
+  <logger name="org.red5.io">
+    <level value="DEBUG"/>
+  </logger>
+
   <logger name="org.springframework">
     <level value="INFO"/>
   </logger>

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.red5.server.io;
+package org.red5.io;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.amf.Input;

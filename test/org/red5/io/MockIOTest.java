@@ -16,39 +16,41 @@
  * limitations under the License.
  */
 
-package org.red5.server.io;
+package org.red5.io;
 
-/**
+import java.util.LinkedList;
+import java.util.List;
+
+import org.red5.io.mock.Input;
+import org.red5.io.mock.Mock;
+import org.red5.io.mock.Output;
+
+/*
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
- */
-public class CircularRefBean extends SimpleJavaBean {
+*/
+public class MockIOTest extends AbstractIOTest {
 
-	private CircularRefBean refToSelf;
+	protected List<Object> list;
 
-	/**
-	 * Constructs a new CircularRefBean.
-	 */
-    public CircularRefBean(){
-		super();
+	/** {@inheritDoc} */
+	@Override
+	void setupIO() {
+		list = new LinkedList<Object>();
+		in = new Input(list);
+		out = new Output(list);
 	}
 
-	/**
-     * Getter for property 'refToSelf'.
-     *
-     * @return Value for property 'refToSelf'.
-     */
-    public CircularRefBean getRefToSelf() {
-		return refToSelf;
+	/** {@inheritDoc} */
+	@Override
+	void dumpOutput() {
+		System.out.println(Mock.listToString(list));
 	}
 
-	/**
-     * Setter for property 'refToSelf'.
-     *
-     * @param refToSelf Value to set for property 'refToSelf'.
-     */
-    public void setRefToSelf(CircularRefBean refToSelf) {
-		this.refToSelf = refToSelf;
+	/** {@inheritDoc} */
+	@Override
+	void resetOutput() {
+		setupIO();
 	}
 
 }

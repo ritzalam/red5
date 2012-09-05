@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.red5.server.io;
+package org.red5.io.flv;
 
 import org.junit.Test;
 import org.red5.io.flv.impl.FLV;
@@ -24,9 +24,9 @@ import org.red5.io.flv.impl.FLV;
 import junit.framework.TestCase;
 
 public class FLVImpTest extends TestCase {
+	
 	@Test
-	public void testCreation()
-	{
+	public void testCreation() {
 		FLV exampleObj = new FLV();
 		assertNotNull(exampleObj);
 	}

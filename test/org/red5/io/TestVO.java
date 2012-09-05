@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.red5.server.io;
+package org.red5.io;
 
 import java.io.Serializable;
 
