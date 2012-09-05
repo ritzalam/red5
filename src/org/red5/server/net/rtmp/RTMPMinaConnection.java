@@ -336,7 +336,11 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 			}
 			// Create a new mbean for this instance
 			oName = new ObjectName(String.format("org.red5.server:type=%s,connectionType=%s,host=%s,port=%d,clientId=%s", cName, type, hostStr, port, client.getId()));
-			mbs.registerMBean(new StandardMBean(this, RTMPMinaConnectionMXBean.class, true), oName);
+			if (!mbs.isRegistered(oName)) {
+				mbs.registerMBean(new StandardMBean(this, RTMPMinaConnectionMXBean.class, true), oName);
+			} else {
+				log.debug("Connection is already registered in JMX");
+			}
 		} catch (Exception e) {
 			log.warn("Error on jmx registration", e);
 		}
