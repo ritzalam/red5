@@ -37,7 +37,7 @@ public interface IKeyFrameMetaCache {
 	 * @return The keyframe informations or <code>null</code> if none exist.
 	 */
 	public KeyFrameMeta loadKeyFrameMeta(File file);
-	
+
 	/**
 	 * Store keyframe informations for the given file.
 	 * 
@@ -45,5 +45,13 @@ public interface IKeyFrameMetaCache {
 	 * @param meta		Keyframe informations for this file.
 	 */
 	public void saveKeyFrameMeta(File file, KeyFrameMeta meta);
-	
+
+	/**
+	 * Remove keyframe information for given file.
+	 * Need to update keyframe cache when re-writing file.
+	 * 
+	 * @param file      File to remove information for.
+	 */
+	public void removeKeyFrameMeta(File file);
+
 }
