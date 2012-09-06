@@ -19,12 +19,26 @@
 package org.red5.server.api;
 
 import org.red5.server.BaseConnection;
+import org.red5.server.api.service.IPendingServiceCall;
+import org.red5.server.api.service.IPendingServiceCallback;
+import org.red5.server.api.service.IServiceCall;
+import org.red5.server.api.service.IServiceCapableConnection;
+import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.scope.Scope;
+import org.red5.server.service.PendingCall;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class TestConnection extends BaseConnection {
+public class TestConnection extends BaseConnection implements IServiceCapableConnection {
 
+	private static final Logger log = LoggerFactory.getLogger(TestConnection.class);
+	
 	public TestConnection(String host, String path, String sessionId) {
 		super(PERSISTENT, host, null, 0, path, sessionId, null);
+	}
+
+	public TestConnection(String host, String path, String sessionId, String remoteAddress) {
+		super(PERSISTENT, host, remoteAddress, 0, path, sessionId, null);
 	}
 
 	/**
@@ -71,5 +85,92 @@ public class TestConnection extends BaseConnection {
 
 	public void setBandwidth(int mbits) {
 	}
+	
+	public void echo(Object[] params) {
+		log.debug("Client #{} - echo: {}", client.getId(), params[0]);
+	}
 
+	@Override
+	public void invoke(IServiceCall call) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void invoke(IServiceCall call, int channel) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void invoke(String method) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void invoke(String method, IPendingServiceCallback callback) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void invoke(String name, Object[] params) {
+		if ("echo".equals(name)) {
+			echo(params);
+		}
+//		try {
+//			Method method = this.getClass().getMethod(name, Object[].class);
+//			method.invoke(this, params);
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}		
+	}
+
+	@Override
+	public void invoke(String name, Object[] params, IPendingServiceCallback callback) {
+		if ("echo".equals(name)) {
+			echo(params);
+		}		
+		IPendingServiceCall call = new PendingCall(null, name, params);
+		call.setResult(Boolean.TRUE);
+		callback.resultReceived(call);
+	}
+
+	@Override
+	public void notify(IServiceCall call) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void notify(IServiceCall call, int channel) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void notify(String method) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void notify(String method, Object[] params) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void status(Status status) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void status(Status status, int channel) {
+		// TODO Auto-generated method stub
+		
+	}
+	
 }

@@ -44,7 +44,6 @@ import org.red5.io.flv.IKeyFrameDataAnalyzer;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.IOUtils;
-import org.red5.server.stream.codec.AudioCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

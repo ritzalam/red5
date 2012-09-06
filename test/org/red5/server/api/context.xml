@@ -9,25 +9,35 @@
                            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd
                            http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-2.5.xsd" >
 
-    <bean
-        id="serializer"
-        class="org.red5.io.object.Serializer" />
+    <!-- Serializes objects to AMF binary -->
+    <bean id="serializer" class="org.red5.io.object.Serializer"/>
+    
+    <!-- Deserializes objects from AMF binary -->
+    <bean id="deserializer" class="org.red5.io.object.Deserializer"/>
+    
+    <bean id="minaEncoder" class="org.red5.server.net.rtmp.codec.RTMPMinaProtocolEncoder" scope="prototype">
+        <property name="serializer">
+            <ref bean="serializer"/>
+        </property>
+        <property name="baseTolerance" value="5000" />
+        <property name="dropLiveFuture" value="false" />
+    </bean>
 
-    <bean
-        id="deserializer"
-        class="org.red5.io.object.Deserializer" />
-
+    <bean id="minaDecoder" class="org.red5.server.net.rtmp.codec.RTMPMinaProtocolDecoder" scope="prototype">
+        <property name="deserializer">
+            <ref bean="deserializer"/>
+        </property>
+    </bean>
+    
     <bean
         id="statusObjectService"
         autowire="byType"
-        class="org.red5.server.net.rtmp.status.StatusObjectService"
-        init-method="initialize" />
+        class="org.red5.server.net.rtmp.status.StatusObjectService" />
 
     <bean
         id="rtmpCodecFactory"
         autowire="byType"
-        class="org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory"
-        init-method="init" />
+        class="org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory" scope="prototype"/>
 
     <bean
         id="red5.clientRegistry"

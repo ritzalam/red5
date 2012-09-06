@@ -819,18 +819,15 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		IServiceCall call = new Call(method, params);
 		notify(call);
 	}
-	
+
 	/** {@inheritDoc} */
-	public void status(Status status)
-	{
+	public void status(Status status) {
 		status(status, 3);
 	}
-	
+
 	/** {@inheritDoc} */
-	public void status(Status status, int channel)
-	{
-		if( status != null )
-		{
+	public void status(Status status, int channel) {
+		if (status != null) {
 			getChannel(channel).sendStatus(status);
 		}
 	}
