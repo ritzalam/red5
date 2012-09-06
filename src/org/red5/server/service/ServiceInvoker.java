@@ -144,16 +144,16 @@ public class ServiceInvoker implements IServiceInvoker {
 		// find the method
 		Object[] methodResult = null;
 		// First, search for method with the connection as first parameter.
-		methodResult = ServiceUtils.findMethodWithExactParameters(service, methodName, argsWithConnection);
+		methodResult = ReflectionUtils.findMethodWithExactParameters(service, methodName, argsWithConnection);
 		if (methodResult.length == 0 || methodResult[0] == null) {
 			// Second, search for method without the connection as first parameter.
-			methodResult = ServiceUtils.findMethodWithExactParameters(service, methodName, args);
+			methodResult = ReflectionUtils.findMethodWithExactParameters(service, methodName, args);
 			if (methodResult.length == 0 || methodResult[0] == null) {
 				// Third, search for method with the connection as first parameter in a list argument.
-				methodResult = ServiceUtils.findMethodWithListParameters(service, methodName, argsWithConnection);
+				methodResult = ReflectionUtils.findMethodWithListParameters(service, methodName, argsWithConnection);
 				if (methodResult.length == 0 || methodResult[0] == null) {
 					// Fourth, search for method without the connection as first parameter in a list argument.
-					methodResult = ServiceUtils.findMethodWithListParameters(service, methodName, args);
+					methodResult = ReflectionUtils.findMethodWithListParameters(service, methodName, args);
 					if (methodResult.length == 0 || methodResult[0] == null) {
 						log.error("Method {} with parameters {} not found in {}",
 								new Object[] { methodName, (args == null ? Collections.EMPTY_LIST : Arrays.asList(args)), service });

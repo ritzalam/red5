@@ -67,7 +67,7 @@ public class PendingCall extends Call implements IPendingServiceCall {
 	}
 
 	/**
-	 * Creates pending call with given method name, service name and array of parametes
+	 * Creates pending call with given method name, service name and array of parameters
 	 *
 	 * @param name      Service name
 	 * @param method    Method name

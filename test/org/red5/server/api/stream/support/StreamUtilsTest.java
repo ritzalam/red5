@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 public class StreamUtilsTest {
 
 	protected static Logger log = LoggerFactory.getLogger(StreamUtilsTest.class);
-	
+
 	/* ------- workers ------- */
 	private class SynchedWorker extends TestRunnable {
 		private ServerStream stream;
@@ -100,8 +100,7 @@ public class StreamUtilsTest {
 			synced[t] = new SynchedWorker(stream);
 		}
 
-		MultiThreadedTestRunner syncedrunner = new MultiThreadedTestRunner(
-				synced);
+		MultiThreadedTestRunner syncedrunner = new MultiThreadedTestRunner(synced);
 
 		// kickstarts the MTTR & fires off threads
 		long start = System.nanoTime();
@@ -111,8 +110,7 @@ public class StreamUtilsTest {
 			log.warn("Exception {}", e);
 			fail();
 		}
-		System.out.println("Runtime for synced runner: "
-				+ (System.nanoTime() - start) + "ns");
+		System.out.println("Runtime for synced runner: " + (System.nanoTime() - start) + "ns");
 
 		// test unsynchronized
 		name = "non-synchronized";
@@ -126,8 +124,7 @@ public class StreamUtilsTest {
 			unsynced[t] = new UnSynchedWorker(nstream);
 		}
 
-		MultiThreadedTestRunner unsyncedrunner = new MultiThreadedTestRunner(
-				unsynced);
+		MultiThreadedTestRunner unsyncedrunner = new MultiThreadedTestRunner(unsynced);
 
 		// kickstarts the MTTR & fires off threads
 		start = System.nanoTime();
@@ -137,8 +134,7 @@ public class StreamUtilsTest {
 			log.warn("Exception {}", e);
 			fail();
 		}
-		System.out.println("Runtime for unsynced runner: "
-				+ (System.nanoTime() - start) + "ns");
+		System.out.println("Runtime for unsynced runner: " + (System.nanoTime() - start) + "ns");
 
 	}
 
