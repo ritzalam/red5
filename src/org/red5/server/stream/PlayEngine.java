@@ -737,7 +737,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 */
 	public void stop() throws IllegalStateException {
 		switch (subscriberStream.getState()) {
-		// allow stop if playing or paused
+			// allow stop if playing or paused
 			case PLAYING:
 			case PAUSED:
 				subscriberStream.setState(StreamState.STOPPED);
@@ -747,6 +747,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				}
 				subscriberStream.onChange(StreamState.STOPPED, currentItem);
 				clearWaitJobs();
+				cancelDeferredStop();
 				if (subscriberStream instanceof IPlaylistSubscriberStream) {
 					IPlaylistSubscriberStream pss = (IPlaylistSubscriberStream) subscriberStream;
 					if (!pss.hasMoreItems()) {
@@ -856,7 +857,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 
 	private boolean isClientBufferEmpty() {
 		// check client buffer length when we've already sent some messages
-		if (lastMessageTs > 0) {
+		if (lastMessageTs >= 0) {
 			// duration the stream is playing / playback duration
 			final long delta = System.currentTimeMillis() - playbackStart;
 			// expected amount of data present in client buffer
@@ -873,7 +874,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 * Make sure the pull and push processing is running.
 	 */
 	private void ensurePullAndPushRunning() {
-		if (pullMode && pullAndPushFuture == null) {
+		log.trace("State should be PLAYING to running this task: {}", subscriberStream.getState());
+		if (pullMode && pullAndPushFuture == null && subscriberStream.getState() == StreamState.PLAYING) {
 			// client buffer is at least 100ms
 			pullAndPushFuture = subscriberStream.getExecutor().scheduleWithFixedDelay(new PullAndPushRunnable(), 0, 10, TimeUnit.MILLISECONDS);
 		}
@@ -1559,7 +1561,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	}
 
 	private void cancelDeferredStop() {
-		log.debug("Clear wait jobs");
+		log.debug("Cancel deferred stop");
 		if (deferredStopFuture != null) {
 			log.debug("Deferred stop cancelled: {}", deferredStopFuture.cancel(false));
 			deferredStopFuture = null;
@@ -1798,7 +1800,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	private class DeferredStopRunnable implements Runnable {
 
 		public void run() {
-			if (getLastMessageTimestamp() > 0 && isClientBufferEmpty()) {
+			if (isClientBufferEmpty()) {
 				log.trace("Buffer is empty, stop will proceed");
 				stop();
 			}

@@ -179,7 +179,7 @@ public class FLVWriter implements ITagWriter {
 				duration = timeOffset;
 				log.debug("Duration: {}", timeOffset);
 				// grab the file we will append to
-				this.dataFile = new RandomAccessFile(file, "rws");
+				this.dataFile = new RandomAccessFile(file, "rw");
 				if (!file.exists() || !file.canRead() || !file.canWrite()) {
 					log.warn("File does not exist or cannot be accessed");
 				} else {
