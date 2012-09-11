@@ -18,7 +18,6 @@
 
 package org.red5.io;
 
-
 import java.io.File;
 import java.io.IOException;
 
@@ -32,28 +31,27 @@ import org.slf4j.LoggerFactory;
  * @author Joachim Bauch (jojo@struktur.de)
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public abstract class BaseStreamableFileService implements
-		IStreamableFileService {
+public abstract class BaseStreamableFileService implements IStreamableFileService {
 
-    private static final Logger log = LoggerFactory.getLogger(BaseStreamableFileService.class);
-	
-	/** {@inheritDoc} */
-    public void setPrefix(String prefix) {
-    }
+	private static final Logger log = LoggerFactory.getLogger(BaseStreamableFileService.class);
 
 	/** {@inheritDoc} */
-    public abstract String getPrefix();
+	public void setPrefix(String prefix) {
+	}
 
 	/** {@inheritDoc} */
-    public void setExtension(String extension) {
-    }
-    
-    /** {@inheritDoc} */
-    public abstract String getExtension();
+	public abstract String getPrefix();
 
 	/** {@inheritDoc} */
-    public String prepareFilename(String name) {
-    	String prefix = getPrefix() + ':';
+	public void setExtension(String extension) {
+	}
+
+	/** {@inheritDoc} */
+	public abstract String getExtension();
+
+	/** {@inheritDoc} */
+	public String prepareFilename(String name) {
+		String prefix = getPrefix() + ':';
 		if (name.startsWith(prefix)) {
 			name = name.substring(prefix.length());
 			// if there is no extension on the file add the first one
@@ -67,25 +65,29 @@ public abstract class BaseStreamableFileService implements
 	}
 
 	/** {@inheritDoc} */
-    public boolean canHandle(File file) {
+	public boolean canHandle(File file) {
     	boolean valid = false;
     	if (file.exists()) {
         	String absPath = file.getAbsolutePath().toLowerCase();
-        	String fileExt = absPath.substring(absPath.lastIndexOf('.'));
-        	log.debug("canHandle - Path: {} Ext: {}", absPath, fileExt);
-        	String[] exts = getExtension().split(",");
-        	for (String ext : exts) {
-        		if (ext.equals(fileExt)) {
-        			valid = true;
-        			break;
-        		}
+        	int dotIndex = absPath.lastIndexOf('.');
+        	if (dotIndex > -1) {
+            	String fileExt = absPath.substring(dotIndex);
+            	log.debug("canHandle - Path: {} Ext: {}", absPath, fileExt);
+            	String[] exts = getExtension().split(",");
+            	for (String ext : exts) {
+            		if (ext.equals(fileExt)) {
+            			valid = true;
+            			break;
+            		}
+            	}
+        	} else {
+        		log.warn("No file extension was detected, please retry with a supported extension: {}", getExtension());
         	}
     	}
 		return valid;
 	}
 
 	/** {@inheritDoc} */
-    public abstract IStreamableFile getStreamableFile(File file)
-			throws IOException;
+	public abstract IStreamableFile getStreamableFile(File file) throws IOException;
 
 }
