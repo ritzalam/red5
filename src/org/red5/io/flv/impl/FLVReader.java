@@ -644,128 +644,127 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		}
 		try {
 			lock.acquire();
-		// check for cached keyframe informations
-		if (keyframeCache != null) {
-			keyframeMeta = keyframeCache.loadKeyFrameMeta(file);
-			if (keyframeMeta != null) {
-				// Keyframe data loaded, create other mappings
-				duration = keyframeMeta.duration;
-				posTimeMap = new HashMap<Long, Long>();
-				for (int i = 0; i < keyframeMeta.positions.length; i++) {
-					posTimeMap.put(keyframeMeta.positions[i], (long) keyframeMeta.timestamps[i]);
-				}
-				return keyframeMeta;
-			}
-		}
-		// create a holder for the metadata
-		keyframeMeta = new KeyFrameMeta();
-		// Lists of video positions and timestamps
-		List<Long> positionList = new ArrayList<Long>();
-		List<Integer> timestampList = new ArrayList<Integer>();
-		// Lists of audio positions and timestamps
-		List<Long> audioPositionList = new ArrayList<Long>();
-		List<Integer> audioTimestampList = new ArrayList<Integer>();
-		long origPos = getCurrentPosition();
-		// point to the first tag
-		setCurrentPosition(9);
-		// number of tags read
-		int totalValidTags = 0;
-		// start off as audio only
-		boolean audioOnly = true;
-		while (hasMoreTags()) {
-			long pos = getCurrentPosition();
-			// Read tag header and duration
-			ITag tmpTag = this.readTagHeader();
-			if (tmpTag != null) {
-				totalValidTags++;
-			} else {
-				break;
-			}
-			duration = tmpTag.getTimestamp();
-			if (tmpTag.getDataType() == IoConstants.TYPE_VIDEO) {
-				if (audioOnly) {
-					audioOnly = false;
-					audioPositionList.clear();
-					audioTimestampList.clear();
-				}
-				if (firstVideoTag == -1) {
-					firstVideoTag = pos;
-				}
-				// Grab Frame type
-				fillBuffer(1);
-				byte frametype = in.get();
-				if (keyframeMeta.videoCodecId == -1) {
-					keyframeMeta.videoCodecId = frametype & MASK_VIDEO_CODEC;
-				}
-				if (((frametype & MASK_VIDEO_FRAMETYPE) >> 4) == FLAG_FRAMETYPE_KEYFRAME) {
-					positionList.add(pos);
-					timestampList.add(tmpTag.getTimestamp());
-				}
-			} else if (tmpTag.getDataType() == IoConstants.TYPE_AUDIO) {
-				if (firstAudioTag == -1) {
-					firstAudioTag = pos;
-				}
-				// Grab Frame type
-				fillBuffer(1);
-				byte frametype = in.get();
-				if (keyframeMeta.audioCodecId == -1) {
-					keyframeMeta.audioCodecId = frametype & MASK_SOUND_FORMAT;
-				}
-				if (audioOnly) {
-					audioPositionList.add(pos);
-					audioTimestampList.add(tmpTag.getTimestamp());
+			// check for cached keyframe informations
+			if (keyframeCache != null) {
+				keyframeMeta = keyframeCache.loadKeyFrameMeta(file);
+				if (keyframeMeta != null) {
+					// Keyframe data loaded, create other mappings
+					duration = keyframeMeta.duration;
+					posTimeMap = new HashMap<Long, Long>();
+					for (int i = 0; i < keyframeMeta.positions.length; i++) {
+						posTimeMap.put(keyframeMeta.positions[i], (long) keyframeMeta.timestamps[i]);
+					}
+					return keyframeMeta;
 				}
 			}
-			// XXX Paul: this 'properly' handles damaged FLV files - as far as
-			// duration/size is concerned
-			long newPosition = pos + tmpTag.getBodySize() + 15;
-			// log.debug("---->" + in.remaining() + " limit=" + in.limit() + "
-			// new pos=" + newPosition);
-			if (newPosition >= getTotalBytes()) {
-				log.error("New position exceeds limit");
-				if (log.isDebugEnabled()) {
-					log.debug("-----");
-					log.debug("Keyframe analysis");
-					log.debug(" data type=" + tmpTag.getDataType() + " bodysize=" + tmpTag.getBodySize());
-					log.debug(" remaining=" + getRemainingBytes() + " limit=" + getTotalBytes() + " new pos=" + newPosition);
-					log.debug(" pos=" + pos);
-					log.debug("-----");
+			// create a holder for the metadata
+			keyframeMeta = new KeyFrameMeta();
+			// Lists of video positions and timestamps
+			List<Long> positionList = new ArrayList<Long>();
+			List<Integer> timestampList = new ArrayList<Integer>();
+			// Lists of audio positions and timestamps
+			List<Long> audioPositionList = new ArrayList<Long>();
+			List<Integer> audioTimestampList = new ArrayList<Integer>();
+			long origPos = getCurrentPosition();
+			// point to the first tag
+			setCurrentPosition(9);
+			// number of tags read
+			int totalValidTags = 0;
+			// start off as audio only
+			boolean audioOnly = true;
+			while (hasMoreTags()) {
+				long pos = getCurrentPosition();
+				// Read tag header and duration
+				ITag tmpTag = this.readTagHeader();
+				if (tmpTag != null) {
+					totalValidTags++;
+				} else {
+					break;
 				}
-				//XXX Paul: A runtime exception is probably not needed here
-				log.info("New position {} exceeds limit {}", newPosition, getTotalBytes());
-				//just break from the loop
-				break;
-			} else {
-				setCurrentPosition(newPosition);
+				duration = tmpTag.getTimestamp();
+				if (tmpTag.getDataType() == IoConstants.TYPE_VIDEO) {
+					if (audioOnly) {
+						audioOnly = false;
+						audioPositionList.clear();
+						audioTimestampList.clear();
+					}
+					if (firstVideoTag == -1) {
+						firstVideoTag = pos;
+					}
+					// Grab Frame type
+					fillBuffer(1);
+					int frametype = in.get();
+					if (keyframeMeta.videoCodecId == -1) {
+						keyframeMeta.videoCodecId = frametype & MASK_VIDEO_CODEC;
+					}
+					if (((frametype & MASK_VIDEO_FRAMETYPE) >> 4) == FLAG_FRAMETYPE_KEYFRAME) {
+						positionList.add(pos);
+						timestampList.add(tmpTag.getTimestamp());
+					}
+				} else if (tmpTag.getDataType() == IoConstants.TYPE_AUDIO) {
+					if (firstAudioTag == -1) {
+						firstAudioTag = pos;
+					}
+					// Grab Frame type
+					fillBuffer(1);
+					int frametype = in.get() & 0xff;
+					if (keyframeMeta.audioCodecId == -1) {
+						keyframeMeta.audioCodecId = (frametype & MASK_SOUND_FORMAT) >> 4;
+					}
+					if (audioOnly) {
+						audioPositionList.add(pos);
+						audioTimestampList.add(tmpTag.getTimestamp());
+					}
+				}
+				// XXX Paul: this 'properly' handles damaged FLV files - as far as duration/size is concerned
+				long newPosition = pos + tmpTag.getBodySize() + 15;
+				// log.debug("---->" + in.remaining() + " limit=" + in.limit() + "
+				// new pos=" + newPosition);
+				if (newPosition >= getTotalBytes()) {
+					log.error("New position exceeds limit");
+					if (log.isDebugEnabled()) {
+						log.debug("-----");
+						log.debug("Keyframe analysis");
+						log.debug(" data type=" + tmpTag.getDataType() + " bodysize=" + tmpTag.getBodySize());
+						log.debug(" remaining=" + getRemainingBytes() + " limit=" + getTotalBytes() + " new pos=" + newPosition);
+						log.debug(" pos=" + pos);
+						log.debug("-----");
+					}
+					//XXX Paul: A runtime exception is probably not needed here
+					log.info("New position {} exceeds limit {}", newPosition, getTotalBytes());
+					//just break from the loop
+					break;
+				} else {
+					setCurrentPosition(newPosition);
+				}
 			}
+			// restore the pos
+			setCurrentPosition(origPos);
+			log.debug("Total valid tags found: {}", totalValidTags);
+			keyframeMeta.duration = duration;
+			posTimeMap = new HashMap<Long, Long>();
+			if (audioOnly) {
+				// The flv only contains audio tags, use their lists
+				// to support pause and seeking
+				positionList = audioPositionList;
+				timestampList = audioTimestampList;
+			}
+			keyframeMeta.audioOnly = audioOnly;
+			keyframeMeta.positions = new long[positionList.size()];
+			keyframeMeta.timestamps = new int[timestampList.size()];
+			for (int i = 0; i < keyframeMeta.positions.length; i++) {
+				keyframeMeta.positions[i] = positionList.get(i);
+				keyframeMeta.timestamps[i] = timestampList.get(i);
+				posTimeMap.put((long) positionList.get(i), (long) timestampList.get(i));
+			}
+			if (keyframeCache != null) {
+				keyframeCache.saveKeyFrameMeta(file, keyframeMeta);
+			}
+		} catch (InterruptedException e) {
+			log.warn("Exception acquiring lock", e);
+		} finally {
+			lock.release();
 		}
-		// restore the pos
-		setCurrentPosition(origPos);
-		log.debug("Total valid tags found: {}", totalValidTags);
-		keyframeMeta.duration = duration;
-		posTimeMap = new HashMap<Long, Long>();
-		if (audioOnly) {
-			// The flv only contains audio tags, use their lists
-			// to support pause and seeking
-			positionList = audioPositionList;
-			timestampList = audioTimestampList;
-		}
-		keyframeMeta.audioOnly = audioOnly;
-		keyframeMeta.positions = new long[positionList.size()];
-		keyframeMeta.timestamps = new int[timestampList.size()];
-		for (int i = 0; i < keyframeMeta.positions.length; i++) {
-			keyframeMeta.positions[i] = positionList.get(i);
-			keyframeMeta.timestamps[i] = timestampList.get(i);
-			posTimeMap.put((long) positionList.get(i), (long) timestampList.get(i));
-		}
-		if (keyframeCache != null) {
-			keyframeCache.saveKeyFrameMeta(file, keyframeMeta);
-		}
-	} catch (InterruptedException e) {
-		log.warn("Exception acquiring lock", e);
-	} finally {
-		lock.release();
-	}
 		return keyframeMeta;
 	}
 
@@ -811,6 +810,11 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			// move ahead and see if we get a valid datatype		
 			dataType = in.get();
 		}
+//		byte aacType = 0;
+//		if (dataType == 8 && keyframeMeta.audioCodecId == AudioCodec.AAC.getId()) {
+//			// flv spec indicates that aac contains an extra byte after the data type
+//			aacType = in.get();
+//		}
 		int bodySize = IOUtils.readUnsignedMediumInt(in);
 		int timestamp = IOUtils.readExtendedMediumInt(in);
 		if (log.isDebugEnabled()) {

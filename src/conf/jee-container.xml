@@ -1,64 +1,150 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:lang="http://www.springframework.org/schema/lang"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-                           http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd">
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:lang="http://www.springframework.org/schema/lang"
+    xmlns="http://www.springframework.org/schema/beans"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+                           http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd" >
 
-	<bean id="tomcat.server" class="org.red5.server.tomcat.TomcatLoader" init-method="init" destroy-method="shutdown" depends-on="context.loader">
+    <bean
+        id="tomcat.server"
+        class="org.red5.server.tomcat.TomcatLoader"
+        depends-on="context.loader"
+        destroy-method="shutdown"
+        init-method="init" >
 
-		<property name="webappFolder" value="${red5.root}/webapps" />
-			      
-	    <property name="connector">
-			<bean class="org.apache.catalina.connector.Connector">
-				<!-- Blocking I/O -->
-				<constructor-arg type="java.lang.String" value="org.apache.coyote.http11.Http11Protocol" />
-				<!-- Non-blocking I/O -->
-				<!--
-				<constructor-arg type="java.lang.String" value="org.apache.coyote.http11.Http11NioProtocol" />	
-				-->
-                <property name="port"><value>${http.port}</value></property>
-		        <property name="redirectPort"><value>${https.port}</value></property>
-                <property name="enableLookups"><value>false</value></property>
-                <property name="useIPVHosts"><value>true</value></property>
-                <property name="URIEncoding"><value>${http.URIEncoding}</value></property>
-			</bean>
-	    </property>
-	    	
-        <property name="address">
-            <bean class="java.net.InetSocketAddress">
-                <constructor-arg index="0" type="java.lang.String" value="${http.host}" />  
-                <constructor-arg index="1" type="int" value="${http.port}" />  
-            </bean>	
+        <property
+            name="webappFolder"
+            value="${red5.root}/webapps" />
+
+        <property name="connector" >
+
+            <bean class="org.apache.catalina.connector.Connector" >
+
+                <!-- Blocking I/O -->
+
+                <constructor-arg
+                    type="java.lang.String"
+                    value="org.apache.coyote.http11.Http11Protocol" />
+                <!-- Non-blocking I/O -->
+                <!-- <constructor-arg type="java.lang.String" value="org.apache.coyote.http11.Http11NioProtocol" /> -->
+
+                <property name="port" >
+
+                    <value>
+${http.port}
+                    </value>
+                </property>
+
+                <property name="redirectPort" >
+
+                    <value>
+${https.port}
+                    </value>
+                </property>
+
+                <property name="enableLookups" >
+
+                    <value>
+false
+                    </value>
+                </property>
+
+                <property name="useIPVHosts" >
+
+                    <value>
+true
+                    </value>
+                </property>
+
+                <property name="URIEncoding" >
+
+                    <value>
+${http.URIEncoding}
+                    </value>
+                </property>
+            </bean>
         </property>
-	    	
-        <property name="baseHost">
-	       <bean class="org.apache.catalina.core.StandardHost">
-	           <property name="name" value="${http.host}" />
-	           <property name="unpackWARs" value="true" />
-	           <property name="autoDeploy" value="true" />
-	           <property name="xmlValidation" value="false" />
-	           <property name="xmlNamespaceAware" value="false" />
-	       </bean>	   
-	    </property>		
 
-		<property name="valves">
-      		<list>
-	    		<bean id="valve.access" class="org.apache.catalina.valves.AccessLogValve">
-	                <property name="directory" value="log" />
-	                <property name="prefix" value="${http.host}_access." />
-	                <property name="suffix" value=".log" />
-	                <property name="pattern" value="common" />
-	                <property name="resolveHosts" value="false" />
-	                <property name="rotatable" value="true" />
-	        	</bean>
-        	</list>
+        <property name="address" >
+
+            <bean class="java.net.InetSocketAddress" >
+
+                <constructor-arg
+                    index="0"
+                    type="java.lang.String"
+                    value="${http.host}" />
+
+                <constructor-arg
+                    index="1"
+                    type="int"
+                    value="${http.port}" />
+            </bean>
         </property>
-	    
-	</bean>
-	
-	<!-- RTMPT (dedicated server) -->
-<!--
+
+        <property name="baseHost" >
+
+            <bean class="org.apache.catalina.core.StandardHost" >
+
+                <property
+                    name="name"
+                    value="${http.host}" />
+
+                <property
+                    name="unpackWARs"
+                    value="true" />
+
+                <property
+                    name="autoDeploy"
+                    value="true" />
+
+                <property
+                    name="xmlValidation"
+                    value="false" />
+
+                <property
+                    name="xmlNamespaceAware"
+                    value="false" />
+            </bean>
+        </property>
+
+        <property name="valves" >
+
+            <list>
+
+                <bean
+                    id="valve.access"
+                    class="org.apache.catalina.valves.AccessLogValve" >
+
+                    <property
+                        name="directory"
+                        value="log" />
+
+                    <property
+                        name="prefix"
+                        value="${http.host}_access." />
+
+                    <property
+                        name="suffix"
+                        value=".log" />
+
+                    <property
+                        name="pattern"
+                        value="common" />
+
+                    <property
+                        name="resolveHosts"
+                        value="false" />
+
+                    <property
+                        name="rotatable"
+                        value="true" />
+                </bean>
+            </list>
+        </property>
+    </bean>
+
+    <!-- RTMPT (dedicated server) -->
+    <!--
 	<bean id="rtmpt.server" class="org.red5.server.tomcat.rtmpt.RTMPTLoader" init-method="init" lazy-init="true">
 	
 		<property name="webappFolder" value="${red5.root}/webapps" />
@@ -98,11 +184,12 @@
 			</bean>	   
 		</property>		
 
-	</bean>
--->
-	
-	<!-- RTMPS (dedicated server) -->	
-<!--
+	</bean>
+    -->
+
+
+    <!-- RTMPS (dedicated server) -->
+    <!--
 	<bean id="rtmps.server" class="org.red5.server.tomcat.rtmps.RTMPSLoader" init-method="init" lazy-init="true">
 	
 		<property name="webappFolder" value="${red5.root}/webapps" />
@@ -187,7 +274,7 @@
         	</list>
         </property>			
 	
-	</bean>		
--->
-	
+	</bean>		
+    -->
+
 </beans>

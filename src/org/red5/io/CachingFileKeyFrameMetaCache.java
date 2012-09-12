@@ -29,10 +29,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.red5.io.flv.IKeyFrameDataAnalyzer.KeyFrameMeta;
 
 public class CachingFileKeyFrameMetaCache extends FileKeyFrameMetaCache {
-	
+
 	private Map<String, KeyFrameMeta> inMemoryMetaCache = new HashMap<String, KeyFrameMeta>();
+
 	private ReadWriteLock rwLock = new ReentrantReadWriteLock();
+
 	private int maxCacheEntry = 500;
+
 	private Random random = new Random();
 
 	public void setMaxCacheEntry(int maxCacheEntry) {
@@ -56,11 +59,11 @@ public class CachingFileKeyFrameMetaCache extends FileKeyFrameMetaCache {
 						inMemoryMetaCache.put(canonicalPath, keyFrameMeta);
 					} else {
 						return null;
-    				}
-    			} finally {
-    				rwLock.writeLock().unlock();
-    				rwLock.readLock().lock();
-    			}
+					}
+				} finally {
+					rwLock.writeLock().unlock();
+					rwLock.readLock().lock();
+				}
 			}
 			return inMemoryMetaCache.get(canonicalPath);
 		} catch (IOException e) {
@@ -74,16 +77,29 @@ public class CachingFileKeyFrameMetaCache extends FileKeyFrameMetaCache {
 	public void saveKeyFrameMeta(File file, KeyFrameMeta meta) {
 		rwLock.writeLock().lock();
 		try {
-   			String canonicalPath = file.getCanonicalPath();
-   			if (inMemoryMetaCache.containsKey(canonicalPath)) {
-   				inMemoryMetaCache.remove(canonicalPath);
-   			}
+			String canonicalPath = file.getCanonicalPath();
+			if (inMemoryMetaCache.containsKey(canonicalPath)) {
+				inMemoryMetaCache.remove(canonicalPath);
+			}
 		} catch (IOException e) {
 			// ignore the exception here, let super class to handle it.
 		} finally {
 			rwLock.writeLock().unlock();
 		}
 		super.saveKeyFrameMeta(file, meta);
+	}
+
+	@Override
+	public void removeKeyFrameMeta(File file) {
+		rwLock.writeLock().lock();
+		try {
+			String canonicalPath = file.getCanonicalPath();
+			inMemoryMetaCache.remove(canonicalPath);
+		} catch (IOException e) {
+		} finally {
+			rwLock.writeLock().unlock();
+		}
+		super.removeKeyFrameMeta(file);
 	}
 
 	private void freeCachingMetadata() {

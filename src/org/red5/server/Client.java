@@ -34,6 +34,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import javax.management.openmbean.CompositeData;
 
+import org.apache.commons.lang3.StringUtils;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
@@ -341,7 +342,11 @@ public class Client extends AttributeStore implements IClient {
 	 */
 	@Override
 	public int hashCode() {
-		return Integer.valueOf(id);
+		if (StringUtils.isNumeric(id)) {
+			return Integer.valueOf(id);			
+		} else {
+			return id.hashCode();
+		}
 	}
 
 	/**

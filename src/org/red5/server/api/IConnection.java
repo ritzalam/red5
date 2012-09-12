@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.red5.server.api.listeners.IConnectionListener;
 import org.red5.server.api.scope.IBasicScope;
 import org.red5.server.api.scope.IScope;
 
@@ -258,5 +259,18 @@ public interface IConnection extends ICoreObject, ICastingAttributeStore {
 	 * @param mbits
 	 */
 	public void setBandwidth(int mbits);
-
+	
+	/**
+	 * Adds a listener to this object
+	 * 
+	 * @param listener
+	 */
+	public void addListener(IConnectionListener listener);
+	
+	/**
+	 * Removes the listener from this object
+	 * 
+	 * @param listener
+	 */
+	public void removeListener(IConnectionListener listener);
 }

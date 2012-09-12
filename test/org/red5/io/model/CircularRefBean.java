@@ -16,42 +16,39 @@
  * limitations under the License.
  */
 
-package org.red5.server.io;
+package org.red5.io.model;
 
 /**
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
-public class SimpleJavaBean {
+public class CircularRefBean extends SimpleJavaBean {
 
-	private String nameOfBean = "jeff";
+	private CircularRefBean refToSelf;
 
 	/**
-     * Getter for property 'nameOfBean'.
-     *
-     * @return Value for property 'nameOfBean'.
-     */
-    public String getNameOfBean() {
-		return nameOfBean;
+	 * Constructs a new CircularRefBean.
+	 */
+    public CircularRefBean(){
+		super();
 	}
 
 	/**
-     * Setter for property 'nameOfBean'.
+     * Getter for property 'refToSelf'.
      *
-     * @param nameOfBean Value to set for property 'nameOfBean'.
+     * @return Value for property 'refToSelf'.
      */
-    public void setNameOfBean(String nameOfBean) {
-		this.nameOfBean = nameOfBean;
+    public CircularRefBean getRefToSelf() {
+		return refToSelf;
 	}
 
-	/** {@inheritDoc} */
-    @Override
-	public boolean equals(Object obj){
-		if(obj instanceof SimpleJavaBean){
-			SimpleJavaBean sjb = (SimpleJavaBean) obj;
-			return sjb.getNameOfBean().equals(sjb.getNameOfBean());
-		}
-		return false;
+	/**
+     * Setter for property 'refToSelf'.
+     *
+     * @param refToSelf Value to set for property 'refToSelf'.
+     */
+    public void setRefToSelf(CircularRefBean refToSelf) {
+		this.refToSelf = refToSelf;
 	}
 
 }

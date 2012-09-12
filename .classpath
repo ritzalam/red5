@@ -1,9 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry excluding="**/.svn/*|org/red5/server/script/rhino/" kind="src" path="src"/>
-	<classpathentry excluding="**/.svn/*" kind="src" path="test"/>
-	<classpathentry kind="con" path="org.apache.ivyde.eclipse.cpcontainer.IVYDE_CONTAINER/?project=red5_server&amp;ivyXmlPath=ivy.xml&amp;confs=*&amp;ivySettingsPath=%24%7Bworkspace_loc%3Ared5_server%2Fivysettings.xml%7D&amp;loadSettingsOnDemand=false&amp;propertyFiles=&amp;acceptedTypes=jar&amp;alphaOrder=false&amp;resolveInWorkspace=false&amp;retrievedClasspath=false&amp;sourceTypes=source&amp;javadocTypes=javadoc&amp;sourceSuffixes=-source%2C-sources%2C-src&amp;javadocSuffixes=-javadoc%2C-javadocs%2C-doc%2C-docs&amp;mapIfOnlyOneSource=false&amp;mapIfOnlyOneJavadoc=false&amp;resolveBeforeLaunch=false&amp;useExtendedResolveId=false"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="output" path="bin"/>
+
+    <classpathentry
+        kind="con"
+        path="org.eclipse.jdt.launching.JRE_CONTAINER" />
+
+    <classpathentry
+        excluding="**/.svn/*|org/red5/server/script/rhino/"
+        kind="src"
+        path="src" />
+
+    <classpathentry
+        excluding="**/.svn/*"
+        kind="src"
+        path="test" />
+
+    <classpathentry
+        kind="con"
+        path="org.apache.ivyde.eclipse.cpcontainer.IVYDE_CONTAINER/?project=red5_server&amp;ivyXmlPath=ivy.xml&amp;confs=*&amp;ivySettingsPath=%24%7Bworkspace_loc%3Ared5_server%2Fivysettings.xml%7D&amp;loadSettingsOnDemand=false&amp;propertyFiles=&amp;acceptedTypes=jar&amp;alphaOrder=false&amp;resolveInWorkspace=false&amp;retrievedClasspath=false&amp;sourceTypes=source&amp;javadocTypes=javadoc&amp;sourceSuffixes=-source%2C-sources%2C-src&amp;javadocSuffixes=-javadoc%2C-javadocs%2C-doc%2C-docs&amp;mapIfOnlyOneSource=false&amp;mapIfOnlyOneJavadoc=false&amp;resolveBeforeLaunch=false&amp;useExtendedResolveId=false" />
+
+    <classpathentry
+        kind="con"
+        path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4" />
+
+    <classpathentry
+        kind="output"
+        path="bin" />
+
 </classpath>

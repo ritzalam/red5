@@ -21,6 +21,7 @@ package org.red5.server.scope;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import junit.framework.TestCase;
@@ -29,10 +30,12 @@ import org.junit.Test;
 import org.red5.server.Context;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IClientRegistry;
+import org.red5.server.api.IConnection;
 import org.red5.server.api.IContext;
 import org.red5.server.api.Red5;
 import org.red5.server.api.TestConnection;
 import org.red5.server.api.scope.IScope;
+import org.red5.server.api.service.IServiceCapableConnection;
 import org.red5.server.util.ScopeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,20 +54,20 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 	protected static Logger log = LoggerFactory.getLogger(ScopeTest.class);
 
 	private static Context context;
-	
+
 	private static WebScope appScope;
-	
+
 	private String host = "localhost";
-	
+
 	private String appPath = "junit";
-	
+
 	private String roomPath = "/junit/room1";
 
 	static {
 		System.setProperty("red5.deployment.type", "junit");
 		System.setProperty("red5.root", "bin");
 		System.setProperty("red5.config_root", "bin/conf");
-		System.setProperty("logback.ContextSelector", "org.red5.logging.LoggingContextSelector");		
+		System.setProperty("logback.ContextSelector", "org.red5.logging.LoggingContextSelector");
 	}
 
 	{
@@ -92,11 +95,11 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		IClientRegistry reg = context.getClientRegistry();
 		IClient client = reg.newClient(null);
 		assertNotNull(client);
-		
+
 		log.debug("----------------------------------\nDump scope details");
 		((Scope) scope).dump();
 		log.debug("----------------------------------\n");
-		
+
 		conn.initialize(client);
 		if (!conn.connect(scope)) {
 			assertTrue("didnt connect", false);
@@ -133,7 +136,7 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		conn.initialize(client);
 
 		Red5.setConnectionLocal(conn);
-		
+
 		assertTrue("client should not be null", client != null);
 		log.debug("{}", client);
 
@@ -142,17 +145,15 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		client.setAttribute(key, value);
 		assertTrue("attributes not working", client.getAttribute(key) == value);
 
-		conn.connect(testApp);
+		assertTrue(conn.connect(testApp));
 
 		assertTrue("app should have 1 client", testApp.getClients().size() == 1);
-		assertTrue("host should have 1 client", testApp.getParent()
-				.getClients().size() == 1);
+		assertTrue("host should have 1 client", testApp.getParent().getClients().size() == 1);
 
 		conn.close();
 
 		assertTrue("app should have 0 client", testApp.getClients().size() == 0);
-		assertTrue("host should have 0 client", testApp.getParent()
-				.getClients().size() == 0);
+		assertTrue("host should have 0 client", testApp.getParent().getClients().size() == 0);
 
 		//client.disconnect();
 		Red5.setConnectionLocal(null);
@@ -161,7 +162,7 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 	@Test
 	public void scopeResolver() {
 		context = (Context) applicationContext.getBean("web.context");
-		
+
 		// Global
 		IScope global = context.getGlobalScope();
 		assertNotNull("global scope should be set", global);
@@ -184,8 +185,8 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 			assertTrue("should have thrown an exception", false);
 		} catch (RuntimeException e) {
 		}
-	}	
-	
+	}
+
 	@Test
 	public void testScope() {
 		log.debug("testScope");
@@ -252,6 +253,30 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		//scope.setName("");
 		//scope.setContext(ctx);
 
+		// Additional test section for issue #259
+
+		// a little pre-setup is needed first
+		IClientRegistry reg = context.getClientRegistry();
+		IClient client = reg.newClient(null);
+		TestConnection conn = new TestConnection(host, appPath, client.getId());
+		conn.initialize(client);
+		Red5.setConnectionLocal(conn);
+		conn.connect(room5);
+		// their code
+		IScope scope = Red5.getConnectionLocal().getScope();
+		for (Set<IConnection> collection : scope.getConnections()) {
+			try {
+				for (IConnection tempConn : collection) {
+					if (tempConn instanceof IServiceCapableConnection) {
+						@SuppressWarnings("unused")
+						IServiceCapableConnection sc = (IServiceCapableConnection) tempConn;
+						//sc.invoke(methodName, objArrays);
+					}
+				}
+			} catch (NoSuchElementException e) {
+				log.warn("Previous scope connection is unavailable", e);
+			}
+		}
 	}
 
 	@Test

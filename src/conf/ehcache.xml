@@ -1,9 +1,9 @@
 <ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:noNamespaceSchemaLocation="ehcache.xsd"
+    dynamicConfig="false"
+    monitoring="off"
     updateCheck="false"
-	monitoring="off"
-	dynamicConfig="false">
-	
+    xsi:noNamespaceSchemaLocation="ehcache.xsd" >
+
     <!--
     Sets the path to the directory where cache files are created.
 
@@ -17,7 +17,8 @@
 
     Subdirectories can be specified below the property e.g. java.io.tmpdir/one
     -->
-    <diskStore path="java.io.tmpdir/red5"/>
+
+    <diskStore path="java.io.tmpdir/red5" />
 
     <!--
     Specifies a CacheManagerEventListenerFactory, be used to create a CacheManagerPeerProvider,
@@ -41,6 +42,7 @@
 
     <cacheManagerEventListenerFactory class="" properties=""/>
     -->
+
 
     <!--
     (Enable for distributed operation)
@@ -121,6 +123,7 @@
                         multicastGroupPort=4446"/>
     -->
 
+
     <!--
     (Enable for distributed operation)
 
@@ -166,7 +169,8 @@
     <cacheManagerPeerListenerFactory
             class="net.sf.ehcache.distribution.RMICacheManagerPeerListenerFactory"/>
     -->
-    <!-- Cache configuration.
+    <!--
+    Cache configuration.
 
     The following attributes are required.
 
@@ -273,52 +277,59 @@
     * maximumChunkSizeBytes=<integer> - Caches can potentially be very large, larger than the
       memory limits of the VM. This property allows the bootstraper to fetched elements in
       chunks. The default chunk size is 5000000 (5MB).
-
     -->
+
 
     <!--
     Mandatory Default Cache configuration. These settings will be applied to caches
     created programmtically using CacheManager.add(String cacheName)
     -->
+
     <defaultCache
-            maxElementsInMemory="4"
-            eternal="false"
-            timeToIdleSeconds="120"
-            timeToLiveSeconds="120"
-            overflowToDisk="false"
-            diskPersistent="false"
-            diskExpiryThreadIntervalSeconds="120"
-            memoryStoreEvictionPolicy="LFU"
-            />
-	
-	<!-- org.red5.io.amf.Output.stringCache
+        diskExpiryThreadIntervalSeconds="120"
+        diskPersistent="false"
+        eternal="false"
+        maxElementsInMemory="4"
+        memoryStoreEvictionPolicy="LFU"
+        overflowToDisk="false"
+        timeToIdleSeconds="120"
+        timeToLiveSeconds="120" />
+
+    <!--
+         org.red5.io.amf.Output.stringCache
 			Caches strings for output via AMF serialization. Keeps up to 1000 elements in memory,
 			does not overflow to disk, is not eternal, and expires elements after 20 minutes of 
-			inactivity.  -->
-	<cache name="org.red5.io.amf.Output.stringCache"
-		maxElementsInMemory="1000"
-		eternal="false"
-		timeToIdleSeconds="1200"
-		overflowToDisk="false"/>
-	
-	<!-- org.red5.io.amf.Output.serializeCache
-			 -->
-	<cache name="org.red5.io.amf.Output.serializeCache"
-		maxElementsInMemory="200"
-		eternal="false"
-		timeToIdleSeconds="1200"
-		overflowToDisk="false"/>
-		
-	<cache name="org.red5.io.amf.Output.fieldCache"
-		maxElementsInMemory="200"
-		eternal="false"
-		timeToIdleSeconds="1200"
-		overflowToDisk="false"/>
-		
-	<cache name="org.red5.io.amf.Output.getterCache"
-		maxElementsInMemory="200"
-		eternal="false"
-		timeToIdleSeconds="1200"
-		overflowToDisk="false"/>
-	
+			inactivity.
+    -->
+
+    <cache
+        name="org.red5.io.amf.Output.stringCache"
+        eternal="false"
+        maxElementsInMemory="1000"
+        overflowToDisk="false"
+        timeToIdleSeconds="1200" />
+
+    <!-- org.red5.io.amf.Output.serializeCache -->
+
+    <cache
+        name="org.red5.io.amf.Output.serializeCache"
+        eternal="false"
+        maxElementsInMemory="200"
+        overflowToDisk="false"
+        timeToIdleSeconds="1200" />
+
+    <cache
+        name="org.red5.io.amf.Output.fieldCache"
+        eternal="false"
+        maxElementsInMemory="200"
+        overflowToDisk="false"
+        timeToIdleSeconds="1200" />
+
+    <cache
+        name="org.red5.io.amf.Output.getterCache"
+        eternal="false"
+        maxElementsInMemory="200"
+        overflowToDisk="false"
+        timeToIdleSeconds="1200" />
+
 </ehcache>

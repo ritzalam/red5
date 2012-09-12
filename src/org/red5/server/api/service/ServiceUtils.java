@@ -189,6 +189,7 @@ public class ServiceUtils {
 		if (client == null) {
 			connections = new HashSet<IConnection>();
 			Collection<Set<IConnection>> conns = scope.getConnections();
+			log.debug("Scope: {} connections: {}", scope.getName(), conns.size());
 			for (Set<IConnection> set : conns) {
 				connections.addAll(set);
 			}

@@ -16,41 +16,42 @@
  * limitations under the License.
  */
 
-package org.red5.server.io;
+package org.red5.io.model;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import org.red5.io.mock.Input;
-import org.red5.io.mock.Mock;
-import org.red5.io.mock.Output;
-
-/*
+/**
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
-*/
-public class MockIOTest extends AbstractIOTest {
+ */
+public class SimpleJavaBean {
 
-	protected List<Object> list;
+	private String nameOfBean = "jeff";
 
-	/** {@inheritDoc} */
-	@Override
-	void setupIO() {
-		list = new LinkedList<Object>();
-		in = new Input(list);
-		out = new Output(list);
+	/**
+     * Getter for property 'nameOfBean'.
+     *
+     * @return Value for property 'nameOfBean'.
+     */
+    public String getNameOfBean() {
+		return nameOfBean;
+	}
+
+	/**
+     * Setter for property 'nameOfBean'.
+     *
+     * @param nameOfBean Value to set for property 'nameOfBean'.
+     */
+    public void setNameOfBean(String nameOfBean) {
+		this.nameOfBean = nameOfBean;
 	}
 
 	/** {@inheritDoc} */
-	@Override
-	void dumpOutput() {
-		System.out.println(Mock.listToString(list));
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	void resetOutput() {
-		setupIO();
+    @Override
+	public boolean equals(Object obj){
+		if(obj instanceof SimpleJavaBean){
+			SimpleJavaBean sjb = (SimpleJavaBean) obj;
+			return sjb.getNameOfBean().equals(sjb.getNameOfBean());
+		}
+		return false;
 	}
 
 }

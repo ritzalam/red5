@@ -11,7 +11,10 @@ Context file for red5
     crossContext="false"
     cookies="false"
     antiResourceLocking="false" 
-    antiJARLocking="false"
+    antiJARLocking="false"
 -->
-<Context path="@context.path@" crossContext="true">
+<Context
+    crossContext="true"
+    path="@context.path@" >
+
 </Context>

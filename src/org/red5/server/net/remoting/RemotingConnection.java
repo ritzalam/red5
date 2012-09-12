@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -37,6 +38,7 @@ import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.event.IEvent;
+import org.red5.server.api.listeners.IConnectionListener;
 import org.red5.server.api.remoting.IRemotingConnection;
 import org.red5.server.api.remoting.IRemotingHeader;
 import org.red5.server.api.scope.IBasicScope;
@@ -86,6 +88,11 @@ public class RemotingConnection implements IRemotingConnection {
 	protected List<IRemotingHeader> headers = new ArrayList<IRemotingHeader>();
 
 	/**
+	 * Listeners
+	 */
+	protected CopyOnWriteArrayList<IConnectionListener> connectionListeners = new CopyOnWriteArrayList<IConnectionListener>();
+
+	/**
 	 * Create servlet connection from request and scope.
 	 *
 	 * @param request           Servlet request
@@ -111,8 +118,7 @@ public class RemotingConnection implements IRemotingConnection {
 	 * @return string
 	 */
 	public String toString() {
-		return getClass().getSimpleName() + " from " + getRemoteAddress() + ':' + getRemotePort() + " to " + getHost()
-				+ " (session: " + session.getId() + ')';
+		return getClass().getSimpleName() + " from " + getRemoteAddress() + ':' + getRemotePort() + " to " + getHost() + " (session: " + session.getId() + ')';
 	}
 
 	/**
@@ -170,6 +176,20 @@ public class RemotingConnection implements IRemotingConnection {
 	/** {@inheritDoc} */
 	public void close() {
 		session.invalidate();
+		// set a quick local ref
+		final IConnection con = this;
+		String threadId = String.format("RemotingCloseNotifier-%s", con.getClient().getId());
+		// alert our listeners
+		Thread t = new Thread(new Runnable() {
+			public void run() {
+				for (IConnectionListener listener : connectionListeners) {
+					listener.notifyDisconnected(con);
+				}
+				connectionListeners.clear();
+			}
+		}, threadId);
+		t.setDaemon(true);
+		t.start();
 	}
 
 	/** {@inheritDoc} */
@@ -470,8 +490,8 @@ public class RemotingConnection implements IRemotingConnection {
 	public void setAttributes(IAttributeStore values) {
 		setAttributes(values.getAttributes());
 	}
-	
-	/** {@inheritDoc} */	
+
+	/** {@inheritDoc} */
 	public void setBandwidth(int mbits) {
 		throw new UnsupportedOperationException("Not supported in this class");
 	}
@@ -541,7 +561,17 @@ public class RemotingConnection implements IRemotingConnection {
 		protected void unregister(IConnection conn) {
 			super.unregister(conn);
 		}
-		
+
+	}
+
+	/** {@inheritDoc} */
+	public void addListener(IConnectionListener listener) {
+			this.connectionListeners.add(listener);
+	}
+
+	/** {@inheritDoc} */
+	public void removeListener(IConnectionListener listener) {
+			this.connectionListeners.remove(listener);
 	}
 
 }

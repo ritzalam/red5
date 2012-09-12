@@ -114,7 +114,7 @@ public class IOUtils {
 	}
 
 	/**
-	 * Reads unsigned medium integer
+	 * Reads unsigned medium integer (3 bytes)
 	 * @param in              Unsigned medium int source
 	 * @return                int value
 	 */

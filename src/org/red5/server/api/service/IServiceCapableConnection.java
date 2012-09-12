@@ -19,6 +19,7 @@
 package org.red5.server.api.service;
 
 import org.red5.server.api.IConnection;
+import org.red5.server.net.rtmp.status.Status;
 
 /**
  * Connection that has options to invoke and handle remote calls
@@ -92,4 +93,16 @@ public interface IServiceCapableConnection extends IConnection {
 	 */
 	void notify(String method, Object[] params);
 
+	/**
+	 * Sends a status object to the connection
+	 * @param status
+	 */
+	void status(Status status);
+	
+	/**
+	 * Sends a status object to the connection on a given channel
+	 * @param status
+	 * @param channel
+	 */
+	void status(Status status, int channel);
 }

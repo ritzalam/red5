@@ -34,6 +34,7 @@ import javax.management.StandardMBean;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mina.core.buffer.IoBuffer;
+import org.red5.io.IKeyFrameMetaCache;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEvent;
@@ -713,18 +714,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			}
 			file.createNewFile();
 		}
-		//remove existing meta file
-		File meta = new File(file.getCanonicalPath() + ".meta");
-		if (meta.exists()) {
-			log.trace("Meta file exists");
-			if (meta.delete()) {
-				log.debug("Meta file deleted - {}", meta.getName());
-			} else {
-				log.warn("Meta file was not deleted - {}", meta.getName());
-				meta.deleteOnExit();
-			}
-		} else {
-			log.debug("Meta file does not exist: {}", meta.getCanonicalPath());
+		//remove existing meta info
+		if (scope.getContext().hasBean("keyframe.cache")) {
+			IKeyFrameMetaCache keyFrameCache = (IKeyFrameMetaCache) scope.getContext().getBean("keyframe.cache");
+			keyFrameCache.removeKeyFrameMeta(file);
 		}
 		log.debug("Recording file: {}", file.getCanonicalPath());
 		// get instance via spring

@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import org.red5.io.IKeyFrameMetaCache;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.scope.IScope;
@@ -382,13 +383,10 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 				}
 				file.createNewFile();
 			} else {
-				//remove existing meta file
-				File meta = new File(file.getAbsolutePath() + ".meta");
-				if (meta.delete()) {
-					log.debug("Meta file deleted - {}", meta.getName());
-				} else {
-					log.warn("Meta file was not deleted - {}", meta.getName());
-					meta.deleteOnExit();
+				//remove existing meta info
+				if (scope.getContext().hasBean("keyframe.cache")) {
+					IKeyFrameMetaCache keyFrameCache = (IKeyFrameMetaCache) scope.getContext().getBean("keyframe.cache");
+					keyFrameCache.removeKeyFrameMeta(file);
 				}
 			}
 			FileConsumer recordingFile = null;

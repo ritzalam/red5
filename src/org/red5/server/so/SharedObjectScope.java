@@ -43,7 +43,7 @@ import org.red5.server.api.so.ISharedObjectSecurityService;
 import org.red5.server.api.statistics.ISharedObjectStatistics;
 import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.scope.BasicScope;
-import org.red5.server.service.ServiceUtils;
+import org.red5.server.service.ReflectionUtils;
 import org.red5.server.util.ScopeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -227,10 +227,10 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 		// Once handler is found, find matching method
 		if (soHandler != null) {
 			// With exact params...
-			Object[] methodResult = ServiceUtils.findMethodWithExactParameters(soHandler, serviceMethod, arguments);
+			Object[] methodResult = ReflectionUtils.findMethodWithExactParameters(soHandler, serviceMethod, arguments);
 			// Or at least with suitable list params
 			if (methodResult.length == 0 || methodResult[0] == null) {
-				methodResult = ServiceUtils.findMethodWithListParameters(soHandler, serviceMethod, arguments);
+				methodResult = ReflectionUtils.findMethodWithListParameters(soHandler, serviceMethod, arguments);
 			}
 
 			// If method is found...

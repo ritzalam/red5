@@ -40,6 +40,7 @@ import org.red5.io.flv.IFLV;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.IOUtils;
 import org.red5.server.api.Red5;
+import org.red5.server.stream.codec.AudioCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -178,7 +179,7 @@ public class FLVWriter implements ITagWriter {
 				duration = timeOffset;
 				log.debug("Duration: {}", timeOffset);
 				// grab the file we will append to
-				this.dataFile = new RandomAccessFile(file, "rws");
+				this.dataFile = new RandomAccessFile(file, "rw");
 				if (!file.exists() || !file.canRead() || !file.canWrite()) {
 					log.warn("File does not exist or cannot be accessed");
 				} else {
@@ -309,33 +310,49 @@ public class FLVWriter implements ITagWriter {
 							int id = bodyBuf[0] & 0xff; // must be unsigned
 							audioCodecId = (id & ITag.MASK_SOUND_FORMAT) >> 4;
 							log.debug("Audio codec id: {}", audioCodecId);
-							switch ((id & ITag.MASK_SOUND_RATE) >> 2) {
-								case ITag.FLAG_RATE_5_5_KHZ:
-									soundRate = 5500;
-									break;
-								case ITag.FLAG_RATE_11_KHZ:
-									soundRate = 11000;
-									break;
-								case ITag.FLAG_RATE_22_KHZ:
-									soundRate = 22000;
-									break;
-								case ITag.FLAG_RATE_44_KHZ:
-									soundRate = 44000;
-									break;
+							// if aac use defaults
+							if (audioCodecId == AudioCodec.AAC.getId()) {
+								log.trace("AAC audio type");
+								// Flash Player ignores	these values and extracts the channel and sample rate data encoded in the AAC bit stream
+								soundRate = 44100;
+								soundSize = 16;
+								soundType = true;
+							} else if (audioCodecId == AudioCodec.SPEEX.getId()) {
+								log.trace("Speex audio type");
+								soundRate = 5500; // actually 16kHz
+								soundSize = 16;
+								soundType = false; // mono								
+							} else {
+								switch ((id & ITag.MASK_SOUND_RATE) >> 2) {
+									case ITag.FLAG_RATE_5_5_KHZ:
+										soundRate = 5500;
+										break;
+									case ITag.FLAG_RATE_11_KHZ:
+										soundRate = 11000;
+										break;
+									case ITag.FLAG_RATE_22_KHZ:
+										soundRate = 22000;
+										break;
+									case ITag.FLAG_RATE_44_KHZ:
+										soundRate = 44100;
+										break;
+								}
+								log.debug("Sound rate: {}", soundRate);
+								switch ((id & ITag.MASK_SOUND_SIZE) >> 1) {
+									case ITag.FLAG_SIZE_8_BIT:
+										soundSize = 8;
+										break;
+									case ITag.FLAG_SIZE_16_BIT:
+										soundSize = 16;
+										break;
+								}
+								log.debug("Sound size: {}", soundSize);
+								// mono == 0 // stereo == 1
+								soundType = (id & ITag.MASK_SOUND_TYPE) > 0;
+								log.debug("Sound type: {}", soundType);
 							}
-							log.debug("Sound rate: {}", soundRate);
-							switch ((id & ITag.MASK_SOUND_SIZE) >> 1) {
-								case ITag.FLAG_SIZE_8_BIT:
-									soundSize = 8;
-									break;
-								case ITag.FLAG_SIZE_16_BIT:
-									soundSize = 16;
-									break;
-							}
-							log.debug("Sound size: {}", soundSize);
-							soundType = (id & ITag.MASK_SOUND_TYPE) > 0;
-							log.debug("Sound type: {}", soundType);
 						}
+						// XXX is AACPacketType needed here?
 					} else if (dataType == ITag.TYPE_VIDEO) {
 						videoDataSize += bodySize;
 						if (videoCodecId == -1) {
@@ -439,8 +456,16 @@ public class FLVWriter implements ITagWriter {
 		}
 		if (audioCodecId != -1) {
 			params.put("audiocodecid", audioCodecId);
-			params.put("audiosamplerate", soundRate);
-			params.put("audiosamplesize", soundSize);
+			if (audioCodecId == AudioCodec.AAC.getId()) {
+				params.put("audiosamplerate", 44100);
+				params.put("audiosamplesize", 16);
+			} else if (audioCodecId == AudioCodec.SPEEX.getId()) {
+				params.put("audiosamplerate", 16000);
+				params.put("audiosamplesize", 16);
+			} else {
+				params.put("audiosamplerate", soundRate);
+				params.put("audiosamplesize", soundSize);
+			}
 			params.put("stereo", soundType);
 			params.put("audiodatarate", 8 * audioDataSize / 1024 / duration); //from bytes to kilobits			
 		} else {

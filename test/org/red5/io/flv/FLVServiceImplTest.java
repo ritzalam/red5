@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.red5.server.io;
+package org.red5.io.flv;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -88,7 +88,7 @@ public class FLVServiceImplTest extends TestCase {
 		File f = new File("fixtures/test.flv");
 		System.out.println("test: " + f);
 		IFLV flv = (IFLV) service.getStreamableFile(f);
-		flv.setCache(NoCacheImpl.getInstance());		
+		flv.setCache(NoCacheImpl.getInstance());
 		System.out.println("test: " + flv);
 		ITagReader reader = flv.getReader();
 		System.out.println("test: " + reader);
@@ -159,8 +159,7 @@ public class FLVServiceImplTest extends TestCase {
 	 */
 
 	@SuppressWarnings("unused")
-	private void writeTags(ITagReader reader, ITagWriter writer)
-			throws IOException {
+	private void writeTags(ITagReader reader, ITagWriter writer) throws IOException {
 
 		ITag tag = null;
 

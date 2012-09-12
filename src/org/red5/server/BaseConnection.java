@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,6 +34,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.event.IEvent;
+import org.red5.server.api.listeners.IConnectionListener;
 import org.red5.server.api.scope.IBasicScope;
 import org.red5.server.api.scope.IScope;
 import org.red5.server.scope.Scope;
@@ -126,6 +128,11 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	protected volatile boolean closed;
 
 	/**
+	 * Listeners
+	 */
+	protected CopyOnWriteArrayList<IConnectionListener> connectionListeners = new CopyOnWriteArrayList<IConnectionListener>();
+
+	/**
 	 * Used to protect mulit-threaded operations on write
 	 */
 	private final Semaphore writeLock = new Semaphore(1, true);
@@ -181,6 +188,16 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 		this.path = path;
 		this.sessionId = sessionId;
 		this.params = params;
+	}
+
+	/** {@inheritDoc} */
+	public void addListener(IConnectionListener listener) {
+		this.connectionListeners.add(listener);
+	}
+
+	/** {@inheritDoc} */
+	public void removeListener(IConnectionListener listener) {
+		this.connectionListeners.remove(listener);
 	}
 
 	/**
@@ -370,6 +387,20 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 			client = null;*/
 		}
 		scope = null;
+		// set a quick local ref
+		final IConnection con = this;
+		String threadId = String.format("CloseNotifier-%s", con.getClient().getId());
+		// alert our listeners
+		Thread t = new Thread(new Runnable() {
+			public void run() {
+				for (IConnectionListener listener : connectionListeners) {
+					listener.notifyDisconnected(con);
+				}
+				connectionListeners.clear();
+			}
+		}, threadId);
+		t.setDaemon(true);
+		t.start();
 	}
 
 	/**

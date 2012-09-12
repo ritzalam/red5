@@ -511,7 +511,8 @@
 				<exclude name="ivy*.jar"/>
 				<exclude name="junit*.jar"/>
 				<exclude name="grobo*.jar"/>
-				<exclude name="*-sources*.jar"/>
+                <exclude name="*-sources*.jar"/>
+			    <exclude name="*-javadoc*.jar"/>
 			</fileset>
 		</copy>
 		<copy todir="${dist.dir}/conf">

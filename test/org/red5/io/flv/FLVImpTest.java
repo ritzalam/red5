@@ -16,13 +16,19 @@
  * limitations under the License.
  */
 
-package org.red5.server.net.rtmp;
+package org.red5.io.flv;
 
-import org.red5.server.net.rtmp.event.Notify;
+import org.junit.Test;
+import org.red5.io.flv.impl.FLV;
 
-/**
- * Notify handler for client-side stream
- */
-public interface INetStreamEventHandler {
-	void onStreamEvent(Notify notify);
+import junit.framework.TestCase;
+
+public class FLVImpTest extends TestCase {
+	
+	@Test
+	public void testCreation() {
+		FLV exampleObj = new FLV();
+		assertNotNull(exampleObj);
+	}
+
 }
