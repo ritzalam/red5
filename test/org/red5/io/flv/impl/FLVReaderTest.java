@@ -29,7 +29,7 @@ public class FLVReaderTest {
 
 		try {
 			for (File file : files) {
-				FLVReader reader = new FLVReader(file);
+				FLVReader reader = new FLVReader(file, true);
 
 				KeyFrameMeta meta = reader.analyzeKeyFrames();
 				log.debug("Meta: {}", meta);

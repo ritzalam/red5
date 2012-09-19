@@ -577,6 +577,7 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 					setCurrentPosition(oldPos);
 					KeyFrameMeta meta = analyzeKeyFrames();
 					if (meta != null) {
+						metadataSent = true;
 						return createFileMeta();
 					}
 				}
@@ -599,9 +600,6 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 					}
 					body.flip();
 					tag.setBody(body);
-				}
-				if (isMetaData) {
-					metadataSent = true;
 				}
 			} else {
 				log.debug("Tag was null");
