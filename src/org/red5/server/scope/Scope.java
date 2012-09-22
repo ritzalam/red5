@@ -1186,7 +1186,10 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
 			}
 			oName = new ObjectName(String.format("org.red5.server:type=%s,name=%s", cName, name));
-			mbs.registerMBean(new StandardMBean(this, ScopeMXBean.class, true), oName);
+			// don't reregister
+			if (!mbs.isRegistered(oName)) {
+				mbs.registerMBean(new StandardMBean(this, ScopeMXBean.class, true), oName);
+			}
 		} catch (Exception e) {
 			log.warn("Error on jmx registration", e);
 		}
