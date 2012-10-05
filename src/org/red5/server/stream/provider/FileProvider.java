@@ -123,7 +123,8 @@ public class FileProvider implements IPassive, ISeekableProvider, IPullableProvi
 	}
 
 	/** {@inheritDoc} */
-	public synchronized IMessage pullMessage(IPipe pipe) throws IOException {
+	public IMessage pullMessage(IPipe pipe) throws IOException {
+		// there is no need for sync here, the readers use semaphore locks
 		if (this.pipe == pipe) {
 			if (reader == null) {
 				init();
@@ -249,20 +250,17 @@ public class FileProvider implements IPassive, ISeekableProvider, IPullableProvi
 	}
 
 	/** {@inheritDoc} */
-	public synchronized int seek(int ts) {
+	public int seek(int ts) {
 		log.trace("Seek ts: {}", ts);
 		if (keyFrameMeta == null) {
 			if (!(reader instanceof IKeyFrameDataAnalyzer)) {
 				// Seeking not supported
 				return ts;
 			}
-
 			keyFrameMeta = ((IKeyFrameDataAnalyzer) reader).analyzeKeyFrames();
 		}
-
 		if (keyFrameMeta.positions.length == 0) {
-			// no video keyframe metainfo, it's an audio-only FLV
-			// we skip the seek for now.
+			// no video keyframe metainfo, it's an audio-only FLV we skip the seek for now.
 			// TODO add audio-seek capability
 			return ts;
 		}
@@ -278,8 +276,7 @@ public class FileProvider implements IPassive, ISeekableProvider, IPullableProvi
 				break;
 			}
 		}
-		
-		if(frame > -1){
+		if (frame > -1) {
 			reader.position(keyFrameMeta.positions[frame]);
 			return keyFrameMeta.timestamps[frame];
 		} else {

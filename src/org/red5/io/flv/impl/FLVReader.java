@@ -213,7 +213,11 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			return in.remaining();
 		}
 		try {
-			return channelSize - channel.position() + in.remaining();
+			if (channel.isOpen()) {
+				return channelSize - channel.position() + in.remaining();
+			} else {
+				return in.remaining();
+			}
 		} catch (Exception e) {
 			log.error("Error getRemainingBytes", e);
 			return 0;

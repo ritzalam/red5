@@ -36,40 +36,41 @@ import org.slf4j.LoggerFactory;
  * Represents stream source that is file
  */
 public class FileStreamSource implements ISeekableStreamSource, Constants {
-    /**
-     * Logger
-     */
+	/**
+	 * Logger
+	 */
 	protected static Logger log = LoggerFactory.getLogger(FileStreamSource.class);
-    /**
-     * Tag reader
-     */
+
+	/**
+	 * Tag reader
+	 */
 	private ITagReader reader;
-    /**
-     * Key frame metadata
-     */
+
+	/**
+	 * Key frame metadata
+	 */
 	private KeyFrameMeta keyFrameMeta;
 
-    /**
-     * Creates file stream source with tag reader
-     * @param reader    Tag reader
-     */
+	/**
+	 * Creates file stream source with tag reader
+	 * @param reader    Tag reader
+	 */
 	public FileStreamSource(ITagReader reader) {
 		this.reader = reader;
 	}
 
-    /**
-     * Closes tag reader
-     */
-    public void close() {
+	/**
+	 * Closes tag reader
+	 */
+	public void close() {
 		reader.close();
 	}
 
-    /**
-     * Get tag from queue and convert to message
-     * @return  RTMP event
-     */
-    public IRTMPEvent dequeue() {
-
+	/**
+	 * Get tag from queue and convert to message
+	 * @return  RTMP event
+	 */
+	public IRTMPEvent dequeue() {
 		if (!reader.hasMoreTags()) {
 			return null;
 		}
@@ -100,29 +101,25 @@ public class FileStreamSource implements ISeekableStreamSource, Constants {
 	}
 
 	/** {@inheritDoc} */
-    public boolean hasMore() {
+	public boolean hasMore() {
 		return reader.hasMoreTags();
 	}
 
 	/** {@inheritDoc} */
-    public synchronized int seek(int ts) {
-		log.trace("Seek ts: {}", ts);    	
+	public int seek(int ts) {
+		log.trace("Seek ts: {}", ts);
 		if (keyFrameMeta == null) {
 			if (!(reader instanceof IKeyFrameDataAnalyzer)) {
 				// Seeking not supported
 				return ts;
 			}
-
 			keyFrameMeta = ((IKeyFrameDataAnalyzer) reader).analyzeKeyFrames();
 		}
-
 		if (keyFrameMeta.positions.length == 0) {
-			// no video keyframe metainfo, it's an audio-only FLV
-			// we skip the seek for now.
+			// no video keyframe metainfo, it's an audio-only FLV we skip the seek for now.
 			// TODO add audio-seek capability
 			return ts;
 		}
-		
 		int frame = 0;
 		for (int i = 0; i < keyFrameMeta.positions.length; i++) {
 			if (keyFrameMeta.timestamps[i] > ts) {
