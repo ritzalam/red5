@@ -115,12 +115,17 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 		sessionConf.setTcpNoDelay(tcpNoDelay);
 		sessionConf.setSendBufferSize(sendBufferSize);
 		sessionConf.setReceiveBufferSize(receiveBufferSize);
-		// set the traffic class - http://docs.oracle.com/javase/6/docs/api/java/net/Socket.html#setTrafficClass(int)
-		// IPTOS_LOWCOST (0x02)
-		// IPTOS_RELIABILITY (0x04)
-		// IPTOS_THROUGHPUT (0x08) *
-		// IPTOS_LOWDELAY (0x10) *
-		sessionConf.setTrafficClass(trafficClass);
+		// to prevent setting of the traffic class we expect a value of -1
+		if (trafficClass == -1) {
+			log.info("Traffic class modification is disabled");
+		} else {
+    		// set the traffic class - http://docs.oracle.com/javase/6/docs/api/java/net/Socket.html#setTrafficClass(int)
+    		// IPTOS_LOWCOST (0x02)
+    		// IPTOS_RELIABILITY (0x04)
+    		// IPTOS_THROUGHPUT (0x08) *
+    		// IPTOS_LOWDELAY (0x10) *
+    		sessionConf.setTrafficClass(trafficClass);
+		}
 		// get info
 		log.info("Settings - send buffer size: {} recv buffer size: {} so linger: {} traffic class: {}",
 				new Object[] { sessionConf.getSendBufferSize(), sessionConf.getReceiveBufferSize(), sessionConf.getSoLinger(), sessionConf.getTrafficClass() });
