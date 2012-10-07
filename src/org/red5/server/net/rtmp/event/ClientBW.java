@@ -42,7 +42,7 @@ public class ClientBW extends BaseEvent {
 	 * TYPE_DYNAMIC 2
 	 * </pre>
 	 */
-	private byte value2;
+	private byte limitType;
 
 	public ClientBW() {
 		super(Type.STREAM_CONTROL);
@@ -51,7 +51,7 @@ public class ClientBW extends BaseEvent {
 	public ClientBW(int bandwidth, byte limitType) {
 		this();
 		this.bandwidth = bandwidth;
-		this.value2 = limitType;
+		this.limitType = limitType;
 	}
 
 	/** {@inheritDoc} */
@@ -79,27 +79,27 @@ public class ClientBW extends BaseEvent {
 	}
 
 	/**
-	 * Getter for value2
+	 * Getter for limitType
 	 *
-	 * @return Value for property 'value2'.
+	 * @return limitType for property 'limitType'.
 	 */
-	public byte getValue2() {
-		return value2;
+	public byte getLimitType() {
+		return limitType;
 	}
 
 	/**
-	 * Setter for property 'value2'.
+	 * Setter for property 'limitType'.
 	 *
-	 * @param value2 Value to set for property 'value2'.
+	 * @param limitType Value to set for property 'limitType'.
 	 */
-	public void setValue2(byte value2) {
-		this.value2 = value2;
+	public void setLimitType(byte limitType) {
+		this.limitType = limitType;
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public String toString() {
-		return "ClientBW: " + bandwidth + " enforcementLevel: " + value2;
+		return "ClientBW: " + bandwidth + " limitType: " + limitType;
 	}
 
 	/** {@inheritDoc} */
@@ -112,13 +112,13 @@ public class ClientBW extends BaseEvent {
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
 		bandwidth = in.readInt();
-		value2 = in.readByte();
+		limitType = in.readByte();
 	}
 
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 		super.writeExternal(out);
 		out.writeInt(bandwidth);
-		out.writeByte(value2);
+		out.writeByte(limitType);
 	}
 }

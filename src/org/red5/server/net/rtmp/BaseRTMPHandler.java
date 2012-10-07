@@ -33,10 +33,12 @@ import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.ChunkSize;
+import org.red5.server.net.rtmp.event.ClientBW;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
+import org.red5.server.net.rtmp.event.ServerBW;
 import org.red5.server.net.rtmp.event.Unknown;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
@@ -172,11 +174,13 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 				case TYPE_SHARED_OBJECT:
 					onSharedObject(conn, channel, header, (SharedObjectMessage) message);
 					break;
-				case Constants.TYPE_CLIENT_BANDWIDTH: //onBWDone
+				case Constants.TYPE_CLIENT_BANDWIDTH: // onBWDone / peer bw
 					log.debug("Client bandwidth: {}", message);
+					onClientBandwidth(conn, channel, (ClientBW) message);
 					break;
-				case Constants.TYPE_SERVER_BANDWIDTH:
+				case Constants.TYPE_SERVER_BANDWIDTH: // window ack size
 					log.debug("Server bandwidth: {}", message);
+					onServerBandwidth(conn, channel, (ServerBW) message);
 					break;
 				default:
 					log.debug("Unknown type: {}", header.getDataType());
@@ -312,6 +316,28 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 	 */
 	protected abstract void onPing(RTMPConnection conn, Channel channel, Header source, Ping ping);
 
+	/**
+	 * Server bandwidth / Window ACK size event handler.
+	 * 
+	 * @param conn Connection
+	 * @param channel Channel
+	 * @param message ServerBW
+	 */
+	protected void onServerBandwidth(RTMPConnection conn, Channel channel, ServerBW message) {
+		
+	}
+
+	/**
+	 * Client bandwidth / Peer bandwidth set event handler.
+	 *  
+	 * @param conn Connection
+	 * @param channel Channel
+	 * @param message ClientBW
+	 */
+	protected void onClientBandwidth(RTMPConnection conn, Channel channel, ClientBW message) {
+		
+	}	
+	
 	/**
 	 * Stream bytes read event handler.
 	 * 

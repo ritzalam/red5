@@ -23,11 +23,10 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 /**
- * Ping event, actually combination of different events. This is
- * also known as a user control message.
+ * Ping event, actually combination of different events. This is also known as a user control message.
  */
 public class Ping extends BaseEvent {
-	
+
 	private static final long serialVersionUID = -6478248060425544923L;
 
 	/**
@@ -70,30 +69,40 @@ public class Ping extends BaseEvent {
 	 */
 	public static final short PONG_SERVER = 7;
 
-    /**
-     * One more unknown event
-     */
-    public static final short UNKNOWN_8 = 8;
+	/**
+	 * One more unknown event
+	 */
+	public static final short UNKNOWN_8 = 8;
 
-    /**
-     * SWF verification ping 0x001a
-     */
+	/**
+	 * SWF verification ping 0x001a
+	 */
 	public static final short PING_SWF_VERIFY = 26;
 
-    /**
-     * SWF verification pong 0x001b
-     */
+	/**
+	 * SWF verification pong 0x001b
+	 */
 	public static final short PONG_SWF_VERIFY = 27;
-    
-    /**
-     * Event type is undefined
-     */
-    public static final int UNDEFINED = -1;
 
-    /**
-     * The sub-type
-     */
-	private short eventType;
+	/**
+	 * Buffer empty.
+	 */
+	public static final short BUFFER_EMPTY = 31;
+	
+	/**
+	 * Buffer full.
+	 */
+	public static final short BUFFER_FULL = 32;
+	
+	/**
+	 * Event type is undefined
+	 */
+	public static final int UNDEFINED = -1;
+
+	/**
+	 * The sub-type
+	 */
+	protected short eventType;
 
 	/**
 	 * Represents the stream id in all cases except PING_CLIENT and PONG_SERVER
@@ -105,17 +114,17 @@ public class Ping extends BaseEvent {
 
 	private int value4 = UNDEFINED;
 
-    /**
-     * Debug string
-     */
-    private String debug = "";
+	/**
+	 * Debug string
+	 */
+	private String debug = "";
 
 	/** Constructs a new Ping. */
-    public Ping() {
+	public Ping() {
 		super(Type.SYSTEM);
 	}
 
-    public Ping(short eventType, int value2) {
+	public Ping(short eventType, int value2) {
 		super(Type.SYSTEM);
 		this.eventType = eventType;
 		this.value2 = value2;
@@ -135,7 +144,7 @@ public class Ping extends BaseEvent {
 		this.value3 = value3;
 		this.value4 = value4;
 	}
-	
+
 	public Ping(Ping in) {
 		super(Type.SYSTEM);
 		this.eventType = in.getEventType();
@@ -145,16 +154,16 @@ public class Ping extends BaseEvent {
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public byte getDataType() {
 		return TYPE_PING;
 	}
 
-    /**
-     * Returns the events sub-type
-     * 
-     * @return the event type
-     */
+	/**
+	 * Returns the events sub-type
+	 * 
+	 * @return the event type
+	 */
 	public short getEventType() {
 		return eventType;
 	}
@@ -169,74 +178,74 @@ public class Ping extends BaseEvent {
 	}
 
 	/**
-     * Getter for property 'value2'.
-     *
-     * @return Value for property 'value2'.
-     */
-    public int getValue2() {
+	 * Getter for property 'value2'.
+	 *
+	 * @return Value for property 'value2'.
+	 */
+	public int getValue2() {
 		return value2;
 	}
 
 	/**
-     * Setter for property 'value2'.
-     *
-     * @param value2 Value to set for property 'value2'.
-     */
-    public void setValue2(int value2) {
+	 * Setter for property 'value2'.
+	 *
+	 * @param value2 Value to set for property 'value2'.
+	 */
+	public void setValue2(int value2) {
 		this.value2 = value2;
 	}
 
 	/**
-     * Getter for property 'value3'.
-     *
-     * @return Value for property 'value3'.
-     */
-    public int getValue3() {
+	 * Getter for property 'value3'.
+	 *
+	 * @return Value for property 'value3'.
+	 */
+	public int getValue3() {
 		return value3;
 	}
 
 	/**
-     * Setter for property 'value3'.
-     *
-     * @param value3 Value to set for property 'value3'.
-     */
-    public void setValue3(int value3) {
+	 * Setter for property 'value3'.
+	 *
+	 * @param value3 Value to set for property 'value3'.
+	 */
+	public void setValue3(int value3) {
 		this.value3 = value3;
 	}
 
 	/**
-     * Getter for property 'value4'.
-     *
-     * @return Value for property 'value4'.
-     */
-    public int getValue4() {
+	 * Getter for property 'value4'.
+	 *
+	 * @return Value for property 'value4'.
+	 */
+	public int getValue4() {
 		return value4;
 	}
 
 	/**
-     * Setter for property 'value4'.
-     *
-     * @param value4 Value to set for property 'value4'.
-     */
-    public void setValue4(int value4) {
+	 * Setter for property 'value4'.
+	 *
+	 * @param value4 Value to set for property 'value4'.
+	 */
+	public void setValue4(int value4) {
 		this.value4 = value4;
 	}
 
 	/**
-     * Getter for property 'debug'.
-     *
-     * @return Value for property 'debug'.
-     */
-    public String getDebug() {
+	 * Getter for property 'debug'.
+	 *
+	 * @return Value for property 'debug'.
+	 */
+	public String getDebug() {
 		return debug;
 	}
 
 	/**
-     * Setter for property 'debug'.
-     *
-     * @param debug Value to set for property 'debug'.
-     */
-    public void setDebug(String debug) {
+	 * Setter for property 'debug'.
+	 *
+	 * @param debug Value to set for property 'debug'.
+	 */
+	public void setDebug(String debug) {
 		this.debug = debug;
 	}
 
@@ -248,14 +257,13 @@ public class Ping extends BaseEvent {
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public String toString() {
-		return "Ping: " + eventType + ", " + value2 + ", " + value3 + ", "
-				+ value4 + "\n" + debug;
+		return "Ping: " + eventType + ", " + value2 + ", " + value3 + ", " + value4 + "\n" + debug;
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	protected void releaseInternal() {
 
 	}

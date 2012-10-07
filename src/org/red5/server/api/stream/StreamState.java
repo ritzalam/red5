@@ -19,8 +19,7 @@
 package org.red5.server.api.stream;
 
 /**
- * Represents all the states that a stream may be in at a requested
- * point in time.
+ * Represents all the states that a stream may be in at a requested point in time.
  * 
  * @author Paul Gregoire (mondain@gmail.com)
  */

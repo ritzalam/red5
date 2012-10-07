@@ -52,7 +52,9 @@ import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
+import org.red5.server.net.rtmp.event.SWFResponse;
 import org.red5.server.net.rtmp.event.ServerBW;
+import org.red5.server.net.rtmp.event.SetBuffer;
 import org.red5.server.net.rtmp.event.Unknown;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.message.Constants;
@@ -130,26 +132,27 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				}
 			}
 		} catch (HandshakeFailedException hfe) {
-			// patched by Victor to clear buffer if something is wrong in protocol decoding.
+			// clear buffer if something is wrong in protocol decoding
 			buffer.clear();
 			// get the connection and close it
 			IConnection conn = Red5.getConnectionLocal();
 			if (conn != null) {
+				log.warn("Closing connection because decoding failed during handshake: {}", conn);
 				conn.close();
 			} else {
 				log.error("Handshake validation failed but no current connection!?");
 			}
 			return null;
 		} catch (Exception ex) {
-			// Exception handling is patched by Victor - we catch any exception in the decoding
-			// Then clear the buffer to eliminate memory leaks when we can't parse protocol
-			// Also close Connection because we can't parse data from it
+			// catch any non-handshake exception in the decoding
 			log.error("Error decoding buffer", ex);
+			// clear the buffer to eliminate memory leaks when we can't parse protocol
 			buffer.clear();
-			// get the connection and close it
+			// get the connection
 			IConnection conn = Red5.getConnectionLocal();
 			if (conn != null) {
 				log.warn("Closing connection because decoding failed: {}", conn);
+				// close connection because we can't parse data from it
 				conn.close();
 			} else {
 				log.error("Decoding buffer failed but no current connection!?");
@@ -283,7 +286,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		byte headerSize = RTMPUtils.decodeHeaderSize(headerValue, byteCount);
 		int headerLength = RTMPUtils.getHeaderLength(headerSize);
 		Header lastHeader = rtmp.getLastReadHeader(channelId);
-		
+
 		headerLength += byteCount - 1;
 		switch (headerSize) {
 			case HEADER_NEW:
@@ -296,17 +299,15 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 					}
 				}
 				break;
-			
 			case HEADER_CONTINUE:
-				if(lastHeader.getExtendedTimestamp() != 0) {
+				if (lastHeader != null && lastHeader.getExtendedTimestamp() != 0) {
 					headerLength += 4;
 				}
 				break;
-
 			default:
 				throw new ProtocolException("Unexpected header size " + headerSize + " check for error");
 		}
-		
+
 		if (remaining < headerLength) {
 			log.debug("Header too small (hlen: {}), buffering. remaining: {}", headerLength, remaining);
 			in.position(position);
@@ -322,8 +323,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		}
 		rtmp.setLastReadHeader(channelId, header);
 
-		// Check to see if this is a new packets or continue decoding an
-		// existing one.
+		// check to see if this is a new packets or continue decoding an existing one
 		Packet packet = rtmp.getLastReadPacket(channelId);
 		if (packet == null) {
 			packet = new Packet(header.clone());
@@ -347,7 +347,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 			rtmp.continueDecoding();
 			return null;
 		}
-		// Check workaround for SN-19 to find cause for BufferOverflowException
+		// dheck workaround for SN-19 to find cause for BufferOverflowException
 		if (buf.position() > header.getSize()) {
 			log.warn("Packet size expanded from {} to {} ({})", new Object[] { (header.getSize()), buf.position(), header });
 		}
@@ -388,8 +388,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				log.trace("Dropping garbage packet: {}, {}", packet, packet.getHeader());
 				packet = null;
 			} else {
-				// collapse the time stamps on the last packet so that it works
-				// right for chunk type 3 later
+				// collapse the time stamps on the last packet so that it works right for chunk type 3 later
 				lastHeader = rtmp.getLastReadHeader(channelId);
 				lastHeader.setTimerBase(header.getTimer());
 			}
@@ -899,15 +898,30 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 * @return Ping event
 	 */
 	public Ping decodePing(IoBuffer in) {
-		final Ping ping = new Ping();
-		ping.setDebug(in.getHexDump());
-		ping.setEventType(in.getShort());
-		ping.setValue2(in.getInt());
-		if (in.hasRemaining()) {
-			ping.setValue3(in.getInt());
-		}
-		if (in.hasRemaining()) {
-			ping.setValue4(in.getInt());
+		Ping ping = null;
+		// gets the raw data as hex without changing the data or pointer
+		String hexDump = in.getHexDump();
+		log.debug("Ping dump: {}", hexDump);
+		// control type
+		short type = in.getShort();
+		switch (type) {
+			case Ping.CLIENT_BUFFER:
+				ping = new SetBuffer(in.getInt(), in.getInt());
+				break;
+			case Ping.PING_SWF_VERIFY:
+				// only contains the type (2 bytes)
+				break;
+			case Ping.PONG_SWF_VERIFY:
+				byte[] bytes = new byte[42];
+				in.get(bytes);
+				ping = new SWFResponse(bytes);
+				break;
+			default:
+				//STREAM_BEGIN, STREAM_PLAYBUFFER_CLEAR, STREAM_DRY, RECORDED_STREAM
+				//PING_CLIENT, PONG_SERVER
+				//BUFFER_EMPTY, BUFFER_FULL
+				ping = new Ping(type, in.getInt());
+				break;
 		}
 		return ping;
 	}

@@ -46,7 +46,9 @@ import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
+import org.red5.server.net.rtmp.event.SWFResponse;
 import org.red5.server.net.rtmp.event.ServerBW;
+import org.red5.server.net.rtmp.event.SetBuffer;
 import org.red5.server.net.rtmp.event.Unknown;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.event.VideoData.FrameType;
@@ -570,7 +572,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	private IoBuffer encodeClientBW(ClientBW clientBW) {
 		final IoBuffer out = IoBuffer.allocate(5);
 		out.putInt(clientBW.getBandwidth());
-		out.put(clientBW.getValue2());
+		out.put(clientBW.getLimitType());
 		return out;
 	}
 
@@ -807,19 +809,47 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 
 	/** {@inheritDoc} */
 	public IoBuffer encodePing(Ping ping) {
-		int len = 6;
-		if (ping.getValue3() != Ping.UNDEFINED) {
-			len += 4;
-		}
-		if (ping.getValue4() != Ping.UNDEFINED) {
-			len += 4;
+		int len;
+		short type = ping.getEventType();
+		switch (type) {
+			case Ping.CLIENT_BUFFER:
+				len = 10;
+				break;
+			case Ping.PONG_SWF_VERIFY:
+				len = 44;
+				break;
+			default:
+				len = 6;
 		}
 		final IoBuffer out = IoBuffer.allocate(len);
-		out.putShort(ping.getEventType());
-		out.putInt(ping.getValue2());
-		if (ping.getValue3() != Ping.UNDEFINED) {
-			out.putInt(ping.getValue3());
-		}
+		out.putShort(type);
+        switch (type) {
+            case Ping.STREAM_BEGIN:
+            case Ping.STREAM_PLAYBUFFER_CLEAR:
+            case Ping.STREAM_DRY:
+            case Ping.RECORDED_STREAM:
+            	out.putInt(ping.getValue2());
+                break;
+            case Ping.CLIENT_BUFFER:
+            	SetBuffer setBuffer = (SetBuffer) ping;
+            	out.putInt(setBuffer.getStreamId());
+            	out.putInt(setBuffer.getBufferLength());
+                break;
+            case Ping.PING_CLIENT:
+            case Ping.PONG_SERVER:
+            	out.putInt(ping.getValue2());
+                break;
+            case Ping.PING_SWF_VERIFY:                
+                break;
+            case Ping.PONG_SWF_VERIFY:
+                out.put(((SWFResponse) ping).getBytes());
+                break;
+            case Ping.BUFFER_EMPTY:
+            case Ping.BUFFER_FULL:
+            	out.putInt(ping.getValue2());
+                break;
+        }
+        // this may not be needed anymore
 		if (ping.getValue4() != Ping.UNDEFINED) {
 			out.putInt(ping.getValue4());
 		}

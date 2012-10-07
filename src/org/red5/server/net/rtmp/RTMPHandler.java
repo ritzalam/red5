@@ -49,6 +49,7 @@ import org.red5.server.net.rtmp.event.ChunkSize;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
+import org.red5.server.net.rtmp.event.SetBuffer;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.message.StreamAction;
 import org.red5.server.net.rtmp.status.Status;
@@ -121,7 +122,6 @@ public class RTMPHandler extends BaseRTMPHandler {
 				if (scope == null) {
 					continue;
 				}
-
 				OOBControlMessage setChunkSize = new OOBControlMessage();
 				setChunkSize.setTarget("ClientBroadcastStream");
 				setChunkSize.setServiceName("chunkSize");
@@ -151,7 +151,6 @@ public class RTMPHandler extends BaseRTMPHandler {
 				return;
 			}
 		}
-
 		final IContext context = scope.getContext();
 		log.debug("Context: {}", context);
 		context.getServiceInvoker().invoke(call, scope);
@@ -187,8 +186,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 		//log.debug("Call: {}", call);
 		// method name
 		final String action = call.getServiceMethodName();
-		// If it's a callback for server remote call then pass it over to
-		// callbacks handler and return
+		// If it's a callback for server remote call then pass it over to callbacks handler and return
 		if ("_result".equals(action) || "_error".equals(action)) {
 			handlePendingCallResult(conn, invoke);
 			return;
@@ -444,17 +442,18 @@ public class RTMPHandler extends BaseRTMPHandler {
 	protected void onPing(RTMPConnection conn, Channel channel, Header source, Ping ping) {
 		switch (ping.getEventType()) {
 			case Ping.CLIENT_BUFFER:
+				SetBuffer setBuffer = (SetBuffer) ping;
+				// get the stream id
+				int streamId = setBuffer.getStreamId();
+				// get requested buffer size in milliseconds
+				int buffer = setBuffer.getBufferLength();
+				log.debug("Client sent a buffer size: {} ms for stream id: {}", buffer, streamId);
 				IClientStream stream = null;
-				//get the stream id
-				int streamId = ping.getValue2();
-				//get requested buffer size in milliseconds
-				int buffer = ping.getValue3();
 				if (streamId != 0) {
 					// The client wants to set the buffer time
 					stream = conn.getStreamById(streamId);
 					if (stream != null) {
 						stream.setClientBufferDuration(buffer);
-						log.debug("Client sent a buffer size: {} ms for stream id: {}", buffer, streamId);
 						log.trace("Stream type: {}", stream.getClass().getName());
 					}
 				}
@@ -465,16 +464,13 @@ public class RTMPHandler extends BaseRTMPHandler {
 					log.info("Remembering client buffer on stream: {}", buffer);
 				}
 				break;
-
 			case Ping.PONG_SERVER:
 				// This is the response to an IConnection.ping request
 				conn.pingReceived(ping);
 				break;
-
 			default:
 				log.warn("Unhandled ping: {}", ping);
 		}
-
 	}
 
 	/**
