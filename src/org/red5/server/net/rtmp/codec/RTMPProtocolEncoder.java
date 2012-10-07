@@ -154,12 +154,13 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 				}
 				int dataLen = data.limit();
 				header.setSize(dataLen);
-
+				// get last header
 				Header lastHeader = rtmp.getLastWriteHeader(channelId);
 				// maximum header size with extended timestamp (Chunk message header type 0 with 11 byte)
 				int headerSize = 18;
-
+				// set last write header
 				rtmp.setLastWriteHeader(channelId, header);
+				// set last write packet
 				rtmp.setLastWritePacket(channelId, packet);
 				int chunkSize = rtmp.getWriteChunkSize();
 				// maximum chunk header size with extended timestamp
@@ -167,7 +168,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 				int numChunks = (int) Math.ceil(dataLen / (float) chunkSize);
 				int bufSize = dataLen + headerSize + (numChunks > 0 ? (numChunks - 1) * chunkHeaderSize : 0);
 				out = IoBuffer.allocate(bufSize, false);
-
+				// encode the header
 				encodeHeader(rtmp, header, lastHeader, out);
 				if (numChunks == 1) {
 					// we can do it with a single copy
@@ -521,7 +522,13 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 					return encodeNotify((Notify) message, rtmp);
 				}
 			case TYPE_PING:
-				return encodePing((Ping) message);
+				if (message instanceof SetBuffer) {
+					return encodePing((SetBuffer) message);
+				} else if (message instanceof SWFResponse) {
+					return encodePing((SWFResponse) message);					
+				} else {
+					return encodePing((Ping) message);
+				}
 			case TYPE_BYTES_READ:
 				return encodeBytesRead((BytesRead) message);
 			case TYPE_AGGREGATE:
@@ -828,25 +835,26 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
             case Ping.STREAM_PLAYBUFFER_CLEAR:
             case Ping.STREAM_DRY:
             case Ping.RECORDED_STREAM:
+            case Ping.PING_CLIENT:
+            case Ping.PONG_SERVER:
+            case Ping.BUFFER_EMPTY:
+            case Ping.BUFFER_FULL:
             	out.putInt(ping.getValue2());
                 break;
             case Ping.CLIENT_BUFFER:
-            	SetBuffer setBuffer = (SetBuffer) ping;
-            	out.putInt(setBuffer.getStreamId());
-            	out.putInt(setBuffer.getBufferLength());
-                break;
-            case Ping.PING_CLIENT:
-            case Ping.PONG_SERVER:
-            	out.putInt(ping.getValue2());
+            	if (ping instanceof SetBuffer) {
+                	SetBuffer setBuffer = (SetBuffer) ping;
+                	out.putInt(setBuffer.getStreamId());
+                	out.putInt(setBuffer.getBufferLength());           		
+            	} else {
+                	out.putInt(ping.getValue2());
+                	out.putInt(ping.getValue3());
+            	}
                 break;
             case Ping.PING_SWF_VERIFY:                
                 break;
             case Ping.PONG_SWF_VERIFY:
                 out.put(((SWFResponse) ping).getBytes());
-                break;
-            case Ping.BUFFER_EMPTY:
-            case Ping.BUFFER_FULL:
-            	out.putInt(ping.getValue2());
                 break;
         }
         // this may not be needed anymore
