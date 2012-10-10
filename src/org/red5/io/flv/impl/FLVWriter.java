@@ -525,6 +525,7 @@ public class FLVWriter implements ITagWriter {
 			@Override
 			public void run() {
 				log.debug("Meta tags: {}", metaTags);
+				long bytesTransferred = 0L;
 				try {
 					lock.acquire();
 					if (!append) {
@@ -534,7 +535,7 @@ public class FLVWriter implements ITagWriter {
 						writeMetadataTag(duration * 0.001d, videoCodecId, audioCodecId);
 						// set the data file the beginning 
 						dataFile.seek(0);
-						file.getChannel().transferFrom(dataFile.getChannel(), bytesWritten, dataFile.length());
+						bytesTransferred = file.getChannel().transferFrom(dataFile.getChannel(), bytesWritten, dataFile.length());
 					} else {
 						// TODO update duration
 
@@ -548,10 +549,14 @@ public class FLVWriter implements ITagWriter {
 						if (dataFile != null) {
 							// close the file
 							dataFile.close();
-							//TODO delete the data file
-							File dat = new File(filePath + ".ser");
-							if (dat.exists()) {
-								dat.delete();
+							// delete the data file only if the bytes were transferred to the flv destination
+							if (bytesTransferred > 0) {
+								File dat = new File(filePath + ".ser");
+								if (dat.exists()) {
+									dat.delete();
+								}
+							} else {
+								log.warn("FLV serial file not deleted due to transfer error");
 							}
 						}
 					} catch (IOException e) {
