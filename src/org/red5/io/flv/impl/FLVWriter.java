@@ -200,8 +200,6 @@ public class FLVWriter implements ITagWriter {
 					dat.createNewFile();
 				}
 				this.dataFile = new RandomAccessFile(dat, "rw");
-				// the final version of the file will go here
-				this.file = new RandomAccessFile(file, "rw");
 			}
 		} catch (Exception e) {
 			log.error("Failed to create FLV writer", e);
@@ -220,6 +218,8 @@ public class FLVWriter implements ITagWriter {
 		// create a buffer
 		ByteBuffer header = ByteBuffer.allocate(HEADER_LENGTH + 4); // FLVHeader (9 bytes) + PreviousTagSize0 (4 bytes)
 		flvHeader.write(header);
+		// the final version of the file will go here
+		this.file = new RandomAccessFile(filePath, "rw");
 		// write header to output channel
 		file.setLength(HEADER_LENGTH + 4);
 		if (header.hasArray()) {
@@ -520,72 +520,80 @@ public class FLVWriter implements ITagWriter {
 	 */
 	public void close() {
 		log.debug("close");
-		log.debug("Meta tags: {}", metaTags);
-		try {
-			lock.acquire();
-			if (!append) {
-				// write the file header
-				writeHeader();
-				// write the metadata with the final duration
-				writeMetadataTag(duration * 0.001d, videoCodecId, audioCodecId);
-				// set the data file the beginning 
-				dataFile.seek(0);
-				file.getChannel().transferFrom(dataFile.getChannel(), bytesWritten, dataFile.length());
-			} else {
-				// TODO update duration
+		// spawn a thread to finish up our flv writer work
+		Thread closer = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				log.debug("Meta tags: {}", metaTags);
+				try {
+					lock.acquire();
+					if (!append) {
+						// write the file header
+						writeHeader();
+						// write the metadata with the final duration
+						writeMetadataTag(duration * 0.001d, videoCodecId, audioCodecId);
+						// set the data file the beginning 
+						dataFile.seek(0);
+						file.getChannel().transferFrom(dataFile.getChannel(), bytesWritten, dataFile.length());
+					} else {
+						// TODO update duration
 
-			}
-		} catch (IOException e) {
-			log.error("IO error on close", e);
-		} catch (InterruptedException e) {
-			log.warn("Exception acquiring lock", e);
-		} finally {
-			try {
-				if (dataFile != null) {
-					// close the file
-					dataFile.close();
-					//TODO delete the data file
-					File dat = new File(filePath + ".ser");
-					if (dat.exists()) {
-						dat.delete();
 					}
-				}
-			} catch (IOException e) {
-				log.error("", e);
-			}
-			try {
-				if (file != null) {
-					// run a test on the flv if debugging is on
-					if (log.isDebugEnabled()) {
-						// debugging
-						try {
-							ITagReader reader = null;
-							if (flv != null) {
-								reader = flv.getReader();
+				} catch (IOException e) {
+					log.error("IO error on close", e);
+				} catch (InterruptedException e) {
+					log.warn("Exception acquiring lock", e);
+				} finally {
+					try {
+						if (dataFile != null) {
+							// close the file
+							dataFile.close();
+							//TODO delete the data file
+							File dat = new File(filePath + ".ser");
+							if (dat.exists()) {
+								dat.delete();
 							}
-							if (reader == null) {
-								file.seek(0);
-								reader = new FLVReader(file.getChannel());
-							}
-							log.trace("reader: {}", reader);
-							log.debug("Has more tags: {}", reader.hasMoreTags());
-							ITag tag = null;
-							while (reader.hasMoreTags()) {
-								tag = reader.readTag();
-								log.debug("\n{}", tag);
-							}
-						} catch (IOException e) {
-							log.warn("", e);
 						}
+					} catch (IOException e) {
+						log.error("", e);
 					}
-					// close the file
-					file.close();
+					try {
+						if (file != null) {
+							// run a test on the flv if debugging is on
+							if (log.isDebugEnabled()) {
+								// debugging
+								try {
+									ITagReader reader = null;
+									if (flv != null) {
+										reader = flv.getReader();
+									}
+									if (reader == null) {
+										file.seek(0);
+										reader = new FLVReader(file.getChannel());
+									}
+									log.trace("reader: {}", reader);
+									log.debug("Has more tags: {}", reader.hasMoreTags());
+									ITag tag = null;
+									while (reader.hasMoreTags()) {
+										tag = reader.readTag();
+										log.debug("\n{}", tag);
+									}
+								} catch (IOException e) {
+									log.warn("", e);
+								}
+							}
+							// close the file
+							file.close();
+						}
+					} catch (IOException e) {
+						log.error("", e);
+					}
+					lock.release();
 				}
-			} catch (IOException e) {
-				log.error("", e);
 			}
-			lock.release();
-		}
+		}, "FLVCloser#" + System.currentTimeMillis());
+		closer.setDaemon(true);
+		closer.start();
 	}
 
 	/** {@inheritDoc}
