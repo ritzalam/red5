@@ -305,20 +305,15 @@ public final class ClassLoaderBuilder {
 					}
 				}
 			}
-
 			urls = urlList.toArray(new URL[0]);
 			loader = new ChildFirstClassLoader(urls, parent);
-
 		}
-
 		Thread.currentThread().setContextClassLoader(loader);
-
 		//loop thru all the current urls
 		//System.out.printf("Classpath for %s:\n", loader);
 		//for (URL url : urls) {
 		//System.out.println(url.toExternalForm());
 		//}
-
 		return loader;
 	}
 
@@ -393,6 +388,11 @@ public final class ClassLoaderBuilder {
 				removalList.add(top);
 				continue;
 			}
+			//by default we will get rid of "javadoc" and "sources" jars
+			if (topName.contains("javadoc") || topName.contains("sources")) {
+				removalList.add(top);
+				continue;
+			}
 			int topFirstDash = topName.indexOf('-');
 			//if theres no dash then just grab the first 3 chars // FIXME: why just grab the first 3 characters?
 			String prefix = topName.substring(0, topFirstDash != -1 ? topFirstDash : 3);
@@ -442,7 +442,6 @@ public final class ClassLoaderBuilder {
 
 				//read from end to get version info
 				String checkVers = checkName.substring(topSecondDash != -1 ? (topSecondDash + 1) : (topFirstDash + 1));
-
 				if (checkVers.startsWith("-")) {
 					continue;
 				}
