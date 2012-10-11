@@ -352,7 +352,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 					// note this timestamp is set in event/body but not in the associated header
 					try {
 						// route to recording
-						//						if (recording) {
 						if (recordPipe != null) {
 							// get the current size of the buffer / data
 							int bufferLimit = buf.limit();
@@ -396,9 +395,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 						} else if (recording) {
 							log.debug("Record pipe was null, message was not pushed");
 						}
-						//						} else {
-						//							log.trace("Recording not active");
-						//						}
 						// route to live
 						if (livePipe != null) {
 							// create new RTMP message, initialize it and push through pipe
