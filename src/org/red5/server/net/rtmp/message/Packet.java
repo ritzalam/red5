@@ -147,4 +147,24 @@ public class Packet implements Externalizable {
 		out.writeObject(message);
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("Packet [");
+		if (header != null) {
+			sb.append("[header data type=" + header.getDataType()+ ", channel=" + header.getChannelId() + ", timer=" + header.getTimer() + "]");
+		} else {
+			sb.append("[header=null]");
+		}
+		if (message != null) {
+			sb.append(", [message timestamp=" + message.getTimestamp() + "]");
+		} else {
+			sb.append(", [message=null]");
+		}
+		sb.append("]");
+		return sb.toString();
+	}
+
 }

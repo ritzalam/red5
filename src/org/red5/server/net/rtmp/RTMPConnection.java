@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -59,6 +60,9 @@ import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.service.Call;
 import org.red5.server.service.PendingCall;
+import org.red5.server.so.FlexSharedObjectMessage;
+import org.red5.server.so.ISharedObjectEvent;
+import org.red5.server.so.SharedObjectMessage;
 import org.red5.server.stream.ClientBroadcastStream;
 import org.red5.server.stream.OutputStream;
 import org.red5.server.stream.PlaylistSubscriberStream;
@@ -221,11 +225,24 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	protected volatile int clientId;
 
 	/**
-	 * protocol state
+	 * Protocol state
 	 */
 	protected volatile RTMP state;
 
-	private ISchedulingService schedulingService;
+	/**
+	 * Scheduling service
+	 */
+	protected ISchedulingService schedulingService;
+	
+	/**
+	 * Keepalive worker flag
+	 */
+	private final AtomicBoolean running;	
+	
+	/**
+	 * Timestamp generator
+	 */
+	private final AtomicInteger timer = new AtomicInteger(0);
 
 	/**
 	 * Creates anonymous RTMP connection without scope.
@@ -237,6 +254,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		// We start with an anonymous connection without a scope.
 		// These parameters will be set during the call of "connect" later.
 		super(type);
+		running = new AtomicBoolean(false);
 	}
 
 	public int getId() {
@@ -272,6 +290,15 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		getChannel(2).write(new ClientBW(mbits, (byte) limitType));
 	}
 
+	/**
+	 * Returns a usable timestamp for written packets.
+	 * 
+	 * @return timestamp
+	 */
+	public int getTimer() {
+		return timer.incrementAndGet();
+	}
+	
 	@Override
 	public boolean connect(IScope newScope, Object[] params) {
 		log.debug("Connect scope: {}", newScope);
@@ -710,6 +737,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * Update number of bytes to read next value.
 	 */
 	protected void updateBytesRead() {
+		log.trace("updateBytesRead");
 		long bytesRead = getReadBytes();
 		if (bytesRead >= nextBytesRead) {
 			BytesRead sbr = new BytesRead((int) bytesRead);
@@ -897,6 +925,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * Increases number of read messages by one. Updates number of bytes read.
 	 */
 	public void messageReceived() {
+		log.trace("messageReceived");
 		readMessages.incrementAndGet();
 		// trigger generation of BytesRead messages
 		updateBytesRead();
@@ -934,6 +963,29 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		return (result > 0 ? result : 0);
 	}
 
+	/**
+	 * Send a shared object message.
+	 * 
+	 * @param name shared object name
+	 * @param currentVersion the current version
+	 * @param persistent 
+	 * @param events
+	 */
+	public void sendSharedObjectMessage(String name, int currentVersion, boolean persistent, ConcurrentLinkedQueue<ISharedObjectEvent> events) {
+		// get the channel for so updates
+		Channel channel = getChannel((byte) 3);
+		log.trace("Send to channel: {}", channel);
+		// create a new sync message for every client to avoid concurrent access through multiple threads
+		SharedObjectMessage syncMessage = encoding == Encoding.AMF3 ? new FlexSharedObjectMessage(null, name, currentVersion, persistent) : new SharedObjectMessage(null, name,
+				currentVersion, persistent);
+		syncMessage.addEvents(events);
+		try {
+			channel.write(syncMessage);
+		} catch (Exception e) {
+			log.warn("Exception sending shared object", e);
+		}
+	}	
+	
 	/** {@inheritDoc} */
 	public void ping() {
 		long newPingTime = System.currentTimeMillis();
@@ -963,13 +1015,13 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 			lastPingTime.set((int) (now & 0xffffffff) - pong.getValue2());
 		}
 		lastPongReceived.set(now);
-	}
-
+	}	
+	
 	/** {@inheritDoc} */
 	public int getLastPingTime() {
 		return lastPingTime.get();
 	}
-
+	
 	/**
 	 * Setter for ping interval.
 	 * 
@@ -1001,6 +1053,11 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	}
 
 	/**
+	 * Inactive state event handler.
+	 */
+	protected abstract void onInactive();
+
+	/**
 	 * Sets the scheduling service.
 	 * 
 	 * @param schedulingService scheduling service
@@ -1008,19 +1065,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	public void setSchedulingService(ISchedulingService schedulingService) {
 		this.schedulingService = schedulingService;
 	}
-
-	/**
-	 * Inactive state event handler.
-	 */
-	protected abstract void onInactive();
-
-	/** {@inheritDoc} */
-	@Override
-	public String toString() {
-		Object[] args = new Object[] { getClass().getSimpleName(), getRemoteAddress(), getRemotePort(), getHost(), getReadBytes(), getWrittenBytes() };
-		return String.format("%1$s from %2$s : %3$s to %4$s (in: %5$s out %6$s )", args);
-	}
-
+	
 	/**
 	 * Registers deferred result.
 	 * 
@@ -1107,12 +1152,17 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		return true;
 	}
 
+	/** {@inheritDoc} */
+	@Override
+	public String toString() {
+		Object[] args = new Object[] { getClass().getSimpleName(), getRemoteAddress(), getRemotePort(), getHost(), getReadBytes(), getWrittenBytes() };
+		return String.format("%1$s from %2$s : %3$s to %4$s (in: %5$s out: %6$s)", args);
+	}	
+	
 	/**
 	 * Quartz job that keeps connection alive and disconnects if client is dead.
 	 */
 	private class KeepAliveJob implements IScheduledJob {
-
-		private final AtomicBoolean running = new AtomicBoolean(false);
 
 		private final AtomicLong lastBytesRead = new AtomicLong(0);
 
@@ -1136,6 +1186,11 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 						// update the timestamp to match our update
 						lastBytesReadTime = now;
 					}
+				} else if (!isReaderIdle()) {
+					// client may not have updated bytes yet, but may have received messages waiting, no need to drop them if processing hasn't
+					// caught up yet
+					log.debug("Reader is not idle, possible flood. Pending write messages: {}", getPendingMessages());
+
 				} else {
 					// client didn't send response to ping command and didn't sent data for too long, disconnect
 					long lastPingTime = lastPingSent.get();
@@ -1159,7 +1214,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 					}
 					// send ping command to client to trigger sending of data
 					ping();
-				}
+				}				
 				// reset running flag
 				running.compareAndSet(true, false);
 			}
@@ -1179,6 +1234,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 			log.warn("Closing {}, with id {} due to long handshake", RTMPConnection.this, getId());
 			onInactive();
 		}
+		
 	}
 
 }

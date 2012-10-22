@@ -88,6 +88,7 @@ public class Shutdown {
 			//check for loader registration
 			ObjectName tomcatObjectName = new ObjectName("org.red5.server:type=TomcatLoader");
 			ObjectName jettyObjectName = new ObjectName("org.red5.server:type=JettyLoader");
+			ObjectName winstoneObjectName = new ObjectName("org.red5.server:type=WinstoneLoader");
 			ObjectName contextLoaderObjectName = new ObjectName("org.red5.server:type=ContextLoader");
 			if (mbs.isRegistered(jettyObjectName)) {
 				System.out.println("Red5 Jetty loader was found");
@@ -95,6 +96,9 @@ public class Shutdown {
 			} else if (mbs.isRegistered(tomcatObjectName)) {
 				System.out.println("Red5 Tomcat loader was found");
 				proxy = JMX.newMXBeanProxy(mbs, tomcatObjectName, ShutdownMXBean.class, true);
+			} else if (mbs.isRegistered(winstoneObjectName)) {
+				System.out.println("Red5 Winstone loader was found");
+				proxy = JMX.newMXBeanProxy(mbs, winstoneObjectName, ShutdownMXBean.class, true);
 			} else if (mbs.isRegistered(contextLoaderObjectName)) {
 				System.out.println("Red5 Context loader was found");
 				proxy = JMX.newMXBeanProxy(mbs, contextLoaderObjectName, ShutdownMXBean.class, true);

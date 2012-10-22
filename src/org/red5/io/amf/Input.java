@@ -283,7 +283,6 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @return contents of the ByteBuffer as a String
 	 */
 	private final static String bufferToString(final java.nio.ByteBuffer strBuf, int len) {
-		//Trac #601 - part of the problem seems to be a null byte buffer 
 		String string = null;
 		if (strBuf != null) {
 			int pos = strBuf.position();

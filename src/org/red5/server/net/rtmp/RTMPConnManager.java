@@ -22,9 +22,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.red5.server.BaseConnection;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.net.rtmpt.RTMPTConnection;
@@ -40,7 +39,7 @@ public class RTMPConnManager implements IRTMPConnManager, ApplicationContextAwar
 
 	private ConcurrentMap<Integer, RTMPConnection> connMap = new ConcurrentHashMap<Integer, RTMPConnection>();
 
-	private ReadWriteLock lock = new ReentrantReadWriteLock();
+	private ConcurrentMap<String, Integer> sessionMap = new ConcurrentHashMap<String, Integer>();
 
 	private ApplicationContext appCtx;
 
@@ -49,66 +48,68 @@ public class RTMPConnManager implements IRTMPConnManager, ApplicationContextAwar
 		if (RTMPConnection.class.isAssignableFrom(connCls)) {
 			try {
 				conn = createConnectionInstance(connCls);
-				lock.writeLock().lock();
-				try {
-					int clientId = BaseConnection.getNextClientId();
-					conn.setId(clientId);
-					connMap.put(clientId, conn);
-					log.debug("Connection created, id: {}", conn.getId());
-				} finally {
-					lock.writeLock().unlock();
-				}
-			} catch (Exception e) {
+				connMap.put(conn.getId(), conn);
+				log.debug("Connection created, id: {}", conn.getId());
+			} catch (Exception ex) {
+				log.warn("Exception creating connection", ex);
 			}
 		}
 		return conn;
 	}
 
 	public RTMPConnection getConnection(int clientId) {
-		lock.readLock().lock();
-		try {
-			return connMap.get(clientId);
-		} finally {
-			lock.readLock().unlock();
-		}
+		return connMap.get(clientId);
 	}
 
-	public RTMPConnection removeConnection(int clientId) {
-		lock.writeLock().lock();
-		try {
-			log.debug("Removing connection with id: {}", clientId);
-			return connMap.remove(clientId);
-		} finally {
-			lock.writeLock().unlock();
+	public RTMPConnection getConnectionBySessionId(String sessionId) {
+		Integer clientId = sessionMap.get(sessionId);
+		if (clientId != null) {
+			return getConnection(clientId);
 		}
+		return null;
+	}	
+	
+	public RTMPConnection removeConnection(int clientId) {
+		log.debug("Removing connection with id: {}", clientId);
+		// remove the conn
+		RTMPConnection conn = connMap.remove(clientId);
+		if (conn.getSessionId() != null) {
+			// also remove session map entry
+			sessionMap.remove(conn.getSessionId());
+		}
+		return conn;
 	}
 
 	public Collection<RTMPConnection> removeConnections() {
 		ArrayList<RTMPConnection> list = new ArrayList<RTMPConnection>(connMap.size());
-		lock.writeLock().lock();
-		try {
-			list.addAll(connMap.values());
-			return list;
-		} finally {
-			lock.writeLock().unlock();
-		}
-	}
-
-	public void setApplicationContext(ApplicationContext appCtx) throws BeansException {
-		this.appCtx = appCtx;
+		list.addAll(connMap.values());
+		return list;
 	}
 
 	public RTMPConnection createConnectionInstance(Class<?> cls) throws Exception {
+		final Integer clientId = BaseConnection.getNextClientId();
 		RTMPConnection conn = null;
 		if (cls == RTMPMinaConnection.class) {
 			conn = (RTMPMinaConnection) appCtx.getBean("rtmpMinaConnection");
+			conn.setId(clientId);
 		} else if (cls == RTMPTConnection.class) {
 			conn = (RTMPTConnection) appCtx.getBean("rtmptConnection");
+			conn.setId(clientId);
+			String sessionId = RandomStringUtils.randomAlphanumeric(13).toUpperCase();
+			log.debug("Generated session id: {}", sessionId);
+			((RTMPTConnection) conn).setSessionId(sessionId);
+			sessionMap.put(sessionId, clientId);
 		} else {
 			conn = (RTMPConnection) cls.newInstance();
+			conn.setId(clientId);
 		}
-		//set the scheduling service for easy access in the connection
+		// set the scheduling service for easy access in the connection
 		conn.setSchedulingService((ISchedulingService) appCtx.getBean(ISchedulingService.BEAN_NAME));
 		return conn;
 	}
+	
+	public void setApplicationContext(ApplicationContext appCtx) throws BeansException {
+		this.appCtx = appCtx;
+	}
+	
 }

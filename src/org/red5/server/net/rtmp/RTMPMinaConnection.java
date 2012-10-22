@@ -209,6 +209,24 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 
 	/** {@inheritDoc} */
 	@Override
+	public boolean isReaderIdle() {
+		if (ioSession != null) {
+			return ioSession.isReaderIdle();
+		}
+		return true;
+	}
+	
+	/** {@inheritDoc} */
+	@Override
+	public boolean isWriterIdle() {
+		if (ioSession != null) {
+			return ioSession.isWriterIdle();
+		}
+		return true;
+	}	
+	
+	/** {@inheritDoc} */
+	@Override
 	public long getPendingMessages() {
 		if (ioSession != null) {
 			return ioSession.getScheduledWriteMessages();

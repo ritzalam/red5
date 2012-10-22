@@ -24,9 +24,12 @@ public interface IRTMPConnManager {
 	
 	RTMPConnection getConnection(int clientId);
 
+	RTMPConnection getConnectionBySessionId(String sessionId);
+
 	RTMPConnection createConnection(Class<?> connCls);
 
 	RTMPConnection removeConnection(int clientId);
 
 	Collection<RTMPConnection> removeConnections();
+	
 }

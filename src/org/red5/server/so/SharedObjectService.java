@@ -42,8 +42,6 @@ import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
  */
 public class SharedObjectService implements ISharedObjectService, InitializingBean, DisposableBean {
 
-	public static ExecutorService SHAREDOBJECT_EXECUTOR;
-
 	/**
 	 * Logger
 	 */
@@ -60,14 +58,34 @@ public class SharedObjectService implements ISharedObjectService, InitializingBe
 	private static final String SO_TRANSIENT_STORE = IPersistable.TRANSIENT_PREFIX + "_SO_TRANSIENT_STORE_";
 
 	/**
+	 * Executor for updates
+	 */
+	public static ExecutorService SHAREDOBJECT_EXECUTOR;	
+
+	/** 
+	 * Maximum messages to send at once
+	 */
+	public static int MAXIMUM_EVENTS_PER_UPDATE = 16;
+
+	/**
 	 * Persistence class name
 	 */
 	private String persistenceClassName = "org.red5.server.persistence.RamPersistence";
 
-	private int executorThreadPoolSize = 8;
-
+	/**
+	 * Number of threads available for updates
+	 */
+	private int executorThreadPoolSize = 2;
+	
 	public void setExecutorThreadPoolSize(int value) {
 		executorThreadPoolSize = value;
+	}
+
+	/**
+	 * @param maximumEventsPerUpdate the maximumEventsPerUpdate to set
+	 */
+	public void setMaximumEventsPerUpdate(int maximumEventsPerUpdate) {
+		MAXIMUM_EVENTS_PER_UPDATE = maximumEventsPerUpdate;
 	}
 
 	public void afterPropertiesSet() throws Exception {

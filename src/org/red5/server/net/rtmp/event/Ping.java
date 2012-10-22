@@ -124,6 +124,11 @@ public class Ping extends BaseEvent {
 		super(Type.SYSTEM);
 	}
 
+	public Ping(short eventType) {
+		super(Type.SYSTEM);
+		this.eventType = eventType;
+	}
+	
 	public Ping(short eventType, int value2) {
 		super(Type.SYSTEM);
 		this.eventType = eventType;

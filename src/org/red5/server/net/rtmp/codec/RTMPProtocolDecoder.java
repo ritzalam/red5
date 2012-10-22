@@ -104,8 +104,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 * 
 	 * @param state Stores state for the protocol
 	 * @param buffer IoBuffer of data to be decoded
-	 * @return a list of decoded objects, may be empty if nothing could be
-	 *         decoded
+	 * @return a list of decoded objects, may be empty if nothing could be decoded
 	 */
 	public List<Object> decodeBuffer(ProtocolState state, IoBuffer buffer) {
 		final List<Object> result = new LinkedList<Object>();
@@ -910,6 +909,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				break;
 			case Ping.PING_SWF_VERIFY:
 				// only contains the type (2 bytes)
+				ping = new Ping(type);
 				break;
 			case Ping.PONG_SWF_VERIFY:
 				byte[] bytes = new byte[42];
@@ -1076,10 +1076,10 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				paramList.add(deserializer.deserialize(input, Object.class));
 			}
 			params = paramList.toArray();
-			if (log.isDebugEnabled()) {
-				log.debug("Parameter count: {}", paramList.size());
+			if (log.isTraceEnabled()) {
+				log.trace("Parameter count: {}", paramList.size());
 				for (int i = 0; i < params.length; i++) {
-					log.info(" > {}: {}", i, params[i]);
+					log.trace(" > {}: {}", i, params[i]);
 				}
 			}
 		}

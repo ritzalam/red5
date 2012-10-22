@@ -492,7 +492,26 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	}
 
 	/**
-	 *
+	 * Returns whether or not the reader is idle.
+	 * 
+	 * @return queued messages
+	 */
+	public boolean isReaderIdle() {
+		return false;
+	}
+
+	/**
+	 * Returns whether or not the writer is idle.
+	 * 
+	 * @return queued messages
+	 */
+	public boolean isWriterIdle() {
+		return false;
+	}	
+	
+	/**
+	 * Count of outgoing messages not yet written.
+	 * 
 	 * @return pending messages
 	 */
 	public long getPendingMessages() {

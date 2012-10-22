@@ -85,8 +85,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 
 	/**
 	 * Middle tardiness level, between base and this value disposable frames
-	 * will be dropped. Between this and highest value regular interframes
-	 * will be dropped.
+	 * will be dropped. Between this and highest value regular interframes will be dropped.
 	 */
 	private long midTolerance = baseTolerance + (long) (baseTolerance * 0.3);
 

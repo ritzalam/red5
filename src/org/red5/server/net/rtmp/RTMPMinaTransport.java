@@ -24,6 +24,7 @@ import java.net.SocketAddress;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -34,10 +35,13 @@ import org.apache.mina.core.buffer.SimpleBufferAllocator;
 import org.apache.mina.core.service.AbstractIoService;
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.service.IoServiceStatistics;
+import org.apache.mina.filter.executor.ExecutorFilter;
+import org.apache.mina.filter.executor.OrderedThreadPoolExecutor;
 import org.apache.mina.transport.socket.SocketAcceptor;
 import org.apache.mina.transport.socket.SocketSessionConfig;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.red5.server.jmx.mxbeans.RTMPMinaTransportMXBean;
+import org.red5.server.net.filter.IoEventQueueThrottler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,12 +81,24 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 	protected boolean tcpNoDelay = true;
 
 	protected boolean useHeapBuffers = true;
-	
+
 	protected int sendBufferSize = 65536;
 
 	protected int receiveBufferSize = 65536;
 	
+	protected boolean enableIoEventThrottle = true;
+
+	protected int throttleThresholdSize = 65536 * ioThreads;
+
+	protected int throttleMaximumPermits = 128;
+
 	protected int trafficClass = 0x08 | 0x10;
+
+	protected int backlog = 12;
+
+	protected int thoughputCalcInterval = 1;
+	
+	protected long executorKeepAliveTime = 30000;
 
 	private void initIOHandler() {
 		if (ioHandler == null) {
@@ -100,31 +116,42 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 		}
 		log.info("RTMP Mina Transport Settings");
 		log.info("I/O Threads: {}", ioThreads);
-		// XXX Paul: come back and review why the separate executors didnt work as expected
-		// ref: http://stackoverflow.com/questions/5088850/multi-threading-in-red5		
-		//use default parameters, and given number of NioProcessor for multithreading I/O operations
-		acceptor = new NioSocketAcceptor(ioThreads);
+		// XXX Paul ref: http://stackoverflow.com/questions/5088850/multi-threading-in-red5		
+		// start with default parameters on our socket acceptor
+		acceptor = new NioSocketAcceptor();
+		if (enableIoEventThrottle) {
+			// add io event throttle
+			acceptor.getFilterChain().addLast("executor", new ExecutorFilter(new OrderedThreadPoolExecutor(0, ioThreads, executorKeepAliveTime, TimeUnit.MILLISECONDS, new IoEventQueueThrottler(throttleThresholdSize, throttleMaximumPermits))));
+		} else {
+			// use an ordered thread pool to handle io event threads
+			acceptor.getFilterChain().addLast("executor", new ExecutorFilter(new OrderedThreadPoolExecutor(0, ioThreads, executorKeepAliveTime, TimeUnit.MILLISECONDS)));
+		}
 		// set acceptor props
 		acceptor.setHandler(ioHandler);
-		acceptor.setBacklog(12);
-		//get the current session config that would be used during create
+		// requested maximum length of the queue of incoming connections
+		acceptor.setBacklog(backlog);
+		// get the current session config that would be used during create
 		SocketSessionConfig sessionConf = acceptor.getSessionConfig();
-		//reuse the addresses
+		// reuse the addresses
 		sessionConf.setReuseAddress(true);
 		log.info("TCP No Delay: {}", tcpNoDelay);
 		sessionConf.setTcpNoDelay(tcpNoDelay);
 		sessionConf.setSendBufferSize(sendBufferSize);
+		// 
 		sessionConf.setReceiveBufferSize(receiveBufferSize);
+		sessionConf.setMaxReadBufferSize(receiveBufferSize);
+		// sets the interval (seconds) between each throughput calculation, the default value is 3 seconds
+		sessionConf.setThroughputCalculationInterval(thoughputCalcInterval);
 		// to prevent setting of the traffic class we expect a value of -1
 		if (trafficClass == -1) {
 			log.info("Traffic class modification is disabled");
 		} else {
-    		// set the traffic class - http://docs.oracle.com/javase/6/docs/api/java/net/Socket.html#setTrafficClass(int)
-    		// IPTOS_LOWCOST (0x02)
-    		// IPTOS_RELIABILITY (0x04)
-    		// IPTOS_THROUGHPUT (0x08) *
-    		// IPTOS_LOWDELAY (0x10) *
-    		sessionConf.setTrafficClass(trafficClass);
+			// set the traffic class - http://docs.oracle.com/javase/6/docs/api/java/net/Socket.html#setTrafficClass(int)
+			// IPTOS_LOWCOST (0x02)
+			// IPTOS_RELIABILITY (0x04)
+			// IPTOS_THROUGHPUT (0x08) *
+			// IPTOS_LOWDELAY (0x10) *
+			sessionConf.setTrafficClass(trafficClass);
 		}
 		// get info
 		log.info("Settings - send buffer size: {} recv buffer size: {} so linger: {} traffic class: {}",
@@ -217,10 +244,52 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 	}
 
 	/**
+	 * @param enableIoEventThrottle the enableIoEventThrottle to set
+	 */
+	public void setEnableIoEventThrottle(boolean enableIoEventThrottle) {
+		this.enableIoEventThrottle = enableIoEventThrottle;
+	}
+
+	/**
+	 * @param throttleThresholdSize the throttleThresholdSize to set
+	 */
+	public void setThrottleThresholdSize(int throttleThresholdSize) {
+		this.throttleThresholdSize = throttleThresholdSize;
+	}
+
+	/**
+	 * @param throttleMaximumPermits the throttleMaximumPermits to set
+	 */
+	public void setThrottleMaximumPermits(int throttleMaximumPermits) {
+		this.throttleMaximumPermits = throttleMaximumPermits;
+	}
+
+	/**
 	 * @param trafficClass the trafficClass to set
 	 */
 	public void setTrafficClass(int trafficClass) {
 		this.trafficClass = trafficClass;
+	}
+
+	/**
+	 * @param backlog the backlog to set
+	 */
+	public void setBacklog(int backlog) {
+		this.backlog = backlog;
+	}
+
+	/**
+	 * @param thoughputCalcInterval the thoughputCalcInterval to set
+	 */
+	public void setThoughputCalcInterval(int thoughputCalcInterval) {
+		this.thoughputCalcInterval = thoughputCalcInterval;
+	}
+
+	/**
+	 * @param executorKeepAliveTime the executorKeepAliveTime to set
+	 */
+	public void setExecutorKeepAliveTime(long executorKeepAliveTime) {
+		this.executorKeepAliveTime = executorKeepAliveTime;
 	}
 
 	public void setTcpNoDelay(boolean tcpNoDelay) {

@@ -124,6 +124,8 @@
 	
 	<!-- Handles creation / lookup of shared objects -->
 	<bean id="sharedObjectService" class="org.red5.server.so.SharedObjectService">
+		<property name="executorThreadPoolSize" value="${so.update.threads}"/>
+		<property name="maximumEventsPerUpdate" value="${so.max.events.per.update}"/>
 		<property name="persistenceClassName">
 			<value>org.red5.server.persistence.FilePersistence</value>
 		</property>

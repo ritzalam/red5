@@ -99,11 +99,13 @@ public class Channel {
 		if (connection != null) {
 			final IClientStream stream = connection.getStreamByChannelId(id);
 			if (id > 3 && stream == null) {
-				log.info("Stream doesn't exist any longer, discarding message {}", event);
+				log.warn("Non=existant stream id: {}, discarding message {}", id, event);
 			} else {
 				final int streamId = (stream == null) ? 0 : stream.getStreamId();
 				write(event, streamId);
 			}
+		} else {
+			log.trace("Connection is null for channel: {}", id);
 		}
 	}
 
@@ -114,13 +116,23 @@ public class Channel {
 	 * @param streamId        Stream id
 	 */
 	private void write(IRTMPEvent event, int streamId) {
+		log.trace("write channel: {} stream id: {}", id, streamId);
 		final Header header = new Header();
 		final Packet packet = new Packet(header, event);
 		header.setChannelId(id);
-		header.setTimer(event.getTimestamp());
+		int ts = event.getTimestamp();
+		if (ts != 0) {
+			header.setTimer(event.getTimestamp());			
+		} else {
+			// TODO may need to add generated timestamps at some point
+//			int timestamp = connection.getTimer();
+//			header.setTimerBase(timestamp);
+//			event.setTimestamp(timestamp);
+		}
 		header.setStreamId(streamId);
 		header.setDataType(event.getDataType());
 		// should use RTMPConnection specific method.. 
+		//log.trace("Connection type for write: {}", connection.getClass().getName());
 		connection.write(packet);
 	}
 
@@ -164,6 +176,14 @@ public class Channel {
 			// and thus "getStreamByChannelId" will fail.
 			write(event, connection.getStreamIdForChannel(id));
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "Channel [id=" + id + ", connection=" + connection + "]";
 	}
 
 }

@@ -45,11 +45,6 @@ public class RTMPTHandler extends RTMPHandler {
 	private static final Logger log = LoggerFactory.getLogger(RTMPTHandler.class);
 
 	/**
-	 * Handler constant
-	 */
-	public static final String HANDLER_ATTRIBUTE = "red5.RMPTHandler";
-
-	/**
 	 * Protocol codec factory
 	 */
 	protected RTMPTCodecFactory codecFactory;
@@ -129,4 +124,5 @@ public class RTMPTHandler extends RTMPHandler {
 			super.messageReceived(in, session);
 		}
 	}
+	
 }

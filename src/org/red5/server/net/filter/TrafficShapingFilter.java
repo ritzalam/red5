@@ -30,6 +30,7 @@ import org.apache.mina.core.session.AttributeKey;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.core.session.IoSessionConfig;
 import org.apache.mina.core.write.WriteRequest;
+import org.apache.mina.filter.executor.IoEventSizeEstimator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +52,7 @@ public class TrafficShapingFilter extends IoFilterAdapter {
 
 	private final ScheduledExecutorService scheduledExecutor;
 
-	private final MessageSizeEstimator messageSizeEstimator;
+	private final DefaultMessageSizeEstimator messageSizeEstimator;
 
 	private volatile int maxReadThroughput;
 
@@ -63,16 +64,13 @@ public class TrafficShapingFilter extends IoFilterAdapter {
 		this(null, null, maxReadThroughput, maxWriteThroughput);
 	}
 
-	public TrafficShapingFilter(ScheduledExecutorService scheduledExecutor, int maxReadThroughput,
-			int maxWriteThroughput) {
+	public TrafficShapingFilter(ScheduledExecutorService scheduledExecutor, int maxReadThroughput, int maxWriteThroughput) {
 		this(scheduledExecutor, null, maxReadThroughput, maxWriteThroughput);
 	}
 
-	public TrafficShapingFilter(ScheduledExecutorService scheduledExecutor, MessageSizeEstimator messageSizeEstimator,
-			int maxReadThroughput, int maxWriteThroughput) {
+	public TrafficShapingFilter(ScheduledExecutorService scheduledExecutor, DefaultMessageSizeEstimator messageSizeEstimator, int maxReadThroughput, int maxWriteThroughput) {
 
-		log.debug("ctor - executor: {} estimator: {} max read: {} max write: {}", new Object[] { scheduledExecutor,
-				messageSizeEstimator, maxReadThroughput, maxWriteThroughput });
+		log.debug("ctor - executor: {} estimator: {} max read: {} max write: {}", new Object[] { scheduledExecutor, messageSizeEstimator, maxReadThroughput, maxWriteThroughput });
 
 		if (scheduledExecutor == null) {
 			scheduledExecutor = new ScheduledThreadPoolExecutor(poolSize);
@@ -101,7 +99,7 @@ public class TrafficShapingFilter extends IoFilterAdapter {
 		return scheduledExecutor;
 	}
 
-	public MessageSizeEstimator getMessageSizeEstimator() {
+	public IoEventSizeEstimator getMessageSizeEstimator() {
 		return messageSizeEstimator;
 	}
 
@@ -141,8 +139,7 @@ public class TrafficShapingFilter extends IoFilterAdapter {
 	@Override
 	public void onPreAdd(IoFilterChain parent, String name, NextFilter nextFilter) throws Exception {
 		if (parent.contains(this)) {
-			throw new IllegalArgumentException(
-					"You can't add the same filter instance more than once.  Create another instance and add it.");
+			throw new IllegalArgumentException("You can't add the same filter instance more than once.  Create another instance and add it.");
 		}
 		parent.getSession().setAttribute(STATE, new State());
 		adjustReadBufferSize(parent.getSession());
@@ -175,8 +172,7 @@ public class TrafficShapingFilter extends IoFilterAdapter {
 
 					long throughput = (state.readBytes * 1000 / (currentTime - state.readStartTime));
 					if (throughput >= maxReadThroughput) {
-						suspendTime = Math.max(0, state.readBytes * 1000 / maxReadThroughput
-								- (firstRead ? 0 : currentTime - state.readStartTime));
+						suspendTime = Math.max(0, state.readBytes * 1000 / maxReadThroughput - (firstRead ? 0 : currentTime - state.readStartTime));
 
 						state.readBytes = 0;
 						state.readStartTime = 0;
@@ -239,8 +235,7 @@ public class TrafficShapingFilter extends IoFilterAdapter {
 
 					long throughput = (state.writtenBytes * 1000 / (currentTime - state.writeStartTime));
 					if (throughput >= maxWriteThroughput) {
-						suspendTime = Math.max(0, state.writtenBytes * 1000 / maxWriteThroughput
-								- (firstWrite ? 0 : currentTime - state.writeStartTime));
+						suspendTime = Math.max(0, state.writtenBytes * 1000 / maxWriteThroughput - (firstWrite ? 0 : currentTime - state.writeStartTime));
 
 						state.writtenBytes = 0;
 						state.writeStartTime = 0;
