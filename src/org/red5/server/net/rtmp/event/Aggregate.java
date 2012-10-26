@@ -122,64 +122,69 @@ public class Aggregate extends BaseEvent implements IoConstants, IStreamData<Agg
 		//log.debug("Aggregate data length: {}", data.limit());
 		int position = data.position();
 		do {
-			// read the header
-			//log.trace("Hex: {}", data.getHexDump());
-			byte subType = data.get();
-			int size = IOUtils.readUnsignedMediumInt(data);
-			log.debug("Data subtype: {} size: {}", subType, size);
-			int timestamp = IOUtils.readExtendedMediumInt(data);
-			/*timestamp = ntohap((GETIBPOINTER(buffer) + 4)); 0x12345678 == 34 56 78 12*/
-			int streamId = IOUtils.readUnsignedMediumInt(data);
-			log.debug("Data timestamp: {} stream id: {}", timestamp, streamId);
-			Header partHeader = new Header();
-			partHeader.setChannelId(header.getChannelId());
-			partHeader.setDataType(subType);
-			partHeader.setSize(size);
-			// use the stream id from the aggregate's header
-			partHeader.setStreamId(header.getStreamId());
-			partHeader.setTimer(timestamp);
-			// timer delta == time stamp - timer base
-			//partHeader.setTimerBase(timerBase);
-			//partHeader.setTimerDelta(timerDelta);
-			// the back pointer may be used to verify the size of the individual part
-			// it will be equal to the data size + header size
-			int backPointer = 0;
-			switch (subType) {
-				case TYPE_AUDIO_DATA:
-					AudioData audio = new AudioData(data.getSlice(size));
-					audio.setTimestamp(timestamp);
-					audio.setHeader(partHeader);
-					log.debug("Audio header: {}", audio.getHeader());
-					parts.add(audio);
-					//log.trace("Hex: {}", data.getHexDump());
-					backPointer = data.getInt();
-					//log.trace("Back pointer: {}", backPointer);
-					if (backPointer != (size + 11)) {
-						log.debug("Data size ({}) and back pointer ({}) did not match", size, backPointer);
-					}
-					break;
-				case TYPE_VIDEO_DATA:
-					VideoData video = new VideoData(data.getSlice(size));
-					video.setTimestamp(timestamp);
-					video.setHeader(partHeader);
-					log.debug("Video header: {}", video.getHeader());
-					parts.add(video);
-					//log.trace("Hex: {}", data.getHexDump());
-					backPointer = data.getInt();
-					//log.trace("Back pointer: {}", backPointer);
-					if (backPointer != (size + 11)) {
-						log.debug("Data size ({}) and back pointer ({}) did not match", size, backPointer);
-					}
-					break;
-				default:
-					log.debug("Non-A/V subtype: {}", subType);
-					Unknown unk = new Unknown(subType, data.getSlice(size));
-					unk.setTimestamp(timestamp);
-					unk.setHeader(partHeader);
-					parts.add(unk);
-					backPointer = data.getInt();
+			try {
+				// read the header
+				//log.trace("Hex: {}", data.getHexDump());
+				byte subType = data.get();
+				int size = IOUtils.readUnsignedMediumInt(data);
+				log.debug("Data subtype: {} size: {}", subType, size);
+				int timestamp = IOUtils.readExtendedMediumInt(data);
+				/*timestamp = ntohap((GETIBPOINTER(buffer) + 4)); 0x12345678 == 34 56 78 12*/
+				int streamId = IOUtils.readUnsignedMediumInt(data);
+				log.debug("Data timestamp: {} stream id: {}", timestamp, streamId);
+				Header partHeader = new Header();
+				partHeader.setChannelId(header.getChannelId());
+				partHeader.setDataType(subType);
+				partHeader.setSize(size);
+				// use the stream id from the aggregate's header
+				partHeader.setStreamId(header.getStreamId());
+				partHeader.setTimer(timestamp);
+				// timer delta == time stamp - timer base
+				// the back pointer may be used to verify the size of the individual part
+				// it will be equal to the data size + header size
+				int backPointer = 0;
+				switch (subType) {
+					case TYPE_AUDIO_DATA:
+						AudioData audio = new AudioData(data.getSlice(size));
+						audio.setTimestamp(timestamp);
+						audio.setHeader(partHeader);
+						log.debug("Audio header: {}", audio.getHeader());
+						parts.add(audio);
+						//log.trace("Hex: {}", data.getHexDump());
+						backPointer = data.getInt();
+						//log.trace("Back pointer: {}", backPointer);
+						if (backPointer != (size + 11)) {
+							log.debug("Data size ({}) and back pointer ({}) did not match", size, backPointer);
+						}
+						break;
+					case TYPE_VIDEO_DATA:
+						VideoData video = new VideoData(data.getSlice(size));
+						video.setTimestamp(timestamp);
+						video.setHeader(partHeader);
+						log.debug("Video header: {}", video.getHeader());
+						parts.add(video);
+						//log.trace("Hex: {}", data.getHexDump());
+						backPointer = data.getInt();
+						//log.trace("Back pointer: {}", backPointer);
+						if (backPointer != (size + 11)) {
+							log.debug("Data size ({}) and back pointer ({}) did not match", size, backPointer);
+						}
+						break;
+					default:
+						log.debug("Non-A/V subtype: {}", subType);
+						Unknown unk = new Unknown(subType, data.getSlice(size));
+						unk.setTimestamp(timestamp);
+						unk.setHeader(partHeader);
+						parts.add(unk);
+						if (data.position() < data.limit() - 4) {
+							backPointer = data.getInt();
+						}
+				}
+				position = data.position();
+			} catch (Exception e) {
+				log.error("{}", e);
+				break;
 			}
-			position = data.position();
 			//log.trace("Data position: {}", position);
 		} while (position < data.limit());
 		//log.debug("Aggregate processing complete, {} parts extracted", parts.size()); 
