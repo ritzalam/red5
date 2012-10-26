@@ -119,15 +119,21 @@ public class Aggregate extends BaseEvent implements IoConstants, IStreamData<Agg
 	 */
 	public LinkedList<IRTMPEvent> getParts() {
 		LinkedList<IRTMPEvent> parts = new LinkedList<IRTMPEvent>();
-		//log.debug("Aggregate data length: {}", data.limit());
+		log.trace("Aggregate data length: {}", data.limit());
 		int position = data.position();
 		do {
 			try {
 				// read the header
 				//log.trace("Hex: {}", data.getHexDump());
 				byte subType = data.get();
+				// when we run into subtype 0 break out of here
+				if (subType == 0) {
+					log.debug("Subtype 0 encountered within this aggregate, processing with exit");
+					break;
+				}
 				int size = IOUtils.readUnsignedMediumInt(data);
 				log.debug("Data subtype: {} size: {}", subType, size);
+				// TODO ensure the data contains all the bytes to support the specified size
 				int timestamp = IOUtils.readExtendedMediumInt(data);
 				/*timestamp = ntohap((GETIBPOINTER(buffer) + 4)); 0x12345678 == 34 56 78 12*/
 				int streamId = IOUtils.readUnsignedMediumInt(data);
@@ -151,10 +157,13 @@ public class Aggregate extends BaseEvent implements IoConstants, IStreamData<Agg
 						log.debug("Audio header: {}", audio.getHeader());
 						parts.add(audio);
 						//log.trace("Hex: {}", data.getHexDump());
+						// ensure 4 bytes left to read an int
+						if (data.position() < data.limit() - 4) {
 						backPointer = data.getInt();
 						//log.trace("Back pointer: {}", backPointer);
 						if (backPointer != (size + 11)) {
 							log.debug("Data size ({}) and back pointer ({}) did not match", size, backPointer);
+						}
 						}
 						break;
 					case TYPE_VIDEO_DATA:
@@ -164,10 +173,13 @@ public class Aggregate extends BaseEvent implements IoConstants, IStreamData<Agg
 						log.debug("Video header: {}", video.getHeader());
 						parts.add(video);
 						//log.trace("Hex: {}", data.getHexDump());
+						// ensure 4 bytes left to read an int
+						if (data.position() < data.limit() - 4) {					
 						backPointer = data.getInt();
 						//log.trace("Back pointer: {}", backPointer);
 						if (backPointer != (size + 11)) {
 							log.debug("Data size ({}) and back pointer ({}) did not match", size, backPointer);
+						}
 						}
 						break;
 					default:
@@ -176,18 +188,19 @@ public class Aggregate extends BaseEvent implements IoConstants, IStreamData<Agg
 						unk.setTimestamp(timestamp);
 						unk.setHeader(partHeader);
 						parts.add(unk);
+						// ensure 4 bytes left to read an int
 						if (data.position() < data.limit() - 4) {
 							backPointer = data.getInt();
 						}
 				}
 				position = data.position();
 			} catch (Exception e) {
-				log.error("{}", e);
+				log.error("Exception decoding aggregate parts", e);
 				break;
 			}
-			//log.trace("Data position: {}", position);
+			log.trace("Data position: {}", position);
 		} while (position < data.limit());
-		//log.debug("Aggregate processing complete, {} parts extracted", parts.size()); 
+		log.trace("Aggregate processing complete, {} parts extracted", parts.size()); 
 		return parts;
 	}
 
