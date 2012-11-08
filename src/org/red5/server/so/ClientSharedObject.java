@@ -18,7 +18,6 @@
 
 package org.red5.server.so;
 
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -90,27 +89,31 @@ public class ClientSharedObject extends SharedObject implements IClientSharedObj
 	 * @param conn Attach SO to given connection
 	 */
 	public void connect(IConnection conn) {
-		if (!(conn instanceof RTMPConnection)) {
-			throw new RuntimeException("can only connect through RTMP connections");
+		if (conn instanceof RTMPConnection) {
+			if (!isConnected()) {
+				source = conn;
+				SharedObjectMessage msg = new SharedObjectMessage(name, 0, isPersistent());
+				msg.addEvent(new SharedObjectEvent(Type.SERVER_CONNECT, null, null));
+				Channel c = ((RTMPConnection) conn).getChannel((byte) 3);
+				c.write(msg);
+			} else {
+				throw new UnsupportedOperationException("Already connected");
+			}
+		} else {
+			throw new UnsupportedOperationException("Only RTMP connections are supported");
 		}
-		if (isConnected()) {
-			throw new RuntimeException("already connected");
-		}
-		source = conn;
-		SharedObjectMessage msg = new SharedObjectMessage(name, 0, isPersistent());
-		msg.addEvent(new SharedObjectEvent(Type.SERVER_CONNECT, null, null));
-		Channel c = ((RTMPConnection) conn).getChannel((byte) 3);
-		c.write(msg);
 	}
 
 	/** {@inheritDoc} */
 	public void disconnect() {
-		SharedObjectMessage msg = new SharedObjectMessage(name, 0, isPersistent());
-		msg.addEvent(new SharedObjectEvent(Type.SERVER_DISCONNECT, null, null));
-		Channel c = ((RTMPConnection) source).getChannel((byte) 3);
-		c.write(msg);
-		notifyDisconnect();
-		initialSyncReceived = false;
+		if (isConnected()) {
+			SharedObjectMessage msg = new SharedObjectMessage(name, 0, isPersistent());
+			msg.addEvent(new SharedObjectEvent(Type.SERVER_DISCONNECT, null, null));
+			Channel c = ((RTMPConnection) source).getChannel((byte) 3);
+			c.write(msg);
+			notifyDisconnect();
+			initialSyncReceived = false;
+		}
 	}
 
 	/** {@inheritDoc} */
@@ -274,13 +277,13 @@ public class ClientSharedObject extends SharedObject implements IClientSharedObj
 	/** {@inheritDoc} */
 	@Override
 	public boolean setAttribute(String name, Object value) {
-		if (value == null) {
+		if (value != null) {
+			ownerMessage.addEvent(Type.SERVER_SET_ATTRIBUTE, name, value);
+			notifyModified();
+			return true;			
+		} else {
 			return removeAttribute(name);
 		}
-
-		ownerMessage.addEvent(Type.SERVER_SET_ATTRIBUTE, name, value);
-		notifyModified();
-		return true;
 	}
 
 	/** {@inheritDoc} */
@@ -315,8 +318,7 @@ public class ClientSharedObject extends SharedObject implements IClientSharedObj
 	/** {@inheritDoc} */
 	@Override
 	public void removeAttributes() {
-		// TODO: there must be a direct way to clear the SO on the client
-		// side...
+		// TODO: there must be a direct way to clear the SO on the client side
 		for (String key : getAttributeNames()) {
 			ownerMessage.addEvent(Type.SERVER_DELETE_ATTRIBUTE, key, null);
 		}
@@ -407,7 +409,6 @@ public class ClientSharedObject extends SharedObject implements IClientSharedObj
 		if (!hasAttribute(name)) {
 			setAttribute(name, defaultValue);
 		}
-
 		return getAttribute(name);
 	}
 

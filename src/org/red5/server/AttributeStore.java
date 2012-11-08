@@ -18,10 +18,12 @@
 
 package org.red5.server;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -30,35 +32,17 @@ import javax.management.openmbean.CompositeData;
 
 import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.ICastingAttributeStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AttributeStore implements ICastingAttributeStore {
+
+	protected static Logger log = LoggerFactory.getLogger(AttributeStore.class);
 
 	/**
 	 * Map for attributes
 	 */
-	protected ConcurrentMap<String, Object> attributes = new ConcurrentHashMap<String, Object>(1);
-
-	/**
-	 * Filter <code>null</code> keys and values from given map.
-	 * 
-	 * @param values		the map to filter
-	 * @return filtered map
-	 */
-	protected Map<String, Object> filterNull(Map<String, Object> values) {
-		Map<String, Object> result = new HashMap<String, Object>();
-		for (Map.Entry<String, Object> entry : values.entrySet()) {
-			String key = entry.getKey();
-			if (key == null) {
-				continue;
-			}
-			Object value = entry.getValue();
-			if (value == null) {
-				continue;
-			}
-			result.put(key, value);
-		}
-		return result;
-	}
+	protected ConcurrentMap<String, Object> attributes = new ConcurrentAttributesMap<String, Object>(1);
 
 	/**
 	 * Creates empty attribute store. Object is not associated with a persistence storage.
@@ -80,6 +64,28 @@ public class AttributeStore implements ICastingAttributeStore {
 	 */
 	public AttributeStore(IAttributeStore values) {
 		setAttributes(values);
+	}
+
+	/**
+	 * Filter <code>null</code> keys and values from given map.
+	 * 
+	 * @param values		the map to filter
+	 * @return filtered map
+	 */
+	protected Map<String, Object> filterNull(Map<String, Object> values) {
+		Map<String, Object> result = new HashMap<String, Object>();
+		for (Map.Entry<String, Object> entry : values.entrySet()) {
+			String key = entry.getKey();
+			if (key == null) {
+				continue;
+			}
+			Object value = entry.getValue();
+			if (value == null) {
+				continue;
+			}
+			result.put(key, value);
+		}
+		return result;
 	}
 
 	/**
@@ -157,16 +163,57 @@ public class AttributeStore implements ICastingAttributeStore {
 	 * @param value the new value of the attribute
 	 * @return true if the attribute value was added or changed, otherwise false
 	 */
-	public boolean setAttribute(String name, Object value) {
-		if (name != null) {
-			if (value != null) {
-				// update with new value
-				Object previous = attributes.put(name, value);
-				// previous will be null if the attribute didn't exist
-				return (previous == null || !value.equals(previous));
+	public boolean setAttribute(final String name, final Object value) {
+		boolean result = false;
+		if (name != null && value != null) {
+			// update with new value
+			final Object previous = attributes.put(name, value);
+			// previous will be null if the attribute didn't exist
+			// if it did already exist it will equal the previous value
+			if (previous != null) {
+				// if the value is a collection, check the elements for modification
+				if (value instanceof Collection) {
+					Collection<?> prevCollection = (Collection<?>) previous;
+					Collection<?> newCollection = (Collection<?>) value;
+					for (Object newCollectionEntry : newCollection) {
+						int freq = Collections.frequency(prevCollection, newCollectionEntry);
+						// first element that does not exist in the previous collection will
+						// trigger the modified result
+						if (freq == 0) {
+							result = true;
+							break;
+						}
+					}
+				} else if (value instanceof Map) {
+					Map<?, ?> prevMap = (Map<?, ?>) previous;
+					Map<?, ?> newMap = (Map<?, ?>) value;
+					// check key differences first
+					if (!prevMap.keySet().containsAll(newMap.keySet())) {
+						result = true;
+					} else {
+						// check entries
+						for (Entry<?, ?> newMapEntry : newMap.entrySet()) {
+							Object prevValue = prevMap.get(newMapEntry.getKey());
+							if (prevValue == null) {
+								result = true;
+								break;
+							} else {
+								if (!prevValue.equals(newMapEntry.getValue())) {
+									result = true;
+									break;
+								}
+							}
+						}
+					}
+				} else {
+					// whether or not the new incoming value is "equal" to the previous value
+					result = !value.equals(previous);
+				}
+			} else {
+				result = true;
 			}
 		}
-		return false;
+		return result;
 	}
 
 	/**
@@ -331,6 +378,51 @@ public class AttributeStore implements ICastingAttributeStore {
 			instance = new AttributeStore();
 		}
 		return instance;
+	}
+
+	@SuppressWarnings("serial")
+	private final class ConcurrentAttributesMap<K, V> extends ConcurrentHashMap<K, V> {
+
+		ConcurrentAttributesMap(int size) {
+			super(size);
+		}
+
+		@Override
+		public V get(Object key) {
+			log.trace("get key: {}", key);
+			return super.get(key);
+		}
+
+		@Override
+		public V put(K key, V value) {
+			log.trace("put key: {} value: {}", key, value);
+			return super.put(key, value);
+		}
+
+		@Override
+		public V putIfAbsent(K key, V value) {
+			log.trace("putIfAbsent key: {} value: {}", key, value);
+			return super.putIfAbsent(key, value);
+		}
+
+		@Override
+		public void putAll(Map<? extends K, ? extends V> m) {
+			log.trace("putAll map: {}", m);
+			super.putAll(m);
+		}
+
+		@Override
+		public boolean replace(K key, V oldValue, V newValue) {
+			log.trace("replace key: {} old value: {} new value: {}", new Object[] { key, oldValue, newValue });
+			return super.replace(key, oldValue, newValue);
+		}
+
+		@Override
+		public V replace(K key, V value) {
+			log.trace("replace key: {} value: {}", key, value);
+			return super.replace(key, value);
+		}
+
 	}
 
 }

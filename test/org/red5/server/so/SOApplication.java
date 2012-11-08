@@ -29,7 +29,6 @@ public class SOApplication extends MultiThreadedApplicationAdapter {
 	 */
 	@Override
 	public void appStop(IScope app) {
-		// TODO Auto-generated method stub
 		super.appStop(app);
 	}
 
@@ -47,7 +46,6 @@ public class SOApplication extends MultiThreadedApplicationAdapter {
 	 */
 	@Override
 	public void roomStop(IScope room) {
-		// TODO Auto-generated method stub
 		super.roomStop(room);
 	}
 
@@ -56,7 +54,6 @@ public class SOApplication extends MultiThreadedApplicationAdapter {
 	 */
 	@Override
 	public boolean appConnect(IConnection conn, Object[] params) {
-		// TODO Auto-generated method stub
 		return super.appConnect(conn, params);
 	}
 
@@ -65,7 +62,6 @@ public class SOApplication extends MultiThreadedApplicationAdapter {
 	 */
 	@Override
 	public boolean roomConnect(IConnection conn, Object[] params) {
-		// TODO Auto-generated method stub
 		return super.roomConnect(conn, params);
 	}
 
@@ -74,7 +70,6 @@ public class SOApplication extends MultiThreadedApplicationAdapter {
 	 */
 	@Override
 	public void appDisconnect(IConnection conn) {
-		// TODO Auto-generated method stub
 		super.appDisconnect(conn);
 	}
 
@@ -83,7 +78,6 @@ public class SOApplication extends MultiThreadedApplicationAdapter {
 	 */
 	@Override
 	public void roomDisconnect(IConnection conn) {
-		// TODO Auto-generated method stub
 		super.roomDisconnect(conn);
 	}
 
@@ -92,7 +86,6 @@ public class SOApplication extends MultiThreadedApplicationAdapter {
 	 */
 	@Override
 	public boolean roomJoin(IClient client, IScope room) {
-		// TODO Auto-generated method stub
 		return super.roomJoin(client, room);
 	}
 
@@ -101,7 +94,6 @@ public class SOApplication extends MultiThreadedApplicationAdapter {
 	 */
 	@Override
 	public void roomLeave(IClient client, IScope room) {
-		// TODO Auto-generated method stub
 		super.roomLeave(client, room);
 	}
 

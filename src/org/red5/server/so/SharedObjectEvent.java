@@ -24,7 +24,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 public class SharedObjectEvent implements ISharedObjectEvent, Externalizable {
-	
+
 	private static final long serialVersionUID = -4129018814289863535L;
 
 	/**
@@ -75,12 +75,10 @@ public class SharedObjectEvent implements ISharedObjectEvent, Externalizable {
 	/** {@inheritDoc} */
 	@Override
 	public String toString() {
-		return "SOEvent(" + getType() + ", " + getKey() + ", " + getValue()
-				+ ')';
+		return "SOEvent(" + getType() + ", " + getKey() + ", " + getValue() + ')';
 	}
 
-	public void readExternal(ObjectInput in) throws IOException,
-			ClassNotFoundException {
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		type = (Type) in.readObject();
 		key = (String) in.readObject();
 		value = in.readObject();

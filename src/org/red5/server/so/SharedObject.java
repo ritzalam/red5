@@ -243,7 +243,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 
 	/** {@inheritDoc} */
 	public void setName(String name) {
-		throw new UnsupportedOperationException("Name change not supported; current name: " + getName());
+		throw new UnsupportedOperationException(String.format("Name change not supported; current name: %s", getName()));
 	}
 
 	/** {@inheritDoc} */
@@ -355,13 +355,11 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 		log.debug("notifyModified");
 		if (updateCounter.get() == 0) {
 			if (modified) {
-				// The client sent at least one update -> increase version of SO
+				// client sent at least one update -> increase version of SO
 				updateVersion();
 				lastModified = System.currentTimeMillis();
-				if (storage != null) {
-					if (!storage.save(this)) {
-						log.error("Could not store shared object.");
-					}
+				if (storage == null || !storage.save(this)) {
+					log.warn("Could not store shared object");
 				}
 			} else {
 				log.debug("Not modified");
@@ -404,7 +402,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 		if (name != null) {
 			result = attributes.putIfAbsent(name, value);
 			if (result == null) {
-				// No previous value
+				// no previous value
 				modified = true;
 				ownerMessage.addEvent(Type.CLIENT_UPDATE_DATA, name, value);
 				syncEvents.add(new SharedObjectEvent(Type.CLIENT_UPDATE_DATA, name, value));
@@ -645,8 +643,11 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 	public void serialize(Output output) throws IOException {
 		log.debug("serialize");
 		Serializer ser = new Serializer();
-		ser.serialize(output, getName());
-		ser.serialize(output, getAttributes());
+		log.trace("Name: {}", name);
+		ser.serialize(output, getName());	
+		Map<String, Object> map = getAttributes();
+		log.trace("Attributes: {}", map);
+		ser.serialize(output, map);
 	}
 
 	/** {@inheritDoc} */
@@ -655,8 +656,11 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 		log.debug("deserialize");
 		Deserializer deserializer = new Deserializer();
 		name = deserializer.deserialize(input, String.class);
+		log.trace("Name: {}", name);
 		persistent = true;
-		super.setAttributes(deserializer.<Map> deserialize(input, Map.class));
+		Map<String, Object> map = deserializer.<Map> deserialize(input, Map.class);
+		log.trace("Attributes: {}", map);
+		super.setAttributes(map);
 		ownerMessage.setName(name);
 		ownerMessage.setPersistent(persistent);
 	}

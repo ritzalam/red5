@@ -28,7 +28,6 @@ import org.springframework.core.io.support.ResourcePatternResolver;
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
-
 public class PersistenceUtils {
 
 	/**
