@@ -409,6 +409,7 @@ public class Serializer {
 				className = "DSK";
 			}
 		}
+		log.debug("Classname: {}", className);
 		return className;
 	}
 }

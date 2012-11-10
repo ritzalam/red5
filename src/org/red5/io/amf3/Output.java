@@ -173,8 +173,8 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	/** {@inheritDoc} */
 	@Override
 	public void putString(String string) {
+		// empty string
 		if ("".equals(string)) {
-			// Empty string;
 			putInteger(1);
 			return;
 		}
@@ -362,6 +362,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	/** {@inheritDoc} */
 	@Override
 	protected void writeArbitraryObject(Object object, Serializer serializer) {
+		log.debug("writeArbitraryObject: {}", object);
 		Class<?> objectClass = object.getClass();
 		// If we need to serialize class information...
 		if (!objectClass.isAnnotationPresent(Anonymous.class)) {
@@ -400,15 +401,19 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	/** {@inheritDoc} */
 	@SuppressWarnings({ "rawtypes" })
 	public void writeObject(Object object, Serializer serializer) {
+		log.debug("writeObject: {} {}", object.getClass().getName(), object);
 		writeAMF3();
 		buf.put(AMF3.TYPE_OBJECT);
 		if (hasReference(object)) {
+			log.debug("Object reference found");
 			putInteger(getReferenceId(object) << 1);
 			return;
 		}
+		log.debug("Storing object reference");
 		storeReference(object);
 		if (object instanceof IExternalizable) {
-			// The object knows how to serialize itself.
+			log.debug("Object is IExternalizable");
+			// the object knows how to serialize itself
 			int type = 1 << 1 | 1;
 			if (object instanceof ObjectProxy) {
 				type |= AMF3.TYPE_OBJECT_PROXY << 2;
@@ -421,36 +426,37 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			((IExternalizable) object).writeExternal(new DataOutput(this, serializer));
 			amf3_mode -= 1;
 			return;
+		} else {
+			log.debug("Object is NOT IExternalizable");
 		}
-		// We have an inline class that is not a reference.
-		// We store the properties using key/value pairs
+		// we have an inline class that is not a reference, store the properties using key/value pairs
 		int type = AMF3.TYPE_OBJECT_VALUE << 2 | 1 << 1 | 1;
 		putInteger(type);
-		// Create new map out of bean properties
+		// create new map out of bean properties
 		BeanMap beanMap = new BeanMap(object);
-		// Set of bean attributes
+		// set of bean attributes
 		Set set = beanMap.keySet();
 		if ((set.size() == 0) || (set.size() == 1 && beanMap.containsKey("class"))) {
-			// BeanMap is empty or can only access "class" attribute, skip it
+			// beanMap is empty or can only access "class" attribute, skip it
 			writeArbitraryObject(object, serializer);
 			return;
 		}
-		// Write out either start of object marker for class name or "empty" start of object marker
+		// write out either start of object marker for class name or "empty" start of object marker
 		Class<?> objectClass = object.getClass();
 		if (!objectClass.isAnnotationPresent(Anonymous.class)) {
-			// classname
+			log.debug("Object is annotated as Anonymous");
 			putString(serializer.getClassName(object.getClass()));
 		} else {
 			putString("");
 		}
-		// Store key/value pairs
+		// store key/value pairs
 		amf3_mode += 1;
 		for (Object key : set) {
 			String fieldName = key.toString();
 			log.debug("Field name: {} class: {}", fieldName, objectClass);
 			Field field = getField(objectClass, fieldName);
 			Method getter = getGetter(objectClass, beanMap, fieldName);
-			// Check if the Field corresponding to the getter/setter pair is transient
+			// check if the Field corresponding to the getter/setter pair is transient
 			if (!serializeField(serializer, objectClass, fieldName, field, getter)) {
 				continue;
 			}
@@ -458,13 +464,14 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			serializer.serialize(this, field, getter, object, beanMap.get(key));
 		}
 		amf3_mode -= 1;
-		// End of object marker
+		// end of object marker
 		putString("");
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public void writeObject(Map<Object, Object> map, Serializer serializer) {
+		log.debug("writeObject: {}", map);
 		writeAMF3();
 		buf.put(AMF3.TYPE_OBJECT);
 		if (hasReference(map)) {
@@ -472,20 +479,19 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			return;
 		}
 		storeReference(map);
-		// We have an inline class that is not a reference.
-		// We store the properties using key/value pairs
+		// we have an inline class that is not a reference, store the properties using key/value pairs
 		int type = AMF3.TYPE_OBJECT_VALUE << 2 | 1 << 1 | 1;
 		putInteger(type);
-		// No classname
+		// no classname
 		putString("");
-		// Store key/value pairs
+		// store key/value pairs
 		amf3_mode += 1;
 		for (Map.Entry<Object, Object> entry : map.entrySet()) {
 			putString(entry.getKey().toString());
 			serializer.serialize(this, entry.getValue());
 		}
 		amf3_mode -= 1;
-		// End of object marker
+		// end of object marker
 		putString("");
 	}
 

@@ -76,9 +76,6 @@ import org.slf4j.LoggerFactory;
  */
 public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 
-	/**
-	 * Logger
-	 */
 	protected static Logger log = LoggerFactory.getLogger(RTMPProtocolDecoder.class);
 
 	/**
@@ -192,7 +189,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 					return null;
 			}
 		} catch (ProtocolException pe) {
-			// Raise to caller unmodified
+			// raise to caller unmodified
 			throw pe;
 		} catch (RuntimeException e) {
 			throw new ProtocolException("Error during decoding", e);

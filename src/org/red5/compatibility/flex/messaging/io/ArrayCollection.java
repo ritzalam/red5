@@ -19,39 +19,157 @@
 package org.red5.compatibility.flex.messaging.io;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 import org.red5.io.amf3.IDataInput;
 import org.red5.io.amf3.IDataOutput;
 import org.red5.io.amf3.IExternalizable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Flex <code>ArrayCollection</code> compatibility class.
- * 
- * @see <a href="http://livedocs.adobe.com/flex/2/langref/mx/collections/ArrayCollection.html">Adobe Livedocs (external)</a>
+ *  
+ * @see <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/collections/ArrayCollection.html">ArrayCollection</a>
+ *  
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
- * @param <T> type of collection
+ * @author Paul Gregoire (mondain@gmail.com)
+ * @param <T> type of collection elements
  */
-public class ArrayCollection<T> extends ArrayList<T> implements Collection<T>, IExternalizable {
+public class ArrayCollection<T> implements Collection<T>, List<T>, IExternalizable {
 
-	/** Serial number */
-	private static final long serialVersionUID = -9086041828446362637L;
+	private static final Logger log = LoggerFactory.getLogger(ArrayCollection.class);
+
+	private ArrayList<T> source;
+
+	public ArrayCollection() {
+	}
+
+	public ArrayCollection(T[] source) {
+		this.source = new ArrayList<T>(source.length);
+		this.source.addAll(Arrays.asList(source));
+	}
+
+	public void setSource(T[] source) {
+		this.source = new ArrayList<T>(source.length);
+		this.source.addAll(Arrays.asList(source));		
+	}
 	
-	/** {@inheritDoc} */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void readExternal(IDataInput input) {
-		clear();
-		Object tmp = input.readObject();
-		if (tmp != null) {
-			addAll((List) tmp);
+	public int size() {
+		return source.size();
+	}
+
+	public boolean isEmpty() {
+		return source == null ? true : source.isEmpty();
+	}
+
+	public boolean contains(Object o) {
+		return source.contains(o);
+	}
+
+	public Iterator<T> iterator() {
+		return source.iterator();
+	}
+
+	@SuppressWarnings("unchecked")
+	public T[] toArray() {
+		return (T[]) source.toArray();
+	}
+
+	@SuppressWarnings("hiding")
+	public <T> T[] toArray(T[] a) {
+		return source.toArray(a);
+	}
+
+	public boolean add(T e) {
+		return source.add(e);
+	}
+
+	public boolean remove(Object o) {
+		return source.remove(o);
+	}
+
+	public boolean containsAll(Collection<?> c) {
+		return source.containsAll(c);
+	}
+
+	public boolean addAll(Collection<? extends T> c) {
+		return source.addAll(c);
+	}
+
+	public boolean removeAll(Collection<?> c) {
+		return source.removeAll(c);
+	}
+
+	public boolean retainAll(Collection<?> c) {
+		return source.retainAll(c);
+	}
+
+	public void clear() {
+		if (source != null) {
+			source.clear();
 		}
 	}
 
-	/** {@inheritDoc} */
+	public boolean addAll(int index, Collection<? extends T> c) {
+		return source.addAll(index, c);
+	}
+
+	public T get(int index) {
+		return source.get(index);
+	}
+
+	public T set(int index, T element) {
+		return source.set(index, element);
+	}
+
+	public void add(int index, T element) {
+		source.add(index, element);
+	}
+
+	public T remove(int index) {
+		return source.remove(index);
+	}
+
+	public int indexOf(Object o) {
+		return source.indexOf(o);
+	}
+
+	public int lastIndexOf(Object o) {
+		return source.lastIndexOf(o);
+	}
+
+	public ListIterator<T> listIterator() {
+		return source.listIterator();
+	}
+
+	public ListIterator<T> listIterator(int index) {
+		return source.listIterator(index);
+	}
+
+	public List<T> subList(int fromIndex, int toIndex) {
+		return source.subList(fromIndex, toIndex);
+	}	
+
+	@SuppressWarnings("unchecked")
+	public void readExternal(IDataInput input) {
+		log.debug("readExternal");
+		if (source == null) {
+			source = (ArrayList<T>) input.readObject();
+		} else {
+			source.clear();
+			source.addAll((ArrayList<T>) input.readObject());
+		}
+	}
+
 	public void writeExternal(IDataOutput output) {
-		output.writeObject(this.toArray());
+		log.debug("writeExternal");
+		output.writeObject(source);
 	}
 
 }
