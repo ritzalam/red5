@@ -38,13 +38,13 @@ public class ByteArray implements IDataInput, IDataOutput {
 
 	/** Internal storage for array contents. */
 	protected IoBuffer data;
-	
+
 	/** Object used to read from array. */
 	protected IDataInput dataInput;
-	
+
 	/** Object used to write to array. */
 	protected IDataOutput dataOutput;
-	
+
 	/**
 	 * Internal constructor used to create ByteArray during deserialization.
 	 * 
@@ -60,7 +60,7 @@ public class ByteArray implements IDataInput, IDataOutput {
 		data.flip();
 		prepareIO();
 	}
-	
+
 	/**
 	 * Public constructor. Creates new empty ByteArray.
 	 */
@@ -83,7 +83,7 @@ public class ByteArray implements IDataInput, IDataOutput {
 		output.enforceAMF3();
 		dataOutput = new DataOutput(output, new Serializer());
 	}
-	
+
 	/**
 	 * Get internal data.
 	 * 
@@ -92,7 +92,7 @@ public class ByteArray implements IDataInput, IDataOutput {
 	protected IoBuffer getData() {
 		return data;
 	}
-	
+
 	/**
 	 * Get the current position in the data.
 	 * 
@@ -101,7 +101,7 @@ public class ByteArray implements IDataInput, IDataOutput {
 	public int position() {
 		return data.position();
 	}
-	
+
 	/**
 	 * Set the current position in the data.
 	 * 
@@ -110,7 +110,7 @@ public class ByteArray implements IDataInput, IDataOutput {
 	public void position(int position) {
 		data.position(position);
 	}
-	
+
 	/**
 	 * Return number of bytes available for reading.
 	 * 
@@ -119,7 +119,7 @@ public class ByteArray implements IDataInput, IDataOutput {
 	public int bytesAvailable() {
 		return length() - position();
 	}
-	
+
 	/**
 	 * Return total number of bytes in array.
 	 * 
@@ -128,22 +128,7 @@ public class ByteArray implements IDataInput, IDataOutput {
 	public int length() {
 		return data.limit();
 	}
-	
-	/**
-	 * Return string representation of the array's contents.
-	 * 
-	 * @return string representaiton of array's contents.
-	 */
-	public String toString() {
-		int old = data.position();
-		try {
-			data.position(0);
-			return data.asCharBuffer().toString();
-		} finally {
-			data.position(old);
-		}
-	}
-	
+
 	/**
 	 * Compress contents using zlib.
 	 */
@@ -174,7 +159,7 @@ public class ByteArray implements IDataInput, IDataOutput {
 		data.flip();
 		prepareIO();
 	}
-	
+
 	/**
 	 * Decompress contents using zlib.
 	 */
@@ -209,7 +194,7 @@ public class ByteArray implements IDataInput, IDataOutput {
 		data.flip();
 		prepareIO();
 	}
-	
+
 	/** {@inheritDoc} */
 	public ByteOrder getEndian() {
 		return dataInput.getEndian();
@@ -267,7 +252,7 @@ public class ByteArray implements IDataInput, IDataOutput {
 		prepareIO();
 		return dataInput.readObject();
 	}
-	
+
 	/** {@inheritDoc} */
 	public short readShort() {
 		return dataInput.readShort();
@@ -376,5 +361,53 @@ public class ByteArray implements IDataInput, IDataOutput {
 	public void writeUnsignedInt(long value) {
 		dataOutput.writeUnsignedInt(value);
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return toString().hashCode();
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		ByteArray other = (ByteArray) obj;
+		if (!toString().equals(other.toString())) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Return string representation of the array's contents.
+	 * 
+	 * @return string representation of array's contents.
+	 */
+	@Override
+	public String toString() {
+		if (data != null) {
+			int old = data.position();
+			try {
+				data.position(0);
+				return data.asCharBuffer().toString();
+			} finally {
+				data.position(old);
+			}
+		} else {
+			return "";
+		}
+	}
 }

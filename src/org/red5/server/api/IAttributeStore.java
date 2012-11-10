@@ -58,15 +58,17 @@ public interface IAttributeStore extends AttributeStoreMXBean {
 	 * Set multiple attributes on this object.
 	 * 
 	 * @param values the attributes to set
+	 * @return true if the attribute values changed otherwise false
 	 */
-	public void setAttributes(Map<String, Object> values);
+	public boolean setAttributes(Map<String, Object> values);
 
 	/**
 	 * Set multiple attributes on this object.
 	 * 
 	 * @param values the attributes to set
+	 * @return true if the attribute values changed otherwise false
 	 */
-	public void setAttributes(IAttributeStore values);
+	public boolean setAttributes(IAttributeStore values);
 
 	/**
 	 * Return the value for a given attribute.
@@ -116,5 +118,12 @@ public interface IAttributeStore extends AttributeStoreMXBean {
 	 * Remove all attributes.
 	 */
 	public void removeAttributes();
+
+	/**
+	 * Size of the attribute store.
+	 * 
+	 * @return count of attributes
+	 */
+	public int size();
 
 }

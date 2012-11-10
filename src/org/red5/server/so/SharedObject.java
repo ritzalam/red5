@@ -414,12 +414,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 		return result;
 	}
 
-	/**
-	 * Set value of attribute with given name
-	 * @param name         Attribute name
-	 * @param value        Attribute value
-	 * @return             <code>true</code> if there's such attribute and value was set, <code>false</code> otherwise
-	 */
+	/** {@inheritDoc} */
 	@Override
 	public boolean setAttribute(String name, Object value) {
 		log.debug("setAttribute - name: {} value: {}", name, value);
@@ -442,35 +437,33 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 		return result;
 	}
 
-	/**
-	 * Set attributes as map.
-	 *
-	 * @param values  Attributes.
-	 */
+	/** {@inheritDoc} */
 	@Override
-	public void setAttributes(Map<String, Object> values) {
+	public boolean setAttributes(Map<String, Object> values) {
+		int successes = 0;
 		if (values != null) {
 			beginUpdate();
 			try {
 				for (Map.Entry<String, Object> entry : values.entrySet()) {
-					setAttribute(entry.getKey(), entry.getValue());
+					if (setAttribute(entry.getKey(), entry.getValue())) {
+						successes++;
+					}
 				}
 			} finally {
 				endUpdate();
 			}
 		}
+		// expect every value to have been added
+		return (successes == values.size());
 	}
 
-	/**
-	 * Set attributes as attributes store.
-	 *
-	 * @param values  Attributes.
-	 */
+	/** {@inheritDoc} */
 	@Override
-	public void setAttributes(IAttributeStore values) {
+	public boolean setAttributes(IAttributeStore values) {
 		if (values != null) {
-			setAttributes(values.getAttributes());
+			return setAttributes(values.getAttributes());
 		}
+		return false;
 	}
 
 	/**
@@ -554,21 +547,25 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 	/**
 	 * Register event listener
 	 * @param listener        Event listener
+	 * @return true if listener was added
 	 */
-	protected void register(IEventListener listener) {
+	protected boolean register(IEventListener listener) {
 		log.debug("register - listener: {}", listener);
-		listeners.add(listener);
-		listenerStats.increment();
-		// prepare response for new client
-		ownerMessage.addEvent(Type.CLIENT_INITIAL_DATA, null, null);
-		if (!isPersistent()) {
-			ownerMessage.addEvent(Type.CLIENT_CLEAR_DATA, null, null);
+		boolean registered = listeners.add(listener);
+		if (registered) {
+			listenerStats.increment();
+			// prepare response for new client
+			ownerMessage.addEvent(Type.CLIENT_INITIAL_DATA, null, null);
+			if (!isPersistent()) {
+				ownerMessage.addEvent(Type.CLIENT_CLEAR_DATA, null, null);
+			}
+			if (!attributes.isEmpty()) {
+				ownerMessage.addEvent(new SharedObjectEvent(Type.CLIENT_UPDATE_DATA, null, getAttributes()));
+			}
+			// we call notifyModified here to send response if we're not in a beginUpdate block
+			notifyModified();
 		}
-		if (!attributes.isEmpty()) {
-			ownerMessage.addEvent(new SharedObjectEvent(Type.CLIENT_UPDATE_DATA, null, getAttributes()));
-		}
-		// we call notifyModified here to send response if we're not in a beginUpdate block
-		notifyModified();
+		return registered;
 	}
 
 	/**
@@ -644,7 +641,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 		log.debug("serialize");
 		Serializer ser = new Serializer();
 		log.trace("Name: {}", name);
-		ser.serialize(output, getName());	
+		ser.serialize(output, getName());
 		Map<String, Object> map = getAttributes();
 		log.trace("Attributes: {}", map);
 		ser.serialize(output, map);

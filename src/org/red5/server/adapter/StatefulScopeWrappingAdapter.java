@@ -127,6 +127,11 @@ public class StatefulScopeWrappingAdapter extends AbstractScopeAdapter implement
 			scope.removeAttribute(name);
 		}
 	}
+	
+	/** {@inheritDoc} */
+	public int size() {
+		return scope != null ? scope.getAttributeNames().size() : 0;
+	}
 
 	/** {@inheritDoc} */
 	public boolean setAttribute(String name, Object value) {
@@ -134,17 +139,27 @@ public class StatefulScopeWrappingAdapter extends AbstractScopeAdapter implement
 	}
 
 	/** {@inheritDoc} */
-	public void setAttributes(IAttributeStore attributes) {
+	public boolean setAttributes(IAttributeStore attributes) {
+		int successes = 0;
 		for (Map.Entry<String, Object> entry : attributes.getAttributes().entrySet()) {
-			scope.setAttribute(entry.getKey(), entry.getValue());
-		}
+			if (scope.setAttribute(entry.getKey(), entry.getValue())) {
+				successes++;
+			}
+		}		
+		// expect every value to have been added
+		return (successes == attributes.size());
 	}
 
 	/** {@inheritDoc} */
-	public void setAttributes(Map<String, Object> attributes) {
+	public boolean setAttributes(Map<String, Object> attributes) {
+		int successes = 0;
 		for (Map.Entry<String, Object> entry : attributes.entrySet()) {
-			scope.setAttribute(entry.getKey(), entry.getValue());
-		}
+			if (scope.setAttribute(entry.getKey(), entry.getValue())) {
+				successes++;
+			}
+		}		
+		// expect every value to have been added
+		return (successes == attributes.size());
 	}
 
 	/**

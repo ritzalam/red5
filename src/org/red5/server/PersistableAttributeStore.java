@@ -228,13 +228,7 @@ public class PersistableAttributeStore extends AttributeStore implements IPersis
 		return result;
 	}
 
-	/**
-	 * Set attribute by name and return success as boolean
-	 *
-	 * @param name          Attribute name
-	 * @param value         Attribute value
-	 * @return              true if attribute was set, false otherwise
-	 */
+	/** {@inheritDoc} */
 	@Override
 	public boolean setAttribute(String name, Object value) {
 		boolean result = super.setAttribute(name, value);
@@ -244,26 +238,20 @@ public class PersistableAttributeStore extends AttributeStore implements IPersis
 		return result;
 	}
 
-	/**
-	 * Set attributes from Map
-	 *
-	 * @param values          Attributes as Map
-	 */
+	/** {@inheritDoc} */
 	@Override
-	public void setAttributes(Map<String, Object> values) {
-		super.setAttributes(values);
+	public boolean setAttributes(Map<String, Object> values) {
+		boolean success = super.setAttributes(values);
 		modified();
+		return success;
 	}
 
-	/**
-	 * Bulk set of attributes from another attributes store
-	 *
-	 * @param values      Attributes store
-	 */
+	/** {@inheritDoc} */
 	@Override
-	public void setAttributes(IAttributeStore values) {
-		super.setAttributes(values);
+	public boolean setAttributes(IAttributeStore values) {
+		boolean success = super.setAttributes(values);
 		modified();
+		return success;
 	}
 
 	/**

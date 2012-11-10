@@ -429,7 +429,6 @@ public class RemotingConnection implements IRemotingConnection {
 		if (name == null) {
 			return false;
 		}
-
 		return (getAttribute(name) != null);
 	}
 
@@ -438,8 +437,7 @@ public class RemotingConnection implements IRemotingConnection {
 		if (name == null) {
 			return false;
 		}
-
-		// Synchronize to prevent parallel modifications
+		// synchronize to prevent parallel modifications
 		synchronized (session) {
 			if (!hasAttribute(name)) {
 				return false;
@@ -452,7 +450,7 @@ public class RemotingConnection implements IRemotingConnection {
 	/** {@inheritDoc} */
 	@SuppressWarnings("unchecked")
 	public void removeAttributes() {
-		// Synchronize to prevent parallel modifications
+		// synchronize to prevent parallel modifications
 		synchronized (session) {
 			final Enumeration<String> names = session.getAttributeNames();
 			while (names.hasMoreElements()) {
@@ -460,13 +458,18 @@ public class RemotingConnection implements IRemotingConnection {
 			}
 		}
 	}
-
+	
+	/** {@inheritDoc} */
+	@SuppressWarnings("deprecation")
+	public int size() {
+		return session != null ? session.getValueNames().length : 0;
+	}
+	
 	/** {@inheritDoc} */
 	public boolean setAttribute(String name, Object value) {
 		if (name == null) {
 			return false;
 		}
-
 		if (value == null) {
 			session.removeAttribute(name);
 		} else {
@@ -476,7 +479,7 @@ public class RemotingConnection implements IRemotingConnection {
 	}
 
 	/** {@inheritDoc} */
-	public void setAttributes(Map<String, Object> values) {
+	public boolean setAttributes(Map<String, Object> values) {
 		for (Map.Entry<String, Object> entry : values.entrySet()) {
 			final String name = entry.getKey();
 			final Object value = entry.getValue();
@@ -484,11 +487,12 @@ public class RemotingConnection implements IRemotingConnection {
 				session.setAttribute(name, value);
 			}
 		}
+		return true;
 	}
 
 	/** {@inheritDoc} */
-	public void setAttributes(IAttributeStore values) {
-		setAttributes(values.getAttributes());
+	public boolean setAttributes(IAttributeStore values) {
+		return setAttributes(values.getAttributes());
 	}
 
 	/** {@inheritDoc} */
@@ -566,12 +570,12 @@ public class RemotingConnection implements IRemotingConnection {
 
 	/** {@inheritDoc} */
 	public void addListener(IConnectionListener listener) {
-			this.connectionListeners.add(listener);
+		this.connectionListeners.add(listener);
 	}
 
 	/** {@inheritDoc} */
 	public void removeListener(IConnectionListener listener) {
-			this.connectionListeners.remove(listener);
+		this.connectionListeners.remove(listener);
 	}
 
 }

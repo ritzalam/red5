@@ -280,7 +280,7 @@ public class ClientSharedObject extends SharedObject implements IClientSharedObj
 		if (value != null) {
 			ownerMessage.addEvent(Type.SERVER_SET_ATTRIBUTE, name, value);
 			notifyModified();
-			return true;			
+			return true;
 		} else {
 			return removeAttribute(name);
 		}
@@ -288,16 +288,23 @@ public class ClientSharedObject extends SharedObject implements IClientSharedObj
 
 	/** {@inheritDoc} */
 	@Override
-	public void setAttributes(IAttributeStore values) {
-		setAttributes(values.getAttributes());
+	public boolean setAttributes(IAttributeStore values) {
+		return setAttributes(values.getAttributes());
 	}
 
 	/** {@inheritDoc} */
 	@Override
-	public void setAttributes(Map<String, Object> values) {
-		for (Map.Entry<String, Object> entry : values.entrySet()) {
-			setAttribute(entry.getKey(), entry.getValue());
+	public boolean setAttributes(Map<String, Object> values) {
+		int successes = 0;
+		if (values != null) {
+			for (Map.Entry<String, Object> entry : values.entrySet()) {
+				if (setAttribute(entry.getKey(), entry.getValue())) {
+					successes++;
+				}
+			}
 		}
+		// expect every value to have been added
+		return (successes == values.size());
 	}
 
 	/** {@inheritDoc} */

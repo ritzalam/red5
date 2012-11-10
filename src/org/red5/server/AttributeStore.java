@@ -216,22 +216,16 @@ public class AttributeStore implements ICastingAttributeStore {
 		return result;
 	}
 
-	/**
-	 * Set multiple attributes on this object.
-	 *
-	 * @param values the attributes to set
-	 */
-	public void setAttributes(Map<String, Object> values) {
+	/** {@inheritDoc} */
+	public boolean setAttributes(Map<String, Object> values) {
 		attributes.putAll(filterNull(values));
+		// put all doesnt return a boolean so we assume all were added
+		return true;
 	}
 
-	/**
-	 * Set multiple attributes on this object.
-	 *
-	 * @param values the attributes to set
-	 */
-	public void setAttributes(IAttributeStore values) {
-		setAttributes(values.getAttributes());
+	/** {@inheritDoc} */
+	public boolean setAttributes(IAttributeStore values) {
+		return setAttributes(values.getAttributes());
 	}
 
 	/**
@@ -254,6 +248,11 @@ public class AttributeStore implements ICastingAttributeStore {
 		attributes.clear();
 	}
 
+	/** {@inheritDoc} */
+	public int size() {
+		return attributes != null ? attributes.size() : 0;
+	}
+	
 	/**
 	 * Get Boolean attribute by name
 	 *
