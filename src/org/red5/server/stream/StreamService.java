@@ -571,7 +571,7 @@ public class StreamService implements IStreamService {
 				Set<IStreamPublishSecurity> handlers = security.getStreamPublishSecurity();
 				for (IStreamPublishSecurity handler : handlers) {
 					if (!handler.isPublishAllowed(scope, name, mode)) {
-						sendNSFailed(streamConn, StatusCodes.NS_FAILED, "You are not allowed to publish the stream.", name, streamId);
+						sendNSFailed(streamConn, StatusCodes.NS_PUBLISH_BADNAME, "You are not allowed to publish the stream.", name, streamId);
 						return;
 					}
 				}
