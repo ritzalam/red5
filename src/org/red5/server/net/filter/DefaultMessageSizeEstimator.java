@@ -33,9 +33,9 @@ import org.apache.mina.filter.executor.IoEventSizeEstimator;
 /**
  * A default {@link MessageSizeEstimator} implementation.
  * <p>
- * <a href="http://martin.nobilitas.com/java/sizeof.html">Martin's Java Notes</a> was used for estimation of the size of non-{@link IoBuffer}s.
- * For unknown types, it inspects declaring fields of the class of the specified message. The size of unknown declaring fields are approximated 
- * to the specified <tt>averageSizePerField</tt> (default: 64).
+ * Martin's Java Notes were used for estimation of the size of non-IoBuffers. For unknown types, it inspects declaring 
+ * fields of the class of the specified message. The size of unknown declaring fields are approximated to the specified 
+ * <tt>averageSizePerField</tt> (default: 64).
  * <p>
  * All the estimated sizes of classes are cached for performance improvement.
  * 
@@ -65,9 +65,6 @@ public class DefaultMessageSizeEstimator implements IoEventSizeEstimator {
         return estimateSize((Object) event) + estimateSize(event.getParameter());
     }	
 	
-    /**
-     * {@inheritDoc}
-     */
 	public int estimateSize(Object message) {
 		if (message == null) {
 			return 8;
@@ -87,9 +84,6 @@ public class DefaultMessageSizeEstimator implements IoEventSizeEstimator {
 		return align(answer);
 	}
 	
-    /**
-     * {@inheritDoc}
-     */
 	private int estimateSize(Class<?> clazz, Set<Class<?>> visitedClasses) {
 		Integer objectSize = class2size.get(clazz);
 		if (objectSize != null) {

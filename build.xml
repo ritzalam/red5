@@ -18,9 +18,8 @@
 	<property name="config.dir" value="src/conf"/>
 	<property name="javadoc.dir" value="doc/api"/>
 	<property name="debug.state" value="true"/>
-	<!-- Documentation properties -->
-	<property name="doc.ref.dir" value="../../../doc/trunk/reference"/>
-	<property name="doc.ref.lib" value="${doc.ref.dir}/lib"/>
+	<!-- documentation properties -->
+	<property name="doc.ref.dir" value="src/main/javadoc"/>
 	<property name="javadoc.style" value="${doc.ref.dir}/styles/javadoc.css"/>
 	<!-- unit testing -->
 	<property name="test.dir" value="test"/>
@@ -198,7 +197,7 @@
 		<!-- destination for compiled classes -->
 		<property name="dest.dir" value="${classes.dir}"/>
 		<!-- standard excludes for compile -->
-		<property name="std_excludes" value="**/*.jsp,org/red5/server/script/**"/>
+		<property name="std_excludes" value="**/*.jsp,org/red5/server/script/**,main/**"/>
 		<antcall target="compile-core" inheritAll="true" inheritRefs="true"/>
 		<antcall target="compile-core-compatibility" inheritAll="true" inheritRefs="true"/>
 		<!-- libraries and classes needed for building the demos -->
@@ -435,7 +434,7 @@
 			<group title="Scripting" packages="org.red5.server.script:org.red5.server.script.*"/>
 			<link href="http://download.oracle.com/${javadoc.loc}/docs/api"/>
 			<link href="http://jetty.codehaus.org/jetty/jetty-6/apidocs"/>
-			<link href="http://mina.apache.org/report/trunk/apidocs"/>
+			<link href="http://mina.apache.org/mina-project/apidocs"/>
 			<link href="http://static.springsource.org/spring/docs/2.5.x/api"/>
 			<!-- <link href="http://www.quartz-scheduler.org/docs/api"/> -->
 			<link href="http://www.slf4j.org/api"/>
@@ -585,19 +584,19 @@
 		</copy>
 		<!-- zip the source instead of copying verbatim -->
 		<zip destfile="${dist.dir}/src.zip" basedir="${src.dir}" level="9"/>
-		<!-- move to the expected directory for windows installer -->
-		<move todir="${dist.dir}.java6">
+		<!-- copy to the expected directory for windows installer -->
+        <condition property="dist.ext" value="java6" else="java7">
+        	<equals arg1="${java.target_version}" arg2="1.6"/>
+	    </condition>
+		<copy todir="${dist.dir}.${dist.ext}">
 			<fileset dir="${dist.dir}"/>
-		</move>
+		</copy>
 	</target>
 	<target name="dist-archive" depends="dist-installer" description="Create archive file for distribution">
 		<touch>
 			<fileset dir="${dist.dir}"/>
 		</touch>
-		<!--
-                  We use exec instead of tar here because Ant's tar
-                  can't preserve file permissions.
-                -->
+		<!-- We use exec instead of tar here because Ant's tar can't preserve file permissions. -->
 		<!-- Create a directory with the right subname -->
 		<exec dir="." executable="rm" osfamily="unix">
 			<arg line="-rf ${red5.filename}-${archive.version}"/>
