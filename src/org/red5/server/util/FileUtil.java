@@ -47,12 +47,10 @@ public class FileUtil {
 	private static Logger log = LoggerFactory.getLogger(FileUtil.class);
 
 	public static void copyFile(File source, File dest) throws IOException {
-		log.debug("Copy from {} to {}", source.getAbsoluteFile(), dest
-				.getAbsoluteFile());
+		log.debug("Copy from {} to {}", source.getAbsoluteFile(), dest.getAbsoluteFile());
 		FileInputStream fi = new FileInputStream(source);
 		FileChannel fic = fi.getChannel();
-		MappedByteBuffer mbuf = fic.map(FileChannel.MapMode.READ_ONLY, 0,
-				source.length());
+		MappedByteBuffer mbuf = fic.map(FileChannel.MapMode.READ_ONLY, 0, source.length());
 		fic.close();
 		fi.close();
 		fi = null;
@@ -61,8 +59,7 @@ public class FileUtil {
 		if (!dest.exists()) {
 			String destPath = dest.getPath();
 			log.debug("Destination path: {}", destPath);
-			String destDir = destPath.substring(0, destPath
-					.lastIndexOf(File.separatorChar));
+			String destDir = destPath.substring(0, destPath.lastIndexOf(File.separatorChar));
 			log.debug("Destination dir: {}", destDir);
 			File dir = new File(destDir);
 			if (!dir.exists()) {
@@ -97,8 +94,7 @@ public class FileUtil {
 			if (src.delete()) {
 				log.debug("Source file was deleted");
 			} else {
-				log
-						.debug("Source file was not deleted, the file will be deleted on exit");
+				log.debug("Source file was not deleted, the file will be deleted on exit");
 				src.deleteOnExit();
 			}
 		} else {
@@ -130,8 +126,7 @@ public class FileUtil {
 	 * @return true if directory was successfully deleted; false if directory
 	 *  did not exist
 	 */
-	public static boolean deleteDirectory(String directory,
-			boolean useOSNativeDelete) throws IOException {
+	public static boolean deleteDirectory(String directory, boolean useOSNativeDelete) throws IOException {
 		boolean result = false;
 		if (!useOSNativeDelete) {
 			File dir = new File(directory);
@@ -153,7 +148,7 @@ public class FileUtil {
 				log.debug("Directory was not deleted, it may be deleted on exit");
 				dir.deleteOnExit();
 			}
-			dir = null;			
+			dir = null;
 		} else {
 			Process p = null;
 			Thread std = null;
@@ -163,8 +158,7 @@ public class FileUtil {
 				//determine file system type
 				if (File.separatorChar == '\\') {
 					//we are windows
-					p = runTime.exec("CMD /D /C \"RMDIR /Q /S "
-						+ directory.replace('/', '\\') + "\"");
+					p = runTime.exec("CMD /D /C \"RMDIR /Q /S " + directory.replace('/', '\\') + "\"");
 				} else {
 					//we are unix variant 
 					p = runTime.exec("rm -rf " + directory.replace('\\', File.separatorChar));
@@ -233,9 +227,9 @@ public class FileUtil {
 				p = null;
 				std = null;
 			}
-		}		
-	}	
-	
+		}
+	}
+
 	/**
 	 * Special method for capture of StdOut.
 	 * 
@@ -250,8 +244,7 @@ public class FileUtil {
 			public void run() {
 				StringBuilder sb = new StringBuilder(1024);
 				byte[] buf = new byte[128];
-				BufferedInputStream bis = new BufferedInputStream(p
-						.getInputStream());
+				BufferedInputStream bis = new BufferedInputStream(p.getInputStream());
 				log.debug("Process output:");
 				try {
 					while (bis.read(buf) != -1) {
@@ -292,8 +285,7 @@ public class FileUtil {
 	 * @throws IOException if we cannot create directory
 	 * 
 	 */
-	public static boolean makeDirectory(String directory, boolean createParents)
-			throws IOException {
+	public static boolean makeDirectory(String directory, boolean createParents) throws IOException {
 		boolean created = false;
 		File dir = new File(directory);
 		if (createParents) {
@@ -301,22 +293,20 @@ public class FileUtil {
 			if (created) {
 				log.debug("Directory created: {}", dir.getAbsolutePath());
 			} else {
-				log.debug("Directory was not created: {}", dir
-						.getAbsolutePath());
+				log.debug("Directory was not created: {}", dir.getAbsolutePath());
 			}
 		} else {
 			created = dir.mkdir();
 			if (created) {
 				log.debug("Directory created: {}", dir.getAbsolutePath());
 			} else {
-				log.debug("Directory was not created: {}", dir
-						.getAbsolutePath());
+				log.debug("Directory was not created: {}", dir.getAbsolutePath());
 			}
 		}
 		dir = null;
 		return created;
 	}
-	
+
 	/**
 	 * Unzips a war file to an application located under the webapps directory
 	 * 
@@ -324,13 +314,13 @@ public class FileUtil {
 	 * @param destinationDir The destination directory, ie: webapps
 	 */
 	public static void unzip(String compressedFileName, String destinationDir) {
-		
+
 		//strip everything except the applications name
 		String dirName = null;
-		
+
 		// checks to see if there is a dash "-" in the filename of the war. 
 		String applicationName = compressedFileName.substring(compressedFileName.lastIndexOf("/"));
-		
+
 		int dashIndex = applicationName.indexOf('-');
 		if (dashIndex != -1) {
 			//strip everything except the applications name
@@ -338,8 +328,8 @@ public class FileUtil {
 		} else {
 			//grab every char up to the last '.'
 			dirName = compressedFileName.substring(0, compressedFileName.lastIndexOf('.'));
-		}			
-		
+		}
+
 		log.debug("Directory: {}", dirName);
 		//String tmpDir = System.getProperty("java.io.tmpdir");
 		File zipDir = new File(compressedFileName);
@@ -350,56 +340,57 @@ public class FileUtil {
 
 		// make the war directory
 		log.debug("Making directory: {}", tmpDir.mkdirs());
-		
+
 		try {
 			ZipFile zf = new ZipFile(compressedFileName);
 			Enumeration<?> e = zf.entries();
-			while(e.hasMoreElements()) {
+			while (e.hasMoreElements()) {
 				ZipEntry ze = (ZipEntry) e.nextElement();
 				log.debug("Unzipping {}", ze.getName());
-				if(ze.isDirectory()) {
+				if (ze.isDirectory()) {
 					log.debug("is a directory");
 					File dir = new File(tmpDir + "/" + ze.getName());
 					Boolean tmp = dir.mkdir();
 					log.debug("{}", tmp);
 					continue;
 				}
-				
+
 				// checks to see if a zipEntry contains a path
 				// i.e. ze.getName() == "META-INF/MANIFEST.MF"
 				// if this case is true, then we create the path first
-				if(ze.getName().lastIndexOf("/") != -1) {
+				if (ze.getName().lastIndexOf("/") != -1) {
 					String zipName = ze.getName();
 					String zipDirStructure = zipName.substring(0, zipName.lastIndexOf("/"));
 					File completeDirectory = new File(tmpDir + "/" + zipDirStructure);
-					if(!completeDirectory.exists()) {
-						if(!completeDirectory.mkdirs()) {
+					if (!completeDirectory.exists()) {
+						if (!completeDirectory.mkdirs()) {
 							log.error("could not create complete directory structure");
 						}
 					}
 				}
-				
+
 				// creates the file
 				FileOutputStream fout = new FileOutputStream(tmpDir + "/" + ze.getName());
 				InputStream in = zf.getInputStream(ze);
 				copy(in, fout);
 				in.close();
 				fout.close();
-			} 
+			}
 			e = null;
 		} catch (IOException e) {
 			log.error("Errord unzipping", e);
 			//log.warn("Exception {}", e);
 		}
 	}
-	
+
 	public static void copy(InputStream in, OutputStream out) throws IOException {
-		synchronized(in) {
-			synchronized(out) {
+		synchronized (in) {
+			synchronized (out) {
 				byte[] buffer = new byte[256];
 				while (true) {
 					int bytesRead = in.read(buffer);
-					if(bytesRead == -1) break;
+					if (bytesRead == -1)
+						break;
 					out.write(buffer, 0, bytesRead);
 				}
 			}
@@ -412,103 +403,103 @@ public class FileUtil {
 	 * @param compressedFileName
 	 * @param destinationDir
 	 */
-//	public static void unzip(String compressedFileName, String destinationDir) {
-//		log.debug("Unzip - file: {} destination: {}", compressedFileName, destinationDir);
-//		try {
-//			final int BUFFER = 2048;
-//			BufferedOutputStream dest = null;
-//			FileInputStream fis = new FileInputStream(compressedFileName);
-//			CheckedInputStream checksum = new CheckedInputStream(fis,
-//					new Adler32());
-//			ZipInputStream zis = new ZipInputStream(new BufferedInputStream(
-//					checksum));
-//			ZipEntry entry;
-//			while ((entry = zis.getNextEntry()) != null) {
-//				log.debug("Extracting: {}", entry);
-//				String name = entry.getName();
-//				int count;
-//				byte data[] = new byte[BUFFER];
-//				// write the files to the disk
-//				File destFile = new File(destinationDir, name);
-//				log.debug("Absolute path: {}", destFile.getAbsolutePath());
-//				//create dirs as needed, look for file extension to determine type
-//				if (entry.isDirectory()) {
-//					log.debug("Entry is detected as a directory");
-//					if (destFile.mkdirs()) {
-//						log.debug("Directory created: {}", destFile.getName());
-//					} else {
-//						log.warn("Directory was not created: {}", destFile.getName());
-//					}
-//					destFile = null;
-//					continue;
-//				}				
-//
-//				FileOutputStream fos = new FileOutputStream(destFile);
-//				dest = new BufferedOutputStream(fos, BUFFER);
-//				while ((count = zis.read(data, 0, BUFFER)) != -1) {
-//					dest.write(data, 0, count);
-//				}
-//				dest.flush();
-//				dest.close();
-//				destFile = null;
-//			}
-//			zis.close();
-//			log.debug("Checksum: {}", checksum.getChecksum().getValue());
-//		} catch (Exception e) {
-//			log.error("Error unzipping {}", compressedFileName, e);
-//			log.warn("Exception {}", e);
-//		}
-//
-//	}
-	
-    /**
-     * Quick-n-dirty directory formatting to support launching in windows, specifically from ant.
-     * @param absWebappsPath abs webapps path
-     * @param contextDirName conext directory name
-     * @return full path
-     */
-    public static String formatPath(String absWebappsPath, String contextDirName) {
-        StringBuilder path = new StringBuilder(absWebappsPath.length() + contextDirName.length());
-        path.append(absWebappsPath);
-        if (log.isTraceEnabled()) {
-        	log.trace("Path start: {}", path.toString());
-        }
-        int idx = -1;
-        if (File.separatorChar != '/') {
-            while ((idx = path.indexOf(File.separator)) != -1) {
-                path.deleteCharAt(idx);
-                path.insert(idx, '/');
-            }
-        }
-        if (log.isTraceEnabled()) {
-        	log.trace("Path step 1: {}", path.toString());
-        }
-        //remove any './'
-        if ((idx = path.indexOf("./")) != -1) {
-        	path.delete(idx, idx + 2);
-        }        
-        if (log.isTraceEnabled()) {
-        	log.trace("Path step 2: {}", path.toString());
-        }
-        //add / to base path if one doesnt exist
-        if (path.charAt(path.length() - 1) != '/') {
-        	path.append('/');
-        }
-        if (log.isTraceEnabled()) {
-        	log.trace("Path step 3: {}", path.toString());
-        }        
-        //remove the / from the beginning of the context dir
-        if (contextDirName.charAt(0) == '/' && path.charAt(path.length() - 1) == '/') {
-            path.append(contextDirName.substring(1));
-        } else {
-            path.append(contextDirName);
-        }
-        if (log.isTraceEnabled()) {
-        	log.trace("Path step 4: {}", path.toString());
-        }
-        return path.toString();
-    }	
-	
+	//	public static void unzip(String compressedFileName, String destinationDir) {
+	//		log.debug("Unzip - file: {} destination: {}", compressedFileName, destinationDir);
+	//		try {
+	//			final int BUFFER = 2048;
+	//			BufferedOutputStream dest = null;
+	//			FileInputStream fis = new FileInputStream(compressedFileName);
+	//			CheckedInputStream checksum = new CheckedInputStream(fis,
+	//					new Adler32());
+	//			ZipInputStream zis = new ZipInputStream(new BufferedInputStream(
+	//					checksum));
+	//			ZipEntry entry;
+	//			while ((entry = zis.getNextEntry()) != null) {
+	//				log.debug("Extracting: {}", entry);
+	//				String name = entry.getName();
+	//				int count;
+	//				byte data[] = new byte[BUFFER];
+	//				// write the files to the disk
+	//				File destFile = new File(destinationDir, name);
+	//				log.debug("Absolute path: {}", destFile.getAbsolutePath());
+	//				//create dirs as needed, look for file extension to determine type
+	//				if (entry.isDirectory()) {
+	//					log.debug("Entry is detected as a directory");
+	//					if (destFile.mkdirs()) {
+	//						log.debug("Directory created: {}", destFile.getName());
+	//					} else {
+	//						log.warn("Directory was not created: {}", destFile.getName());
+	//					}
+	//					destFile = null;
+	//					continue;
+	//				}				
+	//
+	//				FileOutputStream fos = new FileOutputStream(destFile);
+	//				dest = new BufferedOutputStream(fos, BUFFER);
+	//				while ((count = zis.read(data, 0, BUFFER)) != -1) {
+	//					dest.write(data, 0, count);
+	//				}
+	//				dest.flush();
+	//				dest.close();
+	//				destFile = null;
+	//			}
+	//			zis.close();
+	//			log.debug("Checksum: {}", checksum.getChecksum().getValue());
+	//		} catch (Exception e) {
+	//			log.error("Error unzipping {}", compressedFileName, e);
+	//			log.warn("Exception {}", e);
+	//		}
+	//
+	//	}
+
+	/**
+	 * Quick-n-dirty directory formatting to support launching in windows, specifically from ant.
+	 * @param absWebappsPath abs webapps path
+	 * @param contextDirName conext directory name
+	 * @return full path
+	 */
+	public static String formatPath(String absWebappsPath, String contextDirName) {
+		StringBuilder path = new StringBuilder(absWebappsPath.length() + contextDirName.length());
+		path.append(absWebappsPath);
+		if (log.isTraceEnabled()) {
+			log.trace("Path start: {}", path.toString());
+		}
+		int idx = -1;
+		if (File.separatorChar != '/') {
+			while ((idx = path.indexOf(File.separator)) != -1) {
+				path.deleteCharAt(idx);
+				path.insert(idx, '/');
+			}
+		}
+		if (log.isTraceEnabled()) {
+			log.trace("Path step 1: {}", path.toString());
+		}
+		//remove any './'
+		if ((idx = path.indexOf("./")) != -1) {
+			path.delete(idx, idx + 2);
+		}
+		if (log.isTraceEnabled()) {
+			log.trace("Path step 2: {}", path.toString());
+		}
+		//add / to base path if one doesnt exist
+		if (path.charAt(path.length() - 1) != '/') {
+			path.append('/');
+		}
+		if (log.isTraceEnabled()) {
+			log.trace("Path step 3: {}", path.toString());
+		}
+		//remove the / from the beginning of the context dir
+		if (contextDirName.charAt(0) == '/' && path.charAt(path.length() - 1) == '/') {
+			path.append(contextDirName.substring(1));
+		} else {
+			path.append(contextDirName);
+		}
+		if (log.isTraceEnabled()) {
+			log.trace("Path step 4: {}", path.toString());
+		}
+		return path.toString();
+	}
+
 	/**
 	 * Generates a custom name containing numbers and an underscore ex. 282818_00023.
 	 * The name contains current seconds and a random number component.
@@ -517,22 +508,22 @@ public class FileUtil {
 	 */
 	public static String generateCustomName() {
 		Random random = new Random();
-    	StringBuilder sb = new StringBuilder();
-    	sb.append(PropertyConverter.getCurrentTimeSeconds());
-    	sb.append('_');
-    	int i = random.nextInt(99999);
-    	if (i < 10) {
-    		sb.append("0000");
-    	} else if (i < 100) {
-       		sb.append("000");
-    	} else if (i < 1000) {
-       		sb.append("00");
-    	} else if (i < 10000) {
-       		sb.append('0');
-    	}    	
-    	sb.append(i);
-    	return sb.toString();
-    }
+		StringBuilder sb = new StringBuilder();
+		sb.append(PropertyConverter.getCurrentTimeSeconds());
+		sb.append('_');
+		int i = random.nextInt(99999);
+		if (i < 10) {
+			sb.append("0000");
+		} else if (i < 100) {
+			sb.append("000");
+		} else if (i < 1000) {
+			sb.append("00");
+		} else if (i < 10000) {
+			sb.append('0');
+		}
+		sb.append(i);
+		return sb.toString();
+	}
 
 	/**
 	 * Reads all the bytes of a given file into an array. If the file size exceeds Integer.MAX_VALUE, it will
@@ -565,6 +556,6 @@ public class FileUtil {
 			}
 		}
 		return fileBytes;
-	}	
-	
+	}
+
 }

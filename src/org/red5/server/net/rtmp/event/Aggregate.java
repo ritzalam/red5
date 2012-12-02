@@ -159,11 +159,11 @@ public class Aggregate extends BaseEvent implements IoConstants, IStreamData<Agg
 						//log.trace("Hex: {}", data.getHexDump());
 						// ensure 4 bytes left to read an int
 						if (data.position() < data.limit() - 4) {
-						backPointer = data.getInt();
-						//log.trace("Back pointer: {}", backPointer);
-						if (backPointer != (size + 11)) {
-							log.debug("Data size ({}) and back pointer ({}) did not match", size, backPointer);
-						}
+							backPointer = data.getInt();
+							//log.trace("Back pointer: {}", backPointer);
+							if (backPointer != (size + 11)) {
+								log.debug("Data size ({}) and back pointer ({}) did not match", size, backPointer);
+							}
 						}
 						break;
 					case TYPE_VIDEO_DATA:
@@ -174,12 +174,12 @@ public class Aggregate extends BaseEvent implements IoConstants, IStreamData<Agg
 						parts.add(video);
 						//log.trace("Hex: {}", data.getHexDump());
 						// ensure 4 bytes left to read an int
-						if (data.position() < data.limit() - 4) {					
-						backPointer = data.getInt();
-						//log.trace("Back pointer: {}", backPointer);
-						if (backPointer != (size + 11)) {
-							log.debug("Data size ({}) and back pointer ({}) did not match", size, backPointer);
-						}
+						if (data.position() < data.limit() - 4) {
+							backPointer = data.getInt();
+							//log.trace("Back pointer: {}", backPointer);
+							if (backPointer != (size + 11)) {
+								log.debug("Data size ({}) and back pointer ({}) did not match", size, backPointer);
+							}
 						}
 						break;
 					default:
@@ -200,7 +200,7 @@ public class Aggregate extends BaseEvent implements IoConstants, IStreamData<Agg
 			}
 			log.trace("Data position: {}", position);
 		} while (position < data.limit());
-		log.trace("Aggregate processing complete, {} parts extracted", parts.size()); 
+		log.trace("Aggregate processing complete, {} parts extracted", parts.size());
 		return parts;
 	}
 

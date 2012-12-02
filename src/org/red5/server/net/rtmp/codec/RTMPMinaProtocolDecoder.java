@@ -26,7 +26,9 @@ import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoderAdapter;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 import org.red5.io.object.Deserializer;
+import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
+import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.message.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,9 +44,9 @@ public class RTMPMinaProtocolDecoder extends ProtocolDecoderAdapter {
 
 	/** {@inheritDoc} */
 	public void decode(IoSession session, IoBuffer in, ProtocolDecoderOutput out) throws ProtocolCodecException {
-		//get our state
+		// get our state
 		final ProtocolState state = (ProtocolState) session.getAttribute(ProtocolState.SESSION_KEY);
-		//create a buffer and store it on the session
+		// create a buffer and store it on the session
 		IoBuffer buf = (IoBuffer) session.getAttribute("buffer");
 		if (buf == null) {
 			buf = IoBuffer.allocate(Constants.HANDSHAKE_SIZE);
@@ -53,7 +55,14 @@ public class RTMPMinaProtocolDecoder extends ProtocolDecoderAdapter {
 		}
 		buf.put(in);
 		buf.flip();
-		//construct any objects from the decoded bugger
+		// look for the connection local, if not set then get from the session and set it to prevent any
+		// decode failures
+		if (Red5.getConnectionLocal() == null) {
+			// get the connection from the session
+			RTMPConnection conn = (RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
+			Red5.setConnectionLocal(conn);
+		}
+		// construct any objects from the decoded bugger
 		List<?> objects = decoder.decodeBuffer(state, buf);
 		if (objects != null) {
 			for (Object object : objects) {

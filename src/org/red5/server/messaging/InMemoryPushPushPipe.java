@@ -25,8 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A simple in-memory version of push-push pipe.
- * It is triggered by an active provider to push messages
+ * A simple in-memory version of push-push pipe. It is triggered by an active provider to push messages
  * through it to an event-driven consumer.
  * 
  * @author The Red5 Project (red5@osflash.org)

@@ -21,6 +21,7 @@ package org.red5.server.stream;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,7 +35,6 @@ import javax.management.StandardMBean;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mina.core.buffer.IoBuffer;
-import org.red5.io.IKeyFrameMetaCache;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEvent;
@@ -48,15 +48,10 @@ import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamCodecInfo;
-import org.red5.server.api.stream.IStreamFilenameGenerator;
-import org.red5.server.api.stream.IStreamFilenameGenerator.GenerationType;
 import org.red5.server.api.stream.IStreamListener;
 import org.red5.server.api.stream.IStreamPacket;
 import org.red5.server.api.stream.IVideoStreamCodec;
-import org.red5.server.api.stream.ResourceExistException;
-import org.red5.server.api.stream.ResourceNotFoundException;
 import org.red5.server.jmx.mxbeans.ClientBroadcastStreamMXBean;
-import org.red5.server.messaging.AbstractPipe;
 import org.red5.server.messaging.IConsumer;
 import org.red5.server.messaging.IFilter;
 import org.red5.server.messaging.IMessage;
@@ -66,7 +61,6 @@ import org.red5.server.messaging.IPipe;
 import org.red5.server.messaging.IPipeConnectionListener;
 import org.red5.server.messaging.IProvider;
 import org.red5.server.messaging.IPushableConsumer;
-import org.red5.server.messaging.InMemoryPushPushPipe;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.event.AudioData;
@@ -77,13 +71,10 @@ import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.stream.codec.StreamCodecInfo;
-import org.red5.server.stream.consumer.FileConsumer;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.StatusMessage;
-import org.red5.server.util.ScopeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.Resource;
 import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
@@ -164,31 +155,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	protected Map<String, String> parameters;
 
 	/**
-	 * Whether we are recording or not
-	 */
-	private volatile boolean recording;
-
-	/**
-	 * Whether we are appending or not
-	 */
-	private volatile boolean appending;
-
-	/**
-	 * FileConsumer used to output recording to disk
-	 */
-	private FileConsumer recordingFile;
-
-	/**
-	 * The filename we are recording to.
-	 */
-	private String recordingFilename;
-
-	/**
-	 * Pipe for recording
-	 */
-	private IPipe recordPipe;
-
-	/**
 	 * Is there need to send start notification?
 	 */
 	protected boolean sendStartNotification = true;
@@ -198,9 +164,16 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 */
 	private StatisticsCounter subscriberStats = new StatisticsCounter();
 
-	/** Listeners to get notified about received packets. */
+	/** 
+	 * Listeners to get notified about received packets.
+	 */
 	protected Set<IStreamListener> listeners = new CopyOnWriteArraySet<IStreamListener>();
 
+	/**
+	 * Recording listener
+	 */
+	private WeakReference<RecordingListener> recordingListener;
+	
 	protected long latestTimeStamp = -1;
 
 	/**
@@ -218,22 +191,16 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	public void close() {
 		log.info("Stream close");
 		if (closed) {
-			// Already closed
+			// already closed
 			return;
 		}
 		closed = true;
 		if (livePipe != null) {
 			livePipe.unsubscribe((IProvider) this);
 		}
-		recordingFilename = null;
-		appending = false;
-		if (recordPipe != null) {
-			recordPipe.unsubscribe((IProvider) this);
-			((AbstractPipe) recordPipe).close();
-			recordPipe = null;
-		}
-		if (recording) {
-			recording = false;
+		// if we have a recording listener, inform that this stream is done
+		if (recordingListener != null) {
+			recordingListener.get().closeStream();
 			sendRecordStopNotify();
 			notifyRecordingStop();
 		}
@@ -241,6 +208,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		// TODO: can we send the client something to make sure he stops sending data?
 		connMsgOut.unsubscribe(this);
 		notifyBroadcastClose();
+		// clear the listener after all the notifications have been sent
+		if (recordingListener != null) {
+			recordingListener.clear();
+		}
 		// deregister with jmx
 		unregisterJMX();
 	}
@@ -351,50 +322,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 					checkSendNotifications(event);
 					// note this timestamp is set in event/body but not in the associated header
 					try {
-						// route to recording
-						if (recordPipe != null) {
-							// get the current size of the buffer / data
-							int bufferLimit = buf.limit();
-							if (bufferLimit > 0) {
-								// make a copy for the record pipe
-								buf.mark();
-								byte[] buffer = new byte[bufferLimit];
-								buf.get(buffer);
-								buf.reset();
-								// Create new RTMP message, initialize it and push through pipe
-								RTMPMessage msg = null;
-								if (rtmpEvent instanceof AudioData) {
-									AudioData audio = new AudioData(IoBuffer.wrap(buffer));
-									audio.setTimestamp(eventTime);
-									msg = RTMPMessage.build(audio);
-								} else if (rtmpEvent instanceof VideoData) {
-									VideoData video = new VideoData(IoBuffer.wrap(buffer));
-									video.setTimestamp(eventTime);
-									msg = RTMPMessage.build(video);
-								} else if (rtmpEvent instanceof Notify) {
-									Notify not = new Notify(IoBuffer.wrap(buffer));
-									not.setTimestamp(eventTime);
-									msg = RTMPMessage.build(not);
-								} else {
-									log.info("Data was not of A/V type: {}", rtmpEvent.getType());
-									msg = RTMPMessage.build(rtmpEvent, eventTime);
-								}
-								// push it down to the recorder
-								recordPipe.pushMessage(msg);
-							} else if (bufferLimit == 0 && rtmpEvent instanceof AudioData) {
-								log.debug("Stream data size was 0, sending empty audio message");
-								// allow for 0 byte audio packets
-								AudioData audio = new AudioData(IoBuffer.allocate(0));
-								audio.setTimestamp(eventTime);
-								RTMPMessage msg = RTMPMessage.build(audio);
-								// push it down to the recorder
-								recordPipe.pushMessage(msg);
-							} else {
-								log.debug("Stream data size was 0, recording pipe will not be notified");
-							}
-						} else if (recording) {
-							log.debug("Record pipe was null, message was not pushed");
-						}
 						// route to live
 						if (livePipe != null) {
 							// create new RTMP message, initialize it and push through pipe
@@ -404,16 +331,18 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 							log.debug("Live pipe was null, message was not pushed");
 						}
 					} catch (IOException err) {
-						sendRecordFailedNotify(err.getMessage());
 						stop();
 					}
-					// Notify listeners about received packet
+					// notify listeners about received packet
 					if (rtmpEvent instanceof IStreamPacket) {
 						for (IStreamListener listener : getStreamListeners()) {
 							try {
 								listener.packetReceived(this, (IStreamPacket) rtmpEvent);
 							} catch (Exception e) {
 								log.error("Error while notifying listener {}", listener, e);
+								if (listener instanceof RecordingListener) {
+									sendRecordFailedNotify(e.getMessage());
+								}
 							}
 						}
 					}
@@ -488,7 +417,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 
 	/** {@inheritDoc} */
 	public String getSaveFilename() {
-		return recordingFilename;
+		if (recordingListener != null) {
+			return recordingListener.get().getFileName();
+		}
+		return null;
 	}
 
 	/** {@inheritDoc} */
@@ -655,128 +587,75 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 *
 	 * @param name                           Stream name
 	 * @param isAppend                       Append mode
-	 * @throws IOException					 File could not be created/written to.
-	 * @throws ResourceNotFoundException     Resource doesn't exist when trying to append.
-	 * @throws ResourceExistException        Resource exist when trying to create.
+	 * @throws IOException					 File could not be created/written to
 	 */
-	public void saveAs(String name, boolean isAppend) throws IOException, ResourceNotFoundException, ResourceExistException {
+	public void saveAs(String name, boolean isAppend) throws IOException {
 		log.debug("SaveAs - name: {} append: {}", name, isAppend);
-		Map<String, Object> recordParamMap = new HashMap<String, Object>(1);
-		//setup record objects
-		if (recordPipe == null) {
-			recordPipe = new InMemoryPushPushPipe();
-			// Clear record flag
-			recordParamMap.put("record", null);
-			recordPipe.subscribe((IProvider) this, recordParamMap);
-			recordParamMap.clear();
-		}
-		// Get stream scope
+		// get connection to check if client is still streaming
 		IStreamCapableConnection conn = getConnection();
 		if (conn == null) {
-			// TODO: throw other exception here?
 			throw new IOException("Stream is no longer connected");
 		}
-		// get connections scope
-		IScope scope = conn.getScope();
-		// get the file for our filename
-		File file = getRecordFile(scope, name);
-		// If append mode is on...
-		if (!isAppend) {
-			if (file.exists()) {
-				// when "live" or "record" is used, any previously recorded stream with the same stream URI is deleted.
-				if (!file.delete()) {
-					throw new IOException(String.format("File: %s could not be deleted", file.getName()));
-				}
-			}
-		} else {
-			if (file.exists()) {
-				appending = true;
-			} else {
-				// if a recorded stream at the same URI does not already exist, "append" creates the stream as though "record" was passed.
-				isAppend = false;
-			}
-		}
-		// if the file doesn't exist yet, create it
-		if (!file.exists()) {
-			// Make sure the destination directory exists
-			String path = file.getAbsolutePath();
-			int slashPos = path.lastIndexOf(File.separator);
-			if (slashPos != -1) {
-				path = path.substring(0, slashPos);
-			}
-			File tmp = new File(path);
-			if (!tmp.isDirectory()) {
-				tmp.mkdirs();
-			}
-			file.createNewFile();
-		}
-		//remove existing meta info
-		if (scope.getContext().hasBean("keyframe.cache")) {
-			IKeyFrameMetaCache keyFrameCache = (IKeyFrameMetaCache) scope.getContext().getBean("keyframe.cache");
-			keyFrameCache.removeKeyFrameMeta(file);
-		}
-		log.debug("Recording file: {}", file.getCanonicalPath());
-		// get instance via spring
-		if (scope.getContext().hasBean("fileConsumer")) {
-			log.debug("Context contains a file consumer");
-			recordingFile = (FileConsumer) scope.getContext().getBean("fileConsumer");
-			recordingFile.setScope(scope);
-			recordingFile.setFile(file);
-		} else {
-			log.debug("Context does not contain a file consumer, using direct instance");
-			// get a new instance
-			recordingFile = new FileConsumer(scope, file);
-		}
-		//get decoder info if it exists for the stream
-		IStreamCodecInfo codecInfo = getCodecInfo();
-		log.debug("Codec info: {}", codecInfo);
-		if (codecInfo instanceof StreamCodecInfo) {
-			StreamCodecInfo info = (StreamCodecInfo) codecInfo;
-			IVideoStreamCodec videoCodec = info.getVideoCodec();
-			log.debug("Video codec: {}", videoCodec);
-			if (videoCodec != null) {
-				//check for decoder configuration to send
-				IoBuffer config = videoCodec.getDecoderConfiguration();
-				if (config != null) {
-					log.debug("Decoder configuration is available for {}", videoCodec.getName());
-					VideoData conf = new VideoData(config.asReadOnlyBuffer());
-					try {
-						log.debug("Setting decoder configuration for recording");
-						recordingFile.setVideoDecoderConfiguration(conf);
-					} finally {
-						conf.release();
+		// one recording listener at a time via this entry point
+		if (recordingListener == null) {
+			// create a recording listener
+			RecordingListener listener = new RecordingListener();
+			// initialize the listener
+			if (listener.init(conn, name, isAppend)) {
+				// get decoder info if it exists for the stream
+				IStreamCodecInfo codecInfo = getCodecInfo();
+				log.debug("Codec info: {}", codecInfo);
+				if (codecInfo instanceof StreamCodecInfo) {
+					StreamCodecInfo info = (StreamCodecInfo) codecInfo;
+					IVideoStreamCodec videoCodec = info.getVideoCodec();
+					log.debug("Video codec: {}", videoCodec);
+					if (videoCodec != null) {
+						//check for decoder configuration to send
+						IoBuffer config = videoCodec.getDecoderConfiguration();
+						if (config != null) {
+							log.debug("Decoder configuration is available for {}", videoCodec.getName());
+							VideoData videoConf = new VideoData(config.asReadOnlyBuffer());
+							try {
+								log.debug("Setting decoder configuration for recording");
+								listener.getFileConsumer().setVideoDecoderConfiguration(videoConf);
+							} finally {
+								videoConf.release();
+							}
+						}
+					} else {
+						log.debug("Could not initialize stream output, videoCodec is null.");
 					}
-				}
-			} else {
-				log.debug("Could not initialize stream output, videoCodec is null.");
-			}
-			// SplitmediaLabs - begin AAC fix
-			IAudioStreamCodec audioCodec = info.getAudioCodec();
-			log.debug("Audio codec: {}", audioCodec);
-			if (audioCodec != null) {
-				//check for decoder configuration to send
-				IoBuffer config = audioCodec.getDecoderConfiguration();
-				if (config != null) {
-					log.debug("Decoder configuration is available for {}", audioCodec.getName());
-					AudioData conf = new AudioData(config.asReadOnlyBuffer());
-					try {
-						log.debug("Setting decoder configuration for recording");
-						recordingFile.setAudioDecoderConfiguration(conf);
-					} finally {
-						conf.release();
+					IAudioStreamCodec audioCodec = info.getAudioCodec();
+					log.debug("Audio codec: {}", audioCodec);
+					if (audioCodec != null) {
+						//check for decoder configuration to send
+						IoBuffer config = audioCodec.getDecoderConfiguration();
+						if (config != null) {
+							log.debug("Decoder configuration is available for {}", audioCodec.getName());
+							AudioData audioConf = new AudioData(config.asReadOnlyBuffer());
+							try {
+								log.debug("Setting decoder configuration for recording");
+								listener.getFileConsumer().setAudioDecoderConfiguration(audioConf);
+							} finally {
+								audioConf.release();
+							}
+						}
+					} else {
+						log.debug("No decoder configuration available, audioCodec is null.");
 					}
-				}
+				}	
+				// set as primary listener
+				recordingListener = new WeakReference<RecordingListener>(listener);
+				// add as a listener
+				addStreamListener(listener);
+				// start the listener thread
+				listener.start();
 			} else {
-				log.debug("No decoder configuration available, audioCodec is null.");
-			}
-		}
-		if (isAppend) {
-			recordParamMap.put("mode", "append");
+				log.warn("Recording listener failed to initialize for stream: {}", name);
+			}			
 		} else {
-			recordParamMap.put("mode", "record");
+			log.info("Recording listener already exists for stream: {}", name);
 		}
-		//mark as "recording" only if we get subscribed
-		recording = recordPipe.subscribe(recordingFile, recordParamMap);
 	}
 
 	/**
@@ -875,7 +754,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 				if (scope.hasHandler()) {
 					Object handler = scope.getHandler();
 					if (handler instanceof IStreamAwareScopeHandler) {
-						if (recording) {
+						if (recordingListener != null && recordingListener.get().isRecording()) {
 							// callback for record start
 							((IStreamAwareScopeHandler) handler).streamRecordStart(this);
 						} else {
@@ -899,7 +778,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			}
 			// send start notifications
 			sendPublishStartNotify();
-			if (recording) {
+			if (recordingListener != null && recordingListener.get().isRecording()) {
 				sendRecordStartNotify();
 			}
 			notifyBroadcastStart();
@@ -929,8 +808,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		// We send the start messages before the first packet is received.
 		// This is required so FME actually starts publishing.
 		sendStartNotifications(Red5.getConnectionLocal());
-		// force recording
-		if (automaticRecording && !appending) {
+		// force recording if set
+		if (automaticRecording) {
 			log.debug("Starting automatic recording of {}", publishedName);
 			try {
 				saveAs(publishedName, false);
@@ -951,16 +830,14 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 * Stops any currently active recordings.
 	 */
 	public void stopRecording() {
-		if (recording) {
-			recording = false;
-			appending = false;
+		if (recordingListener != null && recordingListener.get().isRecording()) {
 			sendRecordStopNotify();
 			notifyRecordingStop();
 		}
 	}
 
 	public boolean isRecording() {
-		return recording;
+		return recordingListener != null && recordingListener.get().isRecording();
 	}
 
 	/** {@inheritDoc} */
@@ -986,28 +863,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 * @return file
 	 */
 	protected File getRecordFile(IScope scope, String name) {
-		// get stream filename generator
-		IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.class, DefaultStreamFilenameGenerator.class);
-		// generate filename
-		recordingFilename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
-		File file = null;
-		if (generator.resolvesToAbsolutePath()) {
-			file = new File(recordingFilename);
-		} else {
-			Resource resource = scope.getContext().getResource(recordingFilename);
-			if (resource.exists()) {
-				try {
-					file = resource.getFile();
-					log.debug("File exists: {} writable: {}", file.exists(), file.canWrite());
-				} catch (IOException ioe) {
-					log.error("File error: {}", ioe);
-				}
-			} else {
-				String appScopeName = ScopeUtils.findApplication(scope).getName();
-				file = new File(String.format("%s/webapps/%s/%s", System.getProperty("red5.root"), appScopeName, recordingFilename));
-			}
-		}
-		return file;
+		return RecordingListener.getRecordFile(scope, name);
 	}
 
 	protected void registerJMX() {

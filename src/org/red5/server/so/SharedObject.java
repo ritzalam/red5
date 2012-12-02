@@ -290,15 +290,13 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 		ConcurrentLinkedQueue<ISharedObjectEvent> ownerEvents = ownerMessage.getEvents();
 		if (!ownerEvents.isEmpty()) {
 			// get all current owner events
-			final ConcurrentLinkedQueue<ISharedObjectEvent> events;
+			final ConcurrentLinkedQueue<ISharedObjectEvent> events = new ConcurrentLinkedQueue<ISharedObjectEvent>();
 			if (ownerEvents.size() > SharedObjectService.MAXIMUM_EVENTS_PER_UPDATE) {
 				log.debug("Owner events exceed max: {}", ownerEvents.size());
-				events = new ConcurrentLinkedQueue<ISharedObjectEvent>();
 				for (int i = 0; i < SharedObjectService.MAXIMUM_EVENTS_PER_UPDATE; i++) {
 					events.add(ownerEvents.poll());
 				}
-			} else {
-				events = new ConcurrentLinkedQueue<ISharedObjectEvent>();
+			} else {				
 				events.addAll(ownerEvents);
 				ownerEvents.removeAll(events);
 			}
@@ -311,15 +309,13 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 		// tell all the listeners
 		if (!syncEvents.isEmpty()) {
 			// get all current sync events 
-			final ConcurrentLinkedQueue<ISharedObjectEvent> events;
+			final ConcurrentLinkedQueue<ISharedObjectEvent> events = new ConcurrentLinkedQueue<ISharedObjectEvent>();
 			if (syncEvents.size() > SharedObjectService.MAXIMUM_EVENTS_PER_UPDATE) {
 				log.debug("Sync events exceed max: {}", syncEvents.size());
-				events = new ConcurrentLinkedQueue<ISharedObjectEvent>();
 				for (int i = 0; i < SharedObjectService.MAXIMUM_EVENTS_PER_UPDATE; i++) {
 					events.add(syncEvents.poll());
 				}
 			} else {
-				events = new ConcurrentLinkedQueue<ISharedObjectEvent>();
 				events.addAll(syncEvents);
 				syncEvents.removeAll(events);
 			}

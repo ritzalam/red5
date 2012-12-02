@@ -63,7 +63,7 @@
 		<dependency org="org.mozilla.javascript" name="com.springsource.org.mozilla.javascript"	rev="1.7.0.R2" transitive="false" />
 		<dependency org="javax.xml.stream" name="com.springsource.javax.xml.stream"	rev="1.0.1" transitive="false" />
 		<!-- Crypto -->
-		<dependency name="bcprov-jdk16" rev="145" conf="java6->*" />
+		<dependency org="org.bouncycastle" name="bcprov-jdk15on" rev="1.47"/>
 		<!-- MP3 -->
 		<dependency name="jaudiotagger" rev="2.0.4-SNAPSHOT" />
 		<!-- JMX support -->

@@ -383,8 +383,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 					break;
 				}
 			case PipeConnectionEvent.PROVIDER_DISCONNECT:
-				// we only support one provider at a time
-				// so do releasing when provider disconnects
+				// we only support one provider at a time so releasing when provider disconnects
 				uninit();
 				break;
 			default:
@@ -441,9 +440,9 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	}
 
 	/**
-	 * Reset
+	 * Reset or uninitialize
 	 */
-	private void uninit() {
+	public void uninit() {
 		log.debug("Uninit");
 		if (writer != null) {
 			if (writerFuture != null) {
@@ -628,7 +627,6 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		}
 	}
 
-	// SplitmediaLabs - begin AAC fix
 	/**
 	 * Sets a audio decoder configuration; some codecs require this, such as AAC.
 	 * 
@@ -644,8 +642,6 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 			audioConfigurationTag.setBody(data);
 		}
 	}
-
-	// SplitmediaLabs - end AAC fix
 
 	/**
 	 * Sets the scope for this consumer.
@@ -716,6 +712,15 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		this.schedulerThreadSize = schedulerThreadSize;
 	}
 
+	/**
+	 * Sets the recording mode.
+	 * 
+	 * @param mode either "record" or "append" depending on the type of action to perform
+	 */
+	public void setMode(String mode) {
+		this.mode = mode;
+	}	
+	
 	/**
 	 * Queued data wrapper.
 	 */
