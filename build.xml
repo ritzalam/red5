@@ -20,7 +20,7 @@
 	<property name="debug.state" value="true"/>
 	<!-- documentation properties -->
 	<property name="doc.ref.dir" value="src/main/javadoc"/>
-	<property name="javadoc.style" value="${doc.ref.dir}/styles/javadoc.css"/>
+	<property name="javadoc.style" value="${doc.ref.dir}/javadoc.css"/>
 	<!-- unit testing -->
 	<property name="test.dir" value="test"/>
 	<property name="testclass.dir" value="bin/testcases/classes"/>
