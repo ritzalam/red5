@@ -57,7 +57,11 @@
 	<!-- Latest ivy 9/2008 seems to want absolute path -->
 	<property name="ivy.lib.dir" value="${basedir}/lib"/>
 	<path id="project.classpath">
-		<fileset dir="${lib.dir}"/>
+		<fileset dir="${lib.dir}">
+			<exclude name="*-sources.jar"/>
+			<exclude name="*-javadoc.jar"/>
+			<exclude name="ivy*.jar"/>
+		</fileset>
 	</path>
 	<path id="script.classpath">
 		<fileset dir="${lib.dir}"/>
