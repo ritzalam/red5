@@ -46,13 +46,13 @@
 		<dependency org="org.apache.xerces" name="com.springsource.org.apache.xerces" rev="2.9.1" />
 		<dependency name="xmlrpc" rev="2.0.1" />
 		<!-- Mina -->
-        <dependency org="org.apache.mina" name="mina-integration-beans" rev="2.0.5" conf="java6->*" />
-        <dependency org="org.apache.mina" name="mina-integration-jmx" rev="2.0.5" conf="java6->*" />
-        <dependency org="org.apache.mina" name="mina-core" rev="2.0.5" conf="java6->*" />
+        <dependency org="org.apache.mina" name="mina-integration-beans" rev="2.0.7" conf="java6->*" />
+        <dependency org="org.apache.mina" name="mina-integration-jmx" rev="2.0.7" conf="java6->*" />
+        <dependency org="org.apache.mina" name="mina-core" rev="2.0.7" conf="java6->*" />
         <!-- Special deps for IvyDE to continue working -->
-        <dependency org="mina" name="mina-integration-beans" rev="2.0.4" conf="eclipse->*" />
-        <dependency org="mina" name="mina-integration-jmx" rev="2.0.4" conf="eclipse->*" />
-        <dependency org="mina" name="mina-core" rev="2.0.4" conf="eclipse->*" />
+        <dependency org="mina" name="mina-integration-beans" rev="2.0.7" conf="eclipse->*" />
+        <dependency org="mina" name="mina-integration-jmx" rev="2.0.7" conf="eclipse->*" />
+        <dependency org="mina" name="mina-core" rev="2.0.7" conf="eclipse->*" />
 		<!-- Scripting -->
 		<dependency org="org.objectweb.asm" name="com.springsource.org.objectweb.asm" rev="3.2.0" transitive="false" />
 		<dependency org="org.objectweb.asm"	name="com.springsource.org.objectweb.asm.commons" rev="3.2.0" transitive="false" />
