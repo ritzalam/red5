@@ -64,6 +64,13 @@ public interface IClientStream extends IStream {
 	 */
 	int getClientBufferDuration();	
 
+    /**
+	 * Set the published stream name that this client is consuming.
+	 *
+	 * @param streamName of stream being consumed
+	 */
+	void setBroadcastStreamPublishName(String streamName);
+
 	/**
 	 * Returns the published stream name that this client is consuming.
 	 * 

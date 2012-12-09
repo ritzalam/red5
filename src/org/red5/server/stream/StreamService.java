@@ -308,6 +308,7 @@ public class StreamService implements IStreamService {
 					streamId = streamConn.reserveStreamId();
 				}
 				stream = streamConn.newPlaylistSubscriberStream(streamId);
+				stream.setBroadcastStreamPublishName(name);
 				stream.start();
 				created = true;
 			}
