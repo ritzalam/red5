@@ -31,7 +31,7 @@ import org.apache.mina.core.write.WriteRequest;
 import org.apache.mina.filter.executor.IoEventSizeEstimator;
 
 /**
- * A default {@link MessageSizeEstimator} implementation.
+ * A default {@link IoEventSizeEstimator} implementation.
  * <p>
  * Martin's Java Notes were used for estimation of the size of non-IoBuffers. For unknown types, it inspects declaring 
  * fields of the class of the specified message. The size of unknown declaring fields are approximated to the specified 
