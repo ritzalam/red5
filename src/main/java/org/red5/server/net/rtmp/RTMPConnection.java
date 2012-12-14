@@ -1186,7 +1186,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 						// update the timestamp to match our update
 						lastBytesReadTime = now;
 					}
-				} else if (!isReaderIdle()) {
+				} else if (getPendingMessages() > 0) {
 					// client may not have updated bytes yet, but may have received messages waiting, no need to drop them if processing hasn't
 					// caught up yet
 					log.debug("Reader is not idle, possible flood. Pending write messages: {}", getPendingMessages());
@@ -1207,8 +1207,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 						keepAliveJobName = null;
 						log.warn("Closing {}, with id {}, due to too much inactivity ({} ms), last ping sent {} ms ago", new Object[] { RTMPConnection.this, getId(),
 								(lastPingTime - lastPongTime), (now - lastPingTime) });
-						// Add the following line to (hopefully) deal with a very common support request
-						// on the Red5 list
+						// the following line deals with a very common support request
 						log.warn("This often happens if YOUR Red5 application generated an exception on start-up. Check earlier in the log for that exception first!");
 						onInactive();
 					}

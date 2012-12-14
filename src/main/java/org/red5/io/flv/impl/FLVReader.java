@@ -209,19 +209,21 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	 * @return          Number of remaining bytes
 	 */
 	private long getRemainingBytes() {
-		if (!useLoadBuf) {
-			return in.remaining();
-		}
-		try {
-			if (channel.isOpen()) {
-				return channelSize - channel.position() + in.remaining();
-			} else {
+		if (in != null) {
+			if (!useLoadBuf) {
 				return in.remaining();
 			}
-		} catch (Exception e) {
-			log.error("Error getRemainingBytes", e);
-			return 0;
+			try {
+				if (channel.isOpen()) {
+					return channelSize - channel.position() + in.remaining();
+				} else {
+					return in.remaining();
+				}
+			} catch (Exception e) {
+				log.error("Error getRemainingBytes", e);
+			}
 		}
+		return 0;
 	}
 
 	/**
@@ -518,7 +520,15 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	/** {@inheritDoc}
 	 */
 	public boolean hasMoreTags() {
-		return getRemainingBytes() > 4;
+		try {
+			lock.acquire();
+			return getRemainingBytes() > 4;
+		} catch (InterruptedException e) {
+			log.warn("Exception acquiring lock", e);
+			return false;
+		} finally {
+			lock.release();
+		}
 	}
 
 	/**
@@ -619,18 +629,25 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	/** {@inheritDoc}
 	 */
 	public void close() {
-		log.debug("Reader close");
-		if (in != null) {
-			in.free();
-			in = null;
-		}
-		if (channel != null) {
-			try {
-				channel.close();
-				fis.close();
-			} catch (IOException e) {
-				log.error("FLVReader :: close ::>\n", e);
+		try {
+			lock.acquire();
+			log.debug("Reader close: {}", file.getName());
+			if (in != null) {
+				in.free();
+				in = null;
 			}
+			if (channel != null) {
+				try {
+					channel.close();
+					fis.close();
+				} catch (IOException e) {
+					log.error("FLVReader :: close ::>\n", e);
+				}
+			}
+		} catch (InterruptedException e) {
+			log.warn("Exception acquiring lock", e);
+		} finally {
+			lock.release();
 		}
 	}
 
@@ -812,11 +829,11 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			// move ahead and see if we get a valid datatype		
 			dataType = in.get();
 		}
-//		byte aacType = 0;
-//		if (dataType == 8 && keyframeMeta.audioCodecId == AudioCodec.AAC.getId()) {
-//			// flv spec indicates that aac contains an extra byte after the data type
-//			aacType = in.get();
-//		}
+		//		byte aacType = 0;
+		//		if (dataType == 8 && keyframeMeta.audioCodecId == AudioCodec.AAC.getId()) {
+		//			// flv spec indicates that aac contains an extra byte after the data type
+		//			aacType = in.get();
+		//		}
 		int bodySize = IOUtils.readUnsignedMediumInt(in);
 		int timestamp = IOUtils.readExtendedMediumInt(in);
 		if (log.isDebugEnabled()) {

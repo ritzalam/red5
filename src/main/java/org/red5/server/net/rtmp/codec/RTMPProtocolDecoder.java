@@ -163,8 +163,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	/**
 	 * Decodes the buffer data
 	 * 
-	 * @param state Stores state for the protocol, ProtocolState is just a marker
-	 *            interface
+	 * @param state Stores state for the protocol, ProtocolState is just a marker interface
 	 * @param in IoBuffer of data to be decoded
 	 * @return one of three possible values. null : the object could not be
 	 *         decoded, or some data was skipped, just continue. ProtocolState :
@@ -177,7 +176,8 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		log.trace("Start: {}", start);
 		try {
 			final RTMP rtmp = (RTMP) state;
-			switch (rtmp.getState()) {
+			byte rtmpState = rtmp.getState();
+			switch (rtmpState) {
 				case RTMP.STATE_CONNECTED:
 					return decodePacket(rtmp, in);
 				case RTMP.STATE_CONNECT:
@@ -186,7 +186,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				case RTMP.STATE_ERROR:
 					// attempt to correct error
 				default:
-					return null;
+					throw new IllegalStateException("Invalid RTMP state: " + rtmpState + ". Nothing to decode.");
 			}
 		} catch (ProtocolException pe) {
 			// raise to caller unmodified

@@ -74,7 +74,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 	 */
 	protected ObjectName serviceManagerObjectName;
 
-	protected boolean enableMinaMonitor = false;
+	protected boolean enableMinaMonitor;
 
 	protected int minaPollInterval = 1000;
 
@@ -86,7 +86,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 
 	protected int receiveBufferSize = 65536;
 	
-	protected boolean enableIoEventThrottle = true;
+	protected boolean enableIoEventThrottle;
 
 	protected int throttleThresholdSize = 65536 * ioThreads;
 
@@ -118,13 +118,13 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 		log.info("I/O Threads: {}", ioThreads);
 		// XXX Paul ref: http://stackoverflow.com/questions/5088850/multi-threading-in-red5		
 		// start with default parameters on our socket acceptor
-		acceptor = new NioSocketAcceptor();
 		if (enableIoEventThrottle) {
+			acceptor = new NioSocketAcceptor();
 			// add io event throttle
 			acceptor.getFilterChain().addLast("executor", new ExecutorFilter(new OrderedThreadPoolExecutor(0, ioThreads, executorKeepAliveTime, TimeUnit.MILLISECONDS, new IoEventQueueThrottler(throttleThresholdSize, throttleMaximumPermits))));
 		} else {
-			// use an ordered thread pool to handle io event threads
-			acceptor.getFilterChain().addLast("executor", new ExecutorFilter(new OrderedThreadPoolExecutor(0, ioThreads, executorKeepAliveTime, TimeUnit.MILLISECONDS)));
+			// use the default executor
+			acceptor = new NioSocketAcceptor(ioThreads);
 		}
 		// set acceptor props
 		acceptor.setHandler(ioHandler);
