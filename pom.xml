@@ -214,10 +214,11 @@
 				<directory>src/test/resources</directory>
 			</testResource>
 			<testResource>
-				<directory>src/main/webapp</directory>
+				<directory>src/test/webapp</directory>
 				<includes>
 					<include>**/*.xml</include>
 					<include>**/*.properties</include>
+					<include>**/*.flv</include>
 				</includes>
 			</testResource>
 		</testResources>
