@@ -16,7 +16,7 @@
 		<slf4j.version>1.7.2</slf4j.version>
 		<mina.version>2.0.7</mina.version>
 		<logback.version>1.0.9</logback.version>
-        <junit.version>4.10</junit.version>
+		<junit.version>4.10</junit.version>
 		<cargo.host>localhost</cargo.host>
 		<cargo.port>25888</cargo.port>
 		<cargo.wait>false</cargo.wait>
@@ -264,12 +264,6 @@
 				<version>${slf4j.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<version>${junit.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
 				<groupId>org.jboss.spec</groupId>
 				<artifactId>jboss-javaee-6.0</artifactId>
 				<version>3.0.1.Final</version>
@@ -281,6 +275,18 @@
 				<artifactId>mina-parent</artifactId>
 				<version>${mina.version}</version>
 				<type>pom</type>
+			</dependency>
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>${junit.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>net.sourceforge.groboutils</groupId>
+				<artifactId>groboutils-core</artifactId>
+				<version>5</version>
+				<scope>test</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -457,6 +463,22 @@
 					<artifactId>commons-logging</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>${spring.version}</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>net.sourceforge.groboutils</groupId>
+			<artifactId>groboutils-core</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>xerces</groupId>
