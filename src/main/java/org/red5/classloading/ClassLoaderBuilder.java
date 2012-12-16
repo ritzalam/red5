@@ -143,7 +143,10 @@ public final class ClassLoaderBuilder {
 				//add red5.jar to the classpath
 				File red5jar = new File(home, "red5-server-1.0.jar");
 				if (!red5jar.exists()) {
+					System.out.println("Red5 server jar was not found, using fallback.");
 					red5jar = new File(home, "red5.jar");
+				} else {
+					System.out.println("Red5 server jar was found");
 				}
 				urlList.add(red5jar.toURI().toURL());
 			} catch (MalformedURLException e1) {

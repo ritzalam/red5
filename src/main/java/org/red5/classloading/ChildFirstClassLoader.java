@@ -31,33 +31,35 @@ import java.net.URLClassLoader;
 public final class ChildFirstClassLoader extends URLClassLoader {
 
 	private ClassLoader parent = null;
+
 	private ClassLoader parentParent = null;
+
 	private ClassLoader system = null;
-	
+
 	public ChildFirstClassLoader(URL[] urls) {
 		super(urls);
 		this.parent = super.getParent();
-		system = getSystemClassLoader();		
+		system = getSystemClassLoader();
 		//if we have a parent of the parent and its not the system classloader
 		parentParent = this.parent.getParent() != system ? this.parent.getParent() : null;
-		
+
 		dumpClassLoaderNames();
 	}
 
 	public ChildFirstClassLoader(URL[] urls, ClassLoader parent) {
 		super(urls, parent);
 		this.parent = parent;
-		system = getSystemClassLoader();		
+		system = getSystemClassLoader();
 		if (parent != null) {
-		//if we have a parent of the parent and its not the system classloader
-		parentParent = this.parent.getParent() != system ? this.parent.getParent() : null;
+			//if we have a parent of the parent and its not the system classloader
+			parentParent = this.parent.getParent() != system ? this.parent.getParent() : null;
 		}
 		dumpClassLoaderNames();
 	}
-	
+
 	private void dumpClassLoaderNames() {
-		System.out.printf("[ChildFirstClassLoader] Classloaders:\nSystem %s\nParents Parent %s\nParent %s\nThis class %s\nTCL %s\n\n", 
-				system, parentParent, this.parent, ChildFirstClassLoader.class.getClassLoader(), Thread.currentThread().getContextClassLoader());
+		System.out.printf("[ChildFirstClassLoader] Classloaders:\nSystem %s\nParents Parent %s\nParent %s\nThis class %s\nTCL %s\n\n", system, parentParent, this.parent,
+				ChildFirstClassLoader.class.getClassLoader(), Thread.currentThread().getContextClassLoader());
 	}
 
 	@Override
@@ -84,8 +86,7 @@ public final class ChildFirstClassLoader extends URLClassLoader {
 	 *             if the class could not be loaded.
 	 */
 	@Override
-	protected Class<?> loadClass(String name, boolean resolve)
-			throws ClassNotFoundException {
+	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
 
 		// First, check if the class has already been loaded
 		Class<?> c = findLoadedClass(name);
@@ -98,7 +99,7 @@ public final class ChildFirstClassLoader extends URLClassLoader {
 				// ignore
 			}
 		}
-		
+
 		// If we could not find it, delegate to parent
 		// Note that we do not attempt to catch any ClassNotFoundException
 		if (c == null) {
@@ -111,13 +112,13 @@ public final class ChildFirstClassLoader extends URLClassLoader {
 				//}
 			}
 			if (c == null && parentParent != null) {
-    			try {
-    				c = parentParent.loadClass(name);
-    			} catch (Exception e) {
-    				//if (e.getMessage().indexOf("BeanInfo") == -1) {
-    				//	log.warn("Exception {}", e);
-    				//}
-    			}
+				try {
+					c = parentParent.loadClass(name);
+				} catch (Exception e) {
+					//if (e.getMessage().indexOf("BeanInfo") == -1) {
+					//	log.warn("Exception {}", e);
+					//}
+				}
 			}
 			if (c == null) {
 				try {
@@ -129,7 +130,7 @@ public final class ChildFirstClassLoader extends URLClassLoader {
 				}
 			}
 		}
-		
+
 		// resolve if requested
 		if (resolve) {
 			resolveClass(c);
@@ -137,7 +138,7 @@ public final class ChildFirstClassLoader extends URLClassLoader {
 
 		return c;
 	}
-	
+
 	/**
 	 * Override the parent-first resource loading model established by
 	 * java.lang.Classloader with child-first behavior.
