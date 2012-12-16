@@ -114,14 +114,10 @@ public final class ClassLoaderBuilder {
 	 */
 	@SuppressWarnings("unused")
 	public static ClassLoader build(File path, int mode, ClassLoader parent) {
-
 		JarFileFilter jarFileFilter = new JarFileFilter();
-
 		List<URL> urlList = new ArrayList<URL>(31);
-
 		//the class loader to return
 		ClassLoader loader = null;
-
 		//urls to load resources / classes from
 		URL[] urls = null;
 
@@ -145,10 +141,15 @@ public final class ClassLoaderBuilder {
 
 			try {
 				//add red5.jar to the classpath
-				urlList.add(new File(home, "red5.jar").toURI().toURL());
+				File red5jar = new File(home, "red5-server-1.0.jar");
+				if (!red5jar.exists()) {
+					red5jar = new File(home, "red5.jar");
+				}
+				urlList.add(red5jar.toURI().toURL());
 			} catch (MalformedURLException e1) {
 				e1.printStackTrace();
 			}
+			System.out.printf("URL list: %s\n", urlList);	
 
 			//get red5 lib system property, if not found build it	
 			String libPath = System.getProperty("red5.lib_root");
