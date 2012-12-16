@@ -2,82 +2,75 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
 
-    <bean
-        id="boringPlaceholderConfig"
-        class="org.red5.spring.ExtendedPropertyPlaceholderConfigurer" >
+	<bean id="boringPlaceholderConfig" class="org.red5.spring.ExtendedPropertyPlaceholderConfigurer">
 
-        <property name="locations" >
+		<property name="locations">
 
-            <list>
+			<list>
 
-                <value>
-classpath:/org/red5/spring/test.properties
-                </value>
-            </list>
-        </property>
-    </bean>
+				<value>
+					classpath:/org/red5/spring/test.properties
+				</value>
+			</list>
+		</property>
+	</bean>
 
-    <bean
-        id="wildcard1PlaceholderConfig"
-        class="org.red5.spring.ExtendedPropertyPlaceholderConfigurer" >
+	<bean id="wildcard1PlaceholderConfig" class="org.red5.spring.ExtendedPropertyPlaceholderConfigurer">
 
-        <property name="wildcardLocations" >
+		<property name="wildcardLocations">
 
-            <list>
+			<list>
 
-                <value>
-classpath:/org/red5/spring/test.properties
-                </value>
+				<value>
+					classpath:/org/red5/spring/test.properties
+				</value>
 
-                <value>
-classpath*:/org/red5/spring/test_*.properties
-                </value>
-            </list>
-        </property>
-    </bean>
+				<value>
+					classpath*:/org/red5/spring/test_*.properties
+				</value>
+			</list>
+		</property>
+	</bean>
 
-    <bean
-        id="wildcard2PlaceholderConfig"
-        class="org.red5.spring.ExtendedPropertyPlaceholderConfigurer" >
+	<bean id="wildcard2PlaceholderConfig" class="org.red5.spring.ExtendedPropertyPlaceholderConfigurer">
 
-        <property name="wildcardLocations" >
+		<property name="wildcardLocations">
 
-            <list>
+			<list>
 
-                <value>
-classpath*:/org/red5/spring/test_*.properties
-                </value>
+				<value>
+					classpath*:/org/red5/spring/test_*.properties
+				</value>
 
-                <value>
-classpath:/org/red5/spring/test.properties
-                </value>
-            </list>
-        </property>
-    </bean>
+				<value>
+					classpath:/org/red5/spring/test.properties
+				</value>
+			</list>
+		</property>
+	</bean>
 
-    <bean
-        id="locationsOverridesWildcardLocationsPlaceholderConfig"
-        class="org.red5.spring.ExtendedPropertyPlaceholderConfigurer" >
+	<bean id="locationsOverridesWildcardLocationsPlaceholderConfig"
+		class="org.red5.spring.ExtendedPropertyPlaceholderConfigurer">
 
-        <property name="wildcardLocations" >
+		<property name="wildcardLocations">
 
-            <list>
+			<list>
 
-                <value>
-classpath*:/org/red5/spring/test_*.properties
-                </value>
-            </list>
-        </property>
+				<value>
+					classpath*:/org/red5/spring/test_*.properties
+				</value>
+			</list>
+		</property>
 
-        <property name="locations" >
+		<property name="locations">
 
-            <list>
+			<list>
 
-                <value>
-classpath:/org/red5/spring/test.properties
-                </value>
-            </list>
-        </property>
-    </bean>
+				<value>
+					classpath:/org/red5/spring/test.properties
+				</value>
+			</list>
+		</property>
+	</bean>
 
 </beans>
