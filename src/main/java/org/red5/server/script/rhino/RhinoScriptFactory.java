@@ -47,8 +47,10 @@ public class RhinoScriptFactory implements ScriptFactory {
 
 	private final String scriptSourceLocator;
 
+	@SuppressWarnings("rawtypes")
 	private final Class[] scriptInterfaces;
 
+	@SuppressWarnings("rawtypes")
 	private final Class extendedClass;
 
 	public RhinoScriptFactory(String scriptSourceLocator) {
@@ -57,7 +59,8 @@ public class RhinoScriptFactory implements ScriptFactory {
 		this.scriptInterfaces = new Class[] {};
 		this.extendedClass = null;
 	}
-
+	
+	@SuppressWarnings("rawtypes")
 	public RhinoScriptFactory(String scriptSourceLocator, Class scriptInterface) {
 		Assert.hasText(scriptSourceLocator);
 		this.scriptSourceLocator = scriptSourceLocator;
@@ -85,8 +88,8 @@ public class RhinoScriptFactory implements ScriptFactory {
 	 *             <code>scriptInterfaces</code> argument array has no
 	 *             elements
 	 */
-	public RhinoScriptFactory(String scriptSourceLocator,
-			Class[] scriptInterfaces) {
+	@SuppressWarnings("rawtypes")
+	public RhinoScriptFactory(String scriptSourceLocator, Class[] scriptInterfaces) {
 		Assert.hasText(scriptSourceLocator);
 		this.scriptSourceLocator = scriptSourceLocator;
 		this.extendedClass = null;
@@ -97,8 +100,8 @@ public class RhinoScriptFactory implements ScriptFactory {
 		}
 	}
 
-	public RhinoScriptFactory(String scriptSourceLocator,
-			Class[] scriptInterfaces, Class extendedClass) {
+	@SuppressWarnings("rawtypes")
+	public RhinoScriptFactory(String scriptSourceLocator, Class[] scriptInterfaces, Class extendedClass) {
 		Assert.hasText(scriptSourceLocator);
 		Assert.notNull(extendedClass);
 		this.scriptSourceLocator = scriptSourceLocator;
@@ -111,12 +114,13 @@ public class RhinoScriptFactory implements ScriptFactory {
 	}
 
 	/** {@inheritDoc} */
-    public String getScriptSourceLocator() {
+	public String getScriptSourceLocator() {
 		return this.scriptSourceLocator;
 	}
 
 	/** {@inheritDoc} */
-    public Class[] getScriptInterfaces() {
+	@SuppressWarnings("rawtypes")
+	public Class[] getScriptInterfaces() {
 		return this.scriptInterfaces;
 	}
 
@@ -133,25 +137,23 @@ public class RhinoScriptFactory implements ScriptFactory {
 	 * Load and parse the Rhino script via RhinoScriptUtils.
 	 *
 	 */
-	public Object getScriptedObject(ScriptSource actualScriptSource,
-			Class[] actualInterfaces) throws IOException,
-			ScriptCompilationException {
+	@SuppressWarnings("rawtypes")
+	public Object getScriptedObject(ScriptSource actualScriptSource, Class[] actualInterfaces) throws IOException, ScriptCompilationException {
 		log.debug("Getting scripted object...");
 		try {
-			return RhinoScriptUtils.createRhinoObject(actualScriptSource
-					.getScriptAsString(), actualInterfaces, extendedClass);
+			return RhinoScriptUtils.createRhinoObject(actualScriptSource.getScriptAsString(), actualInterfaces, extendedClass);
 		} catch (Exception ex) {
-			throw new ScriptCompilationException(
-					"Could not compile Rhino script: " + actualScriptSource, ex);
+			throw new ScriptCompilationException("Could not compile Rhino script: " + actualScriptSource, ex);
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
 	public Class getScriptedObjectType(ScriptSource src) throws IOException, ScriptCompilationException {
 		return null;
 	}
 
 	public boolean requiresScriptedObjectRefresh(ScriptSource src) {
 		return false;
-	}	
-	
+	}
+
 }

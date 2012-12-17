@@ -65,9 +65,8 @@ public class RhinoScriptUtils {
 	 *             in case of Rhino parsing failure
 	 * @throws java.io.IOException
 	 */
-	public static Object createRhinoObject(String scriptSource,
-			Class[] interfaces, Class extendedClass)
-			throws ScriptCompilationException, IOException, Exception {
+	@SuppressWarnings("rawtypes")
+	public static Object createRhinoObject(String scriptSource, Class[] interfaces, Class extendedClass) throws ScriptCompilationException, IOException, Exception {
 		if (log.isDebugEnabled()) {
 			log.debug("Script Engine Manager: " + mgr.getClass().getName());
 		}
@@ -119,21 +118,18 @@ public class RhinoScriptUtils {
 			wrapper.eval();
 		} else {
 			wrapper.eval();
-			o = ((Invocable) engine).invokeFunction("Wrapper",
-					new Object[] { engine.get(funcName) });
+			o = ((Invocable) engine).invokeFunction("Wrapper", new Object[] { engine.get(funcName) });
 			if (log.isDebugEnabled()) {
 				log.debug("Result of invokeFunction: " + o);
 			}
 		}
-		return Proxy.newProxyInstance(ClassUtils.getDefaultClassLoader(),
-				interfaces, new RhinoObjectInvocationHandler(engine, o));
+		return Proxy.newProxyInstance(ClassUtils.getDefaultClassLoader(), interfaces, new RhinoObjectInvocationHandler(engine, o));
 	}
 
 	/**
 	 * InvocationHandler that invokes a Rhino script method.
 	 */
-	private static class RhinoObjectInvocationHandler implements
-			InvocationHandler {
+	private static class RhinoObjectInvocationHandler implements InvocationHandler {
 
 		private final ScriptEngine engine;
 
@@ -144,8 +140,8 @@ public class RhinoScriptUtils {
 			this.instance = instance;
 		}
 
-		public Object invoke(Object proxy, Method method, Object[] args)
-				throws Throwable {
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 			Object o = null;
 			// ensure a set of args are available
 			if (args == null || args.length == 0) {
@@ -156,6 +152,7 @@ public class RhinoScriptUtils {
 				log.debug("Calling: " + name);
 			}
 			try {
+				@SuppressWarnings("unused")
 				Method apiMethod = null;
 				Invocable invocable = (Invocable) engine;
 				if (null == instance) {
@@ -172,16 +169,12 @@ public class RhinoScriptUtils {
 							o = invocable.invokeFunction(name, args);
 						} catch (Exception ex) {
 							log.debug("Function not found: " + name);
-							Class[] interfaces = (Class[]) engine
-									.get("interfaces");
+							Class[] interfaces = (Class[]) engine.get("interfaces");
 							for (Class clazz : interfaces) {
 								// java6 style
-								o = invocable.getInterface(engine
-										.get((String) engine.get("className")),
-										clazz);
+								o = invocable.getInterface(engine.get((String) engine.get("className")), clazz);
 								if (null != o) {
-									log.debug("Interface return type: "
-											+ o.getClass().getName());
+									log.debug("Interface return type: " + o.getClass().getName());
 									break;
 								}
 							}
@@ -210,18 +203,15 @@ public class RhinoScriptUtils {
 	private static String getFunctionName(String scriptSource) {
 		String ret = "undefined";
 		try {
-			ret = scriptSource.replaceAll(
-					"[\\S\\w\\s]*?function ([\\w]+)\\(\\)[\\S\\w\\s]+", "$1");
+			ret = scriptSource.replaceAll("[\\S\\w\\s]*?function ([\\w]+)\\(\\)[\\S\\w\\s]+", "$1");
 			// if undefined then look for the first var
 			if (ret.equals("undefined") || ret.length() > 64) {
-				ret = scriptSource.replaceAll(
-						"[\\S\\w\\s]*?var ([\\w]+)[\\S\\w\\s]+", "$1");
+				ret = scriptSource.replaceAll("[\\S\\w\\s]*?var ([\\w]+)[\\S\\w\\s]+", "$1");
 			}
 		} catch (PatternSyntaxException ex) {
 			log.error("Syntax error in the regular expression");
 		} catch (IllegalArgumentException ex) {
-			log
-					.error("Syntax error in the replacement text (unescaped $ signs?)");
+			log.error("Syntax error in the replacement text (unescaped $ signs?)");
 		} catch (IndexOutOfBoundsException ex) {
 			log.error("Non-existent backreference used the replacement text");
 		}
