@@ -186,7 +186,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				case RTMP.STATE_ERROR:
 					// attempt to correct error
 				default:
-					throw new IllegalStateException("Invalid RTMP state: " + rtmpState + ". Nothing to decode.");
+					throw new IllegalStateException("Invalid RTMP state: " + rtmpState + ", nothing to decode");
 			}
 		} catch (ProtocolException pe) {
 			// raise to caller unmodified

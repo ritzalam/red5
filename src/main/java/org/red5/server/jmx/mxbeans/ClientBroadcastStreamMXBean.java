@@ -47,8 +47,7 @@ public interface ClientBroadcastStreamMXBean {
 
 	public void close();
 
-	public void saveAs(String name, boolean isAppend) throws IOException,
-			ResourceNotFoundException, ResourceExistException;
+	public void saveAs(String name, boolean isAppend) throws IOException, ResourceNotFoundException, ResourceExistException;
 
 	public String getSaveFilename();
 

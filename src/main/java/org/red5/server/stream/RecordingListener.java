@@ -79,7 +79,7 @@ public class RecordingListener implements IStreamListener {
 	 * Queue to hold incoming stream event packets.
 	 */
 	private final BlockingQueue<CachedEvent> queue = new LinkedBlockingQueue<CachedEvent>();
-	
+
 	/**
 	 * Internal worker stop flag.
 	 */
@@ -98,75 +98,80 @@ public class RecordingListener implements IStreamListener {
 		IScope scope = conn.getScope();
 		// get the file for our filename
 		File file = getRecordFile(scope, name);
-		// If append mode is on...
-		if (!isAppend) {
-			if (file.exists()) {
-				// when "live" or "record" is used, any previously recorded stream with the same stream URI is deleted.
-				if (!file.delete()) {
-					log.warn("Existing file: {} could not be deleted", file.getName());
+		if (file != null) {
+			// If append mode is on...
+			if (!isAppend) {
+				if (file.exists()) {
+					// when "live" or "record" is used, any previously recorded stream with the same stream URI is deleted.
+					if (!file.delete()) {
+						log.warn("Existing file: {} could not be deleted", file.getName());
+						return false;
+					}
+				}
+			} else {
+				if (file.exists()) {
+					appending = true;
+				} else {
+					// if a recorded stream at the same URI does not already exist, "append" creates the stream as though "record" was passed.
+					isAppend = false;
+				}
+			}
+			// if the file doesn't exist yet, create it
+			if (!file.exists()) {
+				// Make sure the destination directory exists
+				String path = file.getAbsolutePath();
+				int slashPos = path.lastIndexOf(File.separator);
+				if (slashPos != -1) {
+					path = path.substring(0, slashPos);
+				}
+				File tmp = new File(path);
+				if (!tmp.isDirectory()) {
+					tmp.mkdirs();
+				}
+				try {
+					file.createNewFile();
+				} catch (IOException e) {
+					log.warn("New recording file could not be created for: {}", file.getName(), e);
 					return false;
 				}
 			}
-		} else {
-			if (file.exists()) {
-				appending = true;
+			if (log.isDebugEnabled()) {
+				try {
+					log.debug("Recording file: {}", file.getCanonicalPath());
+				} catch (IOException e) {
+					log.warn("Exception getting file path", e);
+				}
+			}
+			//remove existing meta info
+			if (scope.getContext().hasBean("keyframe.cache")) {
+				IKeyFrameMetaCache keyFrameCache = (IKeyFrameMetaCache) scope.getContext().getBean("keyframe.cache");
+				keyFrameCache.removeKeyFrameMeta(file);
+			}
+			// get instance via spring
+			if (scope.getContext().hasBean("fileConsumer")) {
+				log.debug("Context contains a file consumer");
+				recordingConsumer = (FileConsumer) scope.getContext().getBean("fileConsumer");
+				recordingConsumer.setScope(scope);
+				recordingConsumer.setFile(file);
 			} else {
-				// if a recorded stream at the same URI does not already exist, "append" creates the stream as though "record" was passed.
-				isAppend = false;
+				log.debug("Context does not contain a file consumer, using direct instance");
+				// get a new instance
+				recordingConsumer = new FileConsumer(scope, file);
 			}
-		}
-		// if the file doesn't exist yet, create it
-		if (!file.exists()) {
-			// Make sure the destination directory exists
-			String path = file.getAbsolutePath();
-			int slashPos = path.lastIndexOf(File.separator);
-			if (slashPos != -1) {
-				path = path.substring(0, slashPos);
+			// set the mode on the consumer
+			if (isAppend) {
+				recordingConsumer.setMode("append");
+			} else {
+				recordingConsumer.setMode("record");
 			}
-			File tmp = new File(path);
-			if (!tmp.isDirectory()) {
-				tmp.mkdirs();
-			}
-			try {
-				file.createNewFile();
-			} catch (IOException e) {
-				log.warn("New recording file could not be created for: {}", file.getName(), e);
-				return false;
-			}
-		}
-		if (log.isDebugEnabled()) {
-			try {
-				log.debug("Recording file: {}", file.getCanonicalPath());
-			} catch (IOException e) {
-				log.warn("Exception getting file path", e);
-			}
-		}
-		//remove existing meta info
-		if (scope.getContext().hasBean("keyframe.cache")) {
-			IKeyFrameMetaCache keyFrameCache = (IKeyFrameMetaCache) scope.getContext().getBean("keyframe.cache");
-			keyFrameCache.removeKeyFrameMeta(file);
-		}
-		// get instance via spring
-		if (scope.getContext().hasBean("fileConsumer")) {
-			log.debug("Context contains a file consumer");
-			recordingConsumer = (FileConsumer) scope.getContext().getBean("fileConsumer");
-			recordingConsumer.setScope(scope);
-			recordingConsumer.setFile(file);
+			// set recording true
+			recording = true;
+			// since init finished, return true as well
+			return true;
 		} else {
-			log.debug("Context does not contain a file consumer, using direct instance");
-			// get a new instance
-			recordingConsumer = new FileConsumer(scope, file);
+			log.warn("Record file is null");
+			return false;
 		}
-		// set the mode on the consumer
-		if (isAppend) {
-			recordingConsumer.setMode("append");
-		} else {
-			recordingConsumer.setMode("record");
-		}		
-		// set recording true
-		recording = true;
-		// since init finished, return true as well
-		return true;
 	}
 
 	public void start() {
@@ -175,7 +180,7 @@ public class RecordingListener implements IStreamListener {
 		worker.setDaemon(true);
 		worker.start();
 	}
-	
+
 	public void packetReceived(IBroadcastStream stream, IStreamPacket packet) {
 		// store everything we would need to perform a write of the stream data
 		CachedEvent event = new CachedEvent();
@@ -275,7 +280,7 @@ public class RecordingListener implements IStreamListener {
 				CachedEvent cachedEvent;
 				try {
 					IRTMPEvent event = null;
-					RTMPMessage message = null;					
+					RTMPMessage message = null;
 					// get first event in the queue
 					cachedEvent = queue.take();
 					// get the data type
@@ -306,7 +311,7 @@ public class RecordingListener implements IStreamListener {
 								event = new Notify(buffer);
 								event.setTimestamp(cachedEvent.getTimestamp());
 								message = RTMPMessage.build(event);
-								break;						
+								break;
 						}
 						// push it down to the recorder
 						recordingConsumer.pushMessage(null, message);
@@ -320,7 +325,7 @@ public class RecordingListener implements IStreamListener {
 						recordingConsumer.pushMessage(null, message);
 					} else {
 						log.debug("Stream data size was 0, recording pipe will not be notified");
-					}					
+					}
 				} catch (InterruptedException e) {
 					log.warn("Taking from queue interrupted", e);
 				} catch (IOException e) {
