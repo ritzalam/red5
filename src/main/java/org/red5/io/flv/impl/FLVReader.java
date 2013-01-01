@@ -123,7 +123,7 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	/** The header of this FLV file. */
 	private FLVHeader header;
 
-	private final Semaphore lock = new Semaphore(1, true);
+	private final Semaphore lock = new Semaphore(2, true);
 
 	/** Constructs a new FLVReader. */
 	FLVReader() {

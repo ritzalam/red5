@@ -24,6 +24,7 @@ import java.net.SocketAddress;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 import javax.management.MBeanServer;
@@ -44,6 +45,7 @@ import org.red5.server.jmx.mxbeans.RTMPMinaTransportMXBean;
 import org.red5.server.net.filter.IoEventQueueThrottler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 /**
  * Transport setup class configures socket acceptor and thread pools for RTMP in Mina.
@@ -121,10 +123,15 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 		if (enableIoEventThrottle) {
 			acceptor = new NioSocketAcceptor();
 			// add io event throttle
-			acceptor.getFilterChain().addLast("executor", new ExecutorFilter(new OrderedThreadPoolExecutor(0, ioThreads, executorKeepAliveTime, TimeUnit.MILLISECONDS, new IoEventQueueThrottler(throttleThresholdSize, throttleMaximumPermits))));
+			Executor executor = new OrderedThreadPoolExecutor(0, ioThreads, executorKeepAliveTime, TimeUnit.MILLISECONDS, new IoEventQueueThrottler(throttleThresholdSize, throttleMaximumPermits));
+			acceptor.getFilterChain().addLast("executor", new ExecutorFilter(executor));
 		} else {
 			// use the default executor
-			acceptor = new NioSocketAcceptor(ioThreads);
+			//acceptor = new NioSocketAcceptor(ioThreads);
+			// use ordered thread pool with custom thread factory
+			acceptor = new NioSocketAcceptor();
+			Executor executor = new OrderedThreadPoolExecutor(0, ioThreads, executorKeepAliveTime, TimeUnit.MILLISECONDS, new CustomizableThreadFactory("AcceptorThread-"));
+			acceptor.getFilterChain().addLast("executor", new ExecutorFilter(executor));
 		}
 		// set acceptor props
 		acceptor.setHandler(ioHandler);

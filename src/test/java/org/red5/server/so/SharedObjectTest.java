@@ -221,6 +221,7 @@ public class SharedObjectTest extends AbstractJUnit4SpringContextTests {
 			so.addSharedObjectListener(listener);
 		}
 
+		@SuppressWarnings("unchecked")
 		public void runTest() throws Throwable {
 			log.debug("runTest#{}", id);
 			running = true;
@@ -254,6 +255,7 @@ public class SharedObjectTest extends AbstractJUnit4SpringContextTests {
 
 	private class MySOListener implements ISharedObjectListener {
 
+		@SuppressWarnings("unused")
 		private int id;
 
 		public MySOListener(int id) {
@@ -301,13 +303,13 @@ public class SharedObjectTest extends AbstractJUnit4SpringContextTests {
 		}
 	}
 
+	@SuppressWarnings({"rawtypes", "unused"})
 	private class Complex {
 		
 		private long x = System.currentTimeMillis();
 
 		private String s = "Complex object";
 
-		@SuppressWarnings("rawtypes")
 		private Map map = new HashMap();
 
 		public long getX() {

@@ -37,16 +37,10 @@ public class MP4ReaderTest extends TestCase {
 
 	@Test
 	public void testCtor() throws Exception {
+		// use for the internal unit tests
 		File file = new File("fixtures/sample.mp4");
-		// contains version 1 sound description 
-		//File file = new File("E:/dev/red5/java/server/trunk/distx/webapps/oflaDemo/streams/transformers_720p.mp4");
-		// contains version 0 sound description 
-		//File file = new File("E:/dev/red5/java/server/trunk/distx/webapps/oflaDemo/streams/mp4_with_aac.mp4");
-		// contains some itunes atoms and junk aac bits
-		//File file = new File("E:/dev/red5/java/server/trunk/distx/webapps/oflaDemo/streams/codonics-high.mp4");
-		//File file = new File("E:/dev/red5/java/server/trunk/distx/webapps/oflaDemo/streams/ANewHope.mov");
-		//File file = new File("E:/dev/red5/java/server/trunk/distx/webapps/oflaDemo/streams/IamLegend.mp4");
-		//File file = new File("E:/dev/red5/java/server/trunk/distx/webapps/oflaDemo/streams/mp4_with_mp3.mp4");
+		// test clip - bugs
+		//File file = new File("C:/TEMP/red5-server-1.0/webapps/oflaDemo/streams/test_480_aac.f4v");
 
 		MP4Reader reader = new MP4Reader(file);
 

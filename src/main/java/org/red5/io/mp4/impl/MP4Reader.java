@@ -500,8 +500,12 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 													log.debug("Sample to chunk atom found");
 													audioSamplesToChunks = stsc.getRecords();
 													log.debug("Record count: {}", audioSamplesToChunks.size());
-													MP4Atom.Record rec = audioSamplesToChunks.firstElement();
-													log.debug("Record data: Description index={} Samples per chunk={}", rec.getSampleDescriptionIndex(), rec.getSamplesPerChunk());
+													// handle instance where there are no actual records (bad f4v?)
+													if (audioSamplesToChunks.size() > 0) {
+														MP4Atom.Record rec = audioSamplesToChunks.firstElement();
+														log.debug("Record data: Description index={} Samples per chunk={}", rec.getSampleDescriptionIndex(),
+																rec.getSamplesPerChunk());
+													}
 												}
 												//stsz - has Samples
 												MP4Atom stsz = stbl.lookup(MP4Atom.typeToInt("stsz"), 0);
@@ -535,10 +539,13 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 													log.debug("Time to sample atom found");
 													Vector<MP4Atom.TimeSampleRecord> records = stts.getTimeToSamplesRecords();
 													log.debug("Record count: {}", records.size());
-													MP4Atom.TimeSampleRecord rec = records.firstElement();
-													log.debug("Record data: Consecutive samples={} Duration={}", rec.getConsecutiveSamples(), rec.getSampleDuration());
-													//if we have 1 record it means all samples have the same duration
-													audioSampleDuration = rec.getSampleDuration();
+													// handle instance where there are no actual records (bad f4v?)
+													if (records.size() > 0) {
+														MP4Atom.TimeSampleRecord rec = records.firstElement();
+														log.debug("Record data: Consecutive samples={} Duration={}", rec.getConsecutiveSamples(), rec.getSampleDuration());
+														//if we have 1 record it means all samples have the same duration
+														audioSampleDuration = rec.getSampleDuration();
+													}
 												}
 											}
 										}
@@ -657,8 +664,12 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 													log.debug("Sample to chunk atom found");
 													videoSamplesToChunks = stsc.getRecords();
 													log.debug("Record count: {}", videoSamplesToChunks.size());
-													MP4Atom.Record rec = videoSamplesToChunks.firstElement();
-													log.debug("Record data: Description index={} Samples per chunk={}", rec.getSampleDescriptionIndex(), rec.getSamplesPerChunk());
+													// handle instance where there are no actual records (bad f4v?)
+													if (videoSamplesToChunks.size() > 0) {
+														MP4Atom.Record rec = videoSamplesToChunks.firstElement();
+														log.debug("Record data: Description index={} Samples per chunk={}", rec.getSampleDescriptionIndex(),
+																rec.getSamplesPerChunk());
+													}
 												}
 												//stsz - has Samples
 												MP4Atom stsz = stbl.lookup(MP4Atom.typeToInt("stsz"), 0);
@@ -707,10 +718,13 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 													log.debug("Time to sample atom found");
 													Vector<MP4Atom.TimeSampleRecord> records = stts.getTimeToSamplesRecords();
 													log.debug("Record count: {}", records.size());
-													MP4Atom.TimeSampleRecord rec = records.firstElement();
-													log.debug("Record data: Consecutive samples={} Duration={}", rec.getConsecutiveSamples(), rec.getSampleDuration());
-													//if we have 1 record it means all samples have the same duration
-													videoSampleDuration = rec.getSampleDuration();
+													// handle instance where there are no actual records (bad f4v?)
+													if (records.size() > 0) {
+														MP4Atom.TimeSampleRecord rec = records.firstElement();
+														log.debug("Record data: Consecutive samples={} Duration={}", rec.getConsecutiveSamples(), rec.getSampleDuration());
+														//if we have 1 record it means all samples have the same duration
+														videoSampleDuration = rec.getSampleDuration();
+													}
 												}
 												//ctts - (composition) time to sample
 												MP4Atom ctts = stbl.lookup(MP4Atom.typeToInt("ctts"), 0);
@@ -1006,7 +1020,9 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			desc.add(sampleMap);
 
 			if (audioSamples != null) {
-				audioMap.put("length_property", audioSampleDuration * audioSamples.size());
+				if (audioSampleDuration > 0) {
+					audioMap.put("length_property", audioSampleDuration * audioSamples.size());
+				}
 				//release some memory, since we're done with the vectors
 				audioSamples.clear();
 				audioSamples = null;
@@ -1025,7 +1041,9 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			sampleMap.put("sampletype", videoCodecId);
 			desc.add(sampleMap);
 			if (videoSamples != null) {
-				videoMap.put("length_property", videoSampleDuration * videoSamples.size());
+				if (videoSampleDuration > 0) {
+					videoMap.put("length_property", videoSampleDuration * videoSamples.size());
+				}
 				//release some memory, since we're done with the vectors
 				videoSamples.clear();
 				videoSamples = null;
@@ -1488,12 +1506,17 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 				result.timestamps[i] = (int) Math.round(frames.get(i).getTime() * 1000.0);
 			}
 		} else {
-			result.positions = new long[seekPoints.size()];
-			result.timestamps = new int[seekPoints.size()];
-			for (int idx = 0; idx < seekPoints.size(); idx++) {
-				final Integer ts = seekPoints.get(idx);
-				result.positions[idx] = timePosMap.get(ts);
-				result.timestamps[idx] = ts;
+			if (seekPoints != null) {
+				int seekPointCount = seekPoints.size();
+				result.positions = new long[seekPointCount];
+				result.timestamps = new int[seekPointCount];
+				for (int idx = 0; idx < seekPointCount; idx++) {
+					final Integer ts = seekPoints.get(idx);
+					result.positions[idx] = timePosMap.get(ts);
+					result.timestamps[idx] = ts;
+				}
+			} else {
+				log.warn("Seek points array was null");
 			}
 		}
 		return result;

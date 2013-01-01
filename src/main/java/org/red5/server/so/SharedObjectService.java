@@ -75,6 +75,7 @@ public class SharedObjectService implements ISharedObjectService, InitializingBe
 	/**
 	 * Number of threads available for updates
 	 */
+	@SuppressWarnings("unused")
 	private int executorThreadPoolSize = 2;
 	
 	public void setExecutorThreadPoolSize(int value) {
@@ -89,7 +90,7 @@ public class SharedObjectService implements ISharedObjectService, InitializingBe
 	}
 
 	public void afterPropertiesSet() throws Exception {
-		SHAREDOBJECT_EXECUTOR = Executors.newFixedThreadPool(executorThreadPoolSize, new CustomizableThreadFactory("SharedObjectExecutor-"));
+		SHAREDOBJECT_EXECUTOR = Executors.newCachedThreadPool(new CustomizableThreadFactory("SharedObjectThread-"));
 	}
 
 	/**

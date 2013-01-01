@@ -13,11 +13,12 @@ REM You can set JAVA_OPTS to add additional options if you want
 REM Set up logging options
 set LOGGING_OPTS=-Dlogback.ContextSelector=org.red5.logging.LoggingContextSelector -Dcatalina.useNaming=true
 REM Set up security options
-REM set SECURITY_OPTS= -Djava.security.debug=failure -Djava.security.manager -Djava.security.policy="%RED5_HOME%/conf/red5.policy"
+REM set SECURITY_OPTS=-Djava.security.debug=failure -Djava.security.manager -Djava.security.policy="%RED5_HOME%/conf/red5.policy"
 set SECURITY_OPTS=-Djava.security.debug=failure
-set JAVA_OPTS=%LOGGING_OPTS% %SECURITY_OPTS% %JAVA_OPTS%
-
+REM Setup python/jython path
 set JYTHON_OPTS=-Dpython.home=lib
+REM Combined java options
+set JAVA_OPTS=%LOGGING_OPTS% %SECURITY_OPTS% %JAVA_OPTS% %JYTHON_OPTS%
 
 set RED5_CLASSPATH=%RED5_HOME%\red5-server-1.0-bootstrap.jar;%RED5_HOME%\conf;%CLASSPATH%
 
@@ -27,7 +28,7 @@ goto launchRed5
 
 :launchRed5
 echo Starting Red5
-"%JAVA_HOME%\bin\java" %JYTHON_OPTS% %JAVA_OPTS% -cp "%RED5_CLASSPATH%" %RED5_MAINCLASS% %RED5_OPTS%
+"%JAVA_HOME%\bin\java" %JAVA_OPTS% -cp "%RED5_CLASSPATH%" %RED5_MAINCLASS% %RED5_OPTS%
 goto finally
 
 :err
