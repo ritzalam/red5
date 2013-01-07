@@ -48,6 +48,7 @@ public class ArrayCollection<T> implements Collection<T>, List<T>, IExternalizab
 	private ArrayList<T> source;
 
 	public ArrayCollection() {
+		this.source = new ArrayList<T>();
 	}
 
 	public ArrayCollection(T[] source) {

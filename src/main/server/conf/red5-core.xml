@@ -60,14 +60,10 @@
 		<property name="ioThreads" value="${rtmp.io_threads}" />
         <property name="sendBufferSize" value="${rtmp.send_buffer_size}" />
         <property name="receiveBufferSize" value="${rtmp.receive_buffer_size}" />		
-        <property name="enableIoEventThrottle" value="${rtmp.throttle_enable}" />		
-        <property name="throttleThresholdSize" value="${rtmp.throttle_threshold_size}" />		
-        <property name="throttleMaximumPermits" value="${rtmp.throttle_max_permits}" />		
         <property name="trafficClass" value="${rtmp.traffic_class}" />
         <property name="backlog" value="${rtmp.backlog}" />
-        <property name="thoughputCalcInterval" value="${rtmp.thoughput_calc_interval}" />
-        <property name="executorKeepAliveTime" value="${rtmp.executor_keepalive_time}" />
         <property name="tcpNoDelay" value="${rtmp.tcp_nodelay}" />
+        <property name="thoughputCalcInterval" value="${rtmp.thoughput_calc_interval}" />
 		<!-- This is the interval at which the sessions are polled for stats. If mina monitoring is not enabled, polling will not occur. -->
 		<property name="minaPollInterval" value="${jmx.mina.poll.interval}" />
 		<property name="enableMinaMonitor" value="${jmx.mina.monitor.enable}" />

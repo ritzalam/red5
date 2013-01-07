@@ -24,8 +24,6 @@ import java.net.SocketAddress;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -36,16 +34,12 @@ import org.apache.mina.core.buffer.SimpleBufferAllocator;
 import org.apache.mina.core.service.AbstractIoService;
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.service.IoServiceStatistics;
-import org.apache.mina.filter.executor.ExecutorFilter;
-import org.apache.mina.filter.executor.OrderedThreadPoolExecutor;
 import org.apache.mina.transport.socket.SocketAcceptor;
 import org.apache.mina.transport.socket.SocketSessionConfig;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.red5.server.jmx.mxbeans.RTMPMinaTransportMXBean;
-import org.red5.server.net.filter.IoEventQueueThrottler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 /**
  * Transport setup class configures socket acceptor and thread pools for RTMP in Mina.
@@ -88,12 +82,6 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 
 	protected int receiveBufferSize = 65536;
 	
-	protected boolean enableIoEventThrottle;
-
-	protected int throttleThresholdSize = 65536 * ioThreads;
-
-	protected int throttleMaximumPermits = 128;
-
 	protected int trafficClass = 0x08 | 0x10;
 
 	protected int backlog = 12;
@@ -118,21 +106,8 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 		}
 		log.info("RTMP Mina Transport Settings");
 		log.info("I/O Threads: {}", ioThreads);
-		// XXX Paul ref: http://stackoverflow.com/questions/5088850/multi-threading-in-red5		
-		// start with default parameters on our socket acceptor
-		if (enableIoEventThrottle) {
-			acceptor = new NioSocketAcceptor();
-			// add io event throttle
-			Executor executor = new OrderedThreadPoolExecutor(0, ioThreads, executorKeepAliveTime, TimeUnit.MILLISECONDS, new IoEventQueueThrottler(throttleThresholdSize, throttleMaximumPermits));
-			acceptor.getFilterChain().addLast("executor", new ExecutorFilter(executor));
-		} else {
-			// use the default executor
-			//acceptor = new NioSocketAcceptor(ioThreads);
-			// use ordered thread pool with custom thread factory
-			acceptor = new NioSocketAcceptor();
-			Executor executor = new OrderedThreadPoolExecutor(0, ioThreads, executorKeepAliveTime, TimeUnit.MILLISECONDS, new CustomizableThreadFactory("AcceptorThread-"));
-			acceptor.getFilterChain().addLast("executor", new ExecutorFilter(executor));
-		}
+		// use the default executor
+		acceptor = new NioSocketAcceptor(ioThreads);
 		// set acceptor props
 		acceptor.setHandler(ioHandler);
 		// requested maximum length of the queue of incoming connections
@@ -248,27 +223,6 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 	 */
 	public void setReceiveBufferSize(int receiveBufferSize) {
 		this.receiveBufferSize = receiveBufferSize;
-	}
-
-	/**
-	 * @param enableIoEventThrottle the enableIoEventThrottle to set
-	 */
-	public void setEnableIoEventThrottle(boolean enableIoEventThrottle) {
-		this.enableIoEventThrottle = enableIoEventThrottle;
-	}
-
-	/**
-	 * @param throttleThresholdSize the throttleThresholdSize to set
-	 */
-	public void setThrottleThresholdSize(int throttleThresholdSize) {
-		this.throttleThresholdSize = throttleThresholdSize;
-	}
-
-	/**
-	 * @param throttleMaximumPermits the throttleMaximumPermits to set
-	 */
-	public void setThrottleMaximumPermits(int throttleMaximumPermits) {
-		this.throttleMaximumPermits = throttleMaximumPermits;
 	}
 
 	/**

@@ -594,6 +594,7 @@ public class FLVWriter implements ITagWriter {
 						log.error("", e);
 					}
 					lock.release();
+					log.debug("{}.flv closed", filePath);
 				}
 			}
 		}, "FLVCloser#" + System.currentTimeMillis());
