@@ -18,7 +18,8 @@
 
 package org.red5.server.so;
 
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import java.util.Set;
 
@@ -218,6 +219,25 @@ public class SharedObjectTest extends AbstractJUnit4SpringContextTests {
 		assertTrue(so.getAttributeNames().size() == 2);
 	}
 
+	@Test
+	public void testSharedObjectWithGetAndClose() {
+		log.debug("testSharedObjectWithGetAndClose");
+		if (appScope == null) {
+			appScope = (WebScope) applicationContext.getBean("web.scope");
+			log.debug("Application / web scope: {}", appScope);
+			assertTrue(appScope.getDepth() == 1);
+		}
+		SOApplication app = (SOApplication) applicationContext.getBean("web.handler");
+		app.getAndCloseSO();
+		// go to sleep
+		try {
+			Thread.sleep(500);
+		} catch (Exception e) {
+		}
+		// set something on the so
+		assertFalse(app.hasSharedObject(appScope, "issue323"));
+	}	
+	
 	// Used to ensure all the test-runnables are in "runTest" block.
 	private static boolean allThreadsRunning() {
 		for (TestRunnable r : trs) {

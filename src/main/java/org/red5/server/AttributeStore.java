@@ -219,7 +219,7 @@ public class AttributeStore implements ICastingAttributeStore {
 	/** {@inheritDoc} */
 	public boolean setAttributes(Map<String, Object> values) {
 		attributes.putAll(filterNull(values));
-		// put all doesnt return a boolean so we assume all were added
+		// put all doesn't return a boolean so we assume all were added
 		return true;
 	}
 

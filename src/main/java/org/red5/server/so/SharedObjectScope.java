@@ -770,7 +770,11 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 
 	/** {@inheritDoc} */
 	public void close() {
+		// close the internal SO
 		so.close();
+		// remove from the parent
+		parent.removeChildScope(this);
+		// clear the reference
 		so = null;
 	}
 

@@ -103,6 +103,24 @@ public class SOApplication extends MultiThreadedApplicationAdapter {
 		super.roomLeave(client, room);
 	}
 
+	// internal method for issue #323
+	public void getAndCloseSO() {
+		log.debug("getAndCloseSO initialised");
+		// get it
+		if (!hasSharedObject(appScope, "issue323")) {
+			if (!createSharedObject(appScope, "issue323", false)) {
+				log.warn("Shared object creation failed");
+			}
+		}
+		ISharedObject so = getSharedObject(appScope, "issue323");
+		log.debug("#1 {}", so);
+		// close it
+		if (!so.clear()) {
+			log.debug("Shared object clear failed");
+		}
+		so.close();
+	}
+
 	// internal method for issue #328
 	public void initTSOwithListener() {
 		log.debug("initTSOwithListener initialised");

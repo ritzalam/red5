@@ -686,8 +686,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 
 	/**
 	 * Detaches a reference from this shared object, reset it's state, this will destroy the
-	 * reference immediately. This is useful when you don't want to proxy a
-	 * shared object any longer.
+	 * reference immediately. This is useful when you don't want to proxy a shared object any longer.
 	 */
 	protected void close() {
 		log.debug("close");

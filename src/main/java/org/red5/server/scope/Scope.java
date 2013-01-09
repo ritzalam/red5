@@ -469,7 +469,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 */
 	public IBasicScope getBasicScope(ScopeType type, String name) {
 		for (IBasicScope child : children) {
-			if (child.getType().equals(type) && child.getName().equals(name)) {
+			if (child.getType().equals(type) && name.equals(child.getName())) {
 				log.debug("Returning basic scope");
 				return child;
 			}

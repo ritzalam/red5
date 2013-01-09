@@ -1076,7 +1076,6 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	/** {@inheritDoc} */
 	public boolean clearSharedObjects(IScope scope, String name) {
 		ISharedObjectService service = (ISharedObjectService) ScopeUtils.getScopeService(scope, ISharedObjectService.class, SharedObjectService.class, false);
-
 		return service.clearSharedObjects(scope, name);
 	}
 
