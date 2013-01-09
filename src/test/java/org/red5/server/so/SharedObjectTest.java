@@ -20,9 +20,6 @@ package org.red5.server.so;
 
 import static junit.framework.Assert.assertTrue;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import junit.framework.TestCase;
@@ -30,10 +27,8 @@ import net.sourceforge.groboutils.junit.v1.MultiThreadedTestRunner;
 import net.sourceforge.groboutils.junit.v1.TestRunnable;
 
 import org.junit.Test;
-import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.scope.IScope;
 import org.red5.server.api.so.ISharedObject;
-import org.red5.server.api.so.ISharedObjectBase;
 import org.red5.server.api.so.ISharedObjectListener;
 import org.red5.server.scope.WebScope;
 import org.red5.server.util.ScopeUtils;
@@ -55,7 +50,7 @@ public class SharedObjectTest extends AbstractJUnit4SpringContextTests {
 	protected static Logger log = LoggerFactory.getLogger(SharedObjectTest.class);
 
 	private static WebScope appScope;
-	
+
 	private static TestRunnable[] trs;
 
 	@SuppressWarnings("unused")
@@ -69,15 +64,14 @@ public class SharedObjectTest extends AbstractJUnit4SpringContextTests {
 
 	static {
 		System.setProperty("red5.deployment.type", "junit");
-		System.setProperty("red5.root", "bin");
-		System.setProperty("red5.config_root", "bin/conf");
+		System.setProperty("red5.root", "target/classes");
+		System.setProperty("red5.config_root", "src/main/server/conf");
 		System.setProperty("logback.ContextSelector", "org.red5.logging.LoggingContextSelector");
 	}
 
 	{
-		log.debug("Property - user.dir: {}", System.getProperty("user.dir"));
-		log.debug("Property - red5.root: {}", System.getProperty("red5.root"));
-		log.debug("Property - red5.config_root: {}", System.getProperty("red5.config_root"));
+		log.debug("Properties - user.dir: {}\nred5.root: {}\nred5.config_root: {}",
+				new Object[] { System.getProperty("user.dir"), System.getProperty("red5.root"), System.getProperty("red5.config_root") });
 	}
 
 	@Test
@@ -195,7 +189,35 @@ public class SharedObjectTest extends AbstractJUnit4SpringContextTests {
 
 		log.debug("testDeepDirty-end");
 	}
-	
+
+	@Test
+	public void testSharedObjectWithListener() {
+		log.debug("testSharedObjectWithListener");
+		if (appScope == null) {
+			appScope = (WebScope) applicationContext.getBean("web.scope");
+			log.debug("Application / web scope: {}", appScope);
+			assertTrue(appScope.getDepth() == 1);
+		}
+		SOApplication app = (SOApplication) applicationContext.getBean("web.handler");
+		app.initTSOwithListener();
+		// go to sleep
+		try {
+			Thread.sleep(500);
+		} catch (Exception e) {
+		}
+		// set something on the so
+		ISharedObject so = app.getSharedObject(appScope, "statusSO");
+		so.setAttribute("testing", true);
+		// go to sleep
+		try {
+			Thread.sleep(1000);
+		} catch (Exception e) {
+		}
+		log.debug("Attribute names: {}", so.getAttributeNames());
+		// [status, testing]
+		assertTrue(so.getAttributeNames().size() == 2);
+	}
+
 	// Used to ensure all the test-runnables are in "runTest" block.
 	private static boolean allThreadsRunning() {
 		for (TestRunnable r : trs) {
@@ -213,11 +235,11 @@ public class SharedObjectTest extends AbstractJUnit4SpringContextTests {
 		private ISharedObject so;
 
 		private volatile boolean running = false;
-		
+
 		public SOClientWorker(int id, SOApplication app, IScope room) {
 			this.id = id;
 			this.so = app.getSharedObject(room, "dirtySO", true);
-			ISharedObjectListener listener = new MySOListener(id);
+			ISharedObjectListener listener = new SOListener(id);
 			so.addSharedObjectListener(listener);
 		}
 
@@ -247,100 +269,10 @@ public class SharedObjectTest extends AbstractJUnit4SpringContextTests {
 		public ISharedObject getSO() {
 			return so;
 		}
- 
+
 		public boolean isRunning() {
 			return running;
 		}
-	}
-
-	private class MySOListener implements ISharedObjectListener {
-
-		@SuppressWarnings("unused")
-		private int id;
-
-		public MySOListener(int id) {
-			this.id = id;
-		}
-
-		@Override
-		public void onSharedObjectConnect(ISharedObjectBase so) {
-			log.trace("onSharedObjectConnect");
-		}
-
-		@Override
-		public void onSharedObjectDisconnect(ISharedObjectBase so) {
-			log.trace("onSharedObjectDisconnect");
-		}
-
-		@Override
-		public void onSharedObjectUpdate(ISharedObjectBase so, String key, Object value) {
-			log.trace("onSharedObjectUpdate - key: {} value: {}", key, value);
-		}
-
-		@Override
-		public void onSharedObjectUpdate(ISharedObjectBase so, IAttributeStore values) {
-			log.trace("onSharedObjectUpdate - values: {}", values);
-		}
-
-		@Override
-		public void onSharedObjectUpdate(ISharedObjectBase so, Map<String, Object> values) {
-			log.trace("onSharedObjectUpdate - values: {}", values);
-		}
-
-		@Override
-		public void onSharedObjectDelete(ISharedObjectBase so, String key) {
-			log.trace("onSharedObjectDelete");
-		}
-
-		@Override
-		public void onSharedObjectClear(ISharedObjectBase so) {
-			log.trace("onSharedObjectClear");
-		}
-
-		@Override
-		public void onSharedObjectSend(ISharedObjectBase so, String method, List<?> params) {
-			log.trace("onSharedObjectSend");
-		}
-	}
-
-	@SuppressWarnings({"rawtypes", "unused"})
-	private class Complex {
-		
-		private long x = System.currentTimeMillis();
-
-		private String s = "Complex object";
-
-		private Map map = new HashMap();
-
-		public long getX() {
-			return x;
-		}
-
-		public void setX(long x) {
-			this.x = x;
-		}
-
-		public String getS() {
-			return s;
-		}
-
-		public void setS(String s) {
-			this.s = s;
-		}
-
-		public Map getMap() {
-			return map;
-		}
-
-		public void setMap(Map map) {
-			this.map = map;
-		}
-
-		@Override
-		public String toString() {
-			return "Complex [x=" + x + ", s=" + s + ", map=" + map + "]";
-		}
-
 	}
 
 }

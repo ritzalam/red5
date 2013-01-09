@@ -9,13 +9,19 @@ import org.red5.server.api.so.ISharedObject;
 public class SOApplication extends MultiThreadedApplicationAdapter {
 
 	private String persistentSO = "persistentSO";
-	
+
+	private IScope appScope;
+
+	private ISharedObject TSO;
+
 	/* (non-Javadoc)
 	 * @see org.red5.server.adapter.MultiThreadedApplicationAdapter#appStart(org.red5.server.api.scope.IScope)
 	 */
 	@SuppressWarnings("unused")
 	@Override
-	public boolean appStart(IScope app) {		
+	public boolean appStart(IScope app) {
+		// save ref
+		appScope = app;
 		// create persistent SO
 		createSharedObject(app, persistentSO, true);
 		// get the SO
@@ -95,6 +101,15 @@ public class SOApplication extends MultiThreadedApplicationAdapter {
 	@Override
 	public void roomLeave(IClient client, IScope room) {
 		super.roomLeave(client, room);
+	}
+
+	// internal method for issue #328
+	public void initTSOwithListener() {
+		log.debug("initTSOwithListener initialised");
+		createSharedObject(appScope, "statusSO", true);
+		TSO = getSharedObject(appScope, "statusSO");
+		TSO.addSharedObjectListener(new SOListener());
+		TSO.setAttribute("status", "TSO started!");
 	}
 
 }

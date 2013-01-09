@@ -21,15 +21,13 @@
     <bean id="red5.server" class="org.red5.server.Server" />
 
     <!-- Thread that writes modified objects to disk periodically -->
-    <bean id="filePersistenceThread" class="org.red5.server.persistence.FilePersistenceThread" />
+    <bean id="filePersistenceThread" class="org.red5.server.persistence.FilePersistenceThread">
+        <property name="storeInterval" value="250" />
+    </bean>
 
     <!-- Handles creation / lookup of shared objects -->
-    <bean id="sharedObjectService" class="org.red5.server.so.SharedObjectService" >
-        <!-- 
-        <property name="persistenceClassName" >
-            <value>org.red5.server.persistence.FilePersistence</value>
-        </property>
-        -->
+    <bean id="sharedObjectService" class="org.red5.server.so.SharedObjectService">
+        <property name="persistenceClassName" value="org.red5.server.persistence.FilePersistence"/>
     </bean>
     <bean id="providerService" class="org.red5.server.stream.ProviderService" />
     <bean id="consumerService" class="org.red5.server.stream.ConsumerService" />
@@ -61,7 +59,7 @@
         <property name="name" value="default" />
         <property name="context" ref="global.context" />
         <property name="handler" ref="global.handler" />
-        <property name="persistenceClass" value="org.red5.server.persistence.RamPersistence" />
+        <property name="persistenceClass" value="org.red5.server.persistence.FilePersistence" />
     </bean>
 
     <bean id="red5.scopeResolver" class="org.red5.server.scope.ScopeResolver" >
@@ -76,7 +74,10 @@
         <property name="parent" ref="global.scope" />
         <property name="context" ref="web.context" />
         <property name="handler" ref="web.handler" />
+        <!-- 
         <property name="persistenceClass" value="org.red5.server.persistence.RamPersistence" />
+         -->
+        <property name="persistenceClass" value="org.red5.server.persistence.FilePersistence" />
         <property name="contextPath" value="/junit" />
         <property name="virtualHosts" value="*" />
     </bean>

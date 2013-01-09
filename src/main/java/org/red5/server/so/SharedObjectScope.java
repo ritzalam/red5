@@ -96,6 +96,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 		if ("".equals(path) || path.charAt(0) != '/') {
 			path = '/' + path;
 		}
+		log.trace("Path+name: {}/{}", path, name);
 		// Load SO
 		so = (SharedObject) store.load(ScopeType.SHARED_OBJECT + path + '/' + name);
 		// Create if it doesn't exist

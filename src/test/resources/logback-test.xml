@@ -25,6 +25,10 @@
 		<level value="DEBUG" />
 	</logger>
 
+    <logger name="org.red5.server.persistence">
+        <level value="DEBUG" />
+    </logger>
+    
 	<logger name="org.red5.server.so">
 		<level value="TRACE" />
 	</logger>

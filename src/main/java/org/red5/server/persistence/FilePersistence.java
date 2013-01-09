@@ -77,7 +77,7 @@ public class FilePersistence extends RamPersistence {
 	/**
 	 * Thread to serialize persistent objects.
 	 */
-	private FilePersistenceThread storeThread = null;
+	private FilePersistenceThread storeThread;
 
 	/**
 	 * Create file persistence object from given resource pattern resolver
@@ -98,6 +98,57 @@ public class FilePersistence extends RamPersistence {
 	}
 
 	/**
+	 * Returns the context path.
+	 * 
+	 * @param rootFile
+	 * @return context path
+	 */
+	private String getContextPath(Resource rootFile) {
+		String contextPath = null;
+		if (rootFile instanceof ServletContextResource) {
+			ServletContextResource servletResource = (ServletContextResource) rootFile;
+			contextPath = servletResource.getServletContext().getContextPath();
+			if ("/".equals(contextPath)) {
+				contextPath = "/root";
+			}
+		} else if (resources instanceof IScope) {
+			contextPath = ((IScope) resources).getContextPath();
+			if (contextPath == null) {
+				contextPath = "/root";
+			}
+		}
+		log.debug("Persistence context path: {}", contextPath);
+		return contextPath;
+	}
+
+	/**
+	 * Initializes the root directory and creates it if it doesn't already exist.
+	 * 
+	 * @param rootFile
+	 * @param contextPath
+	 * @throws IOException 
+	 */
+	private void initRootDir(Resource rootFile, String contextPath) throws IOException {
+		if (rootFile instanceof ServletContextResource) {
+			rootDir = String.format("%s/webapps%s", System.getProperty("red5.root"), contextPath);
+		} else if (resources instanceof IScope) {
+			rootDir = String.format("%s%s", resources.getResource("/").getFile().getAbsolutePath(), contextPath);
+		}
+		log.debug("Persistence directory path: {}", rootDir);
+		File persistDir = new File(rootDir, path);
+		if (!persistDir.exists()) {
+			if (!persistDir.mkdirs()) {
+				log.warn("Persistence directory creation failed");
+			} else {
+				log.debug("Persistence directory access - read: {} write: {}", persistDir.canRead(), persistDir.canWrite());
+			}
+		} else {
+			log.debug("Persistence directory access - read: {} write: {}", persistDir.canRead(), persistDir.canWrite());
+		}
+		persistDir = null;
+	}
+
+	/**
 	 * Setter for file path.
 	 *
 	 * @param path  New path
@@ -106,36 +157,25 @@ public class FilePersistence extends RamPersistence {
 		log.debug("Set path: {}", path);
 		Resource rootFile = resources.getResource(path);
 		try {
+			log.debug("Absolute path: {}", resources.getResource("/").getFile().getAbsolutePath());
 			// check for existence
 			if (!rootFile.exists()) {
 				log.debug("Persistence directory does not exist");
-				if (rootFile instanceof ServletContextResource) {
-					ServletContextResource servletResource = (ServletContextResource) rootFile;
-					String contextPath = servletResource.getServletContext().getContextPath();
-					log.debug("Persistence context path: {}", contextPath);
-					if ("/".equals(contextPath)) {
-						contextPath = "/root";
-					}
-					rootDir = String.format("%s/webapps%s/persistence", System.getProperty("red5.root"), contextPath);
-					log.debug("Persistence directory path: {}", rootDir);
-					File persistDir = new File(rootDir);
-					if (!persistDir.mkdir()) {
-						log.warn("Persistence directory creation failed");
-					} else {
-						log.debug("Persistence directory access - read: {} write: {}", persistDir.canRead(), persistDir.canWrite());
-					}
-					persistDir = null;
-				}
+				// get context path
+				String contextPath = getContextPath(rootFile);
+				// int root dir
+				initRootDir(rootFile, contextPath);
 			} else {
 				rootDir = rootFile.getFile().getAbsolutePath();
 			}
 			log.debug("Root dir: {} path: {}", rootDir, path);
+			// set the path
 			this.path = path;
+			storeThread = FilePersistenceThread.getInstance();
 		} catch (IOException err) {
 			log.error("I/O exception thrown when setting file path to {}", path, err);
 			throw new RuntimeException(err);
 		}
-		storeThread = FilePersistenceThread.getInstance();
 	}
 
 	/**
@@ -159,7 +199,7 @@ public class FilePersistence extends RamPersistence {
 	/**
 	 * Return file path for persistable object
 	 * @param object          Object to obtain file path for
-	 * @param completePath    Whether it full path full path sould be returned
+	 * @param completePath    Whether full path should be returned
 	 * @return                Path on disk
 	 */
 	private String getObjectFilepath(IPersistable object, boolean completePath) {
@@ -174,7 +214,6 @@ public class FilePersistence extends RamPersistence {
 		if (!objectPath.endsWith("/")) {
 			result.append('/');
 		}
-
 		if (completePath) {
 			String name = object.getName();
 			log.debug("Object name: {}", name);
@@ -183,7 +222,6 @@ public class FilePersistence extends RamPersistence {
 				result.append(name.substring(0, pos));
 			}
 		}
-
 		//fix up path
 		int idx = -1;
 		if (File.separatorChar != '/') {
@@ -192,24 +230,17 @@ public class FilePersistence extends RamPersistence {
 				result.insert(idx, '/');
 			}
 		}
-		if (log.isDebugEnabled()) {
-			log.debug("Path step 1: {}", result.toString());
-		}
 		//remove any './'
 		if ((idx = result.indexOf("./")) != -1) {
 			result.delete(idx, idx + 2);
-		}
-		if (log.isDebugEnabled()) {
-			log.debug("Path step 2: {}", result.toString());
 		}
 		//remove any '//'
 		while ((idx = result.indexOf("//")) != -1) {
 			result.deleteCharAt(idx);
 		}
 		if (log.isDebugEnabled()) {
-			log.debug("Path step 3: {}", result.toString());
+			log.debug("Adjusted object path: {}", result.toString());
 		}
-
 		return result.toString();
 	}
 
@@ -252,13 +283,33 @@ public class FilePersistence extends RamPersistence {
 	 * @return                 Persistable object
 	 */
 	private IPersistable doLoad(String name, IPersistable object) {
+		log.debug("doLoad - name: {} object: {}", name, object);
 		IPersistable result = object;
+		if (log.isTraceEnabled()) {
+			try {
+				log.debug("Relative #1: {}", resources.getResource(name).getFile().getAbsolutePath());
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}
 		Resource data = resources.getResource(name);
 		if (data == null || !data.exists()) {
 			// No such file
-			return null;
+			log.debug("Resource / data was not found");
+			if (log.isTraceEnabled()) {
+				try {
+					log.trace("Absolute #2: {}", resources.getResource("file://" + rootDir + '/' + name).getFile().getAbsolutePath());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			// try again with full path
+			data = resources.getResource("file://" + rootDir + '/' + name);
+			if (data == null || !data.exists()) {
+				log.debug("Resource / data was not found (full path)");
+				return null;
+			}
 		}
-
 		FileInputStream input;
 		String filename;
 		try {
@@ -324,7 +375,7 @@ public class FilePersistence extends RamPersistence {
 						return null;
 					}
 					// set object's properties
-					result.setName(getObjectName(name));
+					log.debug("Name (after load): {}", result.getName());
 					result.setPath(getObjectPath(name, result.getName()));
 				} else {
 					// Initialize existing object
@@ -354,6 +405,7 @@ public class FilePersistence extends RamPersistence {
 	/** {@inheritDoc} */
 	@Override
 	public IPersistable load(String name) {
+		log.debug("load - name: {}", name);
 		IPersistable result = super.load(name);
 		if (result != null) {
 			// Object has already been loaded
@@ -365,6 +417,7 @@ public class FilePersistence extends RamPersistence {
 	/** {@inheritDoc} */
 	@Override
 	public boolean load(IPersistable object) {
+		log.debug("load - name: {}", object);
 		if (object.isPersistent()) {
 			// Already loaded
 			return true;
@@ -378,18 +431,19 @@ public class FilePersistence extends RamPersistence {
 	 * @return                 <code>true</code> on success, <code>false</code> otherwise
 	 */
 	protected boolean saveObject(IPersistable object) {
+		log.debug("saveObject - object: {}", object);
 		boolean result = true;
 		String path = getObjectFilepath(object, true);
-		log.debug("Path: {}", path);
+		log.trace("Path: {}", path);
 		Resource resPath = resources.getResource(path);
 		boolean exists = resPath.exists();
-		log.debug("Resource (dir) check #1 - file name: {} exists: {}", resPath.getFilename(), exists);
+		log.debug("Resource (relative dir) exists: {}", exists);
 		File dir = null;
 		try {
 			if (!exists) {
 				resPath = resources.getResource("classpath:" + path);
 				exists = resPath.exists();
-				log.debug("Resource (dir) check #2 - file name: {} exists: {}", resPath.getFilename(), exists);
+				log.debug("Resource (classpath dir) exists: {}", exists);
 				if (!exists) {
 					StringBuilder root = new StringBuilder(rootDir);
 					//fix up path
@@ -400,12 +454,13 @@ public class FilePersistence extends RamPersistence {
 							root.insert(idx, '/');
 						}
 					}
-					resPath = resources.getResource("file://" + root.toString() + path.substring(11));
+					resPath = resources.getResource("file://" + root.toString() + File.separatorChar + path);
 					exists = resPath.exists();
-					log.debug("Resource (dir) check #3 - file name: {} exists: {}", resPath.getFilename(), exists);
+					log.debug("Resource (absolute dir) exists: {}", exists);
 				}
 			}
 			dir = resPath.getFile();
+			log.debug("Resulting absolute path: {}", dir.getAbsolutePath());
 			if (!dir.isDirectory() && !dir.mkdirs()) {
 				log.error("Could not create directory {}", dir.getAbsolutePath());
 				result = false;

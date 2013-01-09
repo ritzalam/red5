@@ -141,6 +141,7 @@ public class SharedObjectService implements ISharedObjectService, InitializingBe
 			return scope.addChildScope(new SharedObjectScope(scope, name, persistent, getStore(scope, persistent)));
 		}
 		// the shared object already exists
+		log.trace("Shared object ({}) already exists. Persistent: {}", name, persistent);
 		return true;
 	}
 

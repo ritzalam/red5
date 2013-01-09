@@ -27,6 +27,8 @@ import java.util.concurrent.ScheduledFuture;
 import org.red5.server.api.persistence.IPersistable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 /**
  * Thread that writes modified persistent objects to the file system
@@ -35,7 +37,7 @@ import org.slf4j.LoggerFactory;
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
-public class FilePersistenceThread implements Runnable {
+public class FilePersistenceThread implements Runnable, DisposableBean {
 
 	/**
 	 * Logger
@@ -63,7 +65,7 @@ public class FilePersistenceThread implements Runnable {
 	 * Each FilePersistenceThread has its own scheduler and the executor is
 	 * guaranteed to only run a single task at a time.
 	 */
-	private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+	private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1, new CustomizableThreadFactory("FilePersistence-"));
 
 	/**
 	 * Return singleton instance of the thread.
@@ -93,6 +95,7 @@ public class FilePersistenceThread implements Runnable {
 	 * @param store
 	 */
 	protected void modified(IPersistable object, FilePersistence store) {
+		log.debug("modified");		
 		FilePersistence previous = objects.put(new UpdateEntry(object, store), store);
 		if (previous != null && !previous.equals(store)) {
 			log.warn("Object {} was also modified in {}, saving instantly", new Object[] { object, previous });
@@ -106,6 +109,7 @@ public class FilePersistenceThread implements Runnable {
 	 * @param store
 	 */
 	protected void notifyClose(FilePersistence store) {
+		log.debug("notifyClose");
 		// Store pending objects for this store
 		for (UpdateEntry entry : objects.keySet()) {
 			if (!store.equals(entry.store)) {
@@ -125,6 +129,7 @@ public class FilePersistenceThread implements Runnable {
 	 * Write modified objects to the file system periodically.
 	 */
 	public void run() {
+		log.debug("run");		
 		if (!objects.isEmpty()) {
 			for (UpdateEntry entry : objects.keySet()) {
 				try {
@@ -141,7 +146,22 @@ public class FilePersistenceThread implements Runnable {
 	 * Cleanly shutdown the tasks
 	 */
 	public void shutdown() {
+		log.debug("shutdown");
 		scheduler.shutdown();
+	}
+
+	/**
+	 * @return the storeInterval
+	 */
+	public long getStoreInterval() {
+		return storeInterval;
+	}
+
+	/**
+	 * @param storeInterval the storeInterval to set
+	 */
+	public void setStoreInterval(long storeInterval) {
+		this.storeInterval = storeInterval;
 	}
 
 	/**
@@ -177,7 +197,6 @@ public class FilePersistenceThread implements Runnable {
 			if (!(other instanceof UpdateEntry)) {
 				return false;
 			}
-
 			return (object.equals(((UpdateEntry) other).object) && store.equals(((UpdateEntry) other).store));
 		}
 
@@ -191,6 +210,17 @@ public class FilePersistenceThread implements Runnable {
 			return object.hashCode() + store.hashCode();
 		}
 
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		// kill the scheduler
+		shutdown();
+		// run the thread one last time
+		Thread t = new Thread(this, "FilePersistenceThread-Shutdown");
+		t.setDaemon(false);
+		t.start();
+		t.join();
 	}
 
 }
