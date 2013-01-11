@@ -85,6 +85,28 @@
 				<include>*.properties</include>
 			</includes>
 		</fileSet>
+		<!-- Uncomment the next two file sets when creating a tarball / zip -->
+		<!--
+		<fileSet>
+			<directory>../../../flash/trunk/deploy</directory>
+			<outputDirectory>/webapps/root/demos</outputDirectory>
+			<includes>
+				<include>*.html</include>
+				<include>*.xml</include>
+				<include>*.js</include>
+				<include>*.swf</include>
+				<include>*.air</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>../../../flash/trunk/deploy/assets</directory>
+			<outputDirectory>/webapps/root/demos/assets</outputDirectory>
+			<includes>
+				<include>*.js</include>
+				<include>*.swf</include>
+			</includes>
+		</fileSet>
+		-->
 		<!-- Installer -->
 		<fileSet>
 			<directory>${project.basedir}/src/main/server/webapps/installer</directory>
