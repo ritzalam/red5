@@ -23,7 +23,14 @@
 			</includes>
 		</fileSet>
 		<fileSet>
-			<directory>${project.basedir}/lib</directory>
+			<directory>${project.build.directory}/lib</directory>
+			<outputDirectory>/lib</outputDirectory>
+			<includes>
+				<include>*.jar</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>${project.build.directory}/dependency</directory>
 			<outputDirectory>/lib</outputDirectory>
 			<includes>
 				<include>*.jar</include>
