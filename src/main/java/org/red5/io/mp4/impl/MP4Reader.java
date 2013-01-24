@@ -33,9 +33,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 import java.util.concurrent.Semaphore;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.IStreamableFile;
@@ -45,15 +45,58 @@ import org.red5.io.IoConstants;
 import org.red5.io.amf.Output;
 import org.red5.io.flv.IKeyFrameDataAnalyzer;
 import org.red5.io.flv.impl.Tag;
-import org.red5.io.mp4.MP4Atom;
-import org.red5.io.mp4.MP4Atom.CompositionTimeSampleRecord;
-import org.red5.io.mp4.MP4DataStream;
-import org.red5.io.mp4.MP4Descriptor;
 import org.red5.io.mp4.MP4Frame;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.HexDump;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.coremedia.iso.IsoFile;
+import com.coremedia.iso.boxes.AbstractMediaHeaderBox;
+import com.coremedia.iso.boxes.Box;
+import com.coremedia.iso.boxes.ChunkOffset64BitBox;
+import com.coremedia.iso.boxes.ChunkOffsetBox;
+import com.coremedia.iso.boxes.CompositionTimeToSample;
+import com.coremedia.iso.boxes.ContainerBox;
+import com.coremedia.iso.boxes.HandlerBox;
+import com.coremedia.iso.boxes.MediaBox;
+import com.coremedia.iso.boxes.MediaHeaderBox;
+import com.coremedia.iso.boxes.MediaInformationBox;
+import com.coremedia.iso.boxes.MovieBox;
+import com.coremedia.iso.boxes.MovieHeaderBox;
+import com.coremedia.iso.boxes.SampleDependencyTypeBox;
+import com.coremedia.iso.boxes.SampleDescriptionBox;
+import com.coremedia.iso.boxes.SampleSizeBox;
+import com.coremedia.iso.boxes.SampleTableBox;
+import com.coremedia.iso.boxes.SampleToChunkBox;
+import com.coremedia.iso.boxes.SampleToChunkBox.Entry;
+import com.coremedia.iso.boxes.SoundMediaHeaderBox;
+import com.coremedia.iso.boxes.SyncSampleBox;
+import com.coremedia.iso.boxes.TimeToSampleBox;
+import com.coremedia.iso.boxes.TrackBox;
+import com.coremedia.iso.boxes.TrackHeaderBox;
+import com.coremedia.iso.boxes.VideoMediaHeaderBox;
+import com.coremedia.iso.boxes.apple.AppleWaveBox;
+import com.coremedia.iso.boxes.fragment.MovieExtendsBox;
+import com.coremedia.iso.boxes.fragment.MovieFragmentBox;
+import com.coremedia.iso.boxes.fragment.MovieFragmentHeaderBox;
+import com.coremedia.iso.boxes.fragment.MovieFragmentRandomAccessBox;
+import com.coremedia.iso.boxes.fragment.TrackExtendsBox;
+import com.coremedia.iso.boxes.fragment.TrackFragmentBox;
+import com.coremedia.iso.boxes.fragment.TrackFragmentHeaderBox;
+import com.coremedia.iso.boxes.fragment.TrackRunBox;
+import com.coremedia.iso.boxes.h264.AvcConfigurationBox;
+import com.coremedia.iso.boxes.h264.AvcConfigurationBox.AVCDecoderConfigurationRecord;
+import com.coremedia.iso.boxes.mdat.MediaDataBox;
+import com.coremedia.iso.boxes.sampleentry.AudioSampleEntry;
+import com.coremedia.iso.boxes.sampleentry.SampleEntry;
+import com.coremedia.iso.boxes.sampleentry.VisualSampleEntry;
+import com.googlecode.mp4parser.boxes.adobe.ActionMessageFormat0SampleEntryBox;
+import com.googlecode.mp4parser.boxes.mp4.ESDescriptorBox;
+import com.googlecode.mp4parser.boxes.mp4.objectdescriptors.AudioSpecificConfig;
+import com.googlecode.mp4parser.boxes.mp4.objectdescriptors.DecoderConfigDescriptor;
+import com.googlecode.mp4parser.boxes.mp4.objectdescriptors.DecoderSpecificInfo;
+import com.googlecode.mp4parser.boxes.mp4.objectdescriptors.ESDescriptor;
 
 /**
  * This reader is used to read the contents of an MP4 file.
@@ -104,12 +147,17 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	/**
 	 * Input stream
 	 */
-	private MP4DataStream fis;
+	private FileInputStream fis;
 
 	/**
 	 * File channel
 	 */
 	private FileChannel channel;
+
+	/**
+	 * Provider of boxes
+	 */
+	private IsoFile isoFile;
 
 	/** Mapping between file position and timestamp in ms. */
 	private HashMap<Integer, Long> timePosMap;
@@ -137,7 +185,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	private long duration;
 
 	// movie time scale
-	private int timeScale;
+	private long timeScale;
 
 	private int width;
 
@@ -151,7 +199,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	//default to aac lc
 	private int audioCodecType = 1;
 
-	private int videoSampleCount;
+	private long videoSampleCount;
 
 	private double fps;
 
@@ -163,32 +211,34 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 
 	private String formattedDuration;
 
-	private long moovOffset;
+	//private long moovOffset;
 
 	private long mdatOffset;
 
 	//samples to chunk mappings
-	private Vector<MP4Atom.Record> videoSamplesToChunks;
+	private List<SampleToChunkBox.Entry> videoSamplesToChunks;
 
-	private Vector<MP4Atom.Record> audioSamplesToChunks;
+	private List<SampleToChunkBox.Entry> audioSamplesToChunks;
 
 	//keyframe - sample numbers
-	private Vector<Integer> syncSamples;
+	private long[] syncSamples;
 
 	//samples 
-	private Vector<Integer> videoSamples;
+	private long[] videoSamples;
 
-	private Vector<Integer> audioSamples;
+	private long[] audioSamples;
+
+	private long audioSampleSize;
 
 	//chunk offsets
-	private Vector<Long> videoChunkOffsets;
+	private long[] videoChunkOffsets;
 
-	private Vector<Long> audioChunkOffsets;
+	private long[] audioChunkOffsets;
 
 	//sample duration
-	private int videoSampleDuration = 125;
+	private long videoSampleDuration = 125;
 
-	private int audioSampleDuration = 1024;
+	private long audioSampleDuration = 1024;
 
 	//keep track of current frame / sample
 	private int currentFrame = 0;
@@ -206,7 +256,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	private long videoCount;
 
 	// composition time to sample entries
-	private Vector<MP4Atom.CompositionTimeSampleRecord> compositionTimes;
+	private List<CompositionTimeToSample.Entry> compositionTimes;
 
 	/**
 	 * Container for metadata and any other tags that should
@@ -237,16 +287,22 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			log.debug("{}", ToStringBuilder.reflectionToString(this));
 		}
 		this.file = f;
-		this.fis = new MP4DataStream(new FileInputStream(f));
-		channel = fis.getChannel();
-		//decode all the info that we want from the atoms
-		decodeHeader();
-		//analyze the samples/chunks and build the keyframe meta data
-		analyzeFrames();
-		//add meta data
-		firstTags.add(createFileMeta());
-		//create / add the pre-streaming (decoder config) tags
-		createPreStreamingTags(0, false);
+		if (file.exists() && file.canRead()) {
+			this.fis = new FileInputStream(f);
+			channel = fis.getChannel();
+			// instance an iso file from mp4parser
+			isoFile = new IsoFile(channel);
+			//decode all the info that we want from the atoms
+			decodeHeader();
+			//analyze the samples/chunks and build the keyframe meta data
+			analyzeFrames();
+			//add meta data
+			firstTags.add(createFileMeta());
+			//create / add the pre-streaming (decoder config) tags
+			createPreStreamingTags(0, false);
+		} else {
+			log.warn("Reader was passed an unreadable or non-existant file");
+		}
 	}
 
 	/**
@@ -255,585 +311,531 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	 */
 	public void decodeHeader() {
 		try {
-			// the first atom will/should be the type
-			MP4Atom type = MP4Atom.createAtom(fis);
-			// expect ftyp
-			log.debug("Type {}", MP4Atom.intToType(type.getType()));
 			// we want a moov and an mdat, anything else will throw the invalid file type error
-			MP4Atom moov = null;
-			MP4Atom mdat = null;
-			while (moov == null || mdat == null) {
-				MP4Atom atom = MP4Atom.createAtom(fis);
-				switch (atom.getType()) {
-					case 1836019574: //moov
-						moov = atom;
-						// expect moov
-						log.debug("Type {}", MP4Atom.intToType(moov.getType()));
-						log.debug("moov children: {}", moov.getChildren());
-						moovOffset = fis.getOffset() - moov.getSize();
-						MP4Atom mvhd = moov.lookup(MP4Atom.typeToInt("mvhd"), 0);
-						if (mvhd != null) {
-							log.debug("Movie header atom found");
-							//get the initial timescale
-							timeScale = mvhd.getTimeScale();
-							duration = mvhd.getDuration();
-							log.debug("Time scale {} Duration {}", timeScale, duration);
-						}
-						MP4Atom meta = moov.lookup(MP4Atom.typeToInt("meta"), 0);
-						if (meta != null) {
-							log.debug("Meta atom found");
-							log.debug("{}", ToStringBuilder.reflectionToString(meta));
-						}
-						MP4Atom udta = moov.lookup(MP4Atom.typeToInt("udta"), 0);
-						if (udta != null) {
-							log.debug("User data atom found");
-							log.debug("{}", ToStringBuilder.reflectionToString(udta));
-							if ((meta = udta.lookup(MP4Atom.typeToInt("meta"), 0)) != null) {
-								log.debug("Meta atom found");
-								log.debug("{}", ToStringBuilder.reflectionToString(meta));
+			MovieBox moov = isoFile.getBoxes(MovieBox.class).get(0);
+			if (log.isDebugEnabled()) {
+				log.debug("moov children: {}", moov.getBoxes().size());
+				dumpBox(moov);
+			}
+			// get the movie header
+			MovieHeaderBox mvhd = moov.getMovieHeaderBox();
+			// get the timescale and duration
+			timeScale = mvhd.getTimescale();
+			duration = mvhd.getDuration();
+			log.debug("Time scale {} Duration {}", timeScale, duration);
+			double lengthInSeconds = (double) duration / timeScale;
+			log.debug("Seconds {}", lengthInSeconds);
+			// look at the tracks
+			log.debug("Tracks: {}", moov.getTrackCount());
+			List<TrackBox> tracks = moov.getBoxes(TrackBox.class); // trak
+			for (TrackBox trak : tracks) {
+				if (log.isDebugEnabled()) {
+					log.debug("trak children: {}", trak.getBoxes().size());
+					dumpBox(trak);
+				}
+				TrackHeaderBox tkhd = trak.getTrackHeaderBox(); // tkhd
+				log.debug("Track id: {}", tkhd.getTrackId());
+				if (tkhd != null && tkhd.getWidth() > 0) {
+					width = (int) tkhd.getWidth();
+					height = (int) tkhd.getHeight();
+					log.debug("Width {} x Height {}", width, height);
+				}
+				MediaBox mdia = trak.getMediaBox(); // mdia
+				long scale = 0;
+				if (mdia != null) {
+					if (log.isDebugEnabled()) {
+						log.debug("mdia children: {}", mdia.getBoxes().size());
+						dumpBox(mdia);
+					}
+					MediaHeaderBox mdhd = mdia.getMediaHeaderBox(); // mdhd
+					if (mdhd != null) {
+						log.debug("Media data header atom found");
+						// this will be for either video or audio depending media info
+						scale = mdhd.getTimescale();
+						log.debug("Time scale {}", scale);
+					}
+					HandlerBox hdlr = mdia.getHandlerBox(); // hdlr
+					if (hdlr != null) {
+						String hdlrType = hdlr.getHandlerType();
+						if ("vide".equals(hdlrType)) {
+							hasVideo = true;
+							if (scale > 0) {
+								videoTimeScale = scale * 1.0;
+								log.debug("Video time scale: {}", videoTimeScale);
 							}
-						}
-						//we would like to have two tracks, but it shouldn't be a requirement
-						int loops = 0;
-						int tracks = 0;
-						do {
-							MP4Atom trak = moov.lookup(MP4Atom.typeToInt("trak"), loops);
-							if (trak != null) {
-								log.debug("Track atom found");
-								log.debug("trak children: {}", trak.getChildren());
-								// trak: tkhd, edts, mdia
-								MP4Atom tkhd = trak.lookup(MP4Atom.typeToInt("tkhd"), 0);
-								if (tkhd != null) {
-									log.debug("Track header atom found");
-									log.debug("tkhd children: {}", tkhd.getChildren());
-									if (tkhd.getWidth() > 0) {
-										width = tkhd.getWidth();
-										height = tkhd.getHeight();
-										log.debug("Width {} x Height {}", width, height);
-									}
-								}
-								MP4Atom edts = trak.lookup(MP4Atom.typeToInt("edts"), 0);
-								if (edts != null) {
-									log.debug("Edit atom found");
-									log.debug("edts children: {}", edts.getChildren());
-									//log.debug("Width {} x Height {}", edts.getWidth(), edts.getHeight());
-								}
-								MP4Atom mdia = trak.lookup(MP4Atom.typeToInt("mdia"), 0);
-								if (mdia != null) {
-									log.debug("Media atom found");
-									// mdia: mdhd, hdlr, minf
-									int scale = 0;
-									//get the media header atom
-									MP4Atom mdhd = mdia.lookup(MP4Atom.typeToInt("mdhd"), 0);
-									if (mdhd != null) {
-										log.debug("Media data header atom found");
-										//this will be for either video or audio depending media info
-										scale = mdhd.getTimeScale();
-										log.debug("Time scale {}", scale);
-									}
-									MP4Atom hdlr = mdia.lookup(MP4Atom.typeToInt("hdlr"), 0);
-									if (hdlr != null) {
-										log.debug("Handler ref atom found");
-										// soun or vide
-										log.debug("Handler type: {}", MP4Atom.intToType(hdlr.getHandlerType()));
-										String hdlrType = MP4Atom.intToType(hdlr.getHandlerType());
-										if ("vide".equals(hdlrType)) {
-											hasVideo = true;
-											if (scale > 0) {
-												videoTimeScale = scale * 1.0;
-												log.debug("Video time scale: {}", videoTimeScale);
-											}
-										} else if ("soun".equals(hdlrType)) {
-											hasAudio = true;
-											if (scale > 0) {
-												audioTimeScale = scale * 1.0;
-												log.debug("Audio time scale: {}", audioTimeScale);
-											}
-										}
-										tracks++;
-									}
-									MP4Atom minf = mdia.lookup(MP4Atom.typeToInt("minf"), 0);
-									if (minf != null) {
-										log.debug("Media info atom found");
-										// minf: (audio) smhd, dinf, stbl / (video) vmhd,
-										// dinf, stbl
-										MP4Atom smhd = minf.lookup(MP4Atom.typeToInt("smhd"), 0);
-										if (smhd != null) {
-											log.debug("Sound header atom found");
-											MP4Atom dinf = minf.lookup(MP4Atom.typeToInt("dinf"), 0);
-											if (dinf != null) {
-												log.debug("Data info atom found");
-												// dinf: dref
-												log.debug("Sound dinf children: {}", dinf.getChildren());
-												MP4Atom dref = dinf.lookup(MP4Atom.typeToInt("dref"), 0);
-												if (dref != null) {
-													log.debug("Data reference atom found");
-												}
-											}
-											MP4Atom stbl = minf.lookup(MP4Atom.typeToInt("stbl"), 0);
-											if (stbl != null) {
-												log.debug("Sample table atom found");
-												// stbl: stsd, stts, stss, stsc, stsz, stco,
-												// stsh
-												log.debug("Sound stbl children: {}", stbl.getChildren());
-												// stsd - sample description
-												// stts - time to sample
-												// stsc - sample to chunk
-												// stsz - sample size
-												// stco - chunk offset
-
-												//stsd - has codec child
-												MP4Atom stsd = stbl.lookup(MP4Atom.typeToInt("stsd"), 0);
-												if (stsd != null) {
-													//stsd: mp4a
-													log.debug("Sample description atom found, containing {} children", stsd.getChildren().size());
-													MP4Atom mp4a = stsd.getChildren().get(0);
-													log.debug("MP4 audio atom found, containing {} children", mp4a.getChildren().size());
-													log.debug("mp4a: {}", ToStringBuilder.reflectionToString(mp4a));
-													//could set the audio codec here
-													setAudioCodecId(MP4Atom.intToType(mp4a.getType()));
-													//log.debug("{}", ToStringBuilder.reflectionToString(mp4a));
-													log.debug("Sample size: {}", mp4a.getSampleSize());
-													int ats = mp4a.getTimeScale();
-													//skip invalid audio time scale
-													if (ats > 0) {
-														audioTimeScale = ats * 1.0;
-													}
-													audioChannels = mp4a.getChannelCount();
-													log.debug("Sample rate (audio time scale): {}", audioTimeScale);
-													log.debug("Channels: {}", audioChannels);
-													// look for esds
-													MP4Atom esds = mp4a.lookup(MP4Atom.typeToInt("esds"), 0);
-													if (esds == null) {
-														// check for decompression param atom
-														MP4Atom wave = mp4a.lookup(MP4Atom.typeToInt("wave"), 0);
-														log.debug("Decompression param atom found, containing {} children", wave.getChildren().size());
-														log.debug("wave: {}", ToStringBuilder.reflectionToString(wave));
-														MP4Atom tmp = wave.getChildren().get(0);
-														log.debug("Temp: {}", ToStringBuilder.reflectionToString(tmp));
-														esds = wave.lookup(MP4Atom.typeToInt("esds"), 0);
-														if (esds == null) {
-															tmp = wave.lookup(MP4Atom.typeToInt("mp4a"), 0);
-															esds = tmp.lookup(MP4Atom.typeToInt("esds"), 0);
-														}
-													}
-													//mp4a: esds
-													if (esds != null) {
-														log.debug("Elementary stream descriptor atom found, containing {} children", esds.getChildren().size());
-														log.debug("esds: {}", ToStringBuilder.reflectionToString(esds));
-														MP4Descriptor descriptor = esds.getEsd_descriptor();
-														if (descriptor != null) {
-															log.debug("ESD descriptor: {}", ToStringBuilder.reflectionToString(descriptor));
-															Vector<MP4Descriptor> children = descriptor.getChildren();
-															for (int e = 0; e < children.size(); e++) {
-																MP4Descriptor descr = children.get(e);
-																log.debug("Descriptor child: {}", ToStringBuilder.reflectionToString(descr));
-																if (descr.getChildren().size() > 0) {
-																	Vector<MP4Descriptor> children2 = descr.getChildren();
-																	for (int e2 = 0; e2 < children2.size(); e2++) {
-																		MP4Descriptor descr2 = children2.get(e2);
-																		log.debug("{}", ToStringBuilder.reflectionToString(descr2));
-																		// http://stackoverflow.com/questions/3987850/mp4-atom-how-to-discriminate-the-audio-codec-is-it-aac-or-mp3
-																		if (descr2.getType() == MP4Descriptor.MP4DecSpecificInfoDescriptorTag) {
-																			//we only want the MP4DecSpecificInfoDescriptorTag
-																			audioDecoderBytes = descr2.getDSID();
-																			/* the first 5 (0-4) bits tell us about the coder used for aacaot/aottype
-																			 * http://wiki.multimedia.cx/index.php?title=MPEG-4_Audio
-																			 0 - NULL
-																			 1 - AAC Main (a deprecated AAC profile from MPEG-2)
-																			 2 - AAC LC or backwards compatible HE-AAC 
-																			 3 - AAC Scalable Sample Rate
-																			 4 - AAC LTP (a replacement for AAC Main, rarely used)
-																			 5 - HE-AAC explicitly signaled (Non-backward compatible)
-																			23 - Low Delay AAC
-																			29 - HE-AACv2 explicitly signaled
-																			32 - MP3on4 Layer 1
-																			33 - MP3on4 Layer 2
-																			34 - MP3on4 Layer 3
-																			*/
-																			byte audioCoderType = audioDecoderBytes[0];
-																			//match first byte
-																			switch (audioCoderType) {
-																				case 0x02:
-																					log.debug("Audio type AAC LC");
-																				case 0x11: //ER (Error Resilient) AAC LC
-																					log.debug("Audio type ER AAC LC");
-																				default:
-																					audioCodecType = 1; //AAC LC
-																					break;
-																				case 0x01:
-																					log.debug("Audio type AAC Main");
-																					audioCodecType = 0; //AAC Main
-																					break;
-																				case 0x03:
-																					log.debug("Audio type AAC SBR");
-																					audioCodecType = 2; //AAC LC SBR
-																					break;
-																				case 0x05:
-																				case 0x1d:
-																					log.debug("Audio type AAC HE");
-																					audioCodecType = 3; //AAC HE
-																					break;
-																				case 0x20:
-																				case 0x21:
-																				case 0x22:
-																					log.debug("Audio type MP3");
-																					audioCodecType = 33; //MP3
-																					audioCodecId = "mp3";
-																					break;
-																			}
-																			log.debug("Audio coder type: {} {} id: {}",
-																					new Object[] { audioCoderType, Integer.toBinaryString(audioCoderType), audioCodecId });
-																			//we want to break out of top level for loop
-																			e = 99;
-																			break;
-																		}
-																	}
-																}
-															}
-														}
-													}
-												}
-												//stsc - has Records
-												MP4Atom stsc = stbl.lookup(MP4Atom.typeToInt("stsc"), 0);
-												if (stsc != null) {
-													log.debug("Sample to chunk atom found");
-													audioSamplesToChunks = stsc.getRecords();
-													log.debug("Record count: {}", audioSamplesToChunks.size());
-													// handle instance where there are no actual records (bad f4v?)
-													if (audioSamplesToChunks.size() > 0) {
-														MP4Atom.Record rec = audioSamplesToChunks.firstElement();
-														log.debug("Record data: Description index={} Samples per chunk={}", rec.getSampleDescriptionIndex(),
-																rec.getSamplesPerChunk());
-													}
-												}
-												//stsz - has Samples
-												MP4Atom stsz = stbl.lookup(MP4Atom.typeToInt("stsz"), 0);
-												if (stsz != null) {
-													log.debug("Sample size atom found");
-													audioSamples = stsz.getSamples();
-													//vector full of integers										
-													log.debug("Sample size: {}", stsz.getSampleSize());
-													log.debug("Sample count: {}", audioSamples.size());
-												}
-												//stco - has Chunks
-												MP4Atom stco = stbl.lookup(MP4Atom.typeToInt("stco"), 0);
-												if (stco != null) {
-													log.debug("Chunk offset atom found");
-													//vector full of integers
-													audioChunkOffsets = stco.getChunks();
-													log.debug("Chunk count: {}", audioChunkOffsets.size());
-												} else {
-													//co64 - has Chunks
-													MP4Atom co64 = stbl.lookup(MP4Atom.typeToInt("co64"), 0);
-													if (co64 != null) {
-														log.debug("Chunk offset (64) atom found");
-														//vector full of longs
-														audioChunkOffsets = co64.getChunks();
-														log.debug("Chunk count: {}", audioChunkOffsets.size());
-													}
-												}
-												//stts - has TimeSampleRecords
-												MP4Atom stts = stbl.lookup(MP4Atom.typeToInt("stts"), 0);
-												if (stts != null) {
-													log.debug("Time to sample atom found");
-													Vector<MP4Atom.TimeSampleRecord> records = stts.getTimeToSamplesRecords();
-													log.debug("Record count: {}", records.size());
-													// handle instance where there are no actual records (bad f4v?)
-													if (records.size() > 0) {
-														MP4Atom.TimeSampleRecord rec = records.firstElement();
-														log.debug("Record data: Consecutive samples={} Duration={}", rec.getConsecutiveSamples(), rec.getSampleDuration());
-														//if we have 1 record it means all samples have the same duration
-														audioSampleDuration = rec.getSampleDuration();
-													}
-												}
-											}
-										}
-										MP4Atom vmhd = minf.lookup(MP4Atom.typeToInt("vmhd"), 0);
-										if (vmhd != null) {
-											log.debug("Video header atom found");
-											MP4Atom dinf = minf.lookup(MP4Atom.typeToInt("dinf"), 0);
-											if (dinf != null) {
-												log.debug("Data info atom found");
-												// dinf: dref
-												log.debug("Video dinf children: {}", dinf.getChildren());
-												MP4Atom dref = dinf.lookup(MP4Atom.typeToInt("dref"), 0);
-												if (dref != null) {
-													log.debug("Data reference atom found");
-												}
-											}
-											MP4Atom stbl = minf.lookup(MP4Atom.typeToInt("stbl"), 0);
-											if (stbl != null) {
-												log.debug("Sample table atom found");
-												// stbl: stsd, stts, stss, stsc, stsz, stco,
-												// stsh
-												log.debug("Video stbl children: {}", stbl.getChildren());
-												// stsd - sample description
-												// stts - (decoding) time to sample
-												// stsc - sample to chunk
-												// stsz - sample size
-												// stco - chunk offset
-												// ctts - (composition) time to sample
-												// stss - sync sample
-												// sdtp - independent and disposable samples
-
-												//stsd - has codec child
-												MP4Atom stsd = stbl.lookup(MP4Atom.typeToInt("stsd"), 0);
-												if (stsd != null) {
-													log.debug("Sample description atom found");
-													log.debug("Sample description (video) stsd children: {}", stsd.getChildren());
-													MP4Atom avc1 = stsd.lookup(MP4Atom.typeToInt("avc1"), 0);
-													if (avc1 != null) {
-														log.debug("AVC1 children: {}", avc1.getChildren());
-														//set the video codec here - may be avc1 or mp4v
-														setVideoCodecId(MP4Atom.intToType(avc1.getType()));
-														//video decoder config
-														//TODO may need to be generic later
-														MP4Atom codecChild = avc1.lookup(MP4Atom.typeToInt("avcC"), 0);
-														if (codecChild != null) {
-															avcLevel = codecChild.getAvcLevel();
-															log.debug("AVC level: {}", avcLevel);
-															avcProfile = codecChild.getAvcProfile();
-															log.debug("AVC Profile: {}", avcProfile);
-															log.debug("AVCC size: {}", codecChild.getSize());
-															videoDecoderBytes = codecChild.getVideoConfigBytes();
-															log.debug("Video config bytes: {}", ToStringBuilder.reflectionToString(videoDecoderBytes));
-														} else {
-															//quicktime and ipods use a pixel aspect atom
-															//since we have no avcC check for this and avcC may
-															//be a child
-															MP4Atom pasp = avc1.lookup(MP4Atom.typeToInt("pasp"), 0);
-															if (pasp != null) {
-																log.debug("PASP children: {}", pasp.getChildren());
-																codecChild = pasp.lookup(MP4Atom.typeToInt("avcC"), 0);
-																if (codecChild != null) {
-																	avcLevel = codecChild.getAvcLevel();
-																	log.debug("AVC level: {}", avcLevel);
-																	avcProfile = codecChild.getAvcProfile();
-																	log.debug("AVC Profile: {}", avcProfile);
-																	log.debug("AVCC size: {}", codecChild.getSize());
-																	videoDecoderBytes = codecChild.getVideoConfigBytes();
-																	log.debug("Video config bytes: {}", ToStringBuilder.reflectionToString(videoDecoderBytes));
-																}
-															}
-														}
-													} else {
-														//look for mp4v
-														MP4Atom mp4v = stsd.lookup(MP4Atom.typeToInt("mp4v"), 0);
-														if (mp4v != null) {
-															log.debug("MP4V children: {}", mp4v.getChildren());
-															//set the video codec here - may be avc1 or mp4v
-															setVideoCodecId(MP4Atom.intToType(mp4v.getType()));
-															//look for esds 
-															MP4Atom codecChild = mp4v.lookup(MP4Atom.typeToInt("esds"), 0);
-															if (codecChild != null) {
-																//look for descriptors
-																MP4Descriptor descriptor = codecChild.getEsd_descriptor();
-																log.debug("{}", ToStringBuilder.reflectionToString(descriptor));
-																if (descriptor != null) {
-																	Vector<MP4Descriptor> children = descriptor.getChildren();
-																	for (int e = 0; e < children.size(); e++) {
-																		MP4Descriptor descr = children.get(e);
-																		log.debug("{}", ToStringBuilder.reflectionToString(descr));
-																		if (descr.getChildren().size() > 0) {
-																			Vector<MP4Descriptor> children2 = descr.getChildren();
-																			for (int e2 = 0; e2 < children2.size(); e2++) {
-																				MP4Descriptor descr2 = children2.get(e2);
-																				log.debug("{}", ToStringBuilder.reflectionToString(descr2));
-																				if (descr2.getType() == MP4Descriptor.MP4DecSpecificInfoDescriptorTag) {
-																					//we only want the MP4DecSpecificInfoDescriptorTag												    
-																					videoDecoderBytes = new byte[descr2.getDSID().length - 8];
-																					System.arraycopy(descr2.getDSID(), 8, videoDecoderBytes, 0, videoDecoderBytes.length);
-																					log.debug("Video config bytes: {}", ToStringBuilder.reflectionToString(videoDecoderBytes));
-																					//we want to break out of top level for loop
-																					e = 99;
-																					break;
-																				}
-																			}
-																		}
-																	}
-																}
-															}
-														}
-													}
-													log.debug("{}", ToStringBuilder.reflectionToString(avc1));
-												}
-												//stsc - has Records
-												MP4Atom stsc = stbl.lookup(MP4Atom.typeToInt("stsc"), 0);
-												if (stsc != null) {
-													log.debug("Sample to chunk atom found");
-													videoSamplesToChunks = stsc.getRecords();
-													log.debug("Record count: {}", videoSamplesToChunks.size());
-													// handle instance where there are no actual records (bad f4v?)
-													if (videoSamplesToChunks.size() > 0) {
-														MP4Atom.Record rec = videoSamplesToChunks.firstElement();
-														log.debug("Record data: Description index={} Samples per chunk={}", rec.getSampleDescriptionIndex(),
-																rec.getSamplesPerChunk());
-													}
-												}
-												//stsz - has Samples
-												MP4Atom stsz = stbl.lookup(MP4Atom.typeToInt("stsz"), 0);
-												if (stsz != null) {
-													log.debug("Sample size atom found");
-													//vector full of integers							
-													videoSamples = stsz.getSamples();
-													//if sample size is 0 then the table must be checked due
-													//to variable sample sizes
-													log.debug("Sample size: {}", stsz.getSampleSize());
-													videoSampleCount = videoSamples.size();
-													log.debug("Sample count: {}", videoSampleCount);
-												}
-												//stco - has Chunks
-												MP4Atom stco = stbl.lookup(MP4Atom.typeToInt("stco"), 0);
-												if (stco != null) {
-													log.debug("Chunk offset atom found");
-													//vector full of integers
-													videoChunkOffsets = stco.getChunks();
-													log.debug("Chunk count: {}", videoChunkOffsets.size());
-												} else {
-													//co64 - has Chunks
-													MP4Atom co64 = stbl.lookup(MP4Atom.typeToInt("co64"), 0);
-													if (co64 != null) {
-														log.debug("Chunk offset (64) atom found");
-														//vector full of longs
-														videoChunkOffsets = co64.getChunks();
-														log.debug("Chunk count: {}", videoChunkOffsets.size());
-														// double the timescale for video, since it seems to run at
-														// half-speed when co64 is used (seems hacky)
-														videoTimeScale = scale * 2.0;
-														log.debug("Video time scale: {}", videoTimeScale);
-													}
-												}
-												//stss - has Sync - no sync means all samples are keyframes
-												MP4Atom stss = stbl.lookup(MP4Atom.typeToInt("stss"), 0);
-												if (stss != null) {
-													log.debug("Sync sample atom found");
-													//vector full of integers
-													syncSamples = stss.getSyncSamples();
-													log.debug("Keyframes: {}", syncSamples.size());
-												}
-												//stts - has TimeSampleRecords
-												MP4Atom stts = stbl.lookup(MP4Atom.typeToInt("stts"), 0);
-												if (stts != null) {
-													log.debug("Time to sample atom found");
-													Vector<MP4Atom.TimeSampleRecord> records = stts.getTimeToSamplesRecords();
-													log.debug("Record count: {}", records.size());
-													// handle instance where there are no actual records (bad f4v?)
-													if (records.size() > 0) {
-														MP4Atom.TimeSampleRecord rec = records.firstElement();
-														log.debug("Record data: Consecutive samples={} Duration={}", rec.getConsecutiveSamples(), rec.getSampleDuration());
-														//if we have 1 record it means all samples have the same duration
-														videoSampleDuration = rec.getSampleDuration();
-													}
-												}
-												//ctts - (composition) time to sample
-												MP4Atom ctts = stbl.lookup(MP4Atom.typeToInt("ctts"), 0);
-												if (ctts != null) {
-													log.debug("Composition time to sample atom found");
-													//vector full of integers
-													compositionTimes = ctts.getCompositionTimeToSamplesRecords();
-													log.debug("Record count: {}", compositionTimes.size());
-													if (log.isTraceEnabled()) {
-														for (MP4Atom.CompositionTimeSampleRecord rec : compositionTimes) {
-															double offset = rec.getSampleOffset();
-															if (scale > 0d) {
-																offset = (offset / (double) scale) * 1000.0;
-																rec.setSampleOffset((int) offset);
-															}
-															log.trace("Record data: Consecutive samples={} Offset={}", rec.getConsecutiveSamples(), rec.getSampleOffset());
-														}
-													}
-												}
-											}
-										}
-									}
-								}
+						} else if ("soun".equals(hdlrType)) {
+							hasAudio = true;
+							if (scale > 0) {
+								audioTimeScale = scale * 1.0;
+								log.debug("Audio time scale: {}", audioTimeScale);
 							}
-							loops++;
-						} while (loops < 3);
-						log.trace("Busted out of track loop with {} tracks after {} loops", tracks, loops);
-						//calculate FPS
-						fps = (videoSampleCount * timeScale) / (double) duration;
-						log.debug("FPS calc: ({} * {}) / {}", new Object[] { videoSampleCount, timeScale, duration });
-						log.debug("FPS: {}", fps);
-						//real duration
-						StringBuilder sb = new StringBuilder();
-						double videoTime = ((double) duration / (double) timeScale);
-						log.debug("Video time: {}", videoTime);
-						int minutes = (int) (videoTime / 60);
-						if (minutes > 0) {
-							sb.append(minutes);
-							sb.append('.');
+						} else {
+							log.debug("Unhandled handler type: {}", hdlrType);
 						}
-						//formatter for seconds / millis
-						NumberFormat df = DecimalFormat.getInstance();
-						df.setMaximumFractionDigits(2);
-						sb.append(df.format((videoTime % 60)));
-						formattedDuration = sb.toString();
-						log.debug("Time: {}", formattedDuration);
-						break;
-					case 1835295092: //mdat
-						mdat = atom;
-						long dataSize = mdat.getSize();
-						log.debug("mdat: {}", ToStringBuilder.reflectionToString(mdat));
-						log.debug("Read the mdat atom at: {}", fis.getOffset());
-						mdatOffset = fis.getOffset() - dataSize;
-						log.debug("File size: {} mdat size: {}", file.length(), dataSize);
-						break;
-					case 1718773093: //free
-					case 2003395685: //wide
-						break;
-					default:
-						log.debug("Unexpected atom: {}", MP4Atom.intToType(atom.getType()));
-						FileChannel fc = fis.getChannel();
-						ByteBuffer buf = ByteBuffer.allocate(4);
-						if (moov != null && mdat == null) {
-							// if we have moov but no mdat
-							fc.position(moov.getSize());
-							log.debug("Search starting at: {}", fc.position());
-							String atype = null;
-							// search for mdat
-							do {
-								long pos = fc.position();
-								//long offset = fis.getOffset();
-								//log.debug("Pos: {} Offset: {}", pos, offset);
-								fc.read(buf);
-								buf.flip();
-								atype = MP4Atom.intToType(buf.getInt());
-								//log.debug("Type: {}", atype);
-								fc.position(pos + 1);
-								buf.clear();
-							} while (!atype.equals("mdat"));
-							fc.position(fc.position() - 5);
-							log.debug("Found the mdat atom at: {}", fc.position());
+					}
+					MediaInformationBox minf = mdia.getMediaInformationBox();
+					if (minf != null) {
+						if (log.isDebugEnabled()) {
+							log.debug("minf children: {}", minf.getBoxes().size());
+							dumpBox(minf);
 						}
-						if (moov == null && mdat == null) {
-							// we're missing both primary atoms at the beginning
-							log.debug("Search starting at: {}", fc.position());
-							String atype = null;
-							// search for moov first
-							do {
-								long pos = fc.position();
-								log.debug("Pos: {}", pos);
-								fc.read(buf);
-								buf.flip();
-								atype = MP4Atom.intToType(buf.getInt());
-								//log.debug("Type: {}", atype);
-								fc.position(pos + 1);
-								buf.clear();
-							} while (!atype.equals("moov"));
-							fc.position(fc.position() - 5);
-							log.debug("Found the moov atom at: {}", fc.position());
+						AbstractMediaHeaderBox abs = minf.getMediaHeaderBox();
+						if (abs instanceof SoundMediaHeaderBox) { // smhd
+							//SoundMediaHeaderBox smhd = (SoundMediaHeaderBox) abs;
+							log.debug("Sound header atom found");
+						} else if (abs instanceof VideoMediaHeaderBox) { // vmhd
+							//VideoMediaHeaderBox vmhd = (VideoMediaHeaderBox) abs;
+							log.debug("Video header atom found");
+						} else {
+							log.debug("Unhandled media header box: {}", abs.getType());
 						}
-						buf.clear();
+					}
+				}
+				SampleTableBox stbl = trak.getSampleTableBox(); // mdia/minf/stbl
+				if (stbl != null) {
+					if (log.isDebugEnabled()) {
+						log.debug("stbl children: {}", stbl.getBoxes().size());
+						dumpBox(stbl);
+					}
+					SampleDescriptionBox stsd = stbl.getSampleDescriptionBox(); // stsd
+					if (stsd != null) {
+						//stsd: mp4a, avc1, mp4v
+						String type = stsd.getType();
+						if (log.isDebugEnabled()) {
+							log.debug("stsd children: {}", stsd.getBoxes().size());
+							dumpBox(stsd);
+						}
+						SampleEntry entry = stsd.getSampleEntry();
+						log.debug("Sample entry type: {}", entry.getType());
+						// determine if audio or video and process from there
+						if (entry instanceof AudioSampleEntry) {
+							processAudioBox(stbl, (AudioSampleEntry) entry, scale);
+						} else if (entry instanceof VisualSampleEntry) {
+							processVideoBox(stbl, (VisualSampleEntry) entry, scale);
+						}
+					}
 				}
 			}
-			//add the tag name (size) to the offsets
-			moovOffset += 8;
-			mdatOffset += 8;
-			log.debug("Offsets moov: {} mdat: {}", moovOffset, mdatOffset);
-		} catch (IOException e) {
+			//calculate FPS
+			fps = (videoSampleCount * timeScale) / (double) duration;
+			log.debug("FPS calc: ({} * {}) / {}", new Object[] { videoSampleCount, timeScale, duration });
+			log.debug("FPS: {}", fps);
+			//real duration
+			StringBuilder sb = new StringBuilder();
+			double videoTime = ((double) duration / (double) timeScale);
+			log.debug("Video time: {}", videoTime);
+			int minutes = (int) (videoTime / 60);
+			if (minutes > 0) {
+				sb.append(minutes);
+				sb.append('.');
+			}
+			//formatter for seconds / millis
+			NumberFormat df = DecimalFormat.getInstance();
+			df.setMaximumFractionDigits(2);
+			sb.append(df.format((videoTime % 60)));
+			formattedDuration = sb.toString();
+			log.debug("Time: {}", formattedDuration);
+
+			List<MediaDataBox> mdats = isoFile.getBoxes(MediaDataBox.class);
+			if (mdats != null && !mdats.isEmpty()) {
+				log.debug("mdat count: {}", mdats.size());
+				MediaDataBox mdat = mdats.get(0);
+				if (mdat != null) {
+					mdatOffset = mdat.getDataStartPosition();
+				}
+			}
+			//log.debug("Offsets - moov: {} mdat: {}", moovOffset, mdatOffset);
+			log.debug("Offset - mdat: {}", mdatOffset);
+			
+			// handle fragmentation
+			boolean fragmented = false;
+			// detect whether or not this movie contains fragments first
+			List<MovieFragmentBox> moofs = isoFile.getBoxes(MovieFragmentBox.class); // moof
+			if (moofs != null && !moofs.isEmpty()) {
+				log.info("Movie contains {} framents", moofs.size());
+				fragmented = true;
+				for (MovieFragmentBox moof : moofs) {
+					dumpBox(moof);
+					MovieFragmentHeaderBox mfhd = moof.getBoxes(MovieFragmentHeaderBox.class).get(0);
+					if (mfhd != null) {
+						log.debug("Sequence: {}", mfhd.getSequenceNumber());
+					}
+					List<TrackFragmentBox> trafs = moof.getBoxes(TrackFragmentBox.class);
+					for (TrackFragmentBox traf : trafs) {
+						TrackFragmentHeaderBox tfhd = traf.getTrackFragmentHeaderBox();
+						log.debug("tfhd: {}", tfhd);
+					}
+					List<TrackExtendsBox> trexs = moof.getBoxes(TrackExtendsBox.class);
+					for (TrackExtendsBox trex : trexs) {
+						log.debug("trex - track id: {} duration: {} sample size: {}", trex.getTrackId(), trex.getDefaultSampleDuration(), trex.getDefaultSampleSize());
+					}					
+					//List<Long> syncSamples = moof.getSyncSamples(sdtp);
+					if (compositionTimes == null) {
+						compositionTimes = new ArrayList<CompositionTimeToSample.Entry>();
+					}
+					LinkedList<Integer> dataOffsets = new LinkedList<Integer>();
+					LinkedList<Long> sampleSizes = new LinkedList<Long>();
+					List<TrackRunBox> truns = moof.getTrackRunBoxes();
+					for (TrackRunBox trun : truns) {
+						log.debug("trun - {}", trun);
+						//videoSamplesToChunks
+						dataOffsets.add(trun.getDataOffset());
+						videoSampleCount += trun.getSampleCount();
+						List<TrackRunBox.Entry> recs = trun.getEntries();
+						for (TrackRunBox.Entry rec : recs) {
+							CompositionTimeToSample.Entry ctts = new CompositionTimeToSample.Entry((int) trun.getSampleCount(), rec.getSampleCompositionTimeOffset());
+							compositionTimes.add(ctts);
+							sampleSizes.add(rec.getSampleSize());
+							videoSampleDuration = rec.getSampleDuration();
+						}
+					}
+					videoSamples = new long[sampleSizes.size()];
+					for (int i = 0; i < videoSamples.length; i++) {
+						videoSamples[i] = sampleSizes.remove();
+					}
+					videoChunkOffsets = new long[dataOffsets.size()];
+					for (int i = 0; i < videoChunkOffsets.length; i++) {
+						videoChunkOffsets[i] = dataOffsets.remove();
+					}
+				}
+			}
+			if (isoFile.getBoxes(MovieFragmentRandomAccessBox.class).size() > 0) { // mfra
+				log.info("Movie contains frament random access info");
+			}
+			if (isoFile.getBoxes(ActionMessageFormat0SampleEntryBox.class).size() > 0) {
+				log.info("Movie contains AMF entries");
+			}
+			// if we have fragments, we should have an mvex
+			if (fragmented) {
+				MovieExtendsBox mvex = moov.getBoxes(MovieExtendsBox.class).get(0); // mvex
+				dumpBox(mvex);
+				List<TrackExtendsBox> trexs = mvex.getBoxes(TrackExtendsBox.class);
+				for (TrackExtendsBox trex : trexs) {
+					log.debug("trex - track id: {} duration: {} sample size: {}", trex.getTrackId(), trex.getDefaultSampleDuration(), trex.getDefaultSampleSize());
+				}
+			}
+			
+		} catch (Exception e) {
 			log.error("Exception decoding header / atoms", e);
+		}
+	}
+
+	/**
+	 * Dumps the children of a container box.
+	 * 
+	 * @param box
+	 */
+	private void dumpBox(ContainerBox box) {
+		for (Box bx : box.getBoxes()) {
+			log.debug("{} child: {}", box.getType(), bx.getType());
+		}
+	}
+
+	/**
+	 * Process the video information contained in the atoms.
+	 * 
+	 * @param stbl
+	 * @param vse VisualSampleEntry
+	 * @param scale timescale
+	 */
+	private void processVideoBox(SampleTableBox stbl, VisualSampleEntry vse, long scale) {
+		// get codec
+		String codecName = vse.getType();
+		//set the video codec here - may be avc1 or mp4v
+		setVideoCodecId(codecName);
+		if ("avc1".equals(codecName)) {
+			AvcConfigurationBox avc1 = vse.getBoxes(AvcConfigurationBox.class).get(0);
+			avcLevel = avc1.getAvcLevelIndication();
+			log.debug("AVC level: {}", avcLevel);
+			avcProfile = avc1.getAvcProfileIndication();
+			log.debug("AVC Profile: {}", avcProfile);
+			AVCDecoderConfigurationRecord avcC = avc1.getavcDecoderConfigurationRecord();
+			if (avcC != null) {
+				long videoConfigContentSize = avcC.getContentSize();
+				log.debug("AVCC size: {}", videoConfigContentSize);
+				ByteBuffer byteBuffer = ByteBuffer.allocate((int) videoConfigContentSize);
+				avc1.avcDecoderConfigurationRecord.getContent(byteBuffer);
+				byteBuffer.flip();
+				videoDecoderBytes = new byte[byteBuffer.limit()];
+				byteBuffer.get(videoDecoderBytes);
+			} else {
+				// quicktime and ipods use a pixel aspect atom (pasp)
+				// since we have no avcC check for this and avcC may be a child
+				log.warn("avcC atom not found; we may need to modify this to support pasp atom");
+			}
+		} else if ("mp4v".equals(codecName)) {
+			if (vse.getBoxes(ESDescriptorBox.class).size() > 0) {
+				// look for esds
+				ESDescriptorBox esds = vse.getBoxes(ESDescriptorBox.class).get(0);
+				if (esds != null) {
+					ESDescriptor descriptor = esds.getEsDescriptor();
+					//log.debug("ES descriptor: {}", descriptor);
+					if (descriptor != null) {
+						DecoderConfigDescriptor decConf = descriptor.getDecoderConfigDescriptor();
+						if (decConf != null) {
+							DecoderSpecificInfo decInfo = decConf.getDecoderSpecificInfo();
+							ByteBuffer byteBuffer = decInfo.serialize();		
+							videoDecoderBytes = new byte[byteBuffer.limit()];
+							byteBuffer.get(videoDecoderBytes);
+						}
+					}
+				}
+			}
+		} else {
+			log.debug("Unrecognized video codec: {} compressor name: {}", codecName, vse.getCompressorname());
+		}
+		// stsc - has Records
+		SampleToChunkBox stsc = stbl.getSampleToChunkBox(); // stsc
+		if (stsc != null) {
+			log.debug("Sample to chunk atom found");
+			videoSamplesToChunks = stsc.getEntries();
+			log.debug("Video samples to chunks: {}", videoSamplesToChunks.size());
+		}
+		// stsz - has Samples
+		SampleSizeBox stsz = stbl.getSampleSizeBox(); // stsz
+		if (stsz != null) {
+			log.debug("Sample size atom found");
+			videoSamples = stsz.getSampleSizes();
+			// if sample size is 0 then the table must be checked due to variable sample sizes
+			log.debug("Sample size: {}", stsz.getSampleSize());
+			videoSampleCount = stsz.getSampleCount();
+			log.debug("Sample count: {}", videoSampleCount);
+		}
+		// stco - has Chunks
+		ChunkOffsetBox stco = stbl.getChunkOffsetBox(); // stco / co64
+		if (stco != null) {
+			log.debug("Chunk offset atom found");
+			videoChunkOffsets = stco.getChunkOffsets();
+			log.debug("Chunk count: {}", videoChunkOffsets.length);
+		} else {
+			// co64 - has Chunks
+			ChunkOffset64BitBox co64 = stbl.getBoxes(ChunkOffset64BitBox.class).get(0);
+			if (co64 != null) {
+				log.debug("Chunk offset (64) atom found");
+				videoChunkOffsets = co64.getChunkOffsets();
+				log.debug("Chunk count: {}", videoChunkOffsets.length);
+				// double the timescale for video, since it seems to run at
+				// half-speed when co64 is used (seems hacky)
+				//videoTimeScale = scale * 2.0;
+				//log.debug("Video time scale: {}", videoTimeScale);
+			}
+		}
+		// stss - has Sync - no sync means all samples are keyframes
+		SyncSampleBox stss = stbl.getSyncSampleBox(); // stss
+		if (stss != null) {
+			log.debug("Sync sample atom found");
+			syncSamples = stss.getSampleNumber();
+			log.debug("Keyframes: {}", syncSamples.length);
+		}
+		// stts - has TimeSampleRecords
+		TimeToSampleBox stts = stbl.getTimeToSampleBox(); // stts
+		if (stts != null) {
+			log.debug("Time to sample atom found");
+			List<TimeToSampleBox.Entry> records = stts.getEntries();
+			log.debug("Video time to samples: {}", records.size());
+			// handle instance where there are no actual records (bad f4v?)
+			if (records.size() > 0) {
+				TimeToSampleBox.Entry rec = records.get(0);
+				log.debug("Samples = {} delta = {}", rec.getCount(), rec.getDelta());
+				//if we have 1 record it means all samples have the same duration
+				videoSampleDuration = rec.getDelta();
+			}
+		}
+		// ctts - (composition) time to sample
+		CompositionTimeToSample ctts = stbl.getCompositionTimeToSample(); // ctts
+		if (ctts != null) {
+			log.debug("Composition time to sample atom found");
+			compositionTimes = ctts.getEntries();
+			log.debug("Record count: {}", compositionTimes.size());
+			if (log.isTraceEnabled()) {
+				for (CompositionTimeToSample.Entry rec : compositionTimes) {
+					double offset = rec.getOffset();
+					if (scale > 0d) {
+						offset = (offset / (double) scale) * 1000.0;
+						rec.setOffset((int) offset);
+					}
+					log.trace("Samples = {} offset = {}", rec.getCount(), rec.getOffset());
+				}
+			}
+		}
+		// sdtp - sample dependency type
+		SampleDependencyTypeBox sdtp = stbl.getSampleDependencyTypeBox(); // sdtp
+		if (sdtp != null) {
+			log.debug("Independent and disposable samples atom found");
+			List<SampleDependencyTypeBox.Entry> recs = sdtp.getEntries();
+			for (SampleDependencyTypeBox.Entry rec : recs) {
+				log.debug("{}", rec);
+			}
+		}
+	}
+
+	/**
+	 * Process the audio information contained in the atoms.
+	 * 
+	 * @param stbl
+	 * @param ase AudioSampleEntry
+	 * @param scale timescale
+	 */
+	private void processAudioBox(SampleTableBox stbl, AudioSampleEntry ase, long scale) {
+		// get codec
+		String codecName = ase.getType();
+		// set the audio codec here - may be mp4a or...
+		setAudioCodecId(codecName);
+		log.debug("Sample size: {}", ase.getSampleSize());
+		long ats = ase.getSampleRate();
+		// skip invalid audio time scale
+		if (ats > 0) {
+			audioTimeScale = ats * 1.0;
+		}
+		log.debug("Sample rate (audio time scale): {}", audioTimeScale);
+		audioChannels = ase.getChannelCount();
+		log.debug("Channels: {}", audioChannels);
+		if (ase.getBoxes(ESDescriptorBox.class).size() > 0) {
+			// look for esds
+			ESDescriptorBox esds = ase.getBoxes(ESDescriptorBox.class).get(0);
+			if (esds == null) {
+				log.debug("esds not found in default path");
+				// check for decompression param atom
+				AppleWaveBox wave = ase.getBoxes(AppleWaveBox.class).get(0);
+				if (wave != null) {
+					log.debug("wave atom found");
+					// wave/esds
+					esds = wave.getBoxes(ESDescriptorBox.class).get(0);
+					if (esds == null) {
+						log.debug("esds not found in wave");
+						// mp4a/esds
+						//AC3SpecificBox mp4a = wave.getBoxes(AC3SpecificBox.class).get(0);
+						//esds = mp4a.getBoxes(ESDescriptorBox.class).get(0);
+					}
+				}
+			}
+			//mp4a: esds
+			if (esds != null) {
+				// http://stackoverflow.com/questions/3987850/mp4-atom-how-to-discriminate-the-audio-codec-is-it-aac-or-mp3
+				ESDescriptor descriptor = esds.getEsDescriptor();
+				if (descriptor != null) {
+					DecoderConfigDescriptor configDescriptor = descriptor.getDecoderConfigDescriptor();
+					AudioSpecificConfig audioInfo = configDescriptor.getAudioSpecificInfo();
+					if (audioInfo != null) {
+						audioDecoderBytes = audioInfo.getConfigBytes();
+						/* the first 5 (0-4) bits tell us about the coder used for aacaot/aottype
+						 * http://wiki.multimedia.cx/index.php?title=MPEG-4_Audio
+						 0 - NULL
+						 1 - AAC Main (a deprecated AAC profile from MPEG-2)
+						 2 - AAC LC or backwards compatible HE-AAC 
+						 3 - AAC Scalable Sample Rate
+						 4 - AAC LTP (a replacement for AAC Main, rarely used)
+						 5 - HE-AAC explicitly signaled (Non-backward compatible)
+						23 - Low Delay AAC
+						29 - HE-AACv2 explicitly signaled
+						32 - MP3on4 Layer 1
+						33 - MP3on4 Layer 2
+						34 - MP3on4 Layer 3
+						*/
+						byte audioCoderType = audioDecoderBytes[0];
+						//match first byte
+						switch (audioCoderType) {
+							case 0x02:
+								log.debug("Audio type AAC LC");
+							case 0x11: //ER (Error Resilient) AAC LC
+								log.debug("Audio type ER AAC LC");
+							default:
+								audioCodecType = 1; //AAC LC
+								break;
+							case 0x01:
+								log.debug("Audio type AAC Main");
+								audioCodecType = 0; //AAC Main
+								break;
+							case 0x03:
+								log.debug("Audio type AAC SBR");
+								audioCodecType = 2; //AAC LC SBR
+								break;
+							case 0x05:
+							case 0x1d:
+								log.debug("Audio type AAC HE");
+								audioCodecType = 3; //AAC HE
+								break;
+							case 0x20:
+							case 0x21:
+							case 0x22:
+								log.debug("Audio type MP3");
+								audioCodecType = 33; //MP3
+								audioCodecId = "mp3";
+								break;
+						}
+						log.debug("Audio coder type: {} {} id: {}", new Object[] { audioCoderType, Integer.toBinaryString(audioCoderType), audioCodecId });
+					} else {
+						log.debug("Audio specific config was not found");
+						DecoderSpecificInfo info = configDescriptor.getDecoderSpecificInfo();
+						if (info != null) {
+							log.debug("Decoder info found: {}", info.getTag());
+							// qcelp == 5
+						}
+					}
+				} else {
+					log.debug("No ES descriptor found");
+				}
+			}
+		} else {
+			log.debug("Audio sample entry had no descriptor");
+		}
+		//stsc - has Records
+		SampleToChunkBox stsc = stbl.getSampleToChunkBox(); // stsc
+		if (stsc != null) {
+			log.debug("Sample to chunk atom found");
+			audioSamplesToChunks = stsc.getEntries();
+			log.debug("Audio samples to chunks: {}", audioSamplesToChunks.size());
+			// handle instance where there are no actual records (bad f4v?)
+		}
+		//stsz - has Samples
+		SampleSizeBox stsz = stbl.getSampleSizeBox(); // stsz
+		if (stsz != null) {
+			log.debug("Sample size atom found");
+			audioSamples = stsz.getSampleSizes();
+			log.debug("Samples: {}", audioSamples.length);
+			// if sample size is 0 then the table must be checked due to variable sample sizes
+			audioSampleSize = stsz.getSampleSize();
+			log.debug("Sample size: {}", audioSampleSize);
+			long audioSampleCount = stsz.getSampleCount();
+			log.debug("Sample count: {}", audioSampleCount);
+		}
+		//stco - has Chunks
+		ChunkOffsetBox stco = stbl.getChunkOffsetBox(); // stco / co64
+		if (stco != null) {
+			log.debug("Chunk offset atom found");
+			audioChunkOffsets = stco.getChunkOffsets();
+			log.debug("Chunk count: {}", audioChunkOffsets.length);
+		} else {
+			//co64 - has Chunks
+			ChunkOffset64BitBox co64 = stbl.getBoxes(ChunkOffset64BitBox.class).get(0);
+			if (co64 != null) {
+				log.debug("Chunk offset (64) atom found");
+				audioChunkOffsets = co64.getChunkOffsets();
+				log.debug("Chunk count: {}", audioChunkOffsets.length);
+			}
+		}
+		//stts - has TimeSampleRecords
+		TimeToSampleBox stts = stbl.getTimeToSampleBox(); // stts
+		if (stts != null) {
+			log.debug("Time to sample atom found");
+			List<TimeToSampleBox.Entry> records = stts.getEntries();
+			log.debug("Audio time to samples: {}", records.size());
+			// handle instance where there are no actual records (bad f4v?)
+			if (records.size() > 0) {
+				TimeToSampleBox.Entry rec = records.get(0);
+				log.debug("Samples = {} delta = {}", rec.getCount(), rec.getDelta());
+				//if we have 1 record it means all samples have the same duration
+				audioSampleDuration = rec.getDelta();
+			}
+		}
+		// sdtp - sample dependency type
+		SampleDependencyTypeBox sdtp = stbl.getSampleDependencyTypeBox(); // sdtp
+		if (sdtp != null) {
+			log.debug("Independent and disposable samples atom found");
+			List<SampleDependencyTypeBox.Entry> recs = sdtp.getEntries();
+			for (SampleDependencyTypeBox.Entry rec : recs) {
+				log.debug("{}", rec);
+			}
 		}
 	}
 
@@ -998,7 +1000,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		props.put("audiosamplerate", audioTimeScale);
 		props.put("audiochannels", audioChannels);
 		// position of the moov atom
-		props.put("moovposition", moovOffset);
+		//props.put("moovposition", moovOffset);
 		//props.put("chapters", ""); //this is for f4b - books
 		if (seekPoints != null) {
 			log.debug("Seekpoint list size: {}", seekPoints.size());
@@ -1021,10 +1023,9 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 
 			if (audioSamples != null) {
 				if (audioSampleDuration > 0) {
-					audioMap.put("length_property", audioSampleDuration * audioSamples.size());
+					audioMap.put("length_property", audioSampleDuration * audioSamples.length);
 				}
-				//release some memory, since we're done with the vectors
-				audioSamples.clear();
+				//release some memory
 				audioSamples = null;
 			}
 			arr.add(audioMap);
@@ -1042,10 +1043,9 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			desc.add(sampleMap);
 			if (videoSamples != null) {
 				if (videoSampleDuration > 0) {
-					videoMap.put("length_property", videoSampleDuration * videoSamples.size());
+					videoMap.put("length_property", videoSampleDuration * videoSamples.length);
 				}
-				//release some memory, since we're done with the vectors
-				videoSamples.clear();
+				//release some memory
 				videoSamples = null;
 			}
 			arr.add(videoMap);
@@ -1250,21 +1250,21 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		if (videoSamplesToChunks != null) {
 			// handle composite times
 			int compositeIndex = 0;
-			CompositionTimeSampleRecord compositeTimeEntry = null;
+			CompositionTimeToSample.Entry compositeTimeEntry = null;
 			if (compositionTimes != null && !compositionTimes.isEmpty()) {
 				compositeTimeEntry = compositionTimes.remove(0);
 			}
 			for (int i = 0; i < videoSamplesToChunks.size(); i++) {
-				MP4Atom.Record record = videoSamplesToChunks.get(i);
-				int firstChunk = record.getFirstChunk();
-				int lastChunk = videoChunkOffsets.size();
+				Entry record = videoSamplesToChunks.get(i);
+				long firstChunk = record.getFirstChunk();
+				long lastChunk = videoChunkOffsets.length;
 				if (i < videoSamplesToChunks.size() - 1) {
-					MP4Atom.Record nextRecord = videoSamplesToChunks.get(i + 1);
+					Entry nextRecord = videoSamplesToChunks.get(i + 1);
 					lastChunk = nextRecord.getFirstChunk() - 1;
 				}
-				for (int chunk = firstChunk; chunk <= lastChunk; chunk++) {
-					int sampleCount = record.getSamplesPerChunk();
-					pos = videoChunkOffsets.elementAt(chunk - 1);
+				for (long chunk = firstChunk; chunk <= lastChunk; chunk++) {
+					long sampleCount = record.getSamplesPerChunk();
+					pos = videoChunkOffsets[(int) (chunk - 1)];
 					while (sampleCount > 0) {
 						//log.debug("Position: {}", pos);
 						samplePosMap.put(sample, pos);
@@ -1274,7 +1274,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 						boolean keyframe = false;
 						//some files appear not to have sync samples
 						if (syncSamples != null) {
-							keyframe = syncSamples.contains(sample);
+							keyframe = ArrayUtils.contains(syncSamples, sample);
 							if (seekPoints == null) {
 								seekPoints = new LinkedList<Integer>();
 							}
@@ -1289,40 +1289,40 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 							log.debug("No sync samples available");
 						}
 						//size of the sample
-						int size = (videoSamples.get(sample - 1)).intValue();
+						int size = (int) videoSamples[sample - 1];
 						// exclude data that is not within the mdat box
-						if ((moovOffset < mdatOffset && pos > mdatOffset) || (moovOffset > mdatOffset && pos < moovOffset)) {
-							//create a frame
-							MP4Frame frame = new MP4Frame();
-							frame.setKeyFrame(keyframe);
-							frame.setOffset(pos);
-							frame.setSize(size);
-							frame.setTime(ts);
-							frame.setType(TYPE_VIDEO);
-							//set time offset value from composition records
-							if (compositeTimeEntry != null) {
-								// how many samples have this offset
-								int consecutiveSamples = compositeTimeEntry.getConsecutiveSamples();
-								frame.setTimeOffset(compositeTimeEntry.getSampleOffset());
-								// increment our count
-								compositeIndex++;
-								if (compositeIndex - consecutiveSamples == 0) {
-									// ensure there are still times available
-									if (!compositionTimes.isEmpty()) {
-										// get the next one
-										compositeTimeEntry = compositionTimes.remove(0);
-									}
-									// reset
-									compositeIndex = 0;
+						//						if ((moovOffset < mdatOffset && pos > mdatOffset) || (moovOffset > mdatOffset && pos < moovOffset)) {
+						//create a frame
+						MP4Frame frame = new MP4Frame();
+						frame.setKeyFrame(keyframe);
+						frame.setOffset(pos);
+						frame.setSize(size);
+						frame.setTime(ts);
+						frame.setType(TYPE_VIDEO);
+						//set time offset value from composition records
+						if (compositeTimeEntry != null) {
+							// how many samples have this offset
+							int consecutiveSamples = compositeTimeEntry.getCount();
+							frame.setTimeOffset(compositeTimeEntry.getOffset());
+							// increment our count
+							compositeIndex++;
+							if (compositeIndex - consecutiveSamples == 0) {
+								// ensure there are still times available
+								if (!compositionTimes.isEmpty()) {
+									// get the next one
+									compositeTimeEntry = compositionTimes.remove(0);
 								}
-								log.debug("Composite sample #{} {}", sample, frame);
+								// reset
+								compositeIndex = 0;
 							}
-							// add the frame
-							frames.add(frame);
-							//log.debug("Sample #{} {}", sample, frame);
-						} else {
-							log.warn("Skipping video frame with invalid position");
+							log.debug("Composite sample #{} {}", sample, frame);
 						}
+						// add the frame
+						frames.add(frame);
+						//log.debug("Sample #{} {}", sample, frame);
+						//						} else {
+						//							log.warn("Skipping video frame with invalid position");
+						//						}
 						//inc and dec stuff
 						pos += size;
 						sampleCount--;
@@ -1337,54 +1337,61 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			//add the audio frames / samples / chunks		
 			sample = 1;
 			for (int i = 0; i < audioSamplesToChunks.size(); i++) {
-				MP4Atom.Record record = audioSamplesToChunks.get(i);
-				int firstChunk = record.getFirstChunk();
-				int lastChunk = audioChunkOffsets.size();
+				Entry record = audioSamplesToChunks.get(i);
+				long firstChunk = record.getFirstChunk();
+				long lastChunk = audioChunkOffsets.length;
 				if (i < audioSamplesToChunks.size() - 1) {
-					MP4Atom.Record nextRecord = audioSamplesToChunks.get(i + 1);
+					Entry nextRecord = audioSamplesToChunks.get(i + 1);
 					lastChunk = nextRecord.getFirstChunk() - 1;
 				}
-				for (int chunk = firstChunk; chunk <= lastChunk; chunk++) {
-					int sampleCount = record.getSamplesPerChunk();
-					pos = audioChunkOffsets.elementAt(chunk - 1);
+				for (long chunk = firstChunk; chunk <= lastChunk; chunk++) {
+					long sampleCount = record.getSamplesPerChunk();
+					pos = audioChunkOffsets[(int) (chunk - 1)];
 					while (sampleCount > 0) {
 						//calculate ts
 						double ts = (audioSampleDuration * (sample - 1)) / audioTimeScale;
-						//sample size
-						int size = (audioSamples.get(sample - 1)).intValue();
-						// skip empty AAC data which is 6 bytes long
-						log.trace("Audio sample - size: {} pos: {}", size, pos);
-						if (size == 6) {
-							try {
-								// get current pos
-								long position = channel.position();
-								// jump to data position
-								channel.position(pos);
-								// create buffer to store bytes so we can check them
-								ByteBuffer dst = ByteBuffer.allocate(6);
-								// read the data
-								channel.read(dst);
-								// flip it
-								dst.flip();
-								// reset the position
-								channel.position(position);
-								byte[] tmp = dst.array();
-								log.trace("Audio bytes: {} equal: {}", HexDump.byteArrayToHexString(tmp), Arrays.equals(EMPTY_AAC, tmp));
-								if (Arrays.equals(EMPTY_AAC, tmp)) {
-									log.trace("Skipping empty AAC data frame");
-									// update counts
-									pos += size;
-									sampleCount--;
-									sample++;
-									// read next
-									continue;
+						// sample size
+						int size = 0;
+						// if we have no samples, skip size check as its probably not aac
+						if (audioSamples.length > 0) {
+							//update sample size 
+							size = (int) audioSamples[sample - 1];
+							// skip empty AAC data which is 6 bytes long
+							log.trace("Audio sample - size: {} pos: {}", size, pos);
+							if (size == 6) {
+								try {
+									// get current pos
+									long position = channel.position();
+									// jump to data position
+									channel.position(pos);
+									// create buffer to store bytes so we can check them
+									ByteBuffer dst = ByteBuffer.allocate(6);
+									// read the data
+									channel.read(dst);
+									// flip it
+									dst.flip();
+									// reset the position
+									channel.position(position);
+									byte[] tmp = dst.array();
+									log.trace("Audio bytes: {} equal: {}", HexDump.byteArrayToHexString(tmp), Arrays.equals(EMPTY_AAC, tmp));
+									if (Arrays.equals(EMPTY_AAC, tmp)) {
+										log.trace("Skipping empty AAC data frame");
+										// update counts
+										pos += size;
+										sampleCount--;
+										sample++;
+										// read next
+										continue;
+									}
+								} catch (IOException e) {
+									log.warn("Exception during audio analysis", e);
 								}
-							} catch (IOException e) {
-								log.warn("Exception during audio analysis", e);
 							}
 						}
+						// set audio sample size
+						size = (int) (size != 0 ? size : audioSampleSize);
 						// exclude data that is not within the mdat box
-						if ((moovOffset < mdatOffset && pos > mdatOffset) || (moovOffset > mdatOffset && pos < moovOffset)) {
+						if (pos >= mdatOffset) {
 							//create a frame
 							MP4Frame frame = new MP4Frame();
 							frame.setOffset(pos);
@@ -1410,19 +1417,16 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		//log.debug("Frames: {}", frames);
 		//release some memory, since we're done with the vectors
 		if (audioSamplesToChunks != null) {
-			audioChunkOffsets.clear();
 			audioChunkOffsets = null;
 			audioSamplesToChunks.clear();
 			audioSamplesToChunks = null;
 		}
 		if (videoSamplesToChunks != null) {
-			videoChunkOffsets.clear();
 			videoChunkOffsets = null;
 			videoSamplesToChunks.clear();
 			videoSamplesToChunks = null;
 		}
 		if (syncSamples != null) {
-			syncSamples.clear();
 			syncSamples = null;
 		}
 	}

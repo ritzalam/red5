@@ -10,6 +10,42 @@
 	<version>1.0.1</version>
 	<url>https://code.google.com/p/red5/</url>
 	<inceptionYear>2005</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache 2</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+			<comments>A business-friendly OSS license</comments>
+		</license>
+	</licenses>
+	<mailingLists>
+		<mailingList>
+			<name>red5-interest</name>
+			<post>https://groups.google.com/forum/?fromgroups#!forum/red5interest</post>
+		</mailingList>
+	</mailingLists>
+	<issueManagement>
+		<system>google-code</system>
+		<url>https://code.google.com/p/red5/issues/list</url>
+	</issueManagement>
+	<developers>
+		<developer>
+			<id>Dominick Accattato</id>
+			<email>dominick@red5.org</email>
+		</developer>
+		<developer>
+			<id>Paul Gregoire</id>
+			<email>mondain@gmail.com</email>
+		</developer>
+		<developer>
+			<id>Dan Rossi</id>
+			<email>electroteque@gmail.com</email>
+		</developer>
+		<developer>
+			<id>Tiago Jacobs</id>
+			<email>tiago.jacobs@gmail.com</email>
+		</developer>
+	</developers>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<spring.version>3.1.1.RELEASE</spring.version>
@@ -128,7 +164,7 @@
 				<executions>
 					<execution>
 						<id>copy-dependencies</id>
-						<!-- <phase>package</phase> -->
+						<phase>package</phase>
 						<goals>
 							<goal>copy-dependencies</goal>
 						</goals>
@@ -271,8 +307,8 @@
 									<artifactId>maven-dependency-plugin</artifactId>
 									<versionRange>[2.6.0,)</versionRange>
 									<goals>
-                                        <goal>copy-dependencies</goal>
-                                        <goal>unpack</goal>
+										<goal>copy-dependencies</goal>
+										<goal>unpack</goal>
 									</goals>
 								</pluginExecutionFilter>
 								<action>
@@ -331,6 +367,11 @@
 			<id>opensymphony-releases</id>
 			<name>Opensymphony Releases</name>
 			<url>https://oss.sonatype.org/content/repositories/opensymphony-releases</url>
+		</repository>
+		<repository>
+			<id>mp4parser-releases</id>
+			<name>MP4Parser Releases</name>
+			<url>https://oss.sonatype.org/content/repositories/comgooglecodemp4parser-137</url>
 		</repository>
 		<repository>
 			<id>jboss-public-repository-group</id>
@@ -428,6 +469,12 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.mina</groupId>
+			<artifactId>mina-integration-beans</artifactId>
+			<version>${mina.version}</version>
+			<type>bundle</type>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.mina</groupId>
 			<artifactId>mina-integration-jmx</artifactId>
 			<version>${mina.version}</version>
 			<type>bundle</type>
@@ -437,12 +484,6 @@
 					<artifactId>mina-integration-ognl</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.mina</groupId>
-			<artifactId>mina-integration-beans</artifactId>
-			<version>${mina.version}</version>
-			<type>bundle</type>
 		</dependency>
 		<dependency>
 			<groupId>commons-beanutils</groupId>
@@ -600,6 +641,11 @@
 			<groupId>org.jruby</groupId>
 			<artifactId>jruby</artifactId>
 			<version>1.6.8</version>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.mp4parser</groupId>
+			<artifactId>isoparser</artifactId>
+			<version>1.0-RC-18</version>
 		</dependency>
 	</dependencies>
 </project>

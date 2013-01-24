@@ -45,4 +45,9 @@
 		<level value="WARN" />
 	</logger>
 
+    <logger name="net.sf">
+        <level value="WARN" />
+    </logger>
+
+
 </configuration>
