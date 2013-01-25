@@ -35,7 +35,7 @@ public class M4AReaderTest extends TestCase {
 	@Test
 	public void testCtor() throws Exception {
 		
-		File file = new File("fixtures/sample.m4a");
+		File file = new File("target/test-classes/fixtures/sample.m4a");
 		M4AReader reader = new M4AReader(file);
 		
 		ITag tag = reader.readTag();

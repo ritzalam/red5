@@ -18,15 +18,19 @@
 
 package org.red5.server.script;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
 
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -46,8 +50,11 @@ public class ScriptEngineTest {
 	private static boolean java15;
 
 	private static ScriptEngineManager mgr;
+	
+	private static List<String> scriptExts = new ArrayList<String>();
 
-	public ScriptEngineTest() {
+	@Before
+	public void setUp() throws Exception {
 		String javaVersion = System.getProperty("java.version");
 		String javaMajorRev = javaVersion.substring(0, 3);
 		if (javaVersion != null && javaMajorRev.compareTo("1.5") == 0) {
@@ -57,12 +64,37 @@ public class ScriptEngineTest {
 			java15 = false;
 			mgr = new ScriptEngineManager();
 		}
+		Map<String, ScriptEngineFactory> engineFactories = new HashMap<String, ScriptEngineFactory>(7);
+		//List<ScriptEngineFactory> factories = mgr.getEngineFactories(); //jdk6
+		//ScriptEngineFactory[] factories = mgr.getEngineFactories(); //jdk5
+		for (ScriptEngineFactory factory : mgr.getEngineFactories()) {
+			try {
+				System.out.println("\n--------------------------------------------------------------");
+				String engName = factory.getEngineName();
+				String engVersion = factory.getEngineVersion();
+				String langName = factory.getLanguageName();
+				String langVersion = factory.getLanguageVersion();
+				System.out.printf("Script Engine: %s (%s) Language: %s (%s)", engName, engVersion, langName, langVersion);
+				engineFactories.put(engName, factory);
+				System.out.print("\nEngine Alias(es):");
+				for (String name : factory.getNames()) {
+					System.out.printf("%s ", name);
+				}
+				System.out.printf("\nExtension: ");
+				for (String name : factory.getExtensions()) {
+					System.out.printf("%s ", name);
+					scriptExts.add(name);
+				}
+			} catch (Throwable e) {
+				log.error("{}", e);
+			}
+		}
 	}
 
 	// Javascript
 	@Test
 	public void testJavascriptHelloWorld() {
-		if (java15) {
+		if (java15 || !scriptExts.contains("js")) {
 			return;
 		}
 		ScriptEngine jsEngine = null;
@@ -85,7 +117,7 @@ public class ScriptEngineTest {
 	@Test
 	@Ignore
 	public void testRubyHelloWorld() {
-		if (java15) {
+		if (java15 || !scriptExts.contains("rb")) {
 			return;
 		}
 		ScriptEngine rbEngine = mgr.getEngineByName("ruby");
@@ -105,7 +137,7 @@ public class ScriptEngineTest {
 	@Ignore
 	// Python support seems to not be in tree anymore; aclarke 2008-10-01
 	public void testPythonHelloWorld() {
-		if (java15) {
+		if (java15 || !scriptExts.contains("py")) {
 			return;
 		}
 		ScriptEngine pyEngine = mgr.getEngineByName("python");
@@ -120,7 +152,7 @@ public class ScriptEngineTest {
 	// Groovy
 	@Test
 	public void testGroovyHelloWorld() {
-		if (java15) {
+		if (java15 || !scriptExts.contains("groovy")) {
 			return;
 		}
 		ScriptEngine gvyEngine = mgr.getEngineByName("groovy");
@@ -128,7 +160,7 @@ public class ScriptEngineTest {
 			gvyEngine.eval("println  \"Groovy - Hello, world!\"");
 		} catch (Exception ex) {
 			//ex.printStackTrace();
-			assertFalse(true);
+			fail("could not start Groovy");
 		}
 	}
 
@@ -287,35 +319,5 @@ public class ScriptEngineTest {
 	//			assertFalse(true);
 	//		}
 	//	}
-
-	@Test
-	public void testEngines() {
-		if (java15)
-			return;
-		Map<String, ScriptEngineFactory> engineFactories = new HashMap<String, ScriptEngineFactory>(7);
-		//List<ScriptEngineFactory> factories = mgr.getEngineFactories(); //jdk6
-		//ScriptEngineFactory[] factories = mgr.getEngineFactories(); //jdk5
-		for (ScriptEngineFactory factory : mgr.getEngineFactories()) {
-			try {
-				System.out.println("\n--------------------------------------------------------------");
-				String engName = factory.getEngineName();
-				String engVersion = factory.getEngineVersion();
-				String langName = factory.getLanguageName();
-				String langVersion = factory.getLanguageVersion();
-				System.out.printf("Script Engine: %s (%s) Language: %s (%s)", engName, engVersion, langName, langVersion);
-				engineFactories.put(engName, factory);
-				System.out.print("\nEngine Alias(es):");
-				for (String name : factory.getNames()) {
-					System.out.printf("%s ", name);
-				}
-				System.out.printf("\nExtension: ");
-				for (String name : factory.getExtensions()) {
-					System.out.printf("%s ", name);
-				}
-			} catch (Throwable e) {
-				log.error("{}", e);
-			}
-		}
-	}
 
 }

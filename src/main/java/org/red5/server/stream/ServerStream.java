@@ -905,4 +905,15 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 		listeners.remove(listener);
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "ServerStream [publishedName=" + publishedName + ", controller=" + controller + ", defaultController=" + defaultController + ", isRewind=" + isRewind
+				+ ", isRandom=" + isRandom + ", isRepeat=" + isRepeat + ", items=" + items + ", currentItemIndex=" + currentItemIndex + ", currentItem=" + currentItem
+				+ ", recordingFilename=" + recordingFilename + ", providerService=" + providerService + ", scheduler=" + scheduler + ", liveJobName=" + liveJobName
+				+ ", vodJobName=" + vodJobName + ", vodStartTS=" + vodStartTS + ", serverStartTS=" + serverStartTS + ", nextTS=" + nextTS + "]";
+	}
+
 }

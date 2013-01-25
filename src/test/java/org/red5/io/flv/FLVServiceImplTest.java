@@ -85,7 +85,7 @@ public class FLVServiceImplTest extends TestCase {
 	 * @throws FileNotFoundException if file not found
 	 */
 	public void testFLVFile() throws FileNotFoundException, IOException {
-		File f = new File("fixtures/test.flv");
+		File f = new File("target/test-classes/fixtures/test.flv");
 		System.out.println("test: " + f);
 		IFLV flv = (IFLV) service.getStreamableFile(f);
 		flv.setCache(NoCacheImpl.getInstance());

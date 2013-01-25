@@ -11,7 +11,7 @@
 		<property name="locations">
 			<list>
 				<value>
-					file:///${user.dir}/bin/conf/red5.properties
+					file:///${user.dir}/src/main/server/conf/red5.properties
 				</value>
 				<value>
 					file:///${user.dir}/conf/red5.properties
@@ -22,6 +22,15 @@
 
 	<!-- Server bean -->
 	<bean id="red5.server" class="org.red5.server.Server" />
+	
+    <!-- High level access to streams -->
+    <bean id="streamService" class="org.red5.server.stream.StreamService"/>
+    
+    <!-- High level access to broadcasted streams -->
+    <bean id="providerService" class="org.red5.server.stream.ProviderService"/>
+    
+    <!-- Provides output to consumers -->
+    <bean id="consumerService" class="org.red5.server.stream.ConsumerService"/>	
 
 	<!-- Global stuff from red5-default.xml -->
 	<bean id="global.clientRegistry" class="org.red5.server.DummyClientRegistry" />
@@ -50,7 +59,7 @@
 		<property name="persistenceClass" value="org.red5.server.persistence.RamPersistence" />
 	</bean>
 
-	<bean id="red5.scopeResolver" class="org.red5.server.ScopeResolver">
+	<bean id="red5.scopeResolver" class="org.red5.server.scope.ScopeResolver">
 		<property name="globalScope" ref="global.scope" />
 	</bean>
 

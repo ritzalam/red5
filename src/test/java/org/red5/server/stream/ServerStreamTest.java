@@ -7,20 +7,29 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.red5.server.api.scope.IScope;
-import org.red5.server.api.scope.ScopeType;
 import org.red5.server.api.stream.IServerStream;
 import org.red5.server.api.stream.support.SimplePlayItem;
 import org.red5.server.api.stream.support.StreamUtils;
-import org.red5.server.scope.GlobalScope;
-import org.red5.server.scope.Scope;
+import org.red5.server.scope.WebScope;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
-public class ServerStreamTest {
+@ContextConfiguration(locations = { "../service/testcontext.xml" })
+public class ServerStreamTest extends AbstractJUnit4SpringContextTests {
 
 	private IServerStream serverStream;
 
+	static {
+		String userDir = System.getProperty("user.dir");
+		System.out.println("User dir: " + userDir);
+		System.setProperty("red5.deployment.type", "junit");
+		System.setProperty("red5.root", "file:" + userDir + "/target/classes");
+		System.setProperty("red5.config_root", "file:" + userDir + "/src/main/server/conf");
+	}	
+	
 	@Before
 	public void setUp() throws Exception {
-		IScope scope = new Scope.Builder((IScope) new GlobalScope(), ScopeType.APPLICATION, "testapp", false).build();
+		IScope scope = (WebScope) applicationContext.getBean("web.scope");
 		serverStream = StreamUtils.createServerStream(scope, "test");
 	}
 
@@ -78,7 +87,7 @@ public class ServerStreamTest {
 	public void testGetCurrentItem() {
 		SimplePlayItem item = SimplePlayItem.build("f1");
 		serverStream.addItem(item);
-		serverStream.start();
+		//serverStream.start();
 		assertEquals(item, serverStream.getCurrentItem());
 	}
 
@@ -95,8 +104,10 @@ public class ServerStreamTest {
 		serverStream.addItem(item);
 		SimplePlayItem item2 = SimplePlayItem.build("f2");
 		serverStream.addItem(item2);
-		serverStream.start();
+		//serverStream.start();
+		System.out.printf("#1 %s #2 %s\n", serverStream.getItem(0).getName(), serverStream.getItem(1).getName());
 		serverStream.nextItem();
+		System.out.printf("#1 %s #2 %s\n", serverStream.getItem(0).getName(), serverStream.getItem(1).getName());
 		assertEquals(1, serverStream.getCurrentItemIndex());
 		assertEquals("f2", serverStream.getCurrentItem().getName());
 	}

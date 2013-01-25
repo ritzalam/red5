@@ -400,7 +400,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 					SampleDescriptionBox stsd = stbl.getSampleDescriptionBox(); // stsd
 					if (stsd != null) {
 						//stsd: mp4a, avc1, mp4v
-						String type = stsd.getType();
+						//String type = stsd.getType();
 						if (log.isDebugEnabled()) {
 							log.debug("stsd children: {}", stsd.getBoxes().size());
 							dumpBox(stsd);
@@ -513,8 +513,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 				for (TrackExtendsBox trex : trexs) {
 					log.debug("trex - track id: {} duration: {} sample size: {}", trex.getTrackId(), trex.getDefaultSampleDuration(), trex.getDefaultSampleSize());
 				}
-			}
-			
+			}			
 		} catch (Exception e) {
 			log.error("Exception decoding header / atoms", e);
 		}
@@ -525,7 +524,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	 * 
 	 * @param box
 	 */
-	private void dumpBox(ContainerBox box) {
+	public static void dumpBox(ContainerBox box) {
 		for (Box bx : box.getBoxes()) {
 			log.debug("{} child: {}", box.getType(), bx.getType());
 		}
@@ -1415,7 +1414,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		Collections.sort(frames);
 		log.debug("Frames count: {}", frames.size());
 		//log.debug("Frames: {}", frames);
-		//release some memory, since we're done with the vectors
+		//release some memory
 		if (audioSamplesToChunks != null) {
 			audioChunkOffsets = null;
 			audioSamplesToChunks.clear();

@@ -31,29 +31,25 @@ public class BaseTest extends AbstractJUnit4SpringContextTests {
 
 	protected Logger log = LoggerFactory.getLogger(BaseTest.class);
 	
-	static final String red5root = "dist";
-	static final String red5conf = red5root + "/conf";
+	static final String red5root = "target/test-classes";
+	static final String red5conf = "src/main/server/conf";
 	static IContext context = null;
-
 	static final String host = "localhost";
-
-	static final String path_app = "default";
-
-	static final String path_room = "default/test";
+	static final String path_app = "app";
+	static final String path_room = "app/test";
 
 	static {
 		System.setProperty("red5.deployment.type", "junit");
 		// Get the full path name
 		System.setProperty("red5.root", red5root);
 		System.setProperty("red5.config_root", red5conf);
-		
 		System.setProperty("sun.lang.ClassLoader.allowArraySyntax", "true");
     	System.setProperty("logback.ContextSelector", "org.red5.logging.LoggingContextSelector");
 	}
 	
 	@Before
 	public void setUp() throws Exception {
-		context = (IContext) applicationContext.getBean("red5.context");
+		context = (IContext) applicationContext.getBean("web.context");
 	}
 	
 	@Test

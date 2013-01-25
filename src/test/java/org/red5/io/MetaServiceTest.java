@@ -54,12 +54,12 @@ public class MetaServiceTest extends TestCase {
 	 * @throws IOException if io exception
 	 */
 	public void testWrite() throws IOException {
-		String path = "fixtures/test.flv";
+		String path = "target/test-classes/fixtures/test.flv";
 		File f = new File(path);
 		System.out.println("Path: " + f.getAbsolutePath());
 		if (!f.exists()) {
 			// try test subdirectory
-			path = "test/fixtures/test.flv";
+			path = "target/test-classes/fixtures/test.flv";
 			f = new File(path);
 			System.out.println("Path: " + f.getAbsolutePath());
 		}				

@@ -30,7 +30,7 @@ import org.red5.server.api.so.ISharedObjectService;
 import org.red5.server.so.SharedObjectService;
 
 public class SharedObjectTest extends BaseTest implements IEventListener {
-
+	
 	public static junit.framework.Test suite() {
 		return new JUnit4TestAdapter(SharedObjectTest.class);
 	}

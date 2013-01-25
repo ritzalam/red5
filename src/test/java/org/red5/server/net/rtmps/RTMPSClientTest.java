@@ -41,8 +41,8 @@ public class RTMPSClientTest extends AbstractJUnit4SpringContextTests {
 		String userDir = System.getProperty("user.dir");
 		System.out.println("User dir: " + userDir);
 		System.setProperty("red5.deployment.type", "junit");
-		System.setProperty("red5.root", "file:" + userDir + "/bin");
-		System.setProperty("red5.config_root", System.getProperty("red5.root") + "/conf");
+		System.setProperty("red5.root", "file:" + userDir + "/target/classes");
+		System.setProperty("red5.config_root", "file:" + userDir + "/src/main/server/conf");
 	}
 	
 	{

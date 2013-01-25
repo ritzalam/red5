@@ -65,14 +65,14 @@ public class MetaDataInjectionTest extends TestCase {
 	 * @throws IOException if io exception
 	 */
 	public void testMetaDataInjection() throws IOException {
-		String path = "fixtures/test_cue1.flv";
+		String path = "target/test-classes/fixtures/test_cue1.flv";
 		File f = new File(path);
 		System.out.println("Path: " + f.getAbsolutePath());
 		if (f.exists()) {
 			f.delete();
 		} else {
 			// try test subdirectory
-			path = "test/fixtures/test_cue1.flv";
+			path = "target/test-classes/fixtures/test_cue1.flv";
 			f = new File(path);
 			System.out.println("Path: " + f.getAbsolutePath());
 			if (f.exists()) {

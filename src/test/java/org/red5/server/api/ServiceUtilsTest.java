@@ -1,13 +1,13 @@
 package org.red5.server.api;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import junit.framework.JUnit4TestAdapter;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.red5.server.ClientRegistry;
-import org.red5.server.DummyClientRegistry;
 import org.red5.server.api.scope.IScope;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
@@ -15,6 +15,8 @@ import org.red5.server.api.service.ServiceUtils;
 
 public class ServiceUtilsTest extends BaseTest {
 
+	private static ClientRegistry registry;
+	
 	private static int callbackCounter;
 
 	public static junit.framework.Test suite() {
@@ -23,7 +25,8 @@ public class ServiceUtilsTest extends BaseTest {
 
 	@Before
 	public void setUp() throws Exception {
-		context = (IContext) applicationContext.getBean("red5.context");
+		context = (IContext) applicationContext.getBean("web.context");
+		registry = (ClientRegistry) applicationContext.getBean("global.clientRegistry");
 		callbackCounter = 0;
 	}
 
@@ -34,8 +37,6 @@ public class ServiceUtilsTest extends BaseTest {
 	@Test
 	public void testInvokeOnConnectionStringObjectArray() {
 		System.out.println("------------------------------------------------------------------------\ntestInvokeOnConnectionStringObjectArray");
-		// create client reg
-		DummyClientRegistry registry = new DummyClientRegistry();
 		// create a connection
 		TestConnection conn = new TestConnection(host, "/", null);
 		conn.setClient(registry.newClient(null));
@@ -59,17 +60,15 @@ public class ServiceUtilsTest extends BaseTest {
 	@Test
 	public void testInvokeOnAllConnectionsStringObjectArray() {
 		System.out.println("------------------------------------------------------------------------\ntestInvokeOnAllConnectionsStringObjectArray");
-		IScope scope = context.resolveScope("/");
-		// create client reg
-		ClientRegistry registry = new ClientRegistry();
+		IScope scope = (IScope) context.resolveScope("/app/test");
 		// create a few connections
-		TestConnection conn1 = new TestConnection(host, "/", null, "127.0.0.1");
+		TestConnection conn1 = new TestConnection(host, "/app", null, "127.0.0.1");
 		conn1.setClient(registry.newClient(null));
 		conn1.connect(scope);
-		TestConnection conn2 = new TestConnection(host, "/", null, "127.0.0.2");
+		TestConnection conn2 = new TestConnection(host, "/app", null, "127.0.0.2");
 		conn2.setClient(registry.newClient(null));
 		conn2.connect(scope);
-		TestConnection conn3 = new TestConnection(host, "/", null, "127.0.0.3");
+		TestConnection conn3 = new TestConnection(host, "/app", null, "127.0.0.3");
 		conn3.setClient(registry.newClient(null));
 		conn3.connect(scope);
 		// add the first connection to thread local
@@ -84,6 +83,9 @@ public class ServiceUtilsTest extends BaseTest {
 			}
 			if ((System.currentTimeMillis() - loopStart) > 120000) {
 				break;
+			}
+			if (scope.getConnections().size() == 0) {
+				fail("No connections on scope: " + scope.getName());
 			}
 		} while (callbackCounter < 3);
 		assertTrue(callbackCounter == 3);
