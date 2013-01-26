@@ -79,6 +79,32 @@
 					</classpathContainers>
 				</configuration>
 			</plugin>
+			<!-- Ignore/Execute plugin execution -->
+			<plugin>
+				<groupId>org.eclipse.m2e</groupId>
+				<artifactId>lifecycle-mapping</artifactId>
+				<version>1.0.0</version>
+				<configuration>
+					<lifecycleMappingMetadata>
+						<pluginExecutions>
+							<pluginExecution>
+								<pluginExecutionFilter>
+									<groupId>org.apache.maven.plugins</groupId>
+									<artifactId>maven-dependency-plugin</artifactId>
+									<versionRange>[1.0.0,)</versionRange>
+									<goals>
+										<goal>copy-dependencies</goal>
+										<goal>unpack</goal>
+									</goals>
+								</pluginExecutionFilter>
+								<action>
+									<ignore />
+								</action>
+							</pluginExecution>
+						</pluginExecutions>
+					</lifecycleMappingMetadata>
+				</configuration>
+			</plugin>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.3.2</version>
@@ -291,32 +317,6 @@
 				<version>1.8.1</version>
 				<configuration>
 					<connectionType>connection</connectionType>
-				</configuration>
-			</plugin>
-			<!-- Ignore/Execute plugin execution -->
-			<plugin>
-				<groupId>org.eclipse.m2e</groupId>
-				<artifactId>lifecycle-mapping</artifactId>
-				<version>1.0.0</version>
-				<configuration>
-					<lifecycleMappingMetadata>
-						<pluginExecutions>
-							<!-- copy-dependency plugin -->
-							<pluginExecution>
-								<pluginExecutionFilter>
-									<artifactId>maven-dependency-plugin</artifactId>
-									<versionRange>[2.6.0,)</versionRange>
-									<goals>
-										<goal>copy-dependencies</goal>
-										<goal>unpack</goal>
-									</goals>
-								</pluginExecutionFilter>
-								<action>
-									<ignore />
-								</action>
-							</pluginExecution>
-						</pluginExecutions>
-					</lifecycleMappingMetadata>
 				</configuration>
 			</plugin>
 		</plugins>

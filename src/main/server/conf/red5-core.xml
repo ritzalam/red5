@@ -64,6 +64,10 @@
         <property name="backlog" value="${rtmp.backlog}" />
         <property name="tcpNoDelay" value="${rtmp.tcp_nodelay}" />
         <property name="thoughputCalcInterval" value="${rtmp.thoughput_calc_interval}" />
+        <property name="enableDefaultAcceptor" value="${rtmp.default_acceptor}" />
+        <!-- Pool settings are used when the default acceptor is disabled -->
+        <property name="initialPoolSize" value="${rtmp.initial_pool_size}" />
+        <property name="maxPoolSize" value="${rtmp.max_pool_size}" />
 		<!-- This is the interval at which the sessions are polled for stats. If mina monitoring is not enabled, polling will not occur. -->
 		<property name="minaPollInterval" value="${jmx.mina.poll.interval}" />
 		<property name="enableMinaMonitor" value="${jmx.mina.monitor.enable}" />

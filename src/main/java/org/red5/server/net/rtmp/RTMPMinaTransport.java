@@ -24,6 +24,8 @@ import java.net.SocketAddress;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -34,12 +36,15 @@ import org.apache.mina.core.buffer.SimpleBufferAllocator;
 import org.apache.mina.core.service.AbstractIoService;
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.service.IoServiceStatistics;
+import org.apache.mina.filter.executor.ExecutorFilter;
+import org.apache.mina.filter.executor.OrderedThreadPoolExecutor;
 import org.apache.mina.transport.socket.SocketAcceptor;
 import org.apache.mina.transport.socket.SocketSessionConfig;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.red5.server.jmx.mxbeans.RTMPMinaTransportMXBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 /**
  * Transport setup class configures socket acceptor and thread pools for RTMP in Mina.
@@ -81,14 +86,21 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 	protected int sendBufferSize = 65536;
 
 	protected int receiveBufferSize = 65536;
-	
+
 	protected int trafficClass = 0x08 | 0x10;
 
 	protected int backlog = 12;
 
 	protected int thoughputCalcInterval = 1;
-	
+
 	protected long executorKeepAliveTime = 30000;
+	
+	// use the default mina acceptor and associated options
+	protected boolean enableDefaultAcceptor = true;
+
+	private int initialPoolSize;
+
+	private int maxPoolSize;	
 
 	private void initIOHandler() {
 		if (ioHandler == null) {
@@ -106,8 +118,15 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 		}
 		log.info("RTMP Mina Transport Settings");
 		log.info("I/O Threads: {}", ioThreads);
-		// use the default executor
-		acceptor = new NioSocketAcceptor(ioThreads);
+		if (enableDefaultAcceptor) {
+			// use the default executor
+			acceptor = new NioSocketAcceptor(ioThreads);
+		} else {
+			// use ordered thread pool with custom thread factory
+			acceptor = new NioSocketAcceptor();
+			Executor executor = new OrderedThreadPoolExecutor(initialPoolSize, maxPoolSize, executorKeepAliveTime, TimeUnit.MILLISECONDS, new CustomizableThreadFactory("AcceptorThread-"));
+			acceptor.getFilterChain().addLast("executor", new ExecutorFilter(executor));
+		}
 		// set acceptor props
 		acceptor.setHandler(ioHandler);
 		// requested maximum length of the queue of incoming connections
@@ -138,7 +157,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 		// get info
 		log.info("Settings - send buffer size: {} recv buffer size: {} so linger: {} traffic class: {}",
 				new Object[] { sessionConf.getSendBufferSize(), sessionConf.getReceiveBufferSize(), sessionConf.getSoLinger(), sessionConf.getTrafficClass() });
-		//set reuse address on the socket acceptor as well
+		// set reuse address on the socket acceptor as well
 		acceptor.setReuseAddress(true);
 		String addrStr = addresses.toString();
 		log.debug("Binding to {}", addrStr);
@@ -251,6 +270,18 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 	 */
 	public void setExecutorKeepAliveTime(long executorKeepAliveTime) {
 		this.executorKeepAliveTime = executorKeepAliveTime;
+	}
+
+	public void setEnableDefaultAcceptor(boolean enableDefaultAcceptor) {
+		this.enableDefaultAcceptor = enableDefaultAcceptor;
+	}
+
+	public void setInitialPoolSize(int initialPoolSize) {
+		this.initialPoolSize = initialPoolSize;
+	}
+
+	public void setMaxPoolSize(int maxPoolSize) {
+		this.maxPoolSize = maxPoolSize;
 	}
 
 	public void setTcpNoDelay(boolean tcpNoDelay) {
