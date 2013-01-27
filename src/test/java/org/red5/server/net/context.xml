@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:lang="http://www.springframework.org/schema/lang" xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:jee="http://www.springframework.org/schema/jee" xmlns="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd
+                           http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-2.5.xsd">
+
+	<!-- Serializes objects to AMF binary -->
+	<bean id="serializer" class="org.red5.io.object.Serializer" />
+
+	<!-- Deserializes objects from AMF binary -->
+	<bean id="deserializer" class="org.red5.io.object.Deserializer" />
+
+	<bean id="minaEncoder" class="org.red5.server.net.rtmp.codec.RTMPMinaProtocolEncoder" scope="prototype">
+		<property name="serializer">
+			<ref bean="serializer" />
+		</property>
+		<property name="baseTolerance" value="5000" />
+		<property name="dropLiveFuture" value="false" />
+	</bean>
+
+	<bean id="minaDecoder" class="org.red5.server.net.rtmp.codec.RTMPMinaProtocolDecoder" scope="prototype">
+		<property name="deserializer">
+			<ref bean="deserializer" />
+		</property>
+	</bean>
+
+    <!-- Server bean -->
+    <bean id="red5.server" class="org.red5.server.Server" />
+    
+	<bean id="statusObjectService" autowire="byType"
+		class="org.red5.server.net.rtmp.status.StatusObjectService" />
+
+	<bean id="rtmpCodecFactory" autowire="byType"
+		class="org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory" scope="prototype" />
+		
+    <!-- RTMP -->
+    
+    <bean id="rtmpMinaConnManager"
+        class="org.red5.server.net.rtmp.RTMPConnManager">
+    </bean>
+        
+    <!-- RTMP Handler -->
+    <bean id="rtmpHandler" class="org.red5.server.net.rtmp.RTMPHandler">
+        <property name="server" ref="red5.server" />
+        <property name="statusObjectService" ref="statusObjectService" />
+        <property name="globalScopeConnectionAllowed" value="true" />
+    </bean>
+    
+    <!-- RTMP Mina IO Handler -->
+    <bean id="rtmpMinaIoHandler" class="org.red5.server.net.rtmp.RTMPMinaIoHandler">
+        <property name="handler" ref="rtmpHandler" />
+        <property name="rtmpConnManager" ref="rtmpMinaConnManager" />
+    </bean>		
+
+    <!-- RTMP Mina Connection -->
+    <bean id="rtmpMinaConnection" scope="prototype" class="org.red5.server.net.rtmp.RTMPMinaConnection">
+        <property name="pingInterval" value="1000" />
+        <property name="maxInactivity" value="60000" />
+        <property name="maxHandshakeTimeout" value="5000" />
+        <property name="limitType" value="2" />
+        <property name="bandwidthDetection" value="flase" />
+    </bean>
+
+</beans>

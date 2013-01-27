@@ -64,6 +64,8 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		//add rtmpe filter
 		session.getFilterChain().addFirst("rtmpeFilter", new RTMPEIoFilter());
 		//add protocol filter next
+		log.debug("Application context: {}", appCtx);
+		log.debug("Codec factory: {}", appCtx.containsBean("rtmpCodecFactory"));
 		ProtocolCodecFactory codecFactory = (ProtocolCodecFactory) appCtx.getBean("rtmpCodecFactory");
 		session.getFilterChain().addLast("protocolFilter", new ProtocolCodecFilter(codecFactory));
 		if (log.isTraceEnabled()) {
