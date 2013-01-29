@@ -32,6 +32,8 @@ import org.red5.server.net.rtmp.event.IRTMPEvent;
 public class Packet implements Externalizable {
 
 	private static final long serialVersionUID = -6415050845346626950L;
+	
+	private static final boolean useWrap = System.getProperty("packet.useWrap") == null ? false : Boolean.valueOf(System.getProperty("packet.useWrap"));
 
 	/**
 	 * Header
@@ -103,7 +105,11 @@ public class Packet implements Externalizable {
 	 * @param buffer Packet data
 	 */
 	public void setData(IoBuffer buffer) {
-		this.data.put(buffer.buf()).flip();
+		if (useWrap) {
+			this.data = IoBuffer.wrap(buffer);
+		} else {
+			this.data.put(buffer.buf()).flip();
+		}
 	}
 
 	/**
