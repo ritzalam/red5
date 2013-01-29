@@ -25,6 +25,8 @@ import java.io.ObjectOutput;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * RTMP packet. Consists of packet header, data and event context.
@@ -33,7 +35,9 @@ public class Packet implements Externalizable {
 
 	private static final long serialVersionUID = -6415050845346626950L;
 	
-	private static final boolean useWrap = System.getProperty("packet.useWrap") == null ? false : Boolean.valueOf(System.getProperty("packet.useWrap"));
+	private static Logger log = LoggerFactory.getLogger(Packet.class);
+	
+	private static final boolean noCopy = System.getProperty("packet.noCopy") == null ? false : Boolean.valueOf(System.getProperty("packet.noCopy"));
 
 	/**
 	 * Header
@@ -51,6 +55,7 @@ public class Packet implements Externalizable {
 	private IoBuffer data;
 
 	public Packet() {
+		log.trace("ctor");
 	}
 
 	/**
@@ -58,6 +63,7 @@ public class Packet implements Externalizable {
 	 * @param header       Packet header
 	 */
 	public Packet(Header header) {
+		log.trace("Header: {}", header);
 		this.header = header;
 		data = IoBuffer.allocate(header.getSize()).setAutoExpand(true);
 	}
@@ -68,6 +74,7 @@ public class Packet implements Externalizable {
 	 * @param event      RTMP message
 	 */
 	public Packet(Header header, IRTMPEvent event) {
+		log.trace("Header: {} event: {}", header, event);
 		this.header = header;
 		this.message = event;
 	}
@@ -105,10 +112,23 @@ public class Packet implements Externalizable {
 	 * @param buffer Packet data
 	 */
 	public void setData(IoBuffer buffer) {
-		if (useWrap) {
-			this.data = IoBuffer.wrap(buffer);
+		if (noCopy) {
+			log.trace("Using buffer reference");
+			this.data = buffer;
 		} else {
-			this.data.put(buffer.buf()).flip();
+			// try the backing array first if it exists
+			if (buffer.hasArray()) {
+				log.trace("Buffer has backing array, making a copy");
+				byte[] copy = new byte[buffer.limit()];
+				buffer.mark();
+				buffer.get(copy);
+				buffer.reset();
+				this.data = IoBuffer.wrap(copy);
+			} else {
+				log.trace("Buffer has no backing array, using ByteBuffer");
+				// fallback to ByteBuffer
+				this.data.put(buffer.buf()).flip();
+			}
 		}
 	}
 
