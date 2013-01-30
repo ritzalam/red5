@@ -81,7 +81,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	/**
 	 * Queue writer thread count
 	 */
-	private int schedulerThreadSize = 4;
+	private int schedulerThreadSize = 1;
 
 	/**
 	 * Queue to hold data for delayed writing
@@ -177,9 +177,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	 */
 	public FileConsumer() {
 		if (scheduledExecutorService == null) {
-			synchronized (this) {
-				scheduledExecutorService = Executors.newScheduledThreadPool(schedulerThreadSize, new CustomizableThreadFactory("FileConsumerExecutor-"));
-			}
+			scheduledExecutorService = Executors.newScheduledThreadPool(schedulerThreadSize, new CustomizableThreadFactory("FileConsumerExecutor-"));
 		}
 	}
 
@@ -719,8 +717,8 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	 */
 	public void setMode(String mode) {
 		this.mode = mode;
-	}	
-	
+	}
+
 	/**
 	 * Queued data wrapper.
 	 */

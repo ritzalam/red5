@@ -50,7 +50,7 @@ public class FilenameGenerator implements IStreamFilenameGenerator {
     	logger.debug("Get stream directory: scope={}, name={}, type={}", new Object[]{scope, name, type.toString()});
     	//determine current dir
 		File tmp = new File("");
-		System.out.println("Location: " + tmp.getAbsolutePath());
+		//System.out.println("Location: " + tmp.getAbsolutePath());
     	
 		StringBuilder filename = new StringBuilder(tmp.getAbsolutePath());
 		if (type.equals(GenerationType.PLAYBACK)) {
@@ -69,7 +69,7 @@ public class FilenameGenerator implements IStreamFilenameGenerator {
             filename.append(extension);
         }
         logger.debug("Generated filename: {}", filename.toString());
-        System.out.println("File name: " + filename.toString());
+        //System.out.println("File name: " + filename.toString());
         return filename.toString();
 	}
 	

@@ -19,32 +19,29 @@
 package org.red5.server.so;
 
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.api.persistence.PersistenceUtils;
+import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scope.IScope;
 import org.red5.server.api.scope.ScopeType;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectService;
 import org.red5.server.persistence.RamPersistence;
+import org.red5.server.scheduling.QuartzSchedulingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 /**
  * Shared object service
  */
-public class SharedObjectService implements ISharedObjectService, InitializingBean, DisposableBean {
+public class SharedObjectService implements ISharedObjectService, ApplicationContextAware, InitializingBean, DisposableBean {
 
-	/**
-	 * Logger
-	 */
 	private Logger log = LoggerFactory.getLogger(SharedObjectService.class);
 
 	/**
@@ -58,9 +55,14 @@ public class SharedObjectService implements ISharedObjectService, InitializingBe
 	private static final String SO_TRANSIENT_STORE = IPersistable.TRANSIENT_PREFIX + "_SO_TRANSIENT_STORE_";
 
 	/**
-	 * Executor for updates
+	 * Service used to provide updates / notifications.
 	 */
-	public static ExecutorService SHAREDOBJECT_EXECUTOR;	
+	private static QuartzSchedulingService schedulingService;
+
+	/**
+	 * Spring application context
+	 */
+	private ApplicationContext applicationContext;
 
 	/** 
 	 * Maximum messages to send at once
@@ -73,13 +75,28 @@ public class SharedObjectService implements ISharedObjectService, InitializingBe
 	private String persistenceClassName = "org.red5.server.persistence.RamPersistence";
 
 	/**
-	 * Number of threads available for updates
+	 * Initialization section.
 	 */
-	@SuppressWarnings("unused")
-	private int executorThreadPoolSize = 2;
-	
-	public void setExecutorThreadPoolSize(int value) {
-		executorThreadPoolSize = value;
+	public void afterPropertiesSet() throws Exception {
+		SharedObjectService.schedulingService = (QuartzSchedulingService) applicationContext.getBean("schedulingService");
+	}
+
+	/**
+	 * Pushes a job to the scheduler for single execution.
+	 * 
+	 * @param job
+	 */
+	public static void submitJob(IScheduledJob job) {
+		schedulingService.addScheduledOnceJob(10, job);
+	}
+
+	/**
+	 * Setter for Spring application context
+	 * 
+	 * @param applicationContext Application context
+	 */
+	public void setApplicationContext(ApplicationContext applicationContext) {
+		this.applicationContext = applicationContext;
 	}
 
 	/**
@@ -87,10 +104,6 @@ public class SharedObjectService implements ISharedObjectService, InitializingBe
 	 */
 	public void setMaximumEventsPerUpdate(int maximumEventsPerUpdate) {
 		MAXIMUM_EVENTS_PER_UPDATE = maximumEventsPerUpdate;
-	}
-
-	public void afterPropertiesSet() throws Exception {
-		SHAREDOBJECT_EXECUTOR = Executors.newCachedThreadPool(new CustomizableThreadFactory("SharedObjectThread-"));
 	}
 
 	/**
@@ -184,23 +197,6 @@ public class SharedObjectService implements ISharedObjectService, InitializingBe
 	}
 
 	public void destroy() throws Exception {
-		//disable new tasks from being submitted
-		SHAREDOBJECT_EXECUTOR.shutdown();
-		try {
-			//wait a while for existing tasks to terminate
-			if (!SHAREDOBJECT_EXECUTOR.awaitTermination(2, TimeUnit.SECONDS)) {
-				SHAREDOBJECT_EXECUTOR.shutdownNow(); // cancel currently executing tasks
-				//wait a while for tasks to respond to being canceled
-				if (!SHAREDOBJECT_EXECUTOR.awaitTermination(1, TimeUnit.SECONDS)) {
-					System.err.println("Notifier pool did not terminate");
-				}
-			}
-		} catch (InterruptedException ie) {
-			// re-cancel if current thread also interrupted
-			SHAREDOBJECT_EXECUTOR.shutdownNow();
-			// preserve interrupt status
-			Thread.currentThread().interrupt();
-		}
 	}
 
 }

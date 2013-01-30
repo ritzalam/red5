@@ -19,7 +19,8 @@
 package org.red5.server.api.stream;
 
 import java.io.IOException;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+
+import org.red5.server.api.scheduling.IScheduledJob;
 
 /**
  * ISubscriberStream is a stream from subscriber's point of view. That is, it
@@ -105,11 +106,29 @@ public interface ISubscriberStream extends IClientStream {
 	 * @param changed parameters associated with the change
 	 */
 	public void onChange(final StreamState state, final Object... changed);
+	
+	/**
+	 * Schedule a job to be executed only once after a 10ms delay.
+	 * 
+	 * @param job
+	 * @return jobName
+	 */
+	public String scheduleOnceJob(IScheduledJob job);
 
 	/**
-	 * Returns the Executor.
-	 * @return executor
+	 * Schedule a job to be executed regularly at the given interval.
+	 * 
+	 * @param job
+	 * @param interval
+	 * @return jobName
 	 */
-	ScheduledThreadPoolExecutor getExecutor();		
+	public String scheduleWithFixedDelay(IScheduledJob job, int interval);
+
+	/**
+	 * Cancels a scheduled job by name.
+	 * 
+	 * @param pullAndPush
+	 */
+	public void cancelJob(String pullAndPush);
 	
 }

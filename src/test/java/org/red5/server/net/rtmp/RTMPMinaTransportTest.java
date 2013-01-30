@@ -1,6 +1,10 @@
 package org.red5.server.net.rtmp;
 
+import static org.junit.Assert.*;
+
 import java.net.InetSocketAddress;
+
+import junit.framework.Assert;
 
 import net.sourceforge.groboutils.junit.v1.MultiThreadedTestRunner;
 import net.sourceforge.groboutils.junit.v1.TestRunnable;
@@ -16,15 +20,20 @@ import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.net.rtmp.codec.RTMP;
+import org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
 import org.red5.server.net.rtmp.message.Header;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
-@ContextConfiguration(locations = { "../context.xml", "../../scope/ScopeTest.xml" })
+@ContextConfiguration(locations = { "../context.xml" })
 public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
+	
+	private long clientLifetime = 3 * 60 * 1000;
 
+	private int threads = 300;
+	
 	static {
 		System.setProperty("red5.deployment.type", "junit");
 		System.setProperty("red5.root", "target/test-classes");
@@ -34,6 +43,7 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 
 	@Before
 	public void setUp() throws Exception {
+		Assert.assertNotNull(applicationContext);
 	}
 
 	@After
@@ -42,21 +52,40 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 
 	@Test
 	public void testLoad() throws Exception {
-		RTMPMinaTransport mina = new RTMPMinaTransport();
+//		try {
+//			Thread.sleep(10000L);
+//		} catch (Exception e) {
+//		}
+		RTMPMinaTransport mina = (RTMPMinaTransport) applicationContext.getBean("rtmpTransport");
+		// check the io handler
+		RTMPMinaIoHandler ioHandler = (RTMPMinaIoHandler) mina.ioHandler;
+		if (ioHandler.codecFactory == null) {
+			RTMPMinaCodecFactory codecFactory = new RTMPMinaCodecFactory();
+			codecFactory.setApplicationContext(applicationContext);
+			codecFactory.afterPropertiesSet();
+			ioHandler.setCodecFactory(codecFactory);
+		}
+		if (ioHandler.rtmpConnManager == null) {
+			RTMPConnManager rtmpConnManager = new RTMPConnManager();
+			rtmpConnManager.setApplicationContext(applicationContext);
+			ioHandler.setRtmpConnManager(rtmpConnManager);						
+		}		
 		mina.setBacklog(128);
 		mina.setEnableDefaultAcceptor(false);
 		mina.setEnableMinaMonitor(false);
-		mina.setInitialPoolSize(16);
-		mina.setMaxPoolSize(64);
 		mina.setMinaPollInterval(15);
 		mina.setTcpNoDelay(true);
-		mina.setTrafficClass(24);
+		mina.setTrafficClass(10);
+		// used when default acceptor is false
+		mina.setInitialPoolSize(0);
+		mina.setMaxPoolSize(4);
+		mina.setMaxProcessorPoolSize(256);
+		mina.setExecutorKeepAliveTime(30000);
 		// create an address
 		mina.setConnector(new InetSocketAddress("0.0.0.0", 1935));
 		// start
 		mina.start();
 		// create some clients
-		int threads = 10;
 		TestRunnable[] trs = new TestRunnable[threads];
 		for (int t = 0; t < threads; t++) {
 			trs[t] = new CreatorWorker();
@@ -70,15 +99,24 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 		} catch (Throwable e1) {
 			e1.printStackTrace();
 		}
+		int noAV = 0;
 		for (TestRunnable r : trs) {
 			TestClient cli = ((CreatorWorker) r).getClient();
-			cli.disconnect();
+			System.out.printf("Client %d - audio: %d video: %d\n", cli.getConnection().clientId, cli.getAudioCounter(), cli.getVideoCounter());
+			if (cli.getAudioCounter() == 0 || cli.getVideoCounter() == 0) {
+				noAV++;
+			}
+			try {
+				cli.disconnect();				
+			} catch (Throwable t) {
+			}
 		}
 		System.out.printf("Free mem: %s\n", rt.freeMemory());
+		System.out.printf("Client fail count: %d\n", noAV);		
+		assertTrue(noAV == 0);
 		try {
-			Thread.sleep(1000L);
+			Thread.sleep(2000L);
 		} catch (Exception e) {
-			e.printStackTrace();
 		}
 		// stop
 		mina.stop();
@@ -90,7 +128,7 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 		public void runTest() throws Throwable {
 			client = new TestClient();
 			client.connect();
-			Thread.sleep(1000L);
+			Thread.sleep(clientLifetime);
 
 		}
 
@@ -107,6 +145,10 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 		private int port = 1935;
 
 		private String application = "junit";
+		
+		private int audioCounter;
+		
+		private int videoCounter;
 
 		public void connect() {
 			setExceptionHandler(new ClientExceptionHandler() {
@@ -121,13 +163,19 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 
 		private IEventDispatcher streamEventDispatcher = new IEventDispatcher() {
 			public void dispatchEvent(IEvent event) {
-				System.out.println("ClientStream.dispachEvent()" + event.toString());
+				//System.out.println("ClientStream.dispachEvent()" + event.toString());
+				String evt = event.toString();
+				if (evt.indexOf("Audio") >= 0) {
+					audioCounter++;
+				} else if (evt.indexOf("Video") >= 0) {
+					videoCounter++;
+				}
 			}
 		};
 
 		private IPendingServiceCallback connectCallback = new IPendingServiceCallback() {
 			public void resultReceived(IPendingServiceCall call) {
-				System.out.println("connectCallback");
+				//System.out.println("connectCallback");
 				ObjectMap<?, ?> map = (ObjectMap<?, ?>) call.getResult();
 				String code = (String) map.get("code");
 				if ("NetConnection.Connect.Rejected".equals(code)) {
@@ -144,15 +192,33 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 		private IPendingServiceCallback createStreamCallback = new IPendingServiceCallback() {
 			public void resultReceived(IPendingServiceCall call) {
 				int streamId = (Integer) call.getResult();
-				conn.ping(new Ping(Ping.CLIENT_BUFFER, streamId, 500));
+				conn.ping(new Ping(Ping.CLIENT_BUFFER, streamId, 4000));
+				// play 2 min test clip
+				play(streamId, "h264_mp3", 0, -1);				
 			}
 		};
 
 		protected void onInvoke(RTMPConnection conn, Channel channel, Header header, Notify notify, RTMP rtmp) {
 			super.onInvoke(conn, channel, header, notify, rtmp);
+			/*
 			System.out.println("onInvoke, header = " + header.toString());
 			System.out.println("onInvoke, notify = " + notify.toString());
 			System.out.println("onInvoke, rtmp = " + rtmp.toString());
+			*/
+		}
+
+		/**
+		 * @return the audioCounter
+		 */
+		public int getAudioCounter() {
+			return audioCounter;
+		}
+
+		/**
+		 * @return the videoCounter
+		 */
+		public int getVideoCounter() {
+			return videoCounter;
 		}
 	}
 

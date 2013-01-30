@@ -18,8 +18,6 @@
 
 package org.red5.server.api.stream;
 
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-
 import org.red5.server.api.statistics.IPlaylistSubscriberStreamStatistics;
 
 /**
@@ -34,14 +32,7 @@ public interface IPlaylistSubscriberStream extends ISubscriberStream, IPlaylist 
 	 * @return statistics
 	 */
 	public IPlaylistSubscriberStreamStatistics getStatistics();
-	
-	/**
-	 * Returns the job executor.
-	 * 
-	 * @return executor
-	 */
-	public ScheduledThreadPoolExecutor getExecutor();
-	
+		
 	/**
 	 * Handles a change occurring on the stream.
 	 * 

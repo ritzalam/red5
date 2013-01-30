@@ -24,16 +24,16 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IServer;
 import org.red5.server.api.listeners.IConnectionListener;
 import org.red5.server.api.listeners.IScopeListener;
+import org.red5.server.api.scheduling.IScheduledJob;
+import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.scope.IGlobalScope;
 import org.red5.server.api.scope.IScope;
+import org.red5.server.scheduling.QuartzSchedulingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -46,15 +46,14 @@ import org.springframework.core.style.ToStringCreator;
  * Red5 server core class implementation.
  */
 public class Server implements IServer, ApplicationContextAware, InitializingBean, DisposableBean {
-
-	// Initialize Logging
+ 
 	protected static Logger log = LoggerFactory.getLogger(Server.class);
 
 	/**
-	 * Executor service used to provide asynchronous notifications.
+	 * Service used to provide notifications.
 	 */
-	private static ExecutorService notifier;
-	
+	private static QuartzSchedulingService schedulingService;
+
 	/**
 	 * List of global scopes
 	 */
@@ -84,9 +83,6 @@ public class Server implements IServer, ApplicationContextAware, InitializingBea
 
 	public Set<IConnectionListener> connectionListeners = new CopyOnWriteArraySet<IConnectionListener>();
 
-	//number of threads in the notifier pool
-	private int notifierThreadPoolSize = 4;
-
 	/**
 	 * Setter for Spring application context
 	 * 
@@ -101,32 +97,15 @@ public class Server implements IServer, ApplicationContextAware, InitializingBea
 	 * Initialization section.
 	 */
 	public void afterPropertiesSet() throws Exception {
-		Server.notifier = Executors.newFixedThreadPool(notifierThreadPoolSize);
+		Server.schedulingService = (QuartzSchedulingService) applicationContext.getBean("schedulingService");
 	}
 
 	/**
 	 * Destruction section.
 	 */
 	public void destroy() throws Exception {
-		//disable new tasks from being submitted
-		notifier.shutdown(); 
-		try {
-			//wait a while for existing tasks to terminate
-			if (!notifier.awaitTermination(3, TimeUnit.SECONDS)) {
-				notifier.shutdownNow(); // cancel currently executing tasks
-				//wait a while for tasks to respond to being canceled
-				if (!notifier.awaitTermination(3, TimeUnit.SECONDS)) {
-					System.err.println("Notifier pool did not terminate");
-				}
-			}
-		} catch (InterruptedException ie) {
-			// re-cancel if current thread also interrupted
-			notifier.shutdownNow();
-			// preserve interrupt status
-			Thread.currentThread().interrupt();
-		}
-	}	
-	
+	}
+
 	/**
 	 * Return scope key. Scope key consists of host name concatenated with
 	 * context path by slash symbol
@@ -261,8 +240,8 @@ public class Server implements IServer, ApplicationContextAware, InitializingBea
 		final String key = getKey("", contextPath);
 		log.debug("Remove mapping: {}", key);
 		return (mapping.remove(key) != null);
-	}	
-	
+	}
+
 	/**
 	 * Return mapping
 	 * 
@@ -326,15 +305,8 @@ public class Server implements IServer, ApplicationContextAware, InitializingBea
 	 * @param scope
 	 *            the scope that was created
 	 */
-	public void notifyScopeCreated(final IScope scope) {
-		Runnable notification = new Runnable(){
-			public void run() {				
-        		for (IScopeListener listener : scopeListeners) {
-        			listener.notifyScopeCreated(scope);
-        		}
-			}
-		};
-		notifier.execute(notification);				
+	public void notifyScopeCreated(IScope scope) {
+		schedulingService.addScheduledOnceJob(10, new ScopeCreatedJob(scope));
 	}
 
 	/**
@@ -343,15 +315,8 @@ public class Server implements IServer, ApplicationContextAware, InitializingBea
 	 * @param scope
 	 *            the scope that was removed
 	 */
-	public void notifyScopeRemoved(final IScope scope) {
-		Runnable notification = new Runnable(){
-			public void run() {		
-        		for (IScopeListener listener : scopeListeners) {
-        			listener.notifyScopeRemoved(scope);
-        		}
-			}
-		};
-		notifier.execute(notification);		
+	public void notifyScopeRemoved(IScope scope) {
+		schedulingService.addScheduledOnceJob(10, new ScopeRemovedJob(scope));
 	}
 
 	/**
@@ -360,15 +325,8 @@ public class Server implements IServer, ApplicationContextAware, InitializingBea
 	 * @param conn
 	 *            the new connection
 	 */
-	public void notifyConnected(final IConnection conn) {
-		Runnable notification = new Runnable(){
-			public void run() {
-				for (IConnectionListener listener : connectionListeners) {
-					listener.notifyConnected(conn);
-				}				
-			}
-		};
-		notifier.execute(notification);
+	public void notifyConnected(IConnection conn) {
+		schedulingService.addScheduledOnceJob(10, new ConnectedJob(conn));
 	}
 
 	/**
@@ -378,22 +336,77 @@ public class Server implements IServer, ApplicationContextAware, InitializingBea
 	 *            the disconnected connection
 	 */
 	public void notifyDisconnected(final IConnection conn) {
-		Runnable notification = new Runnable(){
-			public void run() {
-        		for (IConnectionListener listener : connectionListeners) {
-        			listener.notifyDisconnected(conn);
-        		}
-        	}
-        };
-        notifier.execute(notification);		
+		schedulingService.addScheduledOnceJob(10, new DisconnectedJob(conn));
 	}
 
-	public int getNotifierThreadPoolSize() {
-		return notifierThreadPoolSize;
+	/**
+	 * Used to indicate a scope was created.
+	 */
+	private final class ScopeCreatedJob implements IScheduledJob {
+
+		private IScope scope;
+
+		ScopeCreatedJob(IScope scope) {
+			this.scope = scope;
+		}
+
+		public void execute(ISchedulingService service) {
+			for (IScopeListener listener : scopeListeners) {
+				listener.notifyScopeCreated(scope);
+			}
+		}
+
 	}
 
-	public void setNotifierThreadPoolSize(int notifierThreadPoolSize) {
-		this.notifierThreadPoolSize = notifierThreadPoolSize;
+	/**
+	 * Used to indicate a scope was removed.
+	 */
+	private final class ScopeRemovedJob implements IScheduledJob {
+
+		private IScope scope;
+
+		ScopeRemovedJob(IScope scope) {
+			this.scope = scope;
+		}
+
+		public void execute(ISchedulingService service) {
+			for (IScopeListener listener : scopeListeners) {
+				listener.notifyScopeRemoved(scope);
+			}
+		}
+
 	}
+
+	private final class ConnectedJob implements IScheduledJob {
+
+		private IConnection conn;
+
+		ConnectedJob(IConnection conn) {
+			this.conn = conn;
+		}
+
+		public void execute(ISchedulingService service) {
+			for (IConnectionListener listener : connectionListeners) {
+				listener.notifyConnected(conn);
+			}
+		}
+
+	}
+	
+	private final class DisconnectedJob implements IScheduledJob {
+
+		private IConnection conn;
+
+		DisconnectedJob(IConnection conn) {
+			this.conn = conn;
+		}
+
+		public void execute(ISchedulingService service) {
+			for (IConnectionListener listener : connectionListeners) {
+				listener.notifyDisconnected(conn);
+			}
+		}
+
+	}	
 
 }

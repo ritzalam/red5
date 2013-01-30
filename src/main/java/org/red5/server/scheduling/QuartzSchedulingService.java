@@ -21,6 +21,7 @@ package org.red5.server.scheduling;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.quartz.JobDetail;
@@ -52,6 +53,11 @@ public class QuartzSchedulingService implements ISchedulingService, QuartzSchedu
 	private static Logger log = Red5LoggerFactory.getLogger(QuartzSchedulingService.class);
 
 	/**
+	 * Quartz configuration properties file
+	 */
+	protected String configFile;	
+	
+	/**
 	 * Number of job details
 	 */
 	protected AtomicLong jobDetailCounter = new AtomicLong(0);
@@ -70,6 +76,11 @@ public class QuartzSchedulingService implements ISchedulingService, QuartzSchedu
 	 * Instance id
 	 */
 	protected String instanceId;
+	
+	/**
+	 * Default thread count
+	 */
+	protected String threadCount = "10";
 
 	/** Constructs a new QuartzSchedulingService. */
 	public void afterPropertiesSet() throws Exception {
@@ -77,7 +88,20 @@ public class QuartzSchedulingService implements ISchedulingService, QuartzSchedu
 		try {
 			//create the standard factory if we dont have one
 			if (factory == null) {
-				factory = new StdSchedulerFactory();
+				//set properties
+				if (configFile != null) {
+					factory = new StdSchedulerFactory(configFile);
+				} else {
+					Properties props = new Properties();
+					props.put("org.quartz.scheduler.instanceName", "Red5_Scheduler");
+					props.put("org.quartz.scheduler.instanceId", "AUTO");
+					props.put("org.quartz.threadPool.class", "org.quartz.simpl.SimpleThreadPool");
+					props.put("org.quartz.threadPool.threadCount", threadCount);
+					props.put("org.quartz.threadPool.threadPriority", "5");
+					props.put("org.quartz.jobStore.misfireThreshold", "60000");
+					props.put("org.quartz.jobStore.class", "org.quartz.simpl.RAMJobStore");
+					factory = new StdSchedulerFactory(props);
+				}
 			}
 			if (instanceId == null) {
 				scheduler = factory.getScheduler();
@@ -103,6 +127,14 @@ public class QuartzSchedulingService implements ISchedulingService, QuartzSchedu
 		this.instanceId = instanceId;
 	}
 
+	public String getConfigFile() {
+		return configFile;
+	}
+
+	public void setConfigFile(String configFile) {
+		this.configFile = configFile;
+	}
+	
 //	protected void registerJMX() {
 //		//register with jmx server
 //		MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
@@ -119,12 +151,25 @@ public class QuartzSchedulingService implements ISchedulingService, QuartzSchedu
 //		}		
 //	}
 
+	/**
+	 * @return the threadCount
+	 */
+	public String getThreadCount() {
+		return threadCount;
+	}
+
+	/**
+	 * @param threadCount the threadCount to set
+	 */
+	public void setThreadCount(String threadCount) {
+		this.threadCount = threadCount;
+	}
+
 	/** {@inheritDoc} */
 	public String addScheduledJob(int interval, IScheduledJob job) {
 		String result = getJobName();
-
 		// Create trigger that fires indefinitely every <interval> milliseconds
-		SimpleTrigger trigger = new SimpleTrigger("Trigger_" + result, null, new Date(), null, SimpleTrigger.REPEAT_INDEFINITELY, interval);
+		SimpleTrigger trigger = new SimpleTrigger(String.format("Trigger_%s", result), null, new Date(), null, SimpleTrigger.REPEAT_INDEFINITELY, interval);
 		scheduleJob(result, trigger, job);
 		return result;
 	}
@@ -132,9 +177,8 @@ public class QuartzSchedulingService implements ISchedulingService, QuartzSchedu
 	/** {@inheritDoc} */
 	public String addScheduledOnceJob(Date date, IScheduledJob job) {
 		String result = getJobName();
-
 		// Create trigger that fires once at <date>
-		SimpleTrigger trigger = new SimpleTrigger("Trigger_" + result, null, date);
+		SimpleTrigger trigger = new SimpleTrigger(String.format("Trigger_%s", result), null, date);
 		scheduleJob(result, trigger, job);
 		return result;
 	}
@@ -151,7 +195,7 @@ public class QuartzSchedulingService implements ISchedulingService, QuartzSchedu
 		// Initialize the start time to now and add the delay.
 		long startTime = System.currentTimeMillis() + delay;
 		// Create trigger that fires indefinitely every <internval> milliseconds.
-		SimpleTrigger trigger = new SimpleTrigger("Trigger_" + result, null, new Date(startTime), null, SimpleTrigger.REPEAT_INDEFINITELY, interval);
+		SimpleTrigger trigger = new SimpleTrigger(String.format("Trigger_%s", result), null, new Date(startTime), null, SimpleTrigger.REPEAT_INDEFINITELY, interval);
 		// Schedule the job with Quartz.
 		scheduleJob(result, trigger, job);
 		// Return the job name.
@@ -164,8 +208,7 @@ public class QuartzSchedulingService implements ISchedulingService, QuartzSchedu
 	 * @return  Job name
 	 */
 	public String getJobName() {
-		String result = "ScheduledJob_" + jobDetailCounter.getAndIncrement();
-		return result;
+		return String.format("ScheduledJob_%d", jobDetailCounter.getAndIncrement());
 	}
 
 	/** {@inheritDoc} */
@@ -205,7 +248,7 @@ public class QuartzSchedulingService implements ISchedulingService, QuartzSchedu
 
 	public void pauseScheduledTrigger(String name) {
 		try {
-			scheduler.pauseTrigger("Trigger_" + name, null);
+			scheduler.pauseTrigger(String.format("Trigger_%s", name), null);
 		} catch (SchedulerException ex) {
 			throw new RuntimeException(ex);
 		}
@@ -213,7 +256,7 @@ public class QuartzSchedulingService implements ISchedulingService, QuartzSchedu
 
 	public void resumeScheduledTrigger(String name) {
 		try {
-			scheduler.resumeTrigger("Trigger_" + name, null);
+			scheduler.resumeTrigger(String.format("Trigger_%s", name), null);
 		} catch (SchedulerException ex) {
 			throw new RuntimeException(ex);
 		}

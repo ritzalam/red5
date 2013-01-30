@@ -81,12 +81,6 @@ public class PlaylistSubscriberStreamTest extends AbstractDependencyInjectionSpr
 	}
 
 	@Test
-	public void testGetExecutor() {
-		System.out.println("testGetExecutor");
-		assertTrue(pss.getExecutor() != null);
-	}
-
-	@Test
 	public void testStart() {
 		System.out.println("testStart");
 		SimplePlayItem item = SimplePlayItem.build("DarkKnight.flv");

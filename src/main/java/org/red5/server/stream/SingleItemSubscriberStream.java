@@ -19,12 +19,14 @@
 package org.red5.server.stream;
 
 import java.io.IOException;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IContext;
 import org.red5.server.api.Red5;
+import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.scope.IScope;
 import org.red5.server.api.stream.IPlayItem;
@@ -44,10 +46,14 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 	private static final Logger log = Red5LoggerFactory.getLogger(SingleItemSubscriberStream.class);
 
 	/**
-	 * Executor that will be used to schedule stream playback to keep
-	 * the client buffer filled.
+	 * Service used to provide notifications, keep client buffer filled, clean up, etc...
 	 */
-	protected static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(3);
+	protected ISchedulingService schedulingService;
+
+	/** 
+	 * Scheduled job names
+	 */
+	protected Set<String> jobs = new HashSet<String>(1);
 
 	/**
 	 * Interval in ms to check for buffer underruns in VOD streams.
@@ -156,27 +162,6 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 	}
 
 	/**
-	 * Set the executor to use.
-	 * 
-	 * @param executor the executor
-	 */
-	public void setExecutor(ScheduledThreadPoolExecutor executor) {
-		PlaylistSubscriberStream.executor = executor;
-	}
-
-	/**
-	 * Return the executor to use.
-	 * 
-	 * @return the executor
-	 */
-	public ScheduledThreadPoolExecutor getExecutor() {
-		if (executor == null) {
-			log.warn("ScheduledThreadPoolExecutor was null on request");
-		}
-		return executor;
-	}
-
-	/**
 	 * Set interval to check for buffer underruns. Set to <code>0</code> to
 	 * disable.
 	 * 
@@ -203,7 +188,6 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 			IScope scope = getScope();
 			if (scope != null) {
 				IContext ctx = scope.getContext();
-				ISchedulingService schedulingService = null;
 				if (ctx.hasBean(ISchedulingService.BEAN_NAME)) {
 					schedulingService = (ISchedulingService) ctx.getBean(ISchedulingService.BEAN_NAME);
 				} else {
@@ -242,6 +226,13 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 	public void close() {
 		engine.close();
 		onChange(StreamState.CLOSED);
+		// clear jobs
+		if (schedulingService != null && !jobs.isEmpty()) {
+			for (String jobName : jobs) {
+				schedulingService.removeScheduledJob(jobName);
+			}
+			jobs.clear();
+		}
 	}
 
 	/**
@@ -255,7 +246,7 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 				//notifies subscribers on seek
 				if (handler != null) {
 					notifier = new Notifier(this, handler) {
-						public void run() {
+						public void execute(ISchedulingService service) {
 							//make sure those notified have the correct connection
 							Red5.setConnectionLocal(conn);
 							//get item being played
@@ -279,7 +270,7 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 				//notifies subscribers on pause
 				if (handler != null) {
 					notifier = new Notifier(this, handler) {
-						public void run() {
+						public void execute(ISchedulingService service) {
 							//make sure those notified have the correct connection
 							Red5.setConnectionLocal(conn);
 							//get item being played
@@ -303,7 +294,7 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 				//notifies subscribers on resume
 				if (handler != null) {
 					notifier = new Notifier(this, handler) {
-						public void run() {
+						public void execute(ISchedulingService service) {
 							//make sure those notified have the correct connection
 							Red5.setConnectionLocal(conn);
 							//get item being played
@@ -325,7 +316,7 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 				//notifies subscribers on play
 				if (handler != null) {
 					notifier = new Notifier(this, handler) {
-						public void run() {
+						public void execute(ISchedulingService service) {
 							//make sure those notified have the correct connection
 							Red5.setConnectionLocal(conn);
 							//get item being played
@@ -347,7 +338,7 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 				//notifies subscribers on close
 				if (handler != null) {
 					notifier = new Notifier(this, handler) {
-						public void run() {
+						public void execute(ISchedulingService service) {
 							//make sure those notified have the correct connection
 							Red5.setConnectionLocal(conn);
 							try {
@@ -365,7 +356,7 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 				//notifies subscribers on start
 				if (handler != null) {
 					notifier = new Notifier(this, handler) {
-						public void run() {
+						public void execute(ISchedulingService service) {
 							//make sure those notified have the correct connection
 							Red5.setConnectionLocal(conn);
 							try {
@@ -385,7 +376,7 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 				//notifies subscribers on stop
 				if (handler != null) {
 					notifier = new Notifier(this, handler) {
-						public void run() {
+						public void execute(ISchedulingService service) {
 							//make sure those notified have the correct connection
 							Red5.setConnectionLocal(conn);
 							//get the item that was stopped
@@ -409,7 +400,7 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 		}
 		if (notifier != null) {
 			notifier.setConnection(Red5.getConnectionLocal());
-			executor.execute(notifier);
+			scheduleOnceJob(notifier);
 		}
 	}
 
@@ -428,10 +419,28 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 		}
 	}
 
+	/** {@inheritDoc} */
+	public String scheduleOnceJob(IScheduledJob job) {
+		String jobName = schedulingService.addScheduledOnceJob(10, job);
+		return jobName;
+	}
+
+	/** {@inheritDoc} */
+	public String scheduleWithFixedDelay(IScheduledJob job, int interval) {
+		String jobName = schedulingService.addScheduledJob(interval, job);
+		jobs.add(jobName);
+		return jobName;
+	}	
+
+	/** {@inheritDoc} */
+	public void cancelJob(String jobName) {
+		schedulingService.removeScheduledJob(jobName);
+	}	
+
 	/**
 	 * Handles notifications in a separate thread.
 	 */
-	public class Notifier implements Runnable {
+	public class Notifier implements IScheduledJob {
 
 		ISingleItemSubscriberStream stream;
 
@@ -449,7 +458,7 @@ public class SingleItemSubscriberStream extends AbstractClientStream implements 
 			this.conn = conn;
 		}
 
-		public void run() {
+		public void execute(ISchedulingService service) {
 		}
 
 	}

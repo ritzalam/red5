@@ -21,9 +21,9 @@
 	
 	<!-- RTMP -->
 	
-	<bean id="rtmpMinaConnManager"
-		class="org.red5.server.net.rtmp.RTMPConnManager">
-	</bean>
+    <bean id="rtmpCodecFactory" class="org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory"/>
+    
+	<bean id="rtmpMinaConnManager" class="org.red5.server.net.rtmp.RTMPConnManager" />
 	    
 	<!-- RTMP Handler -->
 	<bean id="rtmpHandler" class="org.red5.server.net.rtmp.RTMPHandler">
@@ -37,6 +37,7 @@
 	<!-- RTMP Mina IO Handler -->
 	<bean id="rtmpMinaIoHandler" class="org.red5.server.net.rtmp.RTMPMinaIoHandler">
 		<property name="handler" ref="rtmpHandler" />
+        <property name="codecFactory" ref="rtmpCodecFactory" />
 		<property name="rtmpConnManager" ref="rtmpMinaConnManager" />
 	</bean>
 	

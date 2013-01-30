@@ -35,6 +35,6 @@ public interface IScheduledJob {
 	 * @throws CloneNotSupportedException throws is Darth Vader attempts to use
 	 *   this object for his own nefarious purposes.
 	 */
-	public void execute(ISchedulingService service) throws  CloneNotSupportedException;
+	public void execute(ISchedulingService service) throws CloneNotSupportedException;
 
 }

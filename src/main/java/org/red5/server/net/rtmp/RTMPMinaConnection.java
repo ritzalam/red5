@@ -126,19 +126,20 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 				}
 			}
 			// close now, no flushing, no waiting
-			CloseFuture future = ioSession.close(true);
-			// wait for one second
-			future.addListener(new IoFutureListener<CloseFuture>() {
+			final CloseFuture future = ioSession.close(true);
+			IoFutureListener<CloseFuture> listener = new IoFutureListener<CloseFuture>() {
 				public void operationComplete(CloseFuture future) {
 					if (future.isClosed()) {
 						log.debug("Connection is closed");
 					} else {
 						log.debug("Connection is not yet closed");
 					}
-					//de-register with JMX
-					unregisterJMX();
+					future.removeListener(this);
 				}
-			});
+			};
+			future.addListener(listener);
+			//de-register with JMX
+			unregisterJMX();			
 		}
 	}
 

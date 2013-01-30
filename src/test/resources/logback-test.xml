@@ -16,10 +16,18 @@
 	</appender>
 
 	<root>
-		<level value="DEBUG" />
-		<appender-ref ref="CONSOLE" />
+		<level value="WARN" />
+		<!-- <appender-ref ref="CONSOLE" /> -->
 		<appender-ref ref="FILE" />
 	</root>
+	   
+    <logger name="org.red5.server.net.rtmp.RTMPMinaIoHandler">
+        <level value="DEBUG" />
+    </logger>
+<!-- 
+   <logger name="org.red5.server.net.rtmp.message.Packet">
+        <level value="TRACE" />
+    </logger>
 
 	<logger name="org.red5.io">
 		<level value="DEBUG" />
@@ -40,7 +48,7 @@
 	<logger name="org.apache">
 		<level value="INFO" />
 	</logger>
-
+ -->
 	<logger name="ch.qos">
 		<level value="WARN" />
 	</logger>
@@ -48,6 +56,5 @@
     <logger name="net.sf">
         <level value="WARN" />
     </logger>
-
 
 </configuration>

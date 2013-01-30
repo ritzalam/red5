@@ -380,14 +380,18 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 							dumpBox(minf);
 						}
 						AbstractMediaHeaderBox abs = minf.getMediaHeaderBox();
-						if (abs instanceof SoundMediaHeaderBox) { // smhd
-							//SoundMediaHeaderBox smhd = (SoundMediaHeaderBox) abs;
-							log.debug("Sound header atom found");
-						} else if (abs instanceof VideoMediaHeaderBox) { // vmhd
-							//VideoMediaHeaderBox vmhd = (VideoMediaHeaderBox) abs;
-							log.debug("Video header atom found");
+						if (abs != null) {
+							if (abs instanceof SoundMediaHeaderBox) { // smhd
+								//SoundMediaHeaderBox smhd = (SoundMediaHeaderBox) abs;
+								log.debug("Sound header atom found");
+							} else if (abs instanceof VideoMediaHeaderBox) { // vmhd
+								//VideoMediaHeaderBox vmhd = (VideoMediaHeaderBox) abs;
+								log.debug("Video header atom found");
+							} else {
+								log.debug("Unhandled media header box: {}", abs.getType());
+							}
 						} else {
-							log.debug("Unhandled media header box: {}", abs.getType());
+							log.debug("Null media header box");
 						}
 					}
 				}
@@ -406,12 +410,16 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 							dumpBox(stsd);
 						}
 						SampleEntry entry = stsd.getSampleEntry();
-						log.debug("Sample entry type: {}", entry.getType());
-						// determine if audio or video and process from there
-						if (entry instanceof AudioSampleEntry) {
-							processAudioBox(stbl, (AudioSampleEntry) entry, scale);
-						} else if (entry instanceof VisualSampleEntry) {
-							processVideoBox(stbl, (VisualSampleEntry) entry, scale);
+						if (entry != null) {
+							log.debug("Sample entry type: {}", entry.getType());
+							// determine if audio or video and process from there
+							if (entry instanceof AudioSampleEntry) {
+								processAudioBox(stbl, (AudioSampleEntry) entry, scale);
+							} else if (entry instanceof VisualSampleEntry) {
+								processVideoBox(stbl, (VisualSampleEntry) entry, scale);
+							}
+						} else {
+							log.debug("Sample entry was null");
 						}
 					}
 				}
@@ -446,7 +454,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			}
 			//log.debug("Offsets - moov: {} mdat: {}", moovOffset, mdatOffset);
 			log.debug("Offset - mdat: {}", mdatOffset);
-			
+
 			// handle fragmentation
 			boolean fragmented = false;
 			// detect whether or not this movie contains fragments first
@@ -468,7 +476,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 					List<TrackExtendsBox> trexs = moof.getBoxes(TrackExtendsBox.class);
 					for (TrackExtendsBox trex : trexs) {
 						log.debug("trex - track id: {} duration: {} sample size: {}", trex.getTrackId(), trex.getDefaultSampleDuration(), trex.getDefaultSampleSize());
-					}					
+					}
 					//List<Long> syncSamples = moof.getSyncSamples(sdtp);
 					if (compositionTimes == null) {
 						compositionTimes = new ArrayList<CompositionTimeToSample.Entry>();
@@ -513,7 +521,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 				for (TrackExtendsBox trex : trexs) {
 					log.debug("trex - track id: {} duration: {} sample size: {}", trex.getTrackId(), trex.getDefaultSampleDuration(), trex.getDefaultSampleSize());
 				}
-			}			
+			}
 		} catch (Exception e) {
 			log.error("Exception decoding header / atoms", e);
 		}
@@ -573,7 +581,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 						DecoderConfigDescriptor decConf = descriptor.getDecoderConfigDescriptor();
 						if (decConf != null) {
 							DecoderSpecificInfo decInfo = decConf.getDecoderSpecificInfo();
-							ByteBuffer byteBuffer = decInfo.serialize();		
+							ByteBuffer byteBuffer = decInfo.serialize();
 							videoDecoderBytes = new byte[byteBuffer.limit()];
 							byteBuffer.get(videoDecoderBytes);
 						}

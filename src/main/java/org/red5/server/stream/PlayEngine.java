@@ -22,8 +22,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -182,14 +180,14 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	private volatile long playbackStart;
 
 	/**
-	 * Scheduled future job that makes sure messages are sent to the client.
+	 * Flag denoting whether or not the push and pull job is scheduled. The job makes sure messages are sent to the client.
 	 */
-	private volatile ScheduledFuture<?> pullAndPushFuture;
+	private volatile String pullAndPush;
 
 	/**
-	 * Scheduled future job that closes stream after buffer runs out.
+	 * Flag denoting whether or not the job that closes stream after buffer runs out is scheduled.
 	 */
-	private volatile ScheduledFuture<?> deferredStopFuture;
+	private volatile String deferredStop;
 
 	/**
 	 * Monitor guarding completion of a given push/pull run.
@@ -737,7 +735,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 */
 	public void stop() throws IllegalStateException {
 		switch (subscriberStream.getState()) {
-			// allow stop if playing or paused
+		// allow stop if playing or paused
 			case PLAYING:
 			case PAUSED:
 				subscriberStream.setState(StreamState.STOPPED);
@@ -768,7 +766,11 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				}
 				break;
 			default:
-				throw new IllegalStateException("Cannot stop in current state");
+				throw new IllegalStateException(String.format("Cannot stop in current state: %s", subscriberStream.getState()));
+		}
+		// once we've stopped theres no need for the deffered job
+		if (deferredStop != null) {
+			subscriberStream.cancelJob(deferredStop);
 		}
 	}
 
@@ -875,9 +877,9 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 */
 	private void ensurePullAndPushRunning() {
 		log.trace("State should be PLAYING to running this task: {}", subscriberStream.getState());
-		if (pullMode && pullAndPushFuture == null && subscriberStream.getState() == StreamState.PLAYING) {
+		if (pullMode && pullAndPush == null && subscriberStream.getState() == StreamState.PLAYING) {
 			// client buffer is at least 100ms
-			pullAndPushFuture = subscriberStream.getExecutor().scheduleWithFixedDelay(new PullAndPushRunnable(), 0, 10, TimeUnit.MILLISECONDS);
+			pullAndPush = subscriberStream.scheduleWithFixedDelay(new PullAndPushRunnable(), 10);
 		}
 	}
 
@@ -886,10 +888,10 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 */
 	private void clearWaitJobs() {
 		log.debug("Clear wait jobs");
-		if (pullAndPushFuture != null) {
-			log.debug("Push / pull cancelled: {}", pullAndPushFuture.cancel(false));
+		if (pullAndPush != null) {
+			subscriberStream.cancelJob(pullAndPush);
 			releasePendingMessage();
-			pullAndPushFuture = null;
+			pullAndPush = null;
 		}
 		if (waitLiveJob != null) {
 			schedulingService.removeScheduledJob(waitLiveJob);
@@ -1556,15 +1558,17 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		clearWaitJobs();
 		// Schedule deferred stop executor.
 		log.trace("Ran deferred stop");
-		if (deferredStopFuture == null)
-			deferredStopFuture = subscriberStream.getExecutor().scheduleAtFixedRate(new DeferredStopRunnable(), 1, 10, TimeUnit.MILLISECONDS);
+		if (deferredStop == null) {
+			// set deferred stop if we get a job name returned 
+			deferredStop = subscriberStream.scheduleWithFixedDelay(new DeferredStopRunnable(), 100);
+		}
 	}
 
 	private void cancelDeferredStop() {
 		log.debug("Cancel deferred stop");
-		if (deferredStopFuture != null) {
-			log.debug("Deferred stop cancelled: {}", deferredStopFuture.cancel(false));
-			deferredStopFuture = null;
+		if (deferredStop != null) {
+			subscriberStream.cancelJob(deferredStop);
+			deferredStop = null;
 		}
 		ensurePullAndPushRunning();
 	}
@@ -1711,12 +1715,12 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	/**
 	 * Periodically triggered by executor to send messages to the client.
 	 */
-	private final class PullAndPushRunnable implements Runnable {
+	private final class PullAndPushRunnable implements IScheduledJob {
 
 		/**
 		 * Trigger sending of messages.
 		 */
-		public void run() {
+		public void execute(ISchedulingService svc) {
 			// ensure the job is not already running
 			if (pushPullRunning.compareAndSet(false, true)) {
 				try {
@@ -1797,9 +1801,9 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 
 	}
 
-	private class DeferredStopRunnable implements Runnable {
+	private class DeferredStopRunnable implements IScheduledJob {
 
-		public void run() {
+		public void execute(ISchedulingService service) {
 			if (isClientBufferEmpty()) {
 				log.trace("Buffer is empty, stop will proceed");
 				stop();

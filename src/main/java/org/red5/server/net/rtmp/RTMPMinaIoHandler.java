@@ -31,14 +31,11 @@ import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmpe.RTMPEIoFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 /**
  * Handles all RTMP protocol events fired by the MINA framework.
  */
-public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationContextAware {
+public class RTMPMinaIoHandler extends IoHandlerAdapter {
 
 	private static Logger log = LoggerFactory.getLogger(RTMPMinaIoHandler.class);
 
@@ -47,11 +44,8 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 	 */
 	protected IRTMPHandler handler;
 
-	/**
-	 * Application context
-	 */
-	protected ApplicationContext appCtx;
-
+	protected ProtocolCodecFactory codecFactory;
+	
 	protected IRTMPConnManager rtmpConnManager;
 
 	/** {@inheritDoc} */
@@ -64,9 +58,6 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		//add rtmpe filter
 		session.getFilterChain().addFirst("rtmpeFilter", new RTMPEIoFilter());
 		//add protocol filter next
-		log.debug("Application context: {}", appCtx);
-		log.debug("Codec factory: {}", appCtx.containsBean("rtmpCodecFactory"));
-		ProtocolCodecFactory codecFactory = (ProtocolCodecFactory) appCtx.getBean("rtmpCodecFactory");
 		session.getFilterChain().addLast("protocolFilter", new ProtocolCodecFilter(codecFactory));
 		if (log.isTraceEnabled()) {
 			session.getFilterChain().addLast("logger", new LoggingFilter());
@@ -95,8 +86,9 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 	@Override
 	public void sessionClosed(IoSession session) throws Exception {
 		log.debug("Session closed");
+		log.trace("Session attributes: {}", session.getAttributeKeys());
 		RTMP rtmp = (RTMP) session.removeAttribute(ProtocolState.SESSION_KEY);
-		log.debug("RTMP state: {}", rtmp);
+		log.trace("RTMP state: {}", rtmp);
 		RTMPMinaConnection conn = (RTMPMinaConnection) session.removeAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		try {
 			conn.sendPendingServiceCallsCloseError();
@@ -104,9 +96,13 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 			handler.connectionClosed(conn, rtmp);
 			// clear any session attributes we may have previously set
 			// TODO: verify this cleanup code is necessary. The session is over and will be garbage collected surely?
-			session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
-			session.removeAttribute(RTMPConnection.RTMPE_CIPHER_IN);
-			session.removeAttribute(RTMPConnection.RTMPE_CIPHER_OUT);
+			if (session.containsAttribute(RTMPConnection.RTMP_HANDSHAKE)) {
+				session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
+			}
+			if (session.containsAttribute(RTMPConnection.RTMPE_CIPHER_IN)) {
+				session.removeAttribute(RTMPConnection.RTMPE_CIPHER_IN);
+				session.removeAttribute(RTMPConnection.RTMPE_CIPHER_OUT);
+			}
 		} finally {
 			// DW we *always* remove the connection from the RTMP manager even if unexpected exception gets thrown e.g. by handler.connectionClosed
 			// Otherwise connection stays around forever, and everything it references e.g. Client, ...
@@ -123,9 +119,9 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 	 *            I/O session, that is, connection between two endpoints
 	 */
 	protected void rawBufferRecieved(IoBuffer in, IoSession session) {
-		log.debug("rawBufferRecieved: {}", in);
+		log.trace("rawBufferRecieved: {}", in);
 		final RTMP rtmp = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
-		log.debug("state: {}", rtmp);
+		log.trace("state: {}", rtmp);
 		final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		RTMPHandshake handshake = (RTMPHandshake) session.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
 		if (handshake != null) {
@@ -135,7 +131,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 			log.debug("Handshake - server phase 1 - size: {}", in.remaining());
 			IoBuffer out = handshake.doHandshake(in);
 			if (out != null) {
-				log.debug("Output: {}", out);
+				log.trace("Output: {}", out);
 				session.write(out);
 				//if we are connected and doing encryption, add the ciphers
 				if (rtmp.getState() == RTMP.STATE_CONNECTED) {
@@ -172,7 +168,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 	/** {@inheritDoc} */
 	@Override
 	public void messageSent(IoSession session, Object message) throws Exception {
-		log.debug("messageSent");
+		log.trace("messageSent");
 		final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		handler.messageSent(conn, message);
 	}
@@ -180,9 +176,9 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 	/** {@inheritDoc} */
 	@Override
 	public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
-		log.warn("Exception caught {}", cause.getMessage());
+		log.warn("Exception caught", cause);
 		if (log.isDebugEnabled()) {
-			log.error("Exception detail", cause);
+			log.debug("Exception detail", cause.getMessage());
 		}
 	}
 
@@ -195,18 +191,19 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		this.handler = handler;
 	}
 
+	/**
+	 * @param codecFactory the codecFactory to set
+	 */
+	public void setCodecFactory(ProtocolCodecFactory codecFactory) {
+		this.codecFactory = codecFactory;
+	}
+
 	public void setRtmpConnManager(IRTMPConnManager rtmpConnManager) {
 		this.rtmpConnManager = rtmpConnManager;
 	}
 
 	protected IRTMPConnManager getRtmpConnManager() {
 		return rtmpConnManager;
-	}
-
-	/** {@inheritDoc} */
-	public void setApplicationContext(ApplicationContext appCtx) throws BeansException {
-		log.debug("Setting application context: {} {}", appCtx.getDisplayName(), appCtx);
-		this.appCtx = appCtx;
 	}
 
 	protected RTMPMinaConnection createRTMPMinaConnection() {

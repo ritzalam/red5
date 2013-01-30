@@ -47,22 +47,12 @@ public class ApplicationSchedulingService extends QuartzSchedulingService {
 
 	private String applicationName;
 
-	private String configFile;
-
 	public String getApplicationName() {
 		return applicationName;
 	}
 
 	public void setApplicationName(String applicationName) {
 		this.applicationName = applicationName;
-	}
-
-	public String getConfigFile() {
-		return configFile;
-	}
-
-	public void setConfigFile(String configFile) {
-		this.configFile = configFile;
 	}
 
 	/**
@@ -78,7 +68,6 @@ public class ApplicationSchedulingService extends QuartzSchedulingService {
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		log.info("Application scheduler initializing...");
-
 		try {
 			//set properties
 			if (configFile != null) {
@@ -92,12 +81,9 @@ public class ApplicationSchedulingService extends QuartzSchedulingService {
 				props.put("org.quartz.threadPool.threadPriority", "5");
 				props.put("org.quartz.jobStore.misfireThreshold", "60000");
 				props.put("org.quartz.jobStore.class", "org.quartz.simpl.RAMJobStore");
-
 				factory = new StdSchedulerFactory(props);
 			}
-
 			super.afterPropertiesSet();
-
 		} catch (Exception e) {
 			log.error("Quartz Scheduler failed to initialize", e);
 		}

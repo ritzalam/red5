@@ -24,10 +24,10 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 /**
  * Abstract pipe that books providers/consumers and listeners.
@@ -63,7 +63,7 @@ public abstract class AbstractPipe implements IPipe {
 	/**
 	 * Executor service used to run pipe tasks.
 	 */
-	private ExecutorService taskExecutor;
+	private static ExecutorService taskExecutor;
 
 	/**
 	 * Connect consumer to this pipe. Doesn't allow to connect one consumer twice.
@@ -107,7 +107,7 @@ public abstract class AbstractPipe implements IPipe {
 		if (providers.remove(provider)) {
 			fireProviderConnectionEvent(provider, PipeConnectionEvent.PROVIDER_DISCONNECT, null);
 			listeners.remove(provider);
-			return true;			
+			return true;
 		} else {
 			return false;
 		}
@@ -122,7 +122,7 @@ public abstract class AbstractPipe implements IPipe {
 		if (consumers.remove(consumer)) {
 			fireConsumerConnectionEvent(consumer, PipeConnectionEvent.CONSUMER_DISCONNECT, null);
 			listeners.remove(consumer);
-			return true;			
+			return true;
 		} else {
 			return false;
 		}
@@ -257,11 +257,9 @@ public abstract class AbstractPipe implements IPipe {
 				log.error("Exception when handling pipe connection event", t);
 			}
 		}
-
 		if (taskExecutor == null) {
-			taskExecutor = Executors.newSingleThreadExecutor();
+			taskExecutor = Executors.newCachedThreadPool(new CustomizableThreadFactory("Pipe-"));
 		}
-
 		// Run all of event's tasks
 		for (Runnable task : event.getTaskList()) {
 			try {
@@ -272,18 +270,6 @@ public abstract class AbstractPipe implements IPipe {
 		}
 		// Clear event's tasks list
 		event.getTaskList().clear();
-
-		//disable new tasks from being submitted
-		taskExecutor.shutdown();
-		try {
-			//wait a while for existing tasks to terminate
-			if (!taskExecutor.awaitTermination(250, TimeUnit.MILLISECONDS)) {
-				taskExecutor.shutdownNow(); // cancel currently executing tasks
-			}
-		} catch (InterruptedException ie) {
-			// preserve interrupt status
-			Thread.currentThread().interrupt();
-		}
 	}
 
 	/**

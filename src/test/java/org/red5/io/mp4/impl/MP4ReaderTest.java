@@ -38,7 +38,7 @@ public class MP4ReaderTest extends TestCase {
 	@Test
 	public void testCtor() throws Exception {
 		// use for the internal unit tests
-		File file = new File("target/test-classes/fixtures/sample.mp4");
+		//File file = new File("target/test-classes/fixtures/sample.mp4");
 		// test clip - bugs
 		//File file = new File("C:/TEMP/red5-server-1.0/webapps/oflaDemo/streams/test_480_aac.f4v");
 		//File file = new File("M:/backup/media/test_clips/dartmoor.mp4");
@@ -46,6 +46,7 @@ public class MP4ReaderTest extends TestCase {
 		//File file = new File("M:/backup/media/test_clips/0608071221.3g2");
 		//File file = new File("M:/backup/media/test_clips/test1.3gp");
 		//File file = new File("M:/backup/media/test_clips/ANewHope.mov");
+		File file = new File("M:/Movies/Hitman.m4v"); // has pasp atom
 
 		MP4Reader reader = new MP4Reader(file);
 

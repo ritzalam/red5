@@ -35,6 +35,8 @@ import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
+import org.red5.server.api.scheduling.IScheduledJob;
+import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.scope.ScopeType;
 import org.red5.server.api.statistics.ISharedObjectStatistics;
 import org.red5.server.api.statistics.support.StatisticsCounter;
@@ -327,12 +329,12 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 					if (listener instanceof RTMPConnection) {
 						final RTMPConnection con = (RTMPConnection) listener;
 						// create a worker
-						Runnable worker = new Runnable() {
-							public void run() {
+						IScheduledJob job = new IScheduledJob() {
+							public void execute(ISchedulingService service) {
 								con.sendSharedObjectMessage(name, currentVersion, persistent, events);
 							}
 						};
-						SharedObjectService.SHAREDOBJECT_EXECUTOR.execute(worker);
+						SharedObjectService.submitJob(job);
 					} else {
 						log.warn("Can't send sync message to unknown connection {}", listener);
 					}

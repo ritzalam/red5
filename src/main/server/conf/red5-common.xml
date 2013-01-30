@@ -16,9 +16,7 @@
 	<!-- This context is shared between all child contexts. -->
 	
 	<!-- Server bean -->
-	<bean id="red5.server" class="org.red5.server.Server">
-	   <property name="notifierThreadPoolSize" value="${notifier.threads}"/>
-	</bean>
+	<bean id="red5.server" class="org.red5.server.Server" />
 	
 	<!-- JMX -->
     <bean id="rmiRegistry" class="org.springframework.remoting.rmi.RmiRegistryFactoryBean">
@@ -73,9 +71,6 @@
 
 	<!-- Deals with StatusObjects representing statuses like NetConnection.Connect.Success status -->
 	<bean id="statusObjectService" class="org.red5.server.net.rtmp.status.StatusObjectService" autowire="byType" />
-	
-	<!-- RTMP codec factory -->
-	<bean id="rtmpCodecFactory" class="org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory" scope="prototype" autowire="byType" />
 		
 	<!-- RTMPT codec factory -->
 	<bean id="rtmptCodecFactory" class="org.red5.server.net.rtmpt.codec.RTMPTCodecFactory" autowire="byType" init-method="init">
@@ -124,7 +119,6 @@
 	
 	<!-- Handles creation / lookup of shared objects -->
 	<bean id="sharedObjectService" class="org.red5.server.so.SharedObjectService">
-		<property name="executorThreadPoolSize" value="${so.update.threads}"/>
 		<property name="maximumEventsPerUpdate" value="${so.max.events.per.update}"/>
 		<property name="persistenceClassName">
 			<value>org.red5.server.persistence.FilePersistence</value>
@@ -152,7 +146,7 @@
 
 	<!-- Use injection to setup thread pool for remoting clients -->
 	<bean id="remotingClient" class="org.red5.server.net.remoting.RemotingClient">
-		<property name="poolSize" value="8"/>
+		<property name="poolSize" value="1"/>
 	</bean>
 	
 	<!--
@@ -236,14 +230,6 @@
 		<property name="arguments" value="4096"/>
 	</bean>
 	
-	<!-- Executor that will be used to schedule stream playback to keep
-		the client buffer filled.
-	-->
-	<bean id="streamExecutor" class="java.util.concurrent.ScheduledThreadPoolExecutor">
-		<constructor-arg value="${stream.executor.threads.min}"/>
-		<property name="maximumPoolSize" value="${stream.executor.threads.max}"/>
-	</bean>
-	
 	<!-- Low level access for recording to file -->
     <bean id="fileConsumer" scope="prototype" lazy-init="true" class="org.red5.server.stream.consumer.FileConsumer">        
         <property name="delayWrite" value="${fileconsumer.delayed.write}"/>
@@ -257,7 +243,6 @@
 		of these streams
 	-->
 	<bean id="playlistSubscriberStream" scope="prototype" lazy-init="true" class="org.red5.server.stream.PlaylistSubscriberStream">
-		<property name="executor" ref="streamExecutor"/>
 		<!-- Check for buffer underruns every X ms and generate NetStream.Play.InsufficientBW accordingly.
 		     Set to 0 to disable. Be careful not to set this value too small to avoid network congestion.
 		  -->

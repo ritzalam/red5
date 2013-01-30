@@ -25,6 +25,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.management.MBeanServer;
@@ -36,15 +38,15 @@ import org.apache.mina.core.buffer.SimpleBufferAllocator;
 import org.apache.mina.core.service.AbstractIoService;
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.service.IoServiceStatistics;
-import org.apache.mina.filter.executor.ExecutorFilter;
-import org.apache.mina.filter.executor.OrderedThreadPoolExecutor;
+import org.apache.mina.core.service.SimpleIoProcessorPool;
 import org.apache.mina.transport.socket.SocketAcceptor;
 import org.apache.mina.transport.socket.SocketSessionConfig;
+import org.apache.mina.transport.socket.nio.NioProcessor;
+import org.apache.mina.transport.socket.nio.NioSession;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.red5.server.jmx.mxbeans.RTMPMinaTransportMXBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 /**
  * Transport setup class configures socket acceptor and thread pools for RTMP in Mina.
@@ -87,20 +89,22 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 
 	protected int receiveBufferSize = 65536;
 
-	protected int trafficClass = 0x08 | 0x10;
+	private int trafficClass = 0x08 | 0x10;
 
-	protected int backlog = 12;
+	private int backlog = 32;
 
-	protected int thoughputCalcInterval = 1;
+	private int thoughputCalcInterval = 1;
 
-	protected long executorKeepAliveTime = 30000;
-	
+	private long executorKeepAliveTime = 60000;
+
 	// use the default mina acceptor and associated options
-	protected boolean enableDefaultAcceptor = true;
+	private boolean enableDefaultAcceptor = true;
 
-	private int initialPoolSize;
+	private int initialPoolSize = 0;
 
-	private int maxPoolSize;	
+	private int maxPoolSize = Runtime.getRuntime().availableProcessors() + 1;
+	
+	private int maxProcessorPoolSize = 16;
 
 	private void initIOHandler() {
 		if (ioHandler == null) {
@@ -118,15 +122,20 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 		}
 		log.info("RTMP Mina Transport Settings");
 		log.info("I/O Threads: {}", ioThreads);
+		// use the defaults
 		if (enableDefaultAcceptor) {
-			// use the default executor
+			//constructs an acceptor using default parameters, and given number of NioProcessor for multithreading I/O operations.
 			acceptor = new NioSocketAcceptor(ioThreads);
 		} else {
-			// use ordered thread pool with custom thread factory
-			acceptor = new NioSocketAcceptor();
-			Executor executor = new OrderedThreadPoolExecutor(initialPoolSize, maxPoolSize, executorKeepAliveTime, TimeUnit.MILLISECONDS, new CustomizableThreadFactory("AcceptorThread-"));
-			acceptor.getFilterChain().addLast("executor", new ExecutorFilter(executor));
+			// simple pool for i/o processors
+			SimpleIoProcessorPool<NioSession> pool = new SimpleIoProcessorPool<NioSession>(NioProcessor.class, maxProcessorPoolSize);
+			// executor for acceptors
+			Executor executor = new ThreadPoolExecutor(initialPoolSize, maxPoolSize, executorKeepAliveTime, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+			// our adjusted socket acceptor with tweaked executor and pool
+			acceptor = new NioSocketAcceptor(executor, pool);
 		}
+		// close sessions when the acceptor is stopped
+		acceptor.setCloseOnDeactivation(true);
 		// set acceptor props
 		acceptor.setHandler(ioHandler);
 		// requested maximum length of the queue of incoming connections
@@ -282,6 +291,13 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 
 	public void setMaxPoolSize(int maxPoolSize) {
 		this.maxPoolSize = maxPoolSize;
+	}
+
+	/**
+	 * @param maxProcessorPoolSize the maxProcessorPoolSize to set
+	 */
+	public void setMaxProcessorPoolSize(int maxProcessorPoolSize) {
+		this.maxProcessorPoolSize = maxProcessorPoolSize;
 	}
 
 	public void setTcpNoDelay(boolean tcpNoDelay) {

@@ -19,8 +19,9 @@
 package org.red5.server.stream;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -28,6 +29,7 @@ import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IContext;
 import org.red5.server.api.Red5;
+import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.scope.IScope;
 import org.red5.server.api.statistics.IPlaylistSubscriberStreamStatistics;
@@ -93,10 +95,14 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 	protected boolean repeat;
 
 	/**
-	 * Executor that will be used to schedule stream playback to keep
-	 * the client buffer filled.
+	 * Service used to provide notifications, keep client buffer filled, clean up, etc...
 	 */
-	protected static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(3);
+	protected ISchedulingService schedulingService;
+	
+	/** 
+	 * Scheduled job names
+	 */
+	protected Set<String> jobs = new HashSet<String>(1);
 
 	/**
 	 * Interval in ms to check for buffer underruns in VOD streams.
@@ -135,27 +141,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 	}
 
 	/**
-	 * Set the executor to use.
-	 * 
-	 * @param executor the executor
-	 */
-	public void setExecutor(ScheduledThreadPoolExecutor executor) {
-		PlaylistSubscriberStream.executor = executor;
-	}
-
-	/**
-	 * Return the executor to use.
-	 * 
-	 * @return the executor
-	 */
-	public ScheduledThreadPoolExecutor getExecutor() {
-		if (executor == null) {
-			log.warn("ScheduledThreadPoolExecutor was null on request");
-		}
-		return executor;
-	}
-
-	/**
 	 * Set interval to check for buffer underruns. Set to <code>0</code> to
 	 * disable.
 	 * 
@@ -183,7 +168,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 			IScope scope = getScope();
 			if (scope != null) {
 				IContext ctx = scope.getContext();
-				ISchedulingService schedulingService = null;
 				if (ctx.hasBean(ISchedulingService.BEAN_NAME)) {
 					schedulingService = (ISchedulingService) ctx.getBean(ISchedulingService.BEAN_NAME);
 				} else {
@@ -299,6 +283,13 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 		engine.close();
 		onChange(StreamState.CLOSED);
 		items.clear();
+		// clear jobs
+		if (schedulingService != null && !jobs.isEmpty()) {
+			for (String jobName : jobs) {
+				schedulingService.removeScheduledJob(jobName);
+			}
+			jobs.clear();
+		}
 	}
 
 	/** {@inheritDoc} */
@@ -620,7 +611,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 				//notifies subscribers on seek
 				if (handler != null) {
 					notifier = new Notifier(this, handler) {
-						public void run() {
+						public void execute(ISchedulingService service) {
 							//make sure those notified have the correct connection
 							Red5.setConnectionLocal(conn);
 							//get item being played
@@ -644,7 +635,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 				//notifies subscribers on pause
 				if (handler != null) {
 					notifier = new Notifier(this, handler) {
-						public void run() {
+						public void execute(ISchedulingService service) {
 							//make sure those notified have the correct connection
 							Red5.setConnectionLocal(conn);
 							//get item being played
@@ -668,7 +659,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 				//notifies subscribers on resume
 				if (handler != null) {
 					notifier = new Notifier(this, handler) {
-						public void run() {
+						public void execute(ISchedulingService service) {
 							//make sure those notified have the correct connection
 							Red5.setConnectionLocal(conn);
 							//get item being played
@@ -690,7 +681,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 				//notifies subscribers on play
 				if (handler != null) {
 					notifier = new Notifier(this, handler) {
-						public void run() {
+						public void execute(ISchedulingService service) {
 							//make sure those notified have the correct connection
 							Red5.setConnectionLocal(conn);
 							//get item being played
@@ -712,7 +703,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 				//notifies subscribers on close
 				if (handler != null) {
 					notifier = new Notifier(this, handler) {
-						public void run() {
+						public void execute(ISchedulingService service) {
 							//make sure those notified have the correct connection
 							Red5.setConnectionLocal(conn);
 							try {
@@ -730,7 +721,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 				//notifies subscribers on start
 				if (handler != null) {
 					notifier = new Notifier(this, handler) {
-						public void run() {
+						public void execute(ISchedulingService service) {
 							//make sure those notified have the correct connection
 							Red5.setConnectionLocal(conn);
 							try {
@@ -750,7 +741,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 				//notifies subscribers on stop
 				if (handler != null) {
 					notifier = new Notifier(this, handler) {
-						public void run() {
+						public void execute(ISchedulingService service) {
 							//make sure those notified have the correct connection
 							Red5.setConnectionLocal(conn);
 							//get the item that was stopped
@@ -777,7 +768,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 		if (notifier != null) {
 			IConnection conn = Red5.getConnectionLocal();
 			notifier.setConnection(conn);
-			executor.execute(notifier);
+			scheduleOnceJob(notifier);
 		}
 	}
 
@@ -825,10 +816,28 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 		return (buffered * 100.0) / buffer;
 	}
 
+	/** {@inheritDoc} */
+	public String scheduleOnceJob(IScheduledJob job) {
+		String jobName = schedulingService.addScheduledOnceJob(10, job);
+		return jobName;
+	}
+
+	/** {@inheritDoc} */
+	public String scheduleWithFixedDelay(IScheduledJob job, int interval) {
+		String jobName = schedulingService.addScheduledJob(interval, job);
+		jobs.add(jobName);
+		return jobName;
+	}	
+
+	/** {@inheritDoc} */
+	public void cancelJob(String jobName) {
+		schedulingService.removeScheduledJob(jobName);
+	}	
+	
 	/**
 	 * Handles notifications in a separate thread.
 	 */
-	public class Notifier implements Runnable {
+	public class Notifier implements IScheduledJob {
 
 		IPlaylistSubscriberStream stream;
 
@@ -846,7 +855,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 			this.conn = conn;
 		}
 
-		public void run() {
+		public void execute(ISchedulingService service) {
 		}
 
 	}
