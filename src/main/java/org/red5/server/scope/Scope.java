@@ -670,7 +670,12 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		for (IBasicScope child : children) {
 			if (child.getName().equals(name)) {
 				log.debug("Returning child scope");
-				return (IScope) child;
+				if (child instanceof IScope) {
+					return (IScope) child;
+				} else {
+					log.warn("Requested scope: {} is not of IScope type: {}", name, child.getClass().getName());
+					break;
+				}
 			}
 		}
 		return null;
