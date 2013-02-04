@@ -65,11 +65,26 @@ ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
     /**
      * Return the class with the given name.
+     * 
+     * @param name
+     * @return class
      */
     public Class<?> loadClass(String name) throws ClassNotFoundException {
         return getClassLoader().loadClass(name);
     }
 
+    /**
+     * Return the class with the given name.
+     * 
+     * @param name
+     * @param clazz
+     * @return class
+     */
+	@SuppressWarnings("unchecked")
+	public <T> Class<? extends T> loadClass(String name, Class<T> clazz) throws ClassNotFoundException {
+        return (Class<? extends T>) getClassLoader().loadClass(name);
+	}    
+    
     /**
      * Finds a resource with a given name. This method returns null if no
      * resource with this name is found.
@@ -99,4 +114,5 @@ ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     	log.debug("Class classloader: {} Thread classloader: {}", this.getClass().getClassLoader(), Thread.currentThread().getContextClassLoader());
         return Thread.currentThread().getContextClassLoader();
     }
+
 }

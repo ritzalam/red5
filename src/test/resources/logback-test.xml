@@ -21,11 +21,16 @@
 		<appender-ref ref="FILE" />
 	</root>
 	   
+	<logger name="org.red5.io.mp4.impl.MP4Reader">
+		<level value="TRACE" />
+	</logger>	   
+	   
+<!-- 
     <logger name="org.red5.server.net.rtmp.RTMPMinaIoHandler">
         <level value="DEBUG" />
     </logger>
-<!-- 
-   <logger name="org.red5.server.net.rtmp.message.Packet">
+
+	<logger name="org.red5.server.net.rtmp.message.Packet">
         <level value="TRACE" />
     </logger>
 

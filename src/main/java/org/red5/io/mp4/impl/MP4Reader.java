@@ -97,6 +97,7 @@ import com.googlecode.mp4parser.boxes.mp4.objectdescriptors.AudioSpecificConfig;
 import com.googlecode.mp4parser.boxes.mp4.objectdescriptors.DecoderConfigDescriptor;
 import com.googlecode.mp4parser.boxes.mp4.objectdescriptors.DecoderSpecificInfo;
 import com.googlecode.mp4parser.boxes.mp4.objectdescriptors.ESDescriptor;
+import com.googlecode.mp4parser.util.Path;
 
 /**
  * This reader is used to read the contents of an MP4 file.
@@ -342,6 +343,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 				}
 				MediaBox mdia = trak.getMediaBox(); // mdia
 				long scale = 0;
+				boolean isAudio = false, isVideo = false;
 				if (mdia != null) {
 					if (log.isDebugEnabled()) {
 						log.debug("mdia children: {}", mdia.getBoxes().size());
@@ -384,9 +386,11 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 							if (abs instanceof SoundMediaHeaderBox) { // smhd
 								//SoundMediaHeaderBox smhd = (SoundMediaHeaderBox) abs;
 								log.debug("Sound header atom found");
+								isAudio = true;
 							} else if (abs instanceof VideoMediaHeaderBox) { // vmhd
 								//VideoMediaHeaderBox vmhd = (VideoMediaHeaderBox) abs;
 								log.debug("Video header atom found");
+								isVideo = true;
 							} else {
 								log.debug("Unhandled media header box: {}", abs.getType());
 							}
@@ -420,6 +424,11 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 							}
 						} else {
 							log.debug("Sample entry was null");
+							if (isVideo) {
+								processVideoBox(stbl, scale);
+							} else if (isAudio) {
+								processAudioBox(stbl, scale);
+							}
 						}
 					}
 				}
@@ -591,6 +600,38 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		} else {
 			log.debug("Unrecognized video codec: {} compressor name: {}", codecName, vse.getCompressorname());
 		}
+		processVideoStbl(stbl, scale);
+	}
+
+	/**
+	 * Process the video information contained in the atoms.
+	 * 
+	 * @param stbl
+	 * @param scale timescale
+	 */
+	private void processVideoBox(SampleTableBox stbl, long scale) {
+		AvcConfigurationBox avcC = (AvcConfigurationBox) Path.getPath(isoFile, "/moov/trak/mdia/minf/stbl/stsd/drmi/avcC");
+		if (avcC != null) {
+			long videoConfigContentSize = avcC.getContentSize();
+			log.debug("AVCC size: {}", videoConfigContentSize);
+//			ByteBuffer byteBuffer = ByteBuffer.allocate((int) videoConfigContentSize);
+//			avc1.avcDecoderConfigurationRecord.getContent(byteBuffer);
+//			byteBuffer.flip();
+//			videoDecoderBytes = new byte[byteBuffer.limit()];
+//			byteBuffer.get(videoDecoderBytes);
+		} else {
+			log.warn("avcC atom not found");
+		}
+		processVideoStbl(stbl, scale);
+	}
+
+	/**
+	 * Process an stbl atom with containing video information.
+	 * 
+	 * @param stbl
+	 * @param scale
+	 */
+	private void processVideoStbl(SampleTableBox stbl, long scale) {
 		// stsc - has Records
 		SampleToChunkBox stsc = stbl.getSampleToChunkBox(); // stsc
 		if (stsc != null) {
@@ -786,6 +827,21 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		} else {
 			log.debug("Audio sample entry had no descriptor");
 		}
+		processAudioStbl(stbl, scale);
+	}
+	
+	/**
+	 * Process the audio information contained in the atoms.
+	 * 
+	 * @param stbl
+	 * @param scale timescale
+	 */
+	private void processAudioBox(SampleTableBox stbl, long scale) {
+
+		processAudioStbl(stbl, scale);
+	}
+
+	private void processAudioStbl(SampleTableBox stbl, long scale) {
 		//stsc - has Records
 		SampleToChunkBox stsc = stbl.getSampleToChunkBox(); // stsc
 		if (stsc != null) {
@@ -843,9 +899,9 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			for (SampleDependencyTypeBox.Entry rec : recs) {
 				log.debug("{}", rec);
 			}
-		}
+		}		
 	}
-
+	
 	/**
 	 * Get the total readable bytes in a file or IoBuffer.
 	 *

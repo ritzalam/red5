@@ -34,7 +34,7 @@ public class RTMP extends ProtocolState {
 	public String[] states = {"connect", "handshake", "connected", "error", "disconnecting", "disconnected"};
 	
 	/**
-	 * Connect state.
+	 * Connect state
 	 */
 	public static final byte STATE_CONNECT = 0x00;
 
@@ -44,12 +44,12 @@ public class RTMP extends ProtocolState {
 	public static final byte STATE_HANDSHAKE = 0x01;
 
 	/**
-	 * Connected.
+	 * Connected
 	 */
 	public static final byte STATE_CONNECTED = 0x02;
 
 	/**
-	 * Error.
+	 * Error
 	 */
 	public static final byte STATE_ERROR = 0x03;
 
@@ -59,7 +59,7 @@ public class RTMP extends ProtocolState {
 	public static final byte STATE_DISCONNECTING = 0x04;	
 	
 	/**
-	 * Disconnected.
+	 * Disconnected
 	 */
 	public static final byte STATE_DISCONNECTED = 0x05;
 
