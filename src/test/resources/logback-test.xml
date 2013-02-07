@@ -16,16 +16,28 @@
 	</appender>
 
 	<root>
-		<level value="WARN" />
+		<level value="DEBUG" />
 		<!-- <appender-ref ref="CONSOLE" /> -->
 		<appender-ref ref="FILE" />
-	</root>
+	</root>   
 	   
-	<logger name="org.red5.io.mp4.impl.MP4Reader">
-		<level value="TRACE" />
-	</logger>	   
-	   
+    <logger name="org.red5.server.api">
+        <level value="DEBUG" />
+    </logger>
+
+    <logger name="org.red5.server.api.service">
+        <level value="DEBUG" />
+    </logger>
+		
+    <logger name="org.red5.server.scope">
+        <level value="DEBUG" />
+    </logger>
+
 <!-- 
+    <logger name="org.red5.io.mp4.impl.MP4Reader">
+        <level value="TRACE" />
+    </logger>   
+    
     <logger name="org.red5.server.net.rtmp.RTMPMinaIoHandler">
         <level value="DEBUG" />
     </logger>

@@ -24,7 +24,7 @@ import org.red5.server.api.IConnection;
  * Client is an abstraction representing user connected to Red5 application.
  * Clients are tied to connections and registred in ClientRegistry
  */
-public class DummyClient extends Client {
+public class DummyClient extends Client implements Comparable<DummyClient> {
 	
 	private IConnection conn;
 	
@@ -40,6 +40,17 @@ public class DummyClient extends Client {
 	public void unregisterConnection(IConnection conn) {
 		unregister(conn);
 		disconnect();
+	}
+
+	@Override
+	public int compareTo(DummyClient that) {
+		if (id.equals(that.getId())) {
+			return 0;
+		} else if (creationTime > that.getCreationTime()) {
+			return 1;
+		} else {
+			return -1;
+		}
 	}
 	
 }

@@ -19,10 +19,13 @@
 package org.red5.server.api;
 
 import org.red5.server.BaseConnection;
+import org.red5.server.api.event.IEvent;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.service.IServiceCapableConnection;
+import org.red5.server.net.rtmp.event.ClientInvokeEvent;
+import org.red5.server.net.rtmp.event.ClientNotifyEvent;
 import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.scope.Scope;
 import org.red5.server.service.PendingCall;
@@ -89,7 +92,29 @@ public class TestConnection extends BaseConnection implements IServiceCapableCon
 	public void echo(Object[] params) {
 		log.debug("Client #{} - echo: {}", client.getId(), params[0]);
 	}
-
+	
+	/**
+	 * Dispatches event
+	 * @param event       Event
+	 */
+	@Override
+	public void dispatchEvent(IEvent event) {
+		log.debug("Event notify: {}", event);
+		// determine if its an outgoing invoke or notify
+		switch (event.getType()) {
+			case CLIENT_INVOKE:
+				ClientInvokeEvent cie = (ClientInvokeEvent) event;
+				invoke(cie.getMethod(), cie.getParams(), cie.getCallback());
+				break;
+			case CLIENT_NOTIFY:
+				ClientNotifyEvent cne = (ClientNotifyEvent) event;
+				notify(cne.getMethod(), cne.getParams());
+				break;
+			default:
+				log.warn("Unhandled event: {}", event);
+		}
+	}	
+	
 	@Override
 	public void invoke(IServiceCall call) {
 		// TODO Auto-generated method stub
@@ -171,6 +196,14 @@ public class TestConnection extends BaseConnection implements IServiceCapableCon
 	public void status(Status status, int channel) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "TestConnection [remoteAddress=" + remoteAddress + ", client=" + client + ", scope=" + scope + ", closed=" + closed + "]";
 	}
 	
 }

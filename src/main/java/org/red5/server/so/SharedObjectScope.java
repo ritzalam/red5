@@ -291,17 +291,17 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 	
 	/** {@inheritDoc} */
 	@Override
-	public void addEventListener(IEventListener listener) {
-		super.addEventListener(listener);
-		so.register(listener);
+	public boolean addEventListener(IEventListener listener) {
+		boolean result = super.addEventListener(listener) && so.register(listener);
 		for (ISharedObjectListener soListener : serverListeners) {
 			soListener.onSharedObjectConnect(this);
 		}
+		return result;
 	}
 
 	/** {@inheritDoc} */
 	@Override
-	public void removeEventListener(IEventListener listener) {
+	public boolean removeEventListener(IEventListener listener) {
 		so.unregister(listener);
 		// if we have not been released by all that acquired then keep on disconnection of the last listener
 		if (so.isAcquired()) {
@@ -309,7 +309,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 			keepOnDisconnect = true;
 		}
 		// remove the listener
-		super.removeEventListener(listener);
+		boolean result = super.removeEventListener(listener);
 		// check acquire
 		if (!so.isPersistent() && !so.isAcquired() && so.getListeners().isEmpty()) {
 			log.debug("Removing scope: {}", this);
@@ -320,6 +320,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 		for (ISharedObjectListener soListener : serverListeners) {
 			soListener.onSharedObjectDisconnect(this);
 		}
+		return result;
 	}
 
 	/** {@inheritDoc} */

@@ -150,17 +150,37 @@ public interface IScope extends IBasicScope, ResourcePatternResolver, IServiceHa
 	 * Get a connection iterator. You can call remove, and the connection will
 	 * be closed.
 	 * 
+	 * @deprecated Use {@link IScope#getClientConnections()} instead
 	 * @return Iterator holding all connections
 	 */
+	@Deprecated
 	public Collection<Set<IConnection>> getConnections();
 
 	/**
+	 * Get all current connections. You can call remove, and the connection will
+	 * be closed.
+	 * 
+	 * @return Set containing all connections
+	 */
+	public Set<IConnection> getClientConnections();
+	
+	/**
 	 * Lookup connections.
 	 * 
+	 * @deprecated Use {@link IScope#lookupConnection(IClient)} instead
 	 * @param client object
-	 * @return Set of connection objects (readonly)
+	 * @return Set of connection objects (read-only)
 	 */
+	@Deprecated
 	public Set<IConnection> lookupConnections(IClient client);
+	
+	/**
+	 * Lookup connection for a given client.
+	 * 
+	 * @param client object
+	 * @return connection object
+	 */
+	public IConnection lookupConnection(IClient client);
 
 	/**
 	 * Returns scope context

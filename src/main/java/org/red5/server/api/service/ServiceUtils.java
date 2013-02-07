@@ -18,15 +18,12 @@
 
 package org.red5.server.api.service;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
 import org.red5.server.api.scope.IScope;
+import org.red5.server.net.rtmp.event.ClientInvokeEvent;
+import org.red5.server.net.rtmp.event.ClientNotifyEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +32,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
- *
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public class ServiceUtils {
 
@@ -133,7 +130,7 @@ public class ServiceUtils {
 			log.debug("Connection for invoke on all: {}", conn);
 			IScope scope = conn.getScope();
 			log.debug("Scope for invoke on all: {}", scope);
-			invokeOnAllConnections(scope, method, params, callback);
+			invokeOnAllScopeConnections(scope, method, params, callback);
 		} else {
 			log.warn("Connection was null (thread local), scope cannot be located and cannot execute invoke request");
 		}
@@ -145,9 +142,11 @@ public class ServiceUtils {
 	 * @param scope scope to get connections for
 	 * @param method name of the method to invoke
 	 * @param params parameters to pass to the method
+	 * @deprecated Use {@link ServiceUtils#invokeOnAllScopeConnections(IScope, String, Object[], IPendingServiceCallback)} instead
 	 */
+	@Deprecated
 	public static void invokeOnAllConnections(IScope scope, String method, Object[] params) {
-		invokeOnAllConnections(scope, method, params, null);
+		invokeOnAllScopeConnections(scope, method, params, null);
 	}
 
 	/**
@@ -163,6 +162,19 @@ public class ServiceUtils {
 	}
 
 	/**
+	 * Invoke a method on all connections of a scope and handle result.
+	 * 
+	 * @param scope scope to get connections from
+	 * @param method name of the method to invoke
+	 * @param params parameters to pass to the method
+	 * @param callback object to notify when result is received
+	 */
+	public static void invokeOnAllScopeConnections(IScope scope, String method, Object[] params, IPendingServiceCallback callback) {
+		ClientInvokeEvent event = ClientInvokeEvent.build(method, params, callback);
+		scope.dispatchEvent(event);
+	}
+
+	/**
 	 * Invoke a method on all connections of a client to a given scope.
 	 *  
 	 * @param client client to get connections for
@@ -175,43 +187,28 @@ public class ServiceUtils {
 	}
 
 	/**
-	 * Invoke a method on all connections of a client to a given scope and
-	 * handle result.
+	 * Invoke a method on all connections of a client to a given scope and handle result.
 	 * 
 	 * @param client client to get connections for
 	 * @param scope scope to get connections of the client from
 	 * @param method name of the method to invoke
 	 * @param params parameters to pass to the method
 	 * @param callback object to notify when result is received
+	 * @deprecated Use {@link ServiceUtils#invokeOnAllScopeConnections(IScope, String, Object[], IPendingServiceCallback)} instead
 	 */
+	@Deprecated
 	public static void invokeOnClient(IClient client, IScope scope, String method, Object[] params, IPendingServiceCallback callback) {
-		Set<IConnection> connections;
 		if (client == null) {
-			connections = new HashSet<IConnection>();
-			Collection<Set<IConnection>> conns = scope.getConnections();
-			log.debug("Scope: {} connections: {}", scope.getName(), conns.size());
-			for (Set<IConnection> set : conns) {
-				connections.addAll(set);
-			}
+			invokeOnAllScopeConnections(scope, method, params, callback);
 		} else {
-			connections = scope.lookupConnections(client);
-			if (connections == null) {
-				// Client is not connected to the scope
-				return;
+			IConnection conn = scope.lookupConnection(client);
+			if (conn != null) {
+				if (callback == null) {
+					invokeOnConnection(conn, method, params);
+				} else {
+					invokeOnConnection(conn, method, params, callback);
+				}
 			}
-		}
-		if (callback == null) {
-			for (IConnection conn : connections) {
-				invokeOnConnection(conn, method, params);
-			}
-		} else {
-			for (IConnection conn : connections) {
-				invokeOnConnection(conn, method, params, callback);
-			}
-		}
-		if (connections != null && client == null) {
-			connections.clear();
-			connections = null;
 		}
 	}
 
@@ -264,7 +261,7 @@ public class ServiceUtils {
 			log.debug("Connection for notify on all: {}", conn);
 			IScope scope = conn.getScope();
 			log.debug("Scope for notify on all: {}", scope);
-			notifyOnAllConnections(scope, method, params);
+			notifyOnAllScopeConnections(scope, method, params);
 		} else {
 			log.warn("Connection was null (thread local), scope cannot be located and cannot execute notify request");
 		}
@@ -276,9 +273,23 @@ public class ServiceUtils {
 	 * @param scope scope to get connections for
 	 * @param method name of the method to notify
 	 * @param params parameters to pass to the method
+	 * @deprecated Use {@link ServiceUtils#notifyOnAllScopeConnections(IScope, String, Object[])} instead
 	 */
+	@Deprecated
 	public static void notifyOnAllConnections(IScope scope, String method, Object[] params) {
-		notifyOnClient(null, scope, method, params);
+		notifyOnAllScopeConnections(scope, method, params);
+	}
+
+	/**
+	 * Notify a method on all connections of a scope.
+	 * 
+	 * @param scope scope to dispatch event
+	 * @param method name of the method to notify
+	 * @param params parameters to pass to the method
+	 */
+	public static void notifyOnAllScopeConnections(IScope scope, String method, Object[] params) {
+		ClientNotifyEvent event = ClientNotifyEvent.build(method, params);
+		scope.dispatchEvent(event);
 	}
 
 	/**
@@ -288,25 +299,17 @@ public class ServiceUtils {
 	 * @param scope scope to get connections of the client from
 	 * @param method name of the method to notify
 	 * @param params parameters to pass to the method
+	 * @deprecated Use {@link ServiceUtils#notifyOnAllScopeConnections(IScope, String, Object[])} instead
 	 */
-	@SuppressWarnings("unchecked")
+	@Deprecated
 	public static void notifyOnClient(IClient client, IScope scope, String method, Object[] params) {
-		Set<IConnection> connections = Collections.EMPTY_SET;
 		if (client == null) {
-			connections = new HashSet<IConnection>();
-			Collection<Set<IConnection>> conns = scope.getConnections();
-			for (Set<IConnection> set : conns) {
-				connections.addAll(set);
-			}
+			notifyOnAllScopeConnections(scope, method, params);
 		} else {
-			connections = scope.lookupConnections(client);
-		}
-		for (IConnection conn : connections) {
-			notifyOnConnection(conn, method, params);
-		}
-		if (connections != null) {
-			connections.clear();
-			connections = null;
+			IConnection conn = scope.lookupConnection(client);
+			if (conn != null) {
+				notifyOnConnection(conn, method, params);
+			}
 		}
 	}
 

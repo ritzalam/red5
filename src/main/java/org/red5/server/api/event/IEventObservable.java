@@ -30,15 +30,17 @@ public interface IEventObservable {
      * Add event listener to this observable
      * 
      * @param listener      Event listener
+	 * @return true if listener is added and false otherwise
      */
-	public void addEventListener(IEventListener listener);
+	public boolean addEventListener(IEventListener listener);
 
     /**
      * Remove event listener from this observable
      * 
      * @param listener      Event listener
+	 * @return true if listener is removed and false otherwise
      */
-    public void removeEventListener(IEventListener listener);
+    public boolean removeEventListener(IEventListener listener);
 
 	/**
      * Returns event listeners

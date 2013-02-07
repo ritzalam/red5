@@ -61,7 +61,7 @@ public class Notify extends BaseEvent implements IStreamData<Notify>, IStreamPac
      */
     private Map<String, Object> connectionParams;
 
-	/** Constructs a new Notify. */
+	/** Constructs a new Notify */
     public Notify() {
 		super(Type.SERVICE_CALL);
 	}

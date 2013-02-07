@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.BaseConnection;
 import org.red5.server.api.Red5;
+import org.red5.server.api.event.IEvent;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.scope.IScope;
@@ -51,6 +52,8 @@ import org.red5.server.exception.ClientRejectedException;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.ClientBW;
+import org.red5.server.net.rtmp.event.ClientInvokeEvent;
+import org.red5.server.net.rtmp.event.ClientNotifyEvent;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
@@ -669,6 +672,28 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		Red5.setConnectionLocal(null);
 	}
 
+	/**
+	 * Dispatches event
+	 * @param event       Event
+	 */
+	@Override
+	public void dispatchEvent(IEvent event) {
+		log.debug("Event notify: {}", event);
+		// determine if its an outgoing invoke or notify
+		switch (event.getType()) {
+			case CLIENT_INVOKE:
+				ClientInvokeEvent cie = (ClientInvokeEvent) event;
+				invoke(cie.getMethod(), cie.getParams(), cie.getCallback());
+				break;
+			case CLIENT_NOTIFY:
+				ClientNotifyEvent cne = (ClientNotifyEvent) event;
+				notify(cne.getMethod(), cne.getParams());
+				break;
+			default:
+				log.warn("Unhandled event: {}", event);
+		}
+	}	
+	
 	/**
 	 * When the connection has been closed, notify any remaining pending service calls that they have failed because
 	 * the connection is broken. Implementors of IPendingServiceCallback may only deduce from this notification that

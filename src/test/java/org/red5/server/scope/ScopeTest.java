@@ -123,7 +123,7 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 	}
 
 	@Test
-	public void handler() {
+	public void handler() throws InterruptedException {
 		context = (Context) applicationContext.getBean("web.context");
 
 		Scope testApp = (Scope) context.resolveScope(appPath);
@@ -146,13 +146,16 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		assertTrue("attributes not working", client.getAttribute(key) == value);
 
 		assertTrue(conn.connect(testApp));
+		
+		// give connect a moment to settle
+		Thread.sleep(250L);
 
-		assertTrue("app should have 1 client", testApp.getClients().size() == 1);
+		assertTrue("app should have 1 client", testApp.getActiveClients() == 1);
 		assertTrue("host should have 1 client", testApp.getParent().getClients().size() == 1);
 
 		conn.close();
 
-		assertTrue("app should have 0 client", testApp.getClients().size() == 0);
+		assertTrue("app should have 0 client", testApp.getActiveClients() == 0);
 		assertTrue("host should have 0 client", testApp.getParent().getClients().size() == 0);
 
 		//client.disconnect();
@@ -264,17 +267,15 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		conn.connect(room5);
 		// their code
 		IScope scope = Red5.getConnectionLocal().getScope();
-		for (Set<IConnection> collection : scope.getConnections()) {
-			try {
-				for (IConnection tempConn : collection) {
-					if (tempConn instanceof IServiceCapableConnection) {
-						@SuppressWarnings("unused")
-						IServiceCapableConnection sc = (IServiceCapableConnection) tempConn;
-						//sc.invoke(methodName, objArrays);
-					}
+		for (IConnection tempConn : scope.getClientConnections()) {
+			if (tempConn instanceof IServiceCapableConnection) {
+				try {
+					@SuppressWarnings("unused")
+					IServiceCapableConnection sc = (IServiceCapableConnection) tempConn;
+					//sc.invoke(methodName, objArrays);
+				} catch (NoSuchElementException e) {
+					log.warn("Previous scope connection is unavailable", e);
 				}
-			} catch (NoSuchElementException e) {
-				log.warn("Previous scope connection is unavailable", e);
 			}
 		}
 	}

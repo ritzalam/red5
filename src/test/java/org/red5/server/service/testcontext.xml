@@ -18,6 +18,8 @@
 
 	<!-- Server bean -->
 	<bean id="red5.server" class="org.red5.server.Server" />
+    
+    <bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService" /> 
 	
     <!-- High level access to streams -->
     <bean id="streamService" class="org.red5.server.stream.StreamService"/>

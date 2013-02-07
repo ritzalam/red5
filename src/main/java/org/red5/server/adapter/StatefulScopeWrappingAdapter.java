@@ -168,7 +168,10 @@ public class StatefulScopeWrappingAdapter extends AbstractScopeAdapter implement
 	 * @return            <code>true</code> on success, <code>false</code> otherwise
 	 */
 	public boolean createChildScope(String name) {
-		return scope.createChildScope(name);
+		if (!scope.hasChildScope(name)) {
+			return scope.createChildScope(name);
+		}
+		return false;
 	}
 
 	/**
@@ -203,10 +206,22 @@ public class StatefulScopeWrappingAdapter extends AbstractScopeAdapter implement
 	 *
 	 * @return  Connections
 	 */
+	@SuppressWarnings("deprecation")
 	public Collection<Set<IConnection>> getConnections() {
 		return scope.getConnections();
 	}
 
+	/**
+	 * Returns all connections for a given client
+	 *
+	 * @param client
+	 * @return  Connections
+	 */
+	@SuppressWarnings("deprecation")
+	public Set<IConnection> lookupConnections(IClient client) {
+		return scope.lookupConnections(client);
+	}	
+	
 	/**
 	 * Getter for context
 	 *
@@ -267,10 +282,6 @@ public class StatefulScopeWrappingAdapter extends AbstractScopeAdapter implement
 	 */
 	public boolean hasParent() {
 		return scope.hasParent();
-	}
-
-	public Set<IConnection> lookupConnections(IClient client) {
-		return scope.lookupConnections(client);
 	}
 
 	/**

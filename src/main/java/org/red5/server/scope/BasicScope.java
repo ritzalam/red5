@@ -20,8 +20,8 @@ package org.red5.server.scope;
 
 import java.beans.ConstructorProperties;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventListener;
@@ -39,7 +39,7 @@ import org.red5.server.util.ScopeUtils;
  * @see org.red5.server.api.scope.IScope
  * @see org.red5.server.scope.Scope
  */
-public abstract class BasicScope implements IBasicScope {
+public abstract class BasicScope implements IBasicScope, Comparable<BasicScope> {
 
 	/**
 	 * Parent scope. Scopes can be nested.
@@ -59,6 +59,11 @@ public abstract class BasicScope implements IBasicScope {
 	 * String identifier for this scope
 	 */
 	protected String name;
+	
+	/**
+	 * Creation timestamp
+	 */
+	protected long creation;
 	
 	/**
 	 * Whether or not to persist attributes
@@ -89,13 +94,14 @@ public abstract class BasicScope implements IBasicScope {
 	/**
 	 * List of event listeners
 	 */
-	protected Set<IEventListener> listeners;
+	protected CopyOnWriteArraySet<IEventListener> listeners;
 
 	/**
 	 * Creates unnamed scope
 	 */
 	@ConstructorProperties(value = { "" })
 	public BasicScope() {
+		this.creation = System.nanoTime();
 	}
 
 	/**
@@ -112,7 +118,8 @@ public abstract class BasicScope implements IBasicScope {
 		this.type = type;
 		this.name = name;
 		this.persistent = persistent;
-		this.listeners = new HashSet<IEventListener>();
+		this.listeners = new CopyOnWriteArraySet<IEventListener>();
+		this.creation = System.nanoTime();
 	}
 
 	/**
@@ -188,17 +195,19 @@ public abstract class BasicScope implements IBasicScope {
 	/**
 	 * Add event listener to list of notified objects
 	 * @param listener        Listening object
+	 * @return true if listener is added and false otherwise
 	 */
-	public void addEventListener(IEventListener listener) {
-		listeners.add(listener);
+	public boolean addEventListener(IEventListener listener) {
+		return listeners.add(listener);
 	}
 
 	/**
 	 * Remove event listener from list of listeners
 	 * @param listener            Listener to remove
+	 * @return true if listener is removed and false otherwise
 	 */
-	public void removeEventListener(IEventListener listener) {
-		listeners.remove(listener);
+	public boolean removeEventListener(IEventListener listener) {
+		boolean removed = listeners.remove(listener);
 		if (!keepOnDisconnect) {
 			if (ScopeUtils.isRoom(this) && listeners.isEmpty()) {
 				if (keepDelay > 0) {
@@ -211,6 +220,7 @@ public abstract class BasicScope implements IBasicScope {
 				}
 			}
 		}
+		return removed;
 	}
 
 	/**
@@ -282,21 +292,27 @@ public abstract class BasicScope implements IBasicScope {
 	 * @param obj
 	 */
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		BasicScope other = (BasicScope) obj;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
+		if (hashCode() != other.hashCode()) {
 			return false;
-		if (type != other.type)
-			return false;
+		}
 		return true;
+	}
+
+	public int compareTo(BasicScope that) {
+		if (this.equals(that)) {
+			return 0;
+		}
+		return name.compareTo(that.getName());
 	}
 
 	/**

@@ -47,9 +47,9 @@ public class CoreHandler implements IScopeHandler, CoreHandlerMXBean {
 	/**
 	 * Connects client to the scope
 	 *
-	 * @param conn                 Client conneciton
+	 * @param conn                 Client connection
 	 * @param scope                Scope
-	 * @return                     true if client was registred within scope, false otherwise
+	 * @return                     true if client was registered within scope, false otherwise
 	 */
 	public boolean connect(IConnection conn, IScope scope) {
 		return connect(conn, scope, null);
@@ -60,7 +60,7 @@ public class CoreHandler implements IScopeHandler, CoreHandlerMXBean {
 	 *
 	 * @param conn                  Client connection
 	 * @param scope                 Scope
-	 * @param params                Params passed from client side with connect call
+	 * @param params                Parameters passed from client side with connect call
 	 * @return                      true if client was registered within scope, false otherwise
 	 */
 	public boolean connect(IConnection conn, IScope scope, Object[] params) {
@@ -76,7 +76,7 @@ public class CoreHandler implements IScopeHandler, CoreHandlerMXBean {
 		String id = conn.getSessionId();
 		log.trace("Session id: {}", id);
 
-		// Use client registry from scope the client connected to.
+		// Use client registry from scope the client connected to
 		IScope connectionScope = Red5.getConnectionLocal().getScope();
 		log.debug("Connection scope: {}", (connectionScope == null ? "is null" : "not null"));
 

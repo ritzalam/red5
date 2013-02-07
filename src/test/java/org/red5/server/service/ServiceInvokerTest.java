@@ -208,7 +208,7 @@ public class ServiceInvokerTest extends AbstractJUnit4SpringContextTests {
 		MultiThreadedTestRunner mttr = new MultiThreadedTestRunner(trs);
 
 		long start = System.nanoTime();
-		mttr.runTestRunnables();
+		mttr.runTestRunnables(40000L); // max runtime 40s
 		log.info("Runtime: {} ns", (System.nanoTime() - start));
 
 		for (TestRunnable r : trs) {

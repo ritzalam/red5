@@ -79,5 +79,13 @@ public class StatisticsCounter {
 	public int getMax() {
 		return max.intValue();
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "StatisticsCounter [current=" + current + ", total=" + total + ", max=" + max + "]";
+	}
 	
 }

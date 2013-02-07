@@ -18,7 +18,6 @@
 
 package org.red5.server.scope;
 
-import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -104,7 +103,7 @@ public class WebScope extends Scope implements ServletContextAware, WebScopeMXBe
 	{
 		type = ScopeType.APPLICATION;
 	}
-	
+
 	/**
 	 * Setter for global scope. Sets persistence class.
 	 * 
@@ -158,12 +157,12 @@ public class WebScope extends Scope implements ServletContextAware, WebScopeMXBe
 	 * Setter for context path
 	 * 
 	 * @param contextPath Context path
-	 */	
+	 */
 	public void setContextPath(String contextPath) {
 		this.contextPath = contextPath;
 		super.setName(contextPath.substring(1));
 	}
-	
+
 	/**
 	 * Return scope context path
 	 * 
@@ -199,7 +198,7 @@ public class WebScope extends Scope implements ServletContextAware, WebScopeMXBe
 			log.info("Webscope already registered");
 			return;
 		}
-		log.debug("Webscope registering: {}", contextPath);		
+		log.debug("Webscope registering: {}", contextPath);
 		getAppContext();
 		appLoader = LoaderBase.getApplicationLoader();
 		//get the parent name
@@ -224,20 +223,15 @@ public class WebScope extends Scope implements ServletContextAware, WebScopeMXBe
 			log.info("Webscope not registered");
 			return;
 		}
-		log.debug("Webscope un-registering: {}", contextPath);	
+		log.debug("Webscope un-registering: {}", contextPath);
 		shuttingDown.set(true);
 		keepOnDisconnect = false;
 		uninit();
-		// We need to disconnect all clients before unregistering
-		Collection<Set<IConnection>> conns = getConnections();
-		for (Set<IConnection> set : conns) {
-			for (IConnection conn : set) {
-				conn.close();
-			}
-			//should we clear the set?
-			set.clear();
+		// disconnect all clients before unregistering
+		Set<IConnection> conns = getClientConnections();
+		for (IConnection conn : conns) {
+			conn.close();
 		}
-		//
 		conns.clear();
 		//
 		if (hostnames != null && hostnames.length > 0) {
@@ -248,7 +242,7 @@ public class WebScope extends Scope implements ServletContextAware, WebScopeMXBe
 		//check for null
 		if (appContext == null) {
 			log.debug("Application context is null, trying retrieve from loader");
-			getAppContext();		
+			getAppContext();
 		}
 		//try to stop the app context
 		if (appContext != null) {
@@ -296,14 +290,14 @@ public class WebScope extends Scope implements ServletContextAware, WebScopeMXBe
 				hostId = (String) sctx.getAttribute("red5.host.id");
 				log.trace("Host id from init param: {}", hostId);
 			}
-		}		
+		}
 		if (hostId != null) {
 			appContext = LoaderBase.getRed5ApplicationContext(hostId + contextPath);
 		} else {
 			appContext = LoaderBase.getRed5ApplicationContext(contextPath);
 		}
-	}	
-	
+	}
+
 	/**
 	 * Is the scope currently shutting down?
 	 * 

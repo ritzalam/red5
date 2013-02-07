@@ -113,12 +113,12 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	protected volatile IClient client;
 
 	/**
-	 * Scope that connection belongs to
+	 * Scope to which this connection belongs
 	 */
 	protected volatile Scope scope;
 
 	/**
-	 * Set of basic scopes.
+	 * Set of basic scopes. The scopes may be of shared object or broadcast stream type.
 	 */
 	protected Set<IBasicScope> basicScopes = new CopyOnWriteArraySet<IBasicScope>();
 
@@ -289,6 +289,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 
 	/**
 	 * Return connection parameters
+	 * 
 	 * @return connection parameters
 	 */
 	public Map<String, Object> getConnectParams() {
@@ -296,7 +297,8 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	}
 
 	/**
-	 *
+	 * Returns the Client
+	 * 
 	 * @return client
 	 */
 	public IClient getClient() {
@@ -305,6 +307,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 
 	/**
 	 * Check whether connection is alive
+	 * 
 	 * @return       true if connection is bound to scope, false otherwise
 	 */
 	public boolean isConnected() {
@@ -333,13 +336,12 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 				log.debug("Param: {}", e);
 			}
 		}
-		final Scope oldScope = scope;
-		scope = (Scope) newScope;
 		// disconnect from old scope(s), then reconnect to new scopes. 
 		// this is necessary because there may be an intersection between the hierarchies.
-		if (oldScope != null) {
-			oldScope.disconnect(this);
+		if (scope != null) {
+			scope.disconnect(this);
 		}
+		scope = (Scope) newScope;
 		return scope.connect(this, params);
 	}
 
@@ -356,7 +358,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	 */
 	public void close() {
 		if (closed || scope == null) {
-			log.debug("Close, not connected nothing to do.");
+			log.debug("Close, not connected nothing to do");
 			return;
 		}
 		closed = true;
@@ -378,29 +380,14 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 		// Unregister client
 		if (client != null && client instanceof Client) {
 			((Client) client).unregister(this);
-			/* Following code should be unnecessary and was causing client to set its registry to null (via tmp.disconnect())
-			 * resulting NPE + memory leaks in various cases
-			Client tmp = (Client) client;
-			tmp.unregister(this);
-			tmp.removeAttributes();
-			tmp.disconnect();
-			client = null;*/
 		}
-		scope = null;
-		// set a quick local ref
-		final IConnection con = this;
-		String threadId = String.format("CloseNotifier-%s", con.getClient().getId());
 		// alert our listeners
-		Thread t = new Thread(new Runnable() {
-			public void run() {
-				for (IConnectionListener listener : connectionListeners) {
-					listener.notifyDisconnected(con);
-				}
-				connectionListeners.clear();
-			}
-		}, threadId);
-		t.setDaemon(true);
-		t.start();
+		for (IConnectionListener listener : connectionListeners) {
+			listener.notifyDisconnected(this);
+		}
+		connectionListeners.clear();
+		connectionListeners = null;
+		scope = null;
 	}
 
 	/**

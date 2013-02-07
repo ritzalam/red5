@@ -84,7 +84,7 @@ public class Context implements IContext, ApplicationContextAware, ContextMXBean
 	private IServiceInvoker serviceInvoker;
 
 	/**
-	 * Mapping stategy collaborator
+	 * Mapping strategy collaborator
 	 */
 	private IMappingStrategy mappingStrategy;
 
@@ -107,7 +107,7 @@ public class Context implements IContext, ApplicationContextAware, ContextMXBean
 	 * @param context Application context
 	 * @param contextPath Context path
 	 */
-	@ConstructorProperties({"context", "contextPath"})
+	@ConstructorProperties({ "context", "contextPath" })
 	public Context(ApplicationContext context, String contextPath) {
 		setApplicationContext(context);
 		this.contextPath = contextPath;
@@ -223,8 +223,7 @@ public class Context implements IContext, ApplicationContextAware, ContextMXBean
 			if (config == null) {
 				config = "red5.xml";
 			}
-			coreContext = ContextSingletonBeanFactoryLocator.getInstance(config).useBeanFactory("red5.core")
-					.getFactory();
+			coreContext = ContextSingletonBeanFactoryLocator.getInstance(config).useBeanFactory("red5.core").getFactory();
 		} else {
 			logger.info("Setting parent bean factory as core");
 			coreContext = applicationContext.getParentBeanFactory();
@@ -332,7 +331,7 @@ public class Context implements IContext, ApplicationContextAware, ContextMXBean
 	}
 
 	/**
-	 * Return array or resournce that match given pattern
+	 * Return array or resource that match given pattern
 	 * 
 	 * @param pattern Pattern to check against
 	 * @return Array of Resource objects
@@ -345,7 +344,7 @@ public class Context implements IContext, ApplicationContextAware, ContextMXBean
 	}
 
 	/**
-	 * Return resouce by path
+	 * Return resource by path
 	 * 
 	 * @param path Resource path
 	 * @return Resource
@@ -442,6 +441,6 @@ public class Context implements IContext, ApplicationContextAware, ContextMXBean
 			}
 		}
 		return instance;
-	}	
-	
+	}
+
 }
