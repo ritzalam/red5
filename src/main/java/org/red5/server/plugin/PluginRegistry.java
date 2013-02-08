@@ -39,7 +39,7 @@ public class PluginRegistry {
 	private static Logger log = Red5LoggerFactory.getLogger(PluginRegistry.class, "plugins");
 
 	//keeps track of plug-ins, keyed by plug-in name
-	private static volatile ConcurrentMap<String, IRed5Plugin> plugins = new ConcurrentHashMap<String, IRed5Plugin>();
+	private static volatile ConcurrentMap<String, IRed5Plugin> plugins = new ConcurrentHashMap<String, IRed5Plugin>(3, 0.9f, 1);
 	
 	//locks for guarding plug-ins
 	private final static ReadWriteLock pluginLock = new ReentrantReadWriteLock(); 

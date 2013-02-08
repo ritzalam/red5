@@ -54,7 +54,7 @@ public class FilePersistenceThread implements Runnable, DisposableBean {
 	/**
 	 * Modified objects.
 	 */
-	private Map<UpdateEntry, FilePersistence> objects = new ConcurrentHashMap<UpdateEntry, FilePersistence>();
+	private Map<UpdateEntry, FilePersistence> objects = new ConcurrentHashMap<UpdateEntry, FilePersistence>(7, 0.75f, 1);
 
 	/**
 	 * Singleton instance.

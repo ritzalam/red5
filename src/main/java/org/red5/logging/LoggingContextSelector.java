@@ -41,7 +41,7 @@ import ch.qos.logback.core.util.StatusPrinter;
  */
 public class LoggingContextSelector implements ContextSelector {
 
-	private static final ConcurrentMap<String, LoggerContext> contextMap = new ConcurrentHashMap<String, LoggerContext>();
+	private static final ConcurrentMap<String, LoggerContext> contextMap = new ConcurrentHashMap<String, LoggerContext>(6, 0.9f, 1);
 
 	private final ThreadLocal<LoggerContext> threadLocal = new ThreadLocal<LoggerContext>();
 

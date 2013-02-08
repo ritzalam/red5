@@ -48,7 +48,7 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMXBean {
 	/**
 	 * Clients map
 	 */
-	private ConcurrentMap<String, IClient> clients = new ConcurrentHashMap<String, IClient>();
+	private ConcurrentMap<String, IClient> clients = new ConcurrentHashMap<String, IClient>(6, 0.9f, 2);
 
 	/**
 	 *  Next client id

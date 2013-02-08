@@ -785,7 +785,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	protected Map<String, Object> getServiceHandlers(boolean allowCreate) {
 		if (serviceHandlers == null) {
 			if (allowCreate) {
-				serviceHandlers = new ConcurrentHashMap<String, Object>();
+				serviceHandlers = new ConcurrentHashMap<String, Object>(3, 0.9f, 1);
 			}
 		}
 		return serviceHandlers;

@@ -61,7 +61,7 @@ public class Client extends AttributeStore implements IClient {
 	/**
 	 * Scopes this client connected to
 	 */
-	protected ConcurrentMap<IConnection, IScope> connToScope = new ConcurrentHashMap<IConnection, IScope>();
+	protected ConcurrentMap<IConnection, IScope> connToScope = new ConcurrentHashMap<IConnection, IScope>(1, 0.9f, 1);
 
 	/**
 	 * Creation time as Timestamp

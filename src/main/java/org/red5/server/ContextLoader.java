@@ -211,7 +211,7 @@ public class ContextLoader implements ApplicationContextAware, InitializingBean,
 		ApplicationContext context = new FileSystemXmlApplicationContext(new String[] { config }, parentContext);
 		log.debug("Adding to context map - name: {} context: {}", name, context);
 		if (contextMap == null) {
-			contextMap = new ConcurrentHashMap<String, ApplicationContext>();
+			contextMap = new ConcurrentHashMap<String, ApplicationContext>(3, 0.9f, 1);
 		}
 		contextMap.put(name, context);
 		// Register context in parent bean factory

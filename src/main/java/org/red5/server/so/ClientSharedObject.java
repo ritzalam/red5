@@ -69,7 +69,7 @@ public class ClientSharedObject extends SharedObject implements IClientSharedObj
 	/**
 	 * Set of event handlers
 	 */
-	private ConcurrentMap<String, Object> handlers = new ConcurrentHashMap<String, Object>();
+	private ConcurrentMap<String, Object> handlers = new ConcurrentHashMap<String, Object>(1, 0.9f, 1);
 
 	/**
 	 * Create new client SO with

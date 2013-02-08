@@ -70,7 +70,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 	/**
 	 * Event handlers
 	 */
-	private ConcurrentMap<String, Object> handlers = new ConcurrentHashMap<String, Object>();
+	private ConcurrentMap<String, Object> handlers = new ConcurrentHashMap<String, Object>(1, 0.9f, 1);
 
 	/**
 	 * Security handlers

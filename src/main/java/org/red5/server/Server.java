@@ -57,12 +57,12 @@ public class Server implements IServer, ApplicationContextAware, InitializingBea
 	/**
 	 * List of global scopes
 	 */
-	protected ConcurrentMap<String, IGlobalScope> globals = new ConcurrentHashMap<String, IGlobalScope>();
+	protected ConcurrentMap<String, IGlobalScope> globals = new ConcurrentHashMap<String, IGlobalScope>(1, 0.9f, 1);
 
 	/**
 	 * Mappings
 	 */
-	protected ConcurrentMap<String, String> mapping = new ConcurrentHashMap<String, String>();
+	protected ConcurrentMap<String, String> mapping = new ConcurrentHashMap<String, String>(32, 0.9f, 8);
 
 	/**
 	 * Spring application context

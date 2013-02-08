@@ -383,7 +383,7 @@ public class AttributeStore implements ICastingAttributeStore {
 	private final class ConcurrentAttributesMap<K, V> extends ConcurrentHashMap<K, V> {
 
 		ConcurrentAttributesMap(int size) {
-			super(size);
+			super(size, 0.75f, 1);
 		}
 
 		@Override

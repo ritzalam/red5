@@ -114,14 +114,14 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * 
 	 * @see org.red5.server.net.rtmp.Channel
 	 */
-	private ConcurrentMap<Integer, Channel> channels = new ConcurrentHashMap<Integer, Channel>();
+	private ConcurrentMap<Integer, Channel> channels = new ConcurrentHashMap<Integer, Channel>(3, 0.9f, 1);
 
 	/**
 	 * Client streams
 	 * 
 	 * @see org.red5.server.api.stream.IClientStream
 	 */
-	private ConcurrentMap<Integer, IClientStream> streams = new ConcurrentHashMap<Integer, IClientStream>();
+	private ConcurrentMap<Integer, IClientStream> streams = new ConcurrentHashMap<Integer, IClientStream>(1, 0.9f, 1);
 
 	/**
 	 * Reserved stream ids
@@ -136,7 +136,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	/**
 	 * Hash map that stores pending calls and ids as pairs.
 	 */
-	private ConcurrentMap<Integer, IPendingServiceCall> pendingCalls = new ConcurrentHashMap<Integer, IPendingServiceCall>();
+	private ConcurrentMap<Integer, IPendingServiceCall> pendingCalls = new ConcurrentHashMap<Integer, IPendingServiceCall>(3, 0.75f, 1);
 
 	/**
 	 * Deferred results set.
@@ -193,7 +193,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	/**
 	 * Map for pending video packets and stream IDs.
 	 */
-	private ConcurrentMap<Integer, AtomicInteger> pendingVideos = new ConcurrentHashMap<Integer, AtomicInteger>();
+	private ConcurrentMap<Integer, AtomicInteger> pendingVideos = new ConcurrentHashMap<Integer, AtomicInteger>(1, 0.9f, 1);
 
 	/**
 	 * Number of streams used.
@@ -208,7 +208,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	/**
 	 * Remembered stream buffer durations.
 	 */
-	private ConcurrentMap<Integer, Integer> streamBuffers = new ConcurrentHashMap<Integer, Integer>();
+	private ConcurrentMap<Integer, Integer> streamBuffers = new ConcurrentHashMap<Integer, Integer>(1, 0.9f, 1);
 
 	/**
 	 * Name of job that is waiting for a valid handshake.
@@ -966,6 +966,9 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		if (message.getMessage() instanceof VideoData) {
 			int streamId = message.getHeader().getStreamId();
 			AtomicInteger pending = pendingVideos.get(streamId);
+			if (log.isTraceEnabled()) {
+				log.trace("Stream id: {} pending: {} total pending videos: {}", streamId, pending, pendingVideos.size());
+			}
 			if (pending != null) {
 				pending.decrementAndGet();
 			}
@@ -983,6 +986,9 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	/** {@inheritDoc} */
 	@Override
 	public long getPendingVideoMessages(int streamId) {
+		if (log.isTraceEnabled()) {
+			log.trace("Total pending videos: {}", pendingVideos.size());
+		}
 		AtomicInteger count = pendingVideos.get(streamId);
 		long result = (count != null ? count.intValue() - getUsedStreamCount() : 0);
 		return (result > 0 ? result : 0);
