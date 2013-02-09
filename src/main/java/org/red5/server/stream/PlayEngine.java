@@ -1755,34 +1755,33 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 								return;
 							}
 						} else {
-							while (true) {
-								IMessage msg = msgIn.pullMessage();
-								if (msg == null) {
+							IMessage msg = null;
+							do {
+								msg = msgIn.pullMessage();
+								if (msg != null) {
+									if (msg instanceof RTMPMessage) {
+										RTMPMessage rtmpMessage = (RTMPMessage) msg;
+										if (checkSendMessageEnabled(rtmpMessage)) {
+											// Adjust timestamp when playing lists
+											IRTMPEvent body = rtmpMessage.getBody();
+											body.setTimestamp(body.getTimestamp() + timestampOffset);
+											if (okayToSendMessage(body)) {
+												log.trace("ts: {}", rtmpMessage.getBody().getTimestamp());
+												sendMessage(rtmpMessage);
+												((IStreamData<?>) body).getData().free();
+											} else {
+												pendingMessage = rtmpMessage;
+											}
+											ensurePullAndPushRunning();
+											break;
+										}
+									}
+								} else {								
 									// No more packets to send
 									log.debug("Ran out of packets");
 									runDeferredStop();
-									break;
-								} else {
-									if (msg instanceof RTMPMessage) {
-										RTMPMessage rtmpMessage = (RTMPMessage) msg;
-										if (!checkSendMessageEnabled(rtmpMessage)) {
-											continue;
-										}
-										// Adjust timestamp when playing lists
-										IRTMPEvent body = rtmpMessage.getBody();
-										body.setTimestamp(body.getTimestamp() + timestampOffset);
-										if (okayToSendMessage(body)) {
-											log.trace("ts: {}", rtmpMessage.getBody().getTimestamp());
-											sendMessage(rtmpMessage);
-											((IStreamData<?>) body).getData().free();
-										} else {
-											pendingMessage = rtmpMessage;
-										}
-										ensurePullAndPushRunning();
-										break;
-									}
 								}
-							}
+							} while (msg != null);
 						}
 					}
 				} catch (IOException err) {
@@ -1797,7 +1796,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				log.debug("Push / pull already running");
 			}
 		}
-
 	}
 
 	private class DeferredStopRunnable implements IScheduledJob {

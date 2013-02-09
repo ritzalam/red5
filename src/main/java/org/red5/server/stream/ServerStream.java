@@ -708,54 +708,49 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	 * it for push according to the timestamp.
 	 */
 	protected void scheduleNextMessage() {
-		boolean first = nextRTMPMessage == null;
-		long delta;
-		while (true) {
+		boolean first = (nextRTMPMessage == null);
+		long delta = 0L;
+		do {
 			nextRTMPMessage = getNextRTMPMessage();
-			if (nextRTMPMessage == null) {
-				onItemEnd();
-				return;
-			}
-			IRTMPEvent rtmpEvent = nextRTMPMessage.getBody();
-			// filter all non-AV messages
-			if (!(rtmpEvent instanceof VideoData) && !(rtmpEvent instanceof AudioData)) {
-				continue;
-			}
-			rtmpEvent = nextRTMPMessage.getBody();
-			nextTS = rtmpEvent.getTimestamp();
-			if (first) {
-				vodStartTS = nextTS;
-				first = false;
-			}
-			delta = nextTS - vodStartTS - (System.currentTimeMillis() - serverStartTS);
-			if (delta < WAIT_THRESHOLD) {
-				if (!doPushMessage()) {
-					return;
-				}
-				if (state != StreamState.PLAYING) {
-					// Stream is not playing, don't load more messages
-					nextRTMPMessage = null;
-					return;
+			if (nextRTMPMessage != null) {
+				IRTMPEvent rtmpEvent = nextRTMPMessage.getBody();
+				// filter all non-AV messages
+				if (rtmpEvent instanceof VideoData || rtmpEvent instanceof AudioData) {
+					rtmpEvent = nextRTMPMessage.getBody();
+					nextTS = rtmpEvent.getTimestamp();
+					if (first) {
+						vodStartTS = nextTS;
+						first = false;
+					}
+					delta = nextTS - vodStartTS - (System.currentTimeMillis() - serverStartTS);
+					if (delta < WAIT_THRESHOLD) {
+						if (doPushMessage()) {
+							if (state != StreamState.PLAYING) {
+								// Stream is not playing, don't load more messages
+								nextRTMPMessage = null;
+							}
+						} else {
+							nextRTMPMessage = null;
+						}
+					}			
 				}
 			} else {
-				break;
+				onItemEnd();
 			}
-		}
+		} while (nextRTMPMessage != null || delta < WAIT_THRESHOLD);
+		// start the job all over again
 		vodJobName = scheduler.addScheduledOnceJob(delta, new IScheduledJob() {
-			/** {@inheritDoc} */
 			public void execute(ISchedulingService service) {
-				if (vodJobName == null) {
-					return;
-				}
-				vodJobName = null;
-				if (!doPushMessage()) {
-					return;
-				}
-				if (state == StreamState.PLAYING) {
-					scheduleNextMessage();
-				} else {
-					// Stream is paused, don't load more messages
-					nextRTMPMessage = null;
+				if (vodJobName != null) {
+					vodJobName = null;
+					if (doPushMessage()) {
+						if (state == StreamState.PLAYING) {
+							scheduleNextMessage();
+						} else {
+							// Stream is paused, don't load more messages
+							nextRTMPMessage = null;
+						}
+					}
 				}
 			}
 		});
