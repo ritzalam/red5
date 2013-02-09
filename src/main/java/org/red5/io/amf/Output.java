@@ -59,7 +59,7 @@ import org.w3c.dom.Document;
 public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 	protected static Logger log = LoggerFactory.getLogger(Output.class);
- 
+
 	private static Cache stringCache;
 
 	private static Cache serializeCache;
@@ -124,7 +124,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	}
 
 	/** {@inheritDoc} */
-	public void writeArray(Collection<?> array, Serializer serializer) {
+	public void writeArray(Collection<?> array) {
 		if (checkWriteReference(array)) {
 			return;
 		}
@@ -132,13 +132,13 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		buf.put(AMF.TYPE_ARRAY);
 		buf.putInt(array.size());
 		for (Object item : array) {
-			serializer.serialize(this, item);
+			Serializer.serialize(this, item);
 		}
 	}
 
 	/** {@inheritDoc} */
-	public void writeArray(Object[] array, Serializer serializer) {
-		log.debug("writeArray - array: {} serializer: {}", array, serializer);
+	public void writeArray(Object[] array) {
+		log.debug("writeArray - array: {}", array);
 		if (array != null) {
 			if (checkWriteReference(array)) {
 				return;
@@ -147,7 +147,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 			buf.put(AMF.TYPE_ARRAY);
 			buf.putInt(array.length);
 			for (Object item : array) {
-				serializer.serialize(this, item);
+				Serializer.serialize(this, item);
 			}
 		} else {
 			writeNull();
@@ -155,7 +155,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	}
 
 	/** {@inheritDoc} */
-	public void writeArray(Object array, Serializer serializer) {
+	public void writeArray(Object array) {
 		if (array != null) {
 			if (checkWriteReference(array)) {
 				return;
@@ -164,7 +164,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 			buf.put(AMF.TYPE_ARRAY);
 			buf.putInt(Array.getLength(array));
 			for (int i = 0; i < Array.getLength(array); i++) {
-				serializer.serialize(this, Array.get(array, i));
+				Serializer.serialize(this, Array.get(array, i));
 			}
 		} else {
 			writeNull();
@@ -172,7 +172,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	}
 
 	/** {@inheritDoc} */
-	public void writeMap(Map<Object, Object> map, Serializer serializer) {
+	public void writeMap(Map<Object, Object> map) {
 		if (checkWriteReference(map)) {
 			return;
 		}
@@ -198,11 +198,11 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 				continue;
 			}
 			putString(key);
-			serializer.serialize(this, entry.getValue());
+			Serializer.serialize(this, entry.getValue());
 		}
 		if (maxInt >= 0) {
 			putString("length");
-			serializer.serialize(this, maxInt + 1);
+			Serializer.serialize(this, maxInt + 1);
 		}
 		buf.put((byte) 0x00);
 		buf.put((byte) 0x00);
@@ -210,7 +210,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	}
 
 	/** {@inheritDoc} */
-	public void writeMap(Collection<?> array, Serializer serializer) {
+	public void writeMap(Collection<?> array) {
 		if (checkWriteReference(array)) {
 			return;
 		}
@@ -221,21 +221,20 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		for (Object item : array) {
 			if (item != null) {
 				putString(String.valueOf(idx++));
-				serializer.serialize(this, item);
+				Serializer.serialize(this, item);
 			} else {
 				idx++;
 			}
 		}
 		putString("length");
-		serializer.serialize(this, array.size() + 1);
-
+		Serializer.serialize(this, array.size() + 1);
 		buf.put((byte) 0x00);
 		buf.put((byte) 0x00);
 		buf.put(AMF.TYPE_END_OF_OBJECT);
 	}
 
 	/** {@inheritDoc} */
-	public void writeRecordSet(RecordSet recordset, Serializer serializer) {
+	public void writeRecordSet(RecordSet recordset) {
 		if (checkWriteReference(recordset)) {
 			return;
 		}
@@ -248,7 +247,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		// Write out serverInfo key
 		putString("serverInfo");
 		// Serialize
-		serializer.serialize(this, info);
+		Serializer.serialize(this, info);
 		// Write out end of object marker
 		buf.put((byte) 0x00);
 		buf.put((byte) 0x00);
@@ -299,7 +298,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 	/** {@inheritDoc} */
 	@SuppressWarnings({ "rawtypes" })
-	public void writeObject(Object object, Serializer serializer) {
+	public void writeObject(Object object) {
 		if (checkWriteReference(object)) {
 			return;
 		}
@@ -310,7 +309,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		Set set = beanMap.keySet();
 		if ((set.size() == 0) || (set.size() == 1 && beanMap.containsKey("class"))) {
 			// BeanMap is empty or can only access "class" attribute, skip it
-			writeArbitraryObject(object, serializer);
+			writeArbitraryObject(object);
 			return;
 		}
 
@@ -318,13 +317,13 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		Class<?> objectClass = object.getClass();
 		if (!objectClass.isAnnotationPresent(Anonymous.class)) {
 			buf.put(AMF.TYPE_CLASS_OBJECT);
-			putString(buf, serializer.getClassName(objectClass));
+			putString(buf, Serializer.getClassName(objectClass));
 		} else {
 			buf.put(AMF.TYPE_OBJECT);
 		}
 
 		if (object instanceof ICustomSerializable) {
-			((ICustomSerializable) object).serialize(this, serializer);
+			((ICustomSerializable) object).serialize(this);
 			buf.put((byte) 0x00);
 			buf.put((byte) 0x00);
 			buf.put(AMF.TYPE_END_OF_OBJECT);
@@ -340,12 +339,12 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 			Method getter = getGetter(objectClass, beanMap, fieldName);
 
 			// Check if the Field corresponding to the getter/setter pair is transient
-			if (!serializeField(serializer, objectClass, fieldName, field, getter)) {
+			if (!serializeField(objectClass, fieldName, field, getter)) {
 				continue;
 			}
 
 			putString(buf, fieldName);
-			serializer.serialize(this, field, getter, object, beanMap.get(key));
+			Serializer.serialize(this, field, getter, object, beanMap.get(key));
 		}
 		// Write out end of object mark
 		buf.put((byte) 0x00);
@@ -354,24 +353,21 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected boolean serializeField(Serializer serializer, Class<?> objectClass, String keyName, Field field, Method getter) {
-		//		to prevent, NullPointerExceptions, get the element first and check if it's null. 
+	protected boolean serializeField(Class<?> objectClass, String keyName, Field field, Method getter) {
+		// to prevent, NullPointerExceptions, get the element first and check if it's null
 		Element element = getSerializeCache().get(objectClass);
 		Map<String, Boolean> serializeMap = (element == null ? null : (Map<String, Boolean>) element.getObjectValue());
-
 		if (serializeMap == null) {
 			serializeMap = new HashMap<String, Boolean>();
 			getSerializeCache().put(new Element(objectClass, serializeMap));
 		}
-
-		Boolean serialize;
+		boolean serialize;
 		if (getSerializeCache().isKeyInCache(keyName)) {
 			serialize = serializeMap.get(keyName);
 		} else {
-			serialize = serializer.serializeField(keyName, field, getter);
+			serialize = Serializer.serializeField(keyName, field, getter);
 			serializeMap.put(keyName, serialize);
 		}
-
 		return serialize;
 	}
 
@@ -384,9 +380,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 			fieldMap = new HashMap<String, Field>();
 			getFieldCache().put(new Element(objectClass, fieldMap));
 		}
-
 		Field field = null;
-
 		if (fieldMap.containsKey(keyName)) {
 			field = fieldMap.get(keyName);
 		} else {
@@ -401,10 +395,8 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 					}
 				}
 			}
-
 			fieldMap.put(keyName, field);
 		}
-
 		return field;
 	}
 
@@ -417,7 +409,6 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 			getterMap = new HashMap<String, Method>();
 			getGetterCache().put(new Element(objectClass, getterMap));
 		}
-
 		Method getter;
 		if (getterMap.containsKey(keyName)) {
 			getter = getterMap.get(keyName);
@@ -425,12 +416,11 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 			getter = beanMap.getReadMethod(keyName);
 			getterMap.put(keyName, getter);
 		}
-
 		return getter;
 	}
 
 	/** {@inheritDoc} */
-	public void writeObject(Map<Object, Object> map, Serializer serializer) {
+	public void writeObject(Map<Object, Object> map) {
 		if (checkWriteReference(map)) {
 			return;
 		}
@@ -442,7 +432,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 				continue;
 			}
 			putString(entry.getKey().toString());
-			serializer.serialize(this, entry.getValue());
+			Serializer.serialize(this, entry.getValue());
 		}
 		buf.put((byte) 0x00);
 		buf.put((byte) 0x00);
@@ -452,32 +442,28 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	/**
 	 * Writes an arbitrary object to the output.
 	 *
-	 * @param serializer    Output writer
 	 * @param object        Object to write
 	 */
-	protected void writeArbitraryObject(Object object, Serializer serializer) {
+	protected void writeArbitraryObject(Object object) {
 		log.debug("writeObject");
 		// If we need to serialize class information...
 		Class<?> objectClass = object.getClass();
 		if (!objectClass.isAnnotationPresent(Anonymous.class)) {
 			// Write out start object marker for class name
 			buf.put(AMF.TYPE_CLASS_OBJECT);
-			putString(buf, serializer.getClassName(objectClass));
+			putString(buf, Serializer.getClassName(objectClass));
 		} else {
 			// Write out start object marker without class name
 			buf.put(AMF.TYPE_OBJECT);
 		}
-
 		// Iterate thru fields of an object to build "name-value" map from it
 		for (Field field : objectClass.getFields()) {
 			String fieldName = field.getName();
-
 			log.debug("Field: {} class: {}", field, objectClass);
 			// Check if the Field corresponding to the getter/setter pair is transient
-			if (!serializeField(serializer, objectClass, fieldName, field, null)) {
+			if (!serializeField(objectClass, fieldName, field, null)) {
 				continue;
 			}
-
 			Object value;
 			try {
 				// Get field value
@@ -489,7 +475,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 			// Write out prop name
 			putString(buf, fieldName);
 			// Write out
-			serializer.serialize(this, field, null, object, value);
+			Serializer.serialize(this, field, null, object, value);
 		}
 		// Write out end of object marker
 		buf.put((byte) 0x00);
@@ -636,5 +622,5 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 			stringCache = null;
 		}
 	}
-	
+
 }

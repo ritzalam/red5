@@ -320,15 +320,15 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	// Array
 
-	public Object readArray(Deserializer deserializer, Type target) {
-		log.debug("readArray - deserializer: {} target: {}", deserializer, target);
+	public Object readArray(Type target) {
+		log.debug("readArray - target: {}", target);
 		Object result = null;
 		int count = buf.getInt();
 		log.debug("Count: {}", count);
 		List<Object> resultCollection = new ArrayList<Object>(count);
 		storeReference(result);
 		for (int i = 0; i < count; i++) {
-			resultCollection.add(deserializer.deserialize(this, Object.class));
+			resultCollection.add(Deserializer.deserialize(this, Object.class));
 		}
 		// To maintain conformance to the Input API, we should convert the output
 		// into an Array if the Type asks us to.
@@ -350,22 +350,21 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * Read key - value pairs. This is required for the RecordSet
 	 * deserializer.
 	 */
-	public Map<String, Object> readKeyValues(Deserializer deserializer) {
+	public Map<String, Object> readKeyValues() {
 		Map<String, Object> result = new HashMap<String, Object>();
-		readKeyValues(result, deserializer);
+		readKeyValues(result);
 		return result;
 	}
 
 	/**
 	 * Read key - value pairs into Map object
 	 * @param result            Map to put resulting pair to
-	 * @param deserializer      Deserializer used
 	 */
-	protected void readKeyValues(Map<String, Object> result, Deserializer deserializer) {
+	protected void readKeyValues(Map<String, Object> result) {
 		while (hasMoreProperties()) {
 			String name = readPropertyName();
 			log.debug("property: {}", name);
-			Object property = deserializer.deserialize(this, Object.class);
+			Object property = Deserializer.deserialize(this, Object.class);
 			log.debug("val: {}", property);
 			result.put(name, property);
 			if (hasMoreProperties()) {
@@ -375,7 +374,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		skipEndObject();
 	}
 
-	public Object readMap(Deserializer deserializer, Type target) {
+	public Object readMap(Type target) {
 		// The maximum number used in this mixed array.
 		int maxNumber = buf.getInt();
 		log.debug("Read start mixed array: {}", maxNumber);
@@ -394,11 +393,10 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 				log.debug("key {} is causing non normal array", key);
 				normalArray = false;
 			}
-			Object item = deserializer.deserialize(this, Object.class);
+			Object item = Deserializer.deserialize(this, Object.class);
 			log.debug("item: {}", item);
 			mixedResult.put(key, item);
 		}
-
 		if (mixedResult.size() <= maxNumber + 1 && normalArray) {
 			// MixedArray actually is a regular array
 			log.debug("mixed array is a regular array");
@@ -470,12 +468,11 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	/**
 	 * Reads the input as a bean and returns an object
 	 *
-	 * @param deserializer       Deserializer used
 	 * @param bean               Input as bean
 	 * @return                   Decoded object
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected Object readBean(Deserializer deserializer, Object bean) {
+	protected Object readBean(Object bean) {
 		log.debug("read bean");
 		storeReference(bean);
 		Class theClass = bean.getClass();
@@ -483,7 +480,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 			String name = readPropertyName();
 			Type type = getPropertyType(bean, name);
 			log.debug("property: {}", name);
-			Object property = deserializer.deserialize(this, type);
+			Object property = Deserializer.deserialize(this, type);
 			log.debug("val: {}", property);
 			//log.debug("val: "+property.getClass().getName());
 			if (property != null) {
@@ -506,7 +503,6 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 			} else {
 				log.debug("Skipping null property: {}", name);
 			}
-
 			if (hasMoreProperties()) {
 				skipPropertySeparator();
 			}
@@ -518,13 +514,12 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	/**
 	 * Reads the input as a map and returns a Map
 	 *
-	 * @param deserializer     Deserializer to use
 	 * @return                 Read map
 	 */
-	protected Map<String, Object> readSimpleObject(Deserializer deserializer) {
+	protected Map<String, Object> readSimpleObject() {
 		log.debug("read map");
 		Map<String, Object> result = new ObjectMap<String, Object>();
-		readKeyValues(result, deserializer);
+		readKeyValues(result);
 		storeReference(result);
 		return result;
 	}
@@ -532,10 +527,9 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	/**
 	 * Reads start object
 	 *
-	 * @param deserializer    Deserializer to use
 	 * @return                Read object
 	 */
-	public Object readObject(Deserializer deserializer, Type target) {
+	public Object readObject(Type target) {
 		String className;
 		if (currentDataType == AMF.TYPE_CLASS_OBJECT) {
 			className = getString(buf);
@@ -556,14 +550,14 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 			} else {
 				instance = newInstance(className);
 				if (instance != null) {
-					result = readBean(deserializer, instance);
+					result = readBean(instance);
 				} else {
 					log.debug("Forced to use simple object for class {}", className);
-					result = readSimpleObject(deserializer);
+					result = readSimpleObject();
 				}
 			}
 		} else {
-			result = readSimpleObject(deserializer);
+			result = readSimpleObject();
 		}
 		return result;
 	}
@@ -578,7 +572,6 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		byte pad0 = buf.get();
 		byte pad1 = buf.get();
 		byte type = buf.get();
-
 		boolean isEndOfObject = (pad0 == pad && pad1 == pad && type == AMF.TYPE_END_OF_OBJECT);
 		log.debug("End of object: ? {}", isEndOfObject);
 		buf.position(buf.position() - 3);

@@ -46,7 +46,6 @@ import org.red5.io.amf.Output;
 import org.red5.io.flv.IKeyFrameDataAnalyzer;
 import org.red5.io.flv.impl.Tag;
 import org.red5.io.mp4.MP4Frame;
-import org.red5.io.object.Serializer;
 import org.red5.io.utils.HexDump;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -614,11 +613,11 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		if (avcC != null) {
 			long videoConfigContentSize = avcC.getContentSize();
 			log.debug("AVCC size: {}", videoConfigContentSize);
-//			ByteBuffer byteBuffer = ByteBuffer.allocate((int) videoConfigContentSize);
-//			avc1.avcDecoderConfigurationRecord.getContent(byteBuffer);
-//			byteBuffer.flip();
-//			videoDecoderBytes = new byte[byteBuffer.limit()];
-//			byteBuffer.get(videoDecoderBytes);
+			//			ByteBuffer byteBuffer = ByteBuffer.allocate((int) videoConfigContentSize);
+			//			avc1.avcDecoderConfigurationRecord.getContent(byteBuffer);
+			//			byteBuffer.flip();
+			//			videoDecoderBytes = new byte[byteBuffer.limit()];
+			//			byteBuffer.get(videoDecoderBytes);
 		} else {
 			log.warn("avcC atom not found");
 		}
@@ -829,7 +828,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		}
 		processAudioStbl(stbl, scale);
 	}
-	
+
 	/**
 	 * Process the audio information contained in the atoms.
 	 * 
@@ -899,9 +898,9 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			for (SampleDependencyTypeBox.Entry rec : recs) {
 				log.debug("{}", rec);
 			}
-		}		
+		}
 	}
-	
+
 	/**
 	 * Get the total readable bytes in a file or IoBuffer.
 	 *
@@ -1116,7 +1115,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		props.put("trackinfo", arr);
 		//set this based on existence of seekpoints
 		props.put("canSeekToEnd", (seekPoints != null));
-		out.writeMap(props, new Serializer());
+		out.writeMap(props);
 		buf.flip();
 		//now that all the meta properties are done, update the duration
 		duration = Math.round(duration * 1000d);

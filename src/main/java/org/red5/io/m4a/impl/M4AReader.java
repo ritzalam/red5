@@ -44,7 +44,6 @@ import org.red5.io.amf.Output;
 import org.red5.io.flv.impl.Tag;
 import org.red5.io.mp4.MP4Frame;
 import org.red5.io.mp4.impl.MP4Reader;
-import org.red5.io.object.Serializer;
 import org.red5.io.utils.HexDump;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -138,7 +137,7 @@ public class M4AReader implements IoConstants, ITagReader {
 	private long[] audioSamples;
 
 	private long audioSampleSize;
-	
+
 	//chunk offsets
 	private long[] audioChunkOffsets;
 
@@ -200,7 +199,7 @@ public class M4AReader implements IoConstants, ITagReader {
 			if (log.isDebugEnabled()) {
 				log.debug("moov children: {}", moov.getBoxes().size());
 				MP4Reader.dumpBox(moov);
-			}	
+			}
 			// get the movie header
 			MovieHeaderBox mvhd = moov.getMovieHeaderBox();
 			// get the timescale and duration
@@ -307,12 +306,12 @@ public class M4AReader implements IoConstants, ITagReader {
 					mdatOffset = mdat.getDataStartPosition();
 				}
 			}
-			log.debug("Offset - mdat: {}", mdatOffset);			
+			log.debug("Offset - mdat: {}", mdatOffset);
 		} catch (Exception e) {
 			log.error("Exception decoding header / atoms", e);
 		}
 	}
-	
+
 	/**
 	 * Process the audio information contained in the atoms.
 	 * 
@@ -378,7 +377,7 @@ public class M4AReader implements IoConstants, ITagReader {
 						*/
 						byte audioCoderType = audioDecoderBytes[0];
 						//match first byte
-						switch (audioCoderType) {	
+						switch (audioCoderType) {
 							case 0x02:
 								log.debug("Audio type AAC LC");
 							case 0x11: //ER (Error Resilient) AAC LC
@@ -481,7 +480,7 @@ public class M4AReader implements IoConstants, ITagReader {
 				log.debug("{}", rec);
 			}
 		}
-	}	
+	}
 
 	public long getTotalBytes() {
 		try {
@@ -509,8 +508,8 @@ public class M4AReader implements IoConstants, ITagReader {
 			log.error("Error getCurrentPosition", e);
 			return 0;
 		}
-	}	
-	
+	}
+
 	/** {@inheritDoc} */
 	public boolean hasVideo() {
 		return false;
@@ -582,7 +581,7 @@ public class M4AReader implements IoConstants, ITagReader {
 		props.put("audiosamplerate", audioTimeScale);
 		props.put("audiochannels", audioChannels);
 		props.put("canSeekToEnd", false);
-		out.writeMap(props, new Serializer());
+		out.writeMap(props);
 		buf.flip();
 
 		//now that all the meta properties are done, update the duration
@@ -705,7 +704,7 @@ public class M4AReader implements IoConstants, ITagReader {
 			// tag == sample
 			int sample = 1;
 			// position
-			Long pos = null;			
+			Long pos = null;
 			//add the audio frames / samples / chunks		
 			for (int i = 0; i < audioSamplesToChunks.size(); i++) {
 				Entry record = audioSamplesToChunks.get(i);

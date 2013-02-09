@@ -25,7 +25,6 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoderAdapter;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
-import org.red5.io.object.Deserializer;
 import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.RTMPConnection;
@@ -87,15 +86,5 @@ public class RTMPMinaProtocolDecoder extends ProtocolDecoderAdapter {
 	public RTMPProtocolDecoder getDecoder() {
 		return decoder;
 	}
-	
-	/**
-	 * Setter for deserializer.
-	 * 
-	 * @param deserializer Deserializer
-	 */
-	public void setDeserializer(Deserializer deserializer) {
-		decoder.setDeserializer(deserializer);
-	}
-
 
 }

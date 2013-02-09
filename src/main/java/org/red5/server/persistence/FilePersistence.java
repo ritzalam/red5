@@ -336,8 +336,7 @@ public class FilePersistence extends RamPersistence {
 				ServletUtils.copy(input, buf.asOutputStream());
 				buf.flip();
 				Input in = new Input(buf);
-				Deserializer deserializer = new Deserializer();
-				String className = deserializer.deserialize(in, String.class);
+				String className = Deserializer.deserialize(in, String.class);
 				if (result == null) {
 					// we need to create the object first
 					try {

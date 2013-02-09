@@ -28,6 +28,7 @@ public class QuartzSchedulingServiceTest extends AbstractJUnit4SpringContextTest
 
 	@After
 	public void tearDown() throws Exception {
+		service.scheduler.shutdown(true);
 	}
 
 	@Test

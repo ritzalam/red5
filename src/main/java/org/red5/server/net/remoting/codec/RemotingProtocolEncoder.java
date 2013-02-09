@@ -29,8 +29,8 @@ import org.red5.compatibility.flex.messaging.messages.AbstractMessage;
 import org.red5.compatibility.flex.messaging.messages.ErrorMessage;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Serializer;
-import org.red5.server.api.Red5;
 import org.red5.server.api.IConnection.Encoding;
+import org.red5.server.api.Red5;
 import org.red5.server.api.remoting.IRemotingConnection;
 import org.red5.server.api.remoting.IRemotingHeader;
 import org.red5.server.exception.ClientDetailsException;
@@ -48,35 +48,28 @@ import org.slf4j.LoggerFactory;
  * Remoting protocol encoder.
  */
 public class RemotingProtocolEncoder {
-    /**
-     * Logger
-     */
+
 	protected static Logger log = LoggerFactory.getLogger(RemotingProtocolEncoder.class);
 
-    /**
-     * Data serializer
-     */
-    private Serializer serializer;
-
-    /**
-     * Encodes the given buffer.
-     * 
-     * @param state
-     * @param message
-     * @return buffer
-     * @throws Exception
-     */
-    public IoBuffer encode(ProtocolState state, Object message) throws Exception {
+	/**
+	 * Encodes the given buffer.
+	 * 
+	 * @param state
+	 * @param message
+	 * @return buffer
+	 * @throws Exception
+	 */
+	public IoBuffer encode(ProtocolState state, Object message) throws Exception {
 		RemotingPacket resp = (RemotingPacket) message;
 		IoBuffer buf = IoBuffer.allocate(1024);
 		buf.setAutoExpand(true);
 		Output output;
 		if (resp.getEncoding() == Encoding.AMF0) {
-			buf.putShort((short) 0);  // encoded using AMF0
+			buf.putShort((short) 0); // encoded using AMF0
 		} else {
-			buf.putShort((short) 3);  // encoded using AMF3
+			buf.putShort((short) 3); // encoded using AMF3
 		}
-		
+
 		IRemotingConnection conn = (IRemotingConnection) Red5.getConnectionLocal();
 		Collection<IRemotingHeader> headers = conn.getHeaders();
 		buf.putShort((short) headers.size()); // write the header count
@@ -85,19 +78,19 @@ public class RemotingProtocolEncoder {
 		} else {
 			output = new org.red5.io.amf3.Output(buf);
 		}
-		for (IRemotingHeader header: headers) {
+		for (IRemotingHeader header : headers) {
 			Output.putString(buf, IRemotingHeader.PERSISTENT_HEADER);
 			output.writeBoolean(false);
 			Map<String, Object> param = new HashMap<String, Object>();
 			param.put("name", header.getName());
 			param.put("mustUnderstand", header.getMustUnderstand() ? Boolean.TRUE : Boolean.FALSE);
 			param.put("data", header.getValue());
-			serializer.serialize(output, param);
+			Serializer.serialize(output, param);
 		}
 		headers.clear();
-		
+
 		buf.putShort((short) resp.getCalls().size()); // write the number of bodies
-		for (RemotingCall call: resp.getCalls()) {
+		for (RemotingCall call : resp.getCalls()) {
 			log.debug("Call");
 			Output.putString(buf, call.getClientResponse());
 			if (!call.isMessaging) {
@@ -130,7 +123,7 @@ public class RemotingProtocolEncoder {
 					result = generateErrorResult(StatusCodes.NC_CALL_FAILED, call.getException());
 				}
 			}
-			serializer.serialize(output, result);
+			Serializer.serialize(output, result);
 		}
 		buf.flip();
 		if (log.isDebugEnabled()) {
@@ -162,7 +155,7 @@ public class RemotingProtocolEncoder {
 			status.setApplication(((ClientDetailsException) error).getParameters());
 			if (((ClientDetailsException) error).includeStacktrace()) {
 				List<String> stack = new ArrayList<String>();
-				for (StackTraceElement element: error.getStackTrace()) {
+				for (StackTraceElement element : error.getStackTrace()) {
 					stack.add(element.toString());
 				}
 				status.setAdditional("stacktrace", stack);
@@ -171,15 +164,6 @@ public class RemotingProtocolEncoder {
 			status.setApplication(error.getClass().getCanonicalName());
 		}
 		return status;
-	}	    
-
-	/**
-     * Setter for serializer.
-     *
-     * @param serializer  New serializer
-     */
-    public void setSerializer(Serializer serializer) {
-		this.serializer = serializer;
 	}
 
 }

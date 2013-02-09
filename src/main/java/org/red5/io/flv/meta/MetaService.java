@@ -56,44 +56,6 @@ public class MetaService implements IMetaService {
 	File file;
 
 	/**
-	 * Serializer
-	 */
-	private Serializer serializer;
-
-	/**
-	 * Deserializer
-	 */
-	private Deserializer deserializer;
-
-	/**
-	 * @return Returns the deserializer.
-	 */
-	public Deserializer getDeserializer() {
-		return deserializer;
-	}
-
-	/**
-	 * @param deserializer The deserializer to set.
-	 */
-	public void setDeserializer(Deserializer deserializer) {
-		this.deserializer = deserializer;
-	}
-
-	/**
-	 * @return Returns the serializer.
-	 */
-	public Serializer getSerializer() {
-		return serializer;
-	}
-
-	/**
-	 * @param serializer The serializer to set.
-	 */
-	public void setSerializer(Serializer serializer) {
-		this.serializer = serializer;
-	}
-
-	/**
 	 * MetaService constructor
 	 */
 	public MetaService() {
@@ -223,7 +185,7 @@ public class MetaService implements IMetaService {
 					if (!Boolean.valueOf(value1.toString()) && Boolean.valueOf(value2.toString())) {
 						rep.put(key1, value2);
 					}
-				}				
+				}
 			}
 		}
 		//remove all changed
@@ -249,9 +211,8 @@ public class MetaService implements IMetaService {
 		IoBuffer bb = IoBuffer.allocate(1000);
 		bb.setAutoExpand(true);
 		Output out = new Output(bb);
-		Serializer ser = new Serializer();
-		ser.serialize(out, "onMetaData");
-		ser.serialize(out, meta);
+		Serializer.serialize(out, "onMetaData");
+		Serializer.serialize(out, meta);
 		IoBuffer tmpBody = out.buf().flip();
 		int tmpBodySize = out.buf().limit();
 		int tmpPreviousTagSize = tag.getPreviousTagSize();
@@ -270,9 +231,8 @@ public class MetaService implements IMetaService {
 	private ITag injectMetaCue(IMetaCue meta, ITag tag) {
 		// IMeta meta = (MetaCue) cue;
 		Output out = new Output(IoBuffer.allocate(1000));
-		Serializer ser = new Serializer();
-		ser.serialize(out, "onCuePoint");
-		ser.serialize(out, meta);
+		Serializer.serialize(out, "onCuePoint");
+		Serializer.serialize(out, meta);
 
 		IoBuffer tmpBody = out.buf().flip();
 		int tmpBodySize = out.buf().limit();
@@ -299,11 +259,8 @@ public class MetaService implements IMetaService {
 	public void writeMetaData(IMetaData<?, ?> metaData) {
 		IMetaCue meta = (MetaCue<?, ?>) metaData;
 		Output out = new Output(IoBuffer.allocate(1000));
-		if (serializer == null) {
-			serializer = new Serializer();
-		}		
-		serializer.serialize(out, "onCuePoint");
-		serializer.serialize(out, meta);
+		Serializer.serialize(out, "onCuePoint");
+		Serializer.serialize(out, meta);
 	}
 
 	/**
@@ -332,12 +289,9 @@ public class MetaService implements IMetaService {
 	public MetaData<?, ?> readMetaData(IoBuffer buffer) {
 		MetaData<?, ?> retMeta = new MetaData<String, Object>();
 		Input input = new Input(buffer);
-		if (deserializer == null) {
-			deserializer = new Deserializer();
-		}
-		String metaType = deserializer.deserialize(input, String.class);
+		String metaType = Deserializer.deserialize(input, String.class);
 		log.debug("Metadata type: {}", metaType);
-		Map<String, ?> m = deserializer.deserialize(input, Map.class);
+		Map<String, ?> m = Deserializer.deserialize(input, Map.class);
 		retMeta.putAll(m);
 		return retMeta;
 	}

@@ -18,23 +18,10 @@
 
 package org.red5.server.net.remoting.codec;
 
-import org.red5.io.object.Deserializer;
-import org.red5.io.object.Serializer;
-
 /**
  * Factory for remoting codec
  */
 public class RemotingCodecFactory {
-	
-	/**
-	 * Deserializer
-	 */
-	protected Deserializer deserializer;
-
-	/**
-	 * Serializers
-	 */
-	protected Serializer serializer;
 
 	/**
 	 * Remoting protocol decoder
@@ -47,31 +34,11 @@ public class RemotingCodecFactory {
 	protected RemotingProtocolEncoder encoder;
 
 	/**
-	 * Initialization, creates and binds encoder and decoder to serializer and deserializer
+	 * Initialization, creates and binds encoder and decoder
 	 */
 	public void init() {
 		decoder = new RemotingProtocolDecoder();
-		decoder.setDeserializer(deserializer);
 		encoder = new RemotingProtocolEncoder();
-		encoder.setSerializer(serializer);
-	}
-
-	/**
-	 * Setter for deserializer.
-	 *
-	 * @param deserializer Deserializer.
-	 */
-	public void setDeserializer(Deserializer deserializer) {
-		this.deserializer = deserializer;
-	}
-
-	/**
-	 * Setter for serializer.
-	 *
-	 * @param serializer Sserializer.
-	 */
-	public void setSerializer(Serializer serializer) {
-		this.serializer = serializer;
 	}
 
 	/**

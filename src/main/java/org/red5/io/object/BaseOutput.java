@@ -56,7 +56,6 @@ public class BaseOutput {
 			if (object instanceof IdentityWrapper) {
 				return ((IdentityWrapper) object).object == this.object;
 			}
-
 			return false;
 		}
 

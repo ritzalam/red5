@@ -37,7 +37,6 @@ import org.red5.io.amf.Input;
 import org.red5.io.amf.Output;
 import org.red5.io.flv.FLVHeader;
 import org.red5.io.flv.IFLV;
-import org.red5.io.object.Serializer;
 import org.red5.io.utils.IOUtils;
 import org.red5.server.api.Red5;
 import org.red5.server.stream.codec.AudioCodec;
@@ -474,7 +473,7 @@ public class FLVWriter implements ITagWriter {
 		}
 		// this is actual only supposed to be true if the last video frame is a keyframe
 		params.put("canSeekToEnd", true);
-		out.writeMap(params, new Serializer());
+		out.writeMap(params);
 		buf.flip();
 		int bodySize = buf.limit();
 		log.debug("Metadata size: {}", bodySize);

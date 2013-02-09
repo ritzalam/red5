@@ -30,43 +30,42 @@ import java.util.Map;
  * @see <a href="http://www.osflash.org/amf/recordset">osflash.org documentation</a>
  */
 public class RecordSetPage {
-    /**
-     * Recordset cursor
-     */
+	/**
+	 * Recordset cursor
+	 */
 	private int cursor;
-    /**
-     * Data as List
-     */
+
+	/**
+	 * Data as List
+	 */
 	private List<List<Object>> data;
 
-    /**
-     * Creates recordset page from Input object
-     * @param input       Input object to use as source for data that has to be deserialized
-     */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+	/**
+	 * Creates recordset page from Input object
+	 * @param input       Input object to use as source for data that has to be deserialized
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public RecordSetPage(Input input) {
-		Deserializer deserizalizer = new Deserializer();
-		Map mapResult = deserizalizer.deserialize(input, Map.class);
-
+		Map mapResult = Deserializer.deserialize(input, Map.class);
 		cursor = (Integer) mapResult.get("Cursor");
 		data = (List<List<Object>>) mapResult.get("Page");
 	}
 
 	/**
-     * Getter for recordset cursor
-     *
-     * @return  Recordset cursor
-     */
-    protected int getCursor() {
+	 * Getter for recordset cursor
+	 *
+	 * @return  Recordset cursor
+	 */
+	protected int getCursor() {
 		return cursor;
 	}
 
 	/**
-     * Getter for page data
-     *
-     * @return Page data as unmodifiable list
-     */
-    protected List<List<Object>> getData() {
+	 * Getter for page data
+	 *
+	 * @return Page data as unmodifiable list
+	 */
+	protected List<List<Object>> getData() {
 		return Collections.unmodifiableList(data);
 	}
 

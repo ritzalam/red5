@@ -38,22 +38,18 @@ public class DataInput implements IDataInput {
 
 	/** The input stream. */
 	private Input input;
-	
-	/** The deserializer to use. */
-	private Deserializer deserializer;
-	
+
 	/** Raw data of input source. */
 	private IoBuffer buffer;
-	
+
 	/**
 	 * Create a new DataInput.
 	 * 
 	 * @param input			input to use
 	 * @param deserializer	the deserializer to use
 	 */
-	protected DataInput(Input input, Deserializer deserializer) {
+	protected DataInput(Input input) {
 		this.input = input;
-		this.deserializer = deserializer;
 		buffer = input.getBuffer();
 	}
 
@@ -66,7 +62,7 @@ public class DataInput implements IDataInput {
 	public void setEndian(ByteOrder endian) {
 		buffer.order(endian);
 	}
-	
+
 	/** {@inheritDoc} */
 	public boolean readBoolean() {
 		return (buffer.get() != 0);
@@ -120,7 +116,7 @@ public class DataInput implements IDataInput {
 
 	/** {@inheritDoc} */
 	public Object readObject() {
-		return deserializer.deserialize(input, Object.class);
+		return Deserializer.deserialize(input, Object.class);
 	}
 
 	/** {@inheritDoc} */

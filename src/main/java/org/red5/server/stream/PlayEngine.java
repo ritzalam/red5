@@ -27,7 +27,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.amf.Output;
-import org.red5.io.object.Serializer;
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
@@ -1101,7 +1100,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			props.put("clientId", streamId);
 			props.put("isFastPlay", false);
 		}
-		out.writeMap(props, new Serializer());
+		out.writeMap(props);
 		buf.flip();
 
 		IRTMPEvent event = new Notify(buf);

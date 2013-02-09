@@ -22,78 +22,46 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolEncoder;
-import org.red5.io.object.Deserializer;
-import org.red5.io.object.Serializer;
 
 /**
  * RTMP codec factory creates RTMP encoders/decoders.
  */
 public class RTMPCodecFactory implements ProtocolCodecFactory {
 
-    /**
-     * Deserializer.
-     */
-    protected Deserializer deserializer;
+	/**
+	 * Mina protocol decoder for RTMP.
+	 */
+	private RTMPMinaProtocolDecoder decoder;
 
-    /**
-     * Serializer.
-     */
-    protected Serializer serializer;
+	/**
+	 * Mina protocol encoder for RTMP.
+	 */
+	private RTMPMinaProtocolEncoder encoder;
 
-    /**
-     * Mina protocol decoder for RTMP.
-     */
-    private RTMPMinaProtocolDecoder decoder;
-
-    /**
-     * Mina protocol encoder for RTMP.
-     */
-    private RTMPMinaProtocolEncoder encoder;
-
-    /**
-     * Initialization
-     */
-    public void init() {
+	/**
+	 * Initialization
+	 */
+	public void init() {
 		decoder = new RTMPMinaProtocolDecoder();
-		decoder.setDeserializer(deserializer);
 		encoder = new RTMPMinaProtocolEncoder();
-		encoder.setSerializer(serializer);
-	}
-
-	/**
-     * Setter for deserializer.
-     *
-     * @param deserializer  Deserializer
-     */
-    public void setDeserializer(Deserializer deserializer) {
-		this.deserializer = deserializer;
-	}
-
-	/**
-     * Setter for serializer.
-     *
-     * @param serializer  Serializer
-     */
-    public void setSerializer(Serializer serializer) {
-		this.serializer = serializer;
 	}
 
 	/** {@inheritDoc} */
-    public ProtocolDecoder getDecoder(IoSession session) {
+	public ProtocolDecoder getDecoder(IoSession session) {
 		return decoder;
 	}
 
 	/** {@inheritDoc} */
-    public ProtocolEncoder getEncoder(IoSession session) {
+	public ProtocolEncoder getEncoder(IoSession session) {
 		return encoder;
 	}
 
-    /**
-     * Returns the RTMP decoder.
-     * 
-     * @return decoder
-     */
-    public RTMPProtocolDecoder getRTMPDecoder() {
+	/**
+	 * Returns the RTMP decoder.
+	 * 
+	 * @return decoder
+	 */
+	public RTMPProtocolDecoder getRTMPDecoder() {
 		return decoder.getDecoder();
 	}
 
@@ -102,8 +70,8 @@ public class RTMPCodecFactory implements ProtocolCodecFactory {
 	 * 
 	 * @return encoder
 	 */
-    public RTMPProtocolEncoder getRTMPEncoder() {
+	public RTMPProtocolEncoder getRTMPEncoder() {
 		return encoder.getEncoder();
-	}    
-    
+	}
+
 }

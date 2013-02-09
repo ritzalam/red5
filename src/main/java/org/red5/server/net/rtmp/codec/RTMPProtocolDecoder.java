@@ -31,7 +31,6 @@ import org.red5.io.amf3.AMF3;
 import org.red5.io.object.DataTypes;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Input;
-import org.red5.io.object.Serializer;
 import org.red5.io.utils.BufferUtils;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IConnection.Encoding;
@@ -78,22 +77,8 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 
 	protected static Logger log = LoggerFactory.getLogger(RTMPProtocolDecoder.class);
 
-	/**
-	 * Deserializer
-	 */
-	protected Deserializer deserializer;
-
 	/** Constructs a new RTMPProtocolDecoder. */
 	public RTMPProtocolDecoder() {
-	}
-
-	/**
-	 * Setter for deserializer.
-	 * 
-	 * @param deserializer Deserializer
-	 */
-	public void setDeserializer(Deserializer deserializer) {
-		this.deserializer = deserializer;
 	}
 
 	/**
@@ -106,7 +91,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	public List<Object> decodeBuffer(ProtocolState state, IoBuffer buffer) {
 		final List<Object> result = new LinkedList<Object>();
 		try {
-			while (true) {
+			while (buffer.hasRemaining()) {
 				final int remaining = buffer.remaining();
 				if (state.canStartDecoding(remaining)) {
 					state.startDecoding();
@@ -121,9 +106,6 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				} else if (state.canContinueDecoding()) {
 					continue;
 				} else {
-					break;
-				}
-				if (!buffer.hasRemaining()) {
 					break;
 				}
 			}
@@ -690,7 +672,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				final int start = in.position();
 				while (in.position() - start < length) {
 					String tmp = input.getString();
-					map.put(tmp, deserializer.deserialize(input, Object.class));
+					map.put(tmp, Deserializer.deserialize(input, Object.class));
 				}
 				value = map;
 			} else if (type != ISharedObjectEvent.Type.SERVER_SEND_MESSAGE && type != ISharedObjectEvent.Type.CLIENT_SEND_MESSAGE) {
@@ -708,14 +690,14 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 							// The next parameter is encoded using AMF0
 							propertyInput = input;
 						}
-						value = deserializer.deserialize(propertyInput, Object.class);
+						value = Deserializer.deserialize(propertyInput, Object.class);
 					}
 				}
 			} else {
 				final int start = in.position();
 				// the "send" event seems to encode the handler name
 				// as complete AMF string including the string type byte
-				key = deserializer.deserialize(input, String.class);
+				key = Deserializer.deserialize(input, String.class);
 				// read parameters
 				final List<Object> list = new LinkedList<Object>();
 				// while loop changed for JIRA CODECS-9
@@ -731,7 +713,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 						// The next parameter is encoded using AMF0
 						propertyInput = input;
 					}
-					Object tmp = deserializer.deserialize(propertyInput, Object.class);
+					Object tmp = Deserializer.deserialize(propertyInput, Object.class);
 					list.add(tmp);
 				}
 				value = list;
@@ -812,7 +794,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		} else {
 			input = new org.red5.io.amf.Input(in);
 		}
-		String action = deserializer.deserialize(input, String.class);
+		String action = Deserializer.deserialize(input, String.class);
 		log.info("Action {}", action);
 		//throw a runtime exception if there is no action
 		if (action == null) {
@@ -829,7 +811,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		}
 
 		if (header == null || header.getStreamId() == 0) {
-			int invokeId = deserializer.<Number> deserialize(input, Number.class).intValue();
+			int invokeId = Deserializer.<Number> deserialize(input, Number.class).intValue();
 			notify.setInvokeId(invokeId);
 		}
 
@@ -844,7 +826,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		Object[] params = new Object[] {};
 		if (in.hasRemaining()) {
 			List<Object> paramList = new ArrayList<Object>();
-			final Object obj = deserializer.deserialize(input, Object.class);
+			final Object obj = Deserializer.deserialize(input, Object.class);
 			if (obj instanceof Map) {
 				// Before the actual parameters we sometimes (connect) get a map
 				// of parameters, this is usually null, but if set should be
@@ -855,7 +837,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				paramList.add(obj);
 			}
 			while (in.hasRemaining()) {
-				paramList.add(deserializer.deserialize(input, Object.class));
+				paramList.add(Deserializer.deserialize(input, Object.class));
 			}
 			params = paramList.toArray();
 			if (log.isDebugEnabled()) {
@@ -973,10 +955,10 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				if (object == DataTypes.CORE_MAP) {
 					// The params are sent as a Mixed-Array.  This is needed
 					// to support the RTMP publish provided by ffmpeg/xuggler
-					params = (Map<Object, Object>) input.readMap(deserializer, null);
+					params = (Map<Object, Object>) input.readMap(null);
 				} else {
 					// Read the params as a standard object
-					params = (Map<Object, Object>) input.readObject(deserializer, Object.class);
+					params = (Map<Object, Object>) input.readObject(Object.class);
 				}
 				log.debug("Dataframe: {} params: {}", onCueOrOnMeta, params.toString());
 
@@ -984,7 +966,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				buf.setAutoExpand(true);
 				Output out = new Output(buf);
 				out.writeString(onCueOrOnMeta);
-				out.writeMap(params, new Serializer());
+				out.writeMap(params);
 
 				buf.flip();
 				return new Notify(buf);
@@ -997,10 +979,10 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				Map<Object, Object> params;
 				if (object == DataTypes.CORE_MAP) {
 					// The params are sent as a Mixed-Array
-					params = (Map<Object, Object>) input.readMap(deserializer, null);
+					params = (Map<Object, Object>) input.readMap(null);
 				} else {
 					// Read the params as a standard object
-					params = (Map<Object, Object>) input.readObject(deserializer, Object.class);
+					params = (Map<Object, Object>) input.readObject(Object.class);
 				}
 				log.debug("onFI params: {}", params.toString());
 			} else {
@@ -1009,7 +991,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 					byte object = input.readDataType();
 					log.debug("Params type: {}", object);
 					if (object == DataTypes.CORE_MAP) {
-						Map<Object, Object> params = (Map<Object, Object>) input.readMap(deserializer, null);
+						Map<Object, Object> params = (Map<Object, Object>) input.readMap(null);
 						log.debug("Params: {}", params.toString());
 					} else {
 						log.debug("The unknown request was did not provide a parameter map");
@@ -1036,14 +1018,14 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		org.red5.io.amf3.Input.RefStorage refStorage = new org.red5.io.amf3.Input.RefStorage();
 
 		Input input = new org.red5.io.amf.Input(in);
-		String action = deserializer.deserialize(input, String.class);
-		int invokeId = deserializer.<Number> deserialize(input, Number.class).intValue();
+		String action = Deserializer.deserialize(input, String.class);
+		int invokeId = Deserializer.<Number> deserialize(input, Number.class).intValue();
 		FlexMessage msg = new FlexMessage();
 		msg.setInvokeId(invokeId);
 		Object[] params = new Object[] {};
 		if (in.hasRemaining()) {
 			ArrayList<Object> paramList = new ArrayList<Object>();
-			final Object obj = deserializer.deserialize(input, Object.class);
+			final Object obj = Deserializer.deserialize(input, Object.class);
 			if (obj != null) {
 				paramList.add(obj);
 			}
@@ -1070,7 +1052,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 						// The next parameter is encoded using AMF0
 						input = new org.red5.io.amf.Input(in);
 				}
-				paramList.add(deserializer.deserialize(input, Object.class));
+				paramList.add(Deserializer.deserialize(input, Object.class));
 			}
 			params = paramList.toArray();
 			if (log.isTraceEnabled()) {

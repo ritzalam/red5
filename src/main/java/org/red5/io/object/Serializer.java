@@ -50,14 +50,17 @@ public class Serializer {
 
 	protected static Logger log = LoggerFactory.getLogger(Serializer.class);
 
+	private Serializer() {
+	}	
+	
 	/**
 	 * Serializes output to a core data type object
 	 * 
 	 * @param out Output writer
 	 * @param any Object to serialize
 	 */
-	public void serialize(Output out, Object any) {
-		serialize(out, null, null, null, any);
+	public static void serialize(Output out, Object any) {
+		Serializer.serialize(out, null, null, null, any);
 	}
 
 	/**
@@ -70,11 +73,11 @@ public class Serializer {
 	 * @param value Object to serialize
 	 */
 	@SuppressWarnings("unchecked")
-	public void serialize(Output out, Field field, Method getter, Object object, Object value) {
+	public static void serialize(Output out, Field field, Method getter, Object object, Object value) {
 		log.trace("serialize");
 		if (value instanceof IExternalizable) {
 			// make sure all IExternalizable objects are serialized as objects
-			out.writeObject(value, this);
+			out.writeObject(value);
 		} else if (value instanceof ByteArray) {
 			// write ByteArray objects directly
 			out.writeByteArray((ByteArray) value);
@@ -133,7 +136,7 @@ public class Serializer {
 	 *         otherwise
 	 */
 	@SuppressWarnings("rawtypes")
-	protected boolean writeBasic(Output out, Object basic) {
+	protected static boolean writeBasic(Output out, Object basic) {
 		if (basic == null) {
 			out.writeNull();
 		} else if (basic instanceof Boolean) {
@@ -160,7 +163,7 @@ public class Serializer {
 	 * @return boolean true if object was successfully serialized, false
 	 *         otherwise
 	 */
-	public boolean writeComplex(Output out, Object complex) {
+	public static boolean writeComplex(Output out, Object complex) {
 		log.trace("writeComplex");
 		if (writeListType(out, complex)) {
 			return true;
@@ -187,7 +190,7 @@ public class Serializer {
 	 * @return boolean true if object was successfully serialized, false
 	 *         otherwise
 	 */
-	protected boolean writeListType(Output out, Object listType) {
+	protected static boolean writeListType(Output out, Object listType) {
 		log.trace("writeListType");
 		if (listType instanceof List<?>) {
 			writeList(out, (List<?>) listType);
@@ -205,12 +208,12 @@ public class Serializer {
 	 * @param list
 	 *            List to write as Object
 	 */
-	protected void writeList(Output out, List<?> list) {
+	protected static void writeList(Output out, List<?> list) {
 		if (!list.isEmpty()) {
 			int size = list.size();
 			// if its a small list, write it as an array
 			if (size < 100) {
-				out.writeArray(list, this);
+				out.writeArray(list);
 				return;
 			}
 			// else we should check for lots of null values,
@@ -222,12 +225,12 @@ public class Serializer {
 				}
 			}
 			if (nullCount > (size * 0.8)) {
-				out.writeMap(list, this);
+				out.writeMap(list);
 			} else {
-				out.writeArray(list, this);
+				out.writeArray(list);
 			}
 		} else {
-			out.writeArray(new Object[] {}, this);
+			out.writeArray(new Object[] {});
 		}
 	}
 
@@ -242,16 +245,16 @@ public class Serializer {
 	 *         <code>false</code>
 	 */
 	@SuppressWarnings("all")
-	protected boolean writeArrayType(Output out, Object arrType) {
+	protected static boolean writeArrayType(Output out, Object arrType) {
 		log.trace("writeArrayType");
 		if (arrType instanceof Collection) {
-			out.writeArray((Collection<Object>) arrType, this);
+			out.writeArray((Collection<Object>) arrType);
 		} else if (arrType instanceof Iterator) {
 			writeIterator(out, (Iterator<Object>) arrType);
 		} else if (arrType.getClass().isArray() && arrType.getClass().getComponentType().isPrimitive()) {
-			out.writeArray(arrType, this);
+			out.writeArray(arrType);
 		} else if (arrType instanceof Object[]) {
-			out.writeArray((Object[]) arrType, this);
+			out.writeArray((Object[]) arrType);
 		} else {
 			return false;
 		}
@@ -266,7 +269,7 @@ public class Serializer {
 	 * @param it
 	 *            Iterator to write
 	 */
-	protected void writeIterator(Output out, Iterator<Object> it) {
+	protected static void writeIterator(Output out, Iterator<Object> it) {
 		log.trace("writeIterator");
 		// Create LinkedList of collection we iterate thru and write it out later
 		LinkedList<Object> list = new LinkedList<Object>();
@@ -274,7 +277,7 @@ public class Serializer {
 			list.addLast(it.next());
 		}
 		// Write out collection
-		out.writeArray(list, this);
+		out.writeArray(list);
 	}
 
 	/**
@@ -287,7 +290,7 @@ public class Serializer {
 	 * @return boolean <code>true</code> if object was successfully written,
 	 *         <code>false</code> otherwise
 	 */
-	protected boolean writeXMLType(Output out, Object xml) {
+	protected static boolean writeXMLType(Output out, Object xml) {
 		log.trace("writeXMLType");
 		// If it's a Document write it as Document
 		if (xml instanceof Document) {
@@ -306,7 +309,7 @@ public class Serializer {
 	 * @param doc
 	 *            Document to write
 	 */
-	protected void writeDocument(Output out, Document doc) {
+	protected static void writeDocument(Output out, Document doc) {
 		out.writeXML(doc);
 	}
 
@@ -321,27 +324,27 @@ public class Serializer {
 	 *         <code>false</code>
 	 */
 	@SuppressWarnings("all")
-	protected boolean writeObjectType(Output out, Object obj) {
+	protected static boolean writeObjectType(Output out, Object obj) {
 		if (obj instanceof ObjectMap || obj instanceof BeanMap) {
-			out.writeObject((Map) obj, this);
+			out.writeObject((Map) obj);
 		} else if (obj instanceof Map) {
-			out.writeMap((Map) obj, this);
+			out.writeMap((Map) obj);
 		} else if (obj instanceof RecordSet) {
-			out.writeRecordSet((RecordSet) obj, this);
+			out.writeRecordSet((RecordSet) obj);
 		} else {
-			out.writeObject(obj, this);
+			out.writeObject(obj);
 		}
 		return true;
 	}
 
 	// Extension points
 	/**
-	 * Pre processes an object TODO // must be implemented
+	 * Pre-processes an object TODO // must be implemented
 	 * 
-	 * @return Prerocessed object
-	 * @param any Object to preprocess
+	 * @return Pre-processed object
+	 * @param any Object to pre-process
 	 */
-	public Object preProcessExtension(Object any) {
+	public static Object preProcessExtension(Object any) {
 		// Does nothing right now but will later
 		return any;
 	}
@@ -354,7 +357,7 @@ public class Serializer {
 	 * @return <code>true</code> if the object has been written, otherwise
 	 *         <code>false</code>
 	 */
-	protected boolean writeCustomType(Output out, Object obj) {
+	protected static boolean writeCustomType(Output out, Object obj) {
 		if (out.isCustom(obj)) {
 			// Write custom data
 			out.writeCustom(obj);
@@ -373,7 +376,7 @@ public class Serializer {
 	 * @return <code>true</code> if the field should be serialized, otherwise
 	 *         <code>false</code>
 	 */
-	public boolean serializeField(String keyName, Field field, Method getter) {
+	public static boolean serializeField(String keyName, Field field, Method getter) {
 		log.trace("serializeField - keyName: {} field: {} method: {}", new Object[] { keyName, field, getter });
 		if ("class".equals(keyName)) {
 			return false;
@@ -392,7 +395,7 @@ public class Serializer {
 	 * @param objectClass
 	 * @return class name for given object
 	 */
-	public String getClassName(Class<?> objectClass) {
+	public static String getClassName(Class<?> objectClass) {
 		RemoteClass annotation = objectClass.getAnnotation(RemoteClass.class);
 		if (annotation != null) {
 			return annotation.alias();

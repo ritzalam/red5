@@ -142,12 +142,10 @@ public class RemotingClient implements InitializingBean {
 		for (RemotingHeader header : hdr) {
 			Output.putString(result, header.name);
 			result.put(header.required ? (byte) 0x01 : (byte) 0x00);
-
 			IoBuffer tmp = IoBuffer.allocate(1024);
 			tmp.setAutoExpand(true);
 			Output tmpOut = new Output(tmp);
-			Serializer tmpSer = new Serializer();
-			tmpSer.serialize(tmpOut, header.data);
+			Serializer.serialize(tmpOut, header.data);
 			tmp.flip();
 			// Size of header data
 			result.putInt(tmp.limit());
@@ -175,7 +173,7 @@ public class RemotingClient implements InitializingBean {
 		if (params == null) {
 			tmpOut.writeNull();
 		} else {
-			tmpOut.writeArray(params, new Serializer());
+			tmpOut.writeArray(params);
 		}
 		tmp.flip();
 
@@ -203,7 +201,6 @@ public class RemotingClient implements InitializingBean {
 		// the version by now, AMF3 is not yet implemented
 		int count = in.getUnsignedShort();
 		log.debug("Count: {}", count);
-		Deserializer deserializer = new Deserializer();
 		Input input = new Input(in);
 		for (int i = 0; i < count; i++) {
 			String name = input.getString(in);
@@ -213,7 +210,7 @@ public class RemotingClient implements InitializingBean {
 			log.debug("Required: {}", required);
 			int len = in.getInt();
 			log.debug("Length: {}", len);
-			Object value = deserializer.deserialize(input, Object.class);
+			Object value = Deserializer.deserialize(input, Object.class);
 			log.debug("Value: {}", value);
 
 			// XXX: this is pretty much untested!!!
@@ -229,8 +226,7 @@ public class RemotingClient implements InitializingBean {
 				if (value instanceof Map<?, ?>) {
 					@SuppressWarnings("unchecked")
 					Map<String, Object> valueMap = (Map<String, Object>) value;
-					RemotingHeader header = new RemotingHeader((String) valueMap.get("name"), (Boolean) valueMap
-							.get("mustUnderstand"), valueMap.get("data"));
+					RemotingHeader header = new RemotingHeader((String) valueMap.get("name"), (Boolean) valueMap.get("mustUnderstand"), valueMap.get("data"));
 					headers.put(header.name, header);
 				} else {
 					log.error("Expected Map but received {}", value);
@@ -255,16 +251,13 @@ public class RemotingClient implements InitializingBean {
 		if (count != 1) {
 			throw new RuntimeException("Expected exactly one result but got " + count);
 		}
-
 		Input input = new Input(data);
 		String target = input.getString(); // expect "/onResult"
 		log.debug("Target: {}", target);
 		String nullString = input.getString(); // expect "null"
 		log.debug("Null string: {}", nullString);
-
 		// Read return value
-		Deserializer deserializer = new Deserializer();
-		return deserializer.deserialize(input, Object.class);
+		return Deserializer.deserialize(input, Object.class);
 	}
 
 	/**
@@ -349,9 +342,9 @@ public class RemotingClient implements InitializingBean {
 						// Make sure we can retrieve paged results
 						((RecordSet) result).setRemotingClient(this);
 					}
-					return result;			
-				}			
-			}			
+					return result;
+				}
+			}
 		} catch (Exception ex) {
 			log.error("Error while invoking remoting method.", ex);
 			post.abort();

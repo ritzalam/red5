@@ -56,9 +56,9 @@ public class StatusObject implements Serializable, ICustomSerializable, External
 	protected Object application;
 
 	protected Map<String, Object> additional;
-	
+
 	/** Constructs a new StatusObject. */
-    public StatusObject() {
+	public StatusObject() {
 
 	}
 
@@ -69,121 +69,121 @@ public class StatusObject implements Serializable, ICustomSerializable, External
 	}
 
 	/**
-     * Getter for property 'code'.
-     *
-     * @return Value for property 'code'.
-     */
-    public String getCode() {
+	 * Getter for property 'code'.
+	 *
+	 * @return Value for property 'code'.
+	 */
+	public String getCode() {
 		return code;
 	}
 
 	/**
-     * Setter for property 'code'.
-     *
-     * @param code Value to set for property 'code'.
-     */
-    public void setCode(String code) {
+	 * Setter for property 'code'.
+	 *
+	 * @param code Value to set for property 'code'.
+	 */
+	public void setCode(String code) {
 		this.code = code;
 	}
 
 	/**
-     * Getter for property 'description'.
-     *
-     * @return Value for property 'description'.
-     */
-    public String getDescription() {
+	 * Getter for property 'description'.
+	 *
+	 * @return Value for property 'description'.
+	 */
+	public String getDescription() {
 		return description;
 	}
 
 	/**
-     * Setter for property 'description'.
-     *
-     * @param description Value to set for property 'description'.
-     */
-    public void setDescription(String description) {
+	 * Setter for property 'description'.
+	 *
+	 * @param description Value to set for property 'description'.
+	 */
+	public void setDescription(String description) {
 		this.description = description;
 	}
 
 	/**
-     * Getter for property 'level'.
-     *
-     * @return Value for property 'level'.
-     */
-    public String getLevel() {
+	 * Getter for property 'level'.
+	 *
+	 * @return Value for property 'level'.
+	 */
+	public String getLevel() {
 		return level;
 	}
 
 	/**
-     * Setter for property 'level'.
-     *
-     * @param level Value to set for property 'level'.
-     */
-    public void setLevel(String level) {
+	 * Setter for property 'level'.
+	 *
+	 * @param level Value to set for property 'level'.
+	 */
+	public void setLevel(String level) {
 		this.level = level;
 	}
 
 	/**
-     * Setter for property 'application'.
-     *
-     * @param application Value to set for property 'application'.
-     */
-    public void setApplication(Object application) {
+	 * Setter for property 'application'.
+	 *
+	 * @param application Value to set for property 'application'.
+	 */
+	public void setApplication(Object application) {
 		this.application = application;
 	}
 
 	/**
-     * Getter for property 'application'.
-     *
-     * @return Value for property 'application'.
-     */
-    public Object getApplication() {
+	 * Getter for property 'application'.
+	 *
+	 * @return Value for property 'application'.
+	 */
+	public Object getApplication() {
 		return application;
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public String toString() {
 		return String.format("Status code: %s level: %s description: %s", code, level, description);
 	}
 
-    /**
-     * Generate Status object that can be returned through a RTMP channel.
-     * 
-     * @return status
-     */ 
-    public Status asStatus() {
-    	return new Status(getCode(), getLevel(), getDescription());
-    }
+	/**
+	 * Generate Status object that can be returned through a RTMP channel.
+	 * 
+	 * @return status
+	 */
+	public Status asStatus() {
+		return new Status(getCode(), getLevel(), getDescription());
+	}
 
-    public void setAdditional(String name, Object value) {
-    	if ("code,level,description,application".indexOf(name) != -1) {
-    		throw new RuntimeException("the name \"" + name + "\" is reserved");
-    	}
-    	if (additional == null) {
-    		additional = new HashMap<String, Object>();
-    	}
-    	additional.put(name, value);
-    }
-    
-    public void serialize(Output output, Serializer serializer) {
-    	output.putString("level");
-    	output.writeString(getLevel());
-    	output.putString("code");
-    	output.writeString(getCode());
-    	output.putString("description");
-    	output.writeString(getDescription());
-    	if (application != null) {
-    		output.putString("application");
-    		serializer.serialize(output, application);
-    	}
-    	if (additional != null) {
-    		// Add additional parameters
-    		for (Map.Entry<String, Object> entry: additional.entrySet()) {
-    	    	output.putString(entry.getKey());
-    	    	serializer.serialize(output, entry.getValue());
-    		}
-    	}
-    }
+	public void setAdditional(String name, Object value) {
+		if ("code,level,description,application".indexOf(name) != -1) {
+			throw new RuntimeException("the name \"" + name + "\" is reserved");
+		}
+		if (additional == null) {
+			additional = new HashMap<String, Object>();
+		}
+		additional.put(name, value);
+	}
+
+	public void serialize(Output output) {
+		output.putString("level");
+		output.writeString(getLevel());
+		output.putString("code");
+		output.writeString(getCode());
+		output.putString("description");
+		output.writeString(getDescription());
+		if (application != null) {
+			output.putString("application");
+			Serializer.serialize(output, application);
+		}
+		if (additional != null) {
+			// Add additional parameters
+			for (Map.Entry<String, Object> entry : additional.entrySet()) {
+				output.putString(entry.getKey());
+				Serializer.serialize(output, entry.getValue());
+			}
+		}
+	}
 
 	@SuppressWarnings("unchecked")
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {

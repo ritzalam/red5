@@ -298,7 +298,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 				for (int i = 0; i < SharedObjectService.MAXIMUM_EVENTS_PER_UPDATE; i++) {
 					events.add(ownerEvents.poll());
 				}
-			} else {				
+			} else {
 				events.addAll(ownerEvents);
 				ownerEvents.removeAll(events);
 			}
@@ -637,23 +637,21 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 	/** {@inheritDoc} */
 	public void serialize(Output output) throws IOException {
 		log.debug("serialize");
-		Serializer ser = new Serializer();
 		log.trace("Name: {}", name);
-		ser.serialize(output, getName());
+		Serializer.serialize(output, getName());
 		Map<String, Object> map = getAttributes();
 		log.trace("Attributes: {}", map);
-		ser.serialize(output, map);
+		Serializer.serialize(output, map);
 	}
 
 	/** {@inheritDoc} */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void deserialize(Input input) throws IOException {
 		log.debug("deserialize");
-		Deserializer deserializer = new Deserializer();
-		name = deserializer.deserialize(input, String.class);
+		name = Deserializer.deserialize(input, String.class);
 		log.trace("Name: {}", name);
 		persistent = true;
-		Map<String, Object> map = deserializer.<Map> deserialize(input, Map.class);
+		Map<String, Object> map = Deserializer.<Map> deserialize(input, Map.class);
 		log.trace("Attributes: {}", map);
 		super.setAttributes(map);
 		ownerMessage.setName(name);

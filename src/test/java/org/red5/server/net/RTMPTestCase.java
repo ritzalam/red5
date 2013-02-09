@@ -22,8 +22,6 @@ import junit.framework.Assert;
 import junit.framework.TestCase;
 
 import org.apache.mina.core.buffer.IoBuffer;
-import org.red5.io.object.Deserializer;
-import org.red5.io.object.Serializer;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.codec.RTMPProtocolDecoder;
 import org.red5.server.net.rtmp.codec.RTMPProtocolEncoder;
@@ -39,22 +37,14 @@ public class RTMPTestCase extends TestCase implements Constants {
 
 	protected RTMPProtocolDecoder decoder;
 
-	protected Deserializer deserializer;
-
 	protected RTMPProtocolEncoder encoder;
 
-	protected Serializer serializer;
-
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		serializer = new Serializer();
-		deserializer = new Deserializer();
 		encoder = new RTMPProtocolEncoder();
 		decoder = new RTMPProtocolDecoder();
-		encoder.setSerializer(serializer);
-		decoder.setDeserializer(deserializer);
 	}
 
 	public void testHeaders() {

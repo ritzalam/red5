@@ -25,7 +25,8 @@ public class FLVReaderTest {
 
 	@Test
 	public void testFLVReaderFile() {
-		File[] files = new File[] { new File("test/fixtures/h264_aac.flv"), new File("test/fixtures/h264_mp3.flv"), new File("test/fixtures/h264_speex.flv") };
+		File[] files = new File[] { new File("test/resources/fixtures/h264_aac.flv"), new File("test/resources/fixtures/h264_mp3.flv"),
+				new File("test/resources/fixtures/h264_speex.flv") };
 
 		try {
 			for (File file : files) {
@@ -39,7 +40,7 @@ public class FLVReaderTest {
 					tag = reader.readTag();
 					log.debug("Tag: {}", tag);
 				}
-				
+
 				reader.close();
 				log.info("----------------------------------------------------------------------------------");
 			}

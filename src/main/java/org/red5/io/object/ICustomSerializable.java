@@ -33,8 +33,7 @@ public interface ICustomSerializable {
 	 * Serialize this object to the given output stream.
 	 * 
 	 * @param output output
-	 * @param serializer serializer
 	 */
-	public void serialize(Output output, Serializer serializer);
+	public void serialize(Output output);
 	
 }

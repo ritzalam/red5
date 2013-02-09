@@ -28,7 +28,6 @@ import org.red5.io.amf3.ByteArray;
 import org.red5.io.object.BaseOutput;
 import org.red5.io.object.DataTypes;
 import org.red5.io.object.RecordSet;
-import org.red5.io.object.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -110,49 +109,49 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	}
 
 	/** {@inheritDoc} */
-	public void writeArray(Collection<?> array, Serializer serializer) {
+	public void writeArray(Collection<?> array) {
 		list.add(Byte.valueOf(DataTypes.CORE_ARRAY));
 		list.add(array);
 	}
 
 	/** {@inheritDoc} */
-	public void writeArray(Object[] array, Serializer serializer) {
+	public void writeArray(Object[] array) {
 		list.add(Byte.valueOf(DataTypes.CORE_ARRAY));
 		list.add(array);
 	}
 
 	/** {@inheritDoc} */
-	public void writeArray(Object array, Serializer serializer) {
+	public void writeArray(Object array) {
 		list.add(Byte.valueOf(DataTypes.CORE_ARRAY));
 		list.add(array);
 	}
 
 	/** {@inheritDoc} */
-	public void writeMap(Map<Object, Object> map, Serializer serializer) {
+	public void writeMap(Map<Object, Object> map) {
 		list.add(Byte.valueOf(DataTypes.CORE_MAP));
 		list.add(map);
 	}
 
 	/** {@inheritDoc} */
-	public void writeMap(Collection<?> array, Serializer serializer) {
+	public void writeMap(Collection<?> array) {
 		list.add(Byte.valueOf(DataTypes.CORE_MAP));
 		list.add(array);
 	}
 
 	/** {@inheritDoc} */
-	public void writeObject(Object object, Serializer serializer) {
+	public void writeObject(Object object) {
 		list.add(Byte.valueOf(DataTypes.CORE_OBJECT));
 		list.add(object);
 	}
 
 	/** {@inheritDoc} */
-	public void writeObject(Map<Object, Object> map, Serializer serializer) {
+	public void writeObject(Map<Object, Object> map) {
 		list.add(Byte.valueOf(DataTypes.CORE_OBJECT));
 		list.add(map);
 	}
 
 	/** {@inheritDoc} */
-	public void writeRecordSet(RecordSet recordset, Serializer serializer) {
+	public void writeRecordSet(RecordSet recordset) {
 		list.add(Byte.valueOf(DataTypes.CORE_OBJECT));
 		list.add(recordset);
 	}

@@ -227,7 +227,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	}
 
 	/** {@inheritDoc} */
-	public void writeArray(Collection<?> array, Serializer serializer) {
+	public void writeArray(Collection<?> array) {
 		writeAMF3();
 		buf.put(AMF3.TYPE_ARRAY);
 		if (hasReference(array)) {
@@ -240,13 +240,13 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		putInteger(count << 1 | 1);
 		putString("");
 		for (Object item : array) {
-			serializer.serialize(this, item);
+			Serializer.serialize(this, item);
 		}
 		amf3_mode -= 1;
 	}
 
 	/** {@inheritDoc} */
-	public void writeArray(Object[] array, Serializer serializer) {
+	public void writeArray(Object[] array) {
 		writeAMF3();
 		buf.put(AMF3.TYPE_ARRAY);
 		if (hasReference(array)) {
@@ -259,13 +259,13 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		putInteger(count << 1 | 1);
 		putString("");
 		for (Object item : array) {
-			serializer.serialize(this, item);
+			Serializer.serialize(this, item);
 		}
 		amf3_mode -= 1;
 	}
 
 	/** {@inheritDoc} */
-	public void writeArray(Object array, Serializer serializer) {
+	public void writeArray(Object array) {
 		writeAMF3();
 		buf.put(AMF3.TYPE_ARRAY);
 		if (hasReference(array)) {
@@ -278,13 +278,13 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		putInteger(count << 1 | 1);
 		putString("");
 		for (int i = 0; i < count; i++) {
-			serializer.serialize(this, Array.get(array, i));
+			Serializer.serialize(this, Array.get(array, i));
 		}
 		amf3_mode -= 1;
 	}
 
 	/** {@inheritDoc} */
-	public void writeMap(Map<Object, Object> map, Serializer serializer) {
+	public void writeMap(Map<Object, Object> map) {
 		writeAMF3();
 		buf.put(AMF3.TYPE_ARRAY);
 		if (hasReference(map)) {
@@ -310,7 +310,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			putInteger(count << 1 | 1);
 			putString("");
 			for (int i = 0; i < count; i++) {
-				serializer.serialize(this, map.get(i));
+				Serializer.serialize(this, map.get(i));
 			}
 			amf3_mode -= 1;
 			return;
@@ -324,18 +324,18 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 				continue;
 			}
 			putString(key.toString());
-			serializer.serialize(this, entry.getValue());
+			Serializer.serialize(this, entry.getValue());
 		}
 		putString("");
 		// Now serialize integer keys starting from zero
 		for (int i = 0; i < count; i++) {
-			serializer.serialize(this, map.get(i));
+			Serializer.serialize(this, map.get(i));
 		}
 		amf3_mode -= 1;
 	}
 
 	/** {@inheritDoc} */
-	public void writeMap(Collection<?> array, Serializer serializer) {
+	public void writeMap(Collection<?> array) {
 		writeAMF3();
 		buf.put(AMF3.TYPE_ARRAY);
 		if (hasReference(array)) {
@@ -351,7 +351,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		for (Object item : array) {
 			if (item != null) {
 				putString(String.valueOf(idx));
-				serializer.serialize(this, item);
+				Serializer.serialize(this, item);
 			}
 			idx++;
 		}
@@ -361,12 +361,12 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 
 	/** {@inheritDoc} */
 	@Override
-	protected void writeArbitraryObject(Object object, Serializer serializer) {
+	protected void writeArbitraryObject(Object object) {
 		log.debug("writeArbitraryObject: {}", object);
 		Class<?> objectClass = object.getClass();
 		// If we need to serialize class information...
 		if (!objectClass.isAnnotationPresent(Anonymous.class)) {
-			putString(serializer.getClassName(objectClass));
+			putString(Serializer.getClassName(objectClass));
 		} else {
 			putString("");
 		}
@@ -377,7 +377,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			String fieldName = field.getName();
 			log.debug("Field: {} class: {}", field, objectClass);
 			// Check if the Field corresponding to the getter/setter pair is transient
-			if (!serializeField(serializer, objectClass, fieldName, field, null)) {
+			if (!serializeField(objectClass, fieldName, field, null)) {
 				continue;
 			}
 			Object value;
@@ -391,7 +391,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			// Write out prop name
 			putString(fieldName);
 			// Write out
-			serializer.serialize(this, field, null, object, value);
+			Serializer.serialize(this, field, null, object, value);
 		}
 		amf3_mode -= 1;
 		// Write out end of object marker
@@ -400,7 +400,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 
 	/** {@inheritDoc} */
 	@SuppressWarnings({ "rawtypes" })
-	public void writeObject(Object object, Serializer serializer) {
+	public void writeObject(Object object) {
 		log.debug("writeObject: {} {}", object.getClass().getName(), object);
 		writeAMF3();
 		buf.put(AMF3.TYPE_OBJECT);
@@ -421,9 +421,9 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 				type |= AMF3.TYPE_OBJECT_EXTERNALIZABLE << 2;
 			}
 			putInteger(type);
-			putString(serializer.getClassName(object.getClass()));
+			putString(Serializer.getClassName(object.getClass()));
 			amf3_mode += 1;
-			((IExternalizable) object).writeExternal(new DataOutput(this, serializer));
+			((IExternalizable) object).writeExternal(new DataOutput(this));
 			amf3_mode -= 1;
 			return;
 		} else {
@@ -438,14 +438,14 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		Set set = beanMap.keySet();
 		if ((set.size() == 0) || (set.size() == 1 && beanMap.containsKey("class"))) {
 			// beanMap is empty or can only access "class" attribute, skip it
-			writeArbitraryObject(object, serializer);
+			writeArbitraryObject(object);
 			return;
 		}
 		// write out either start of object marker for class name or "empty" start of object marker
 		Class<?> objectClass = object.getClass();
 		if (!objectClass.isAnnotationPresent(Anonymous.class)) {
 			log.debug("Object is annotated as Anonymous");
-			putString(serializer.getClassName(object.getClass()));
+			putString(Serializer.getClassName(object.getClass()));
 		} else {
 			putString("");
 		}
@@ -457,11 +457,11 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			Field field = getField(objectClass, fieldName);
 			Method getter = getGetter(objectClass, beanMap, fieldName);
 			// check if the Field corresponding to the getter/setter pair is transient
-			if (!serializeField(serializer, objectClass, fieldName, field, getter)) {
+			if (!serializeField(objectClass, fieldName, field, getter)) {
 				continue;
 			}
 			putString(fieldName);
-			serializer.serialize(this, field, getter, object, beanMap.get(key));
+			Serializer.serialize(this, field, getter, object, beanMap.get(key));
 		}
 		amf3_mode -= 1;
 		// end of object marker
@@ -470,7 +470,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 
 	/** {@inheritDoc} */
 	@Override
-	public void writeObject(Map<Object, Object> map, Serializer serializer) {
+	public void writeObject(Map<Object, Object> map) {
 		log.debug("writeObject: {}", map);
 		writeAMF3();
 		buf.put(AMF3.TYPE_OBJECT);
@@ -488,7 +488,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		amf3_mode += 1;
 		for (Map.Entry<Object, Object> entry : map.entrySet()) {
 			putString(entry.getKey().toString());
-			serializer.serialize(this, entry.getValue());
+			Serializer.serialize(this, entry.getValue());
 		}
 		amf3_mode -= 1;
 		// end of object marker
@@ -497,7 +497,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 
 	/** {@inheritDoc} */
 	@Override
-	public void writeRecordSet(RecordSet recordset, Serializer serializer) {
+	public void writeRecordSet(RecordSet recordset) {
 		writeString("Not implemented.");
 	}
 
@@ -633,9 +633,8 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		putInteger(vector.size() << 1 | 1);
 		putInteger(0);
 		buf.put((byte) 0x01);
-		Serializer serializer = new Serializer();
 		for (Object v : vector) {
-			serializer.serialize(this, v);
+			Serializer.serialize(this, v);
 		}
 	}
 

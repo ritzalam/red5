@@ -49,7 +49,6 @@ import org.red5.io.IoConstants;
 import org.red5.io.amf.Output;
 import org.red5.io.flv.IKeyFrameDataAnalyzer;
 import org.red5.io.flv.impl.Tag;
-import org.red5.io.object.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -196,7 +195,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 						Map<Object, Object> props = new HashMap<Object, Object>();
 						props.put("trackid", 1);
 						props.put("data", imageBuffer);
-						out.writeMap(props, new Serializer());
+						out.writeMap(props);
 						buf.flip();
 						//Ugh i hate flash sometimes!!
 						//Error #2095: flash.net.NetStream was unable to invoke callback onImageData.
@@ -320,7 +319,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 			//clear meta for gc
 			metaData = null;
 		}
-		out.writeMap(props, new Serializer());
+		out.writeMap(props);
 		in.flip();
 
 		ITag result = new Tag(IoConstants.TYPE_METADATA, 0, in.limit(), null, prevSize);

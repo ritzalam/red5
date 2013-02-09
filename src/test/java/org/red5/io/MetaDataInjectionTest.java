@@ -25,10 +25,6 @@ import java.util.TreeSet;
 import junit.framework.TestCase;
 
 import org.apache.mina.core.buffer.IoBuffer;
-import org.red5.io.ITag;
-import org.red5.io.ITagReader;
-import org.red5.io.ITagWriter;
-import org.red5.io.IoConstants;
 import org.red5.io.amf.Output;
 import org.red5.io.flv.IFLV;
 import org.red5.io.flv.IFLVService;
@@ -37,7 +33,6 @@ import org.red5.io.flv.impl.Tag;
 import org.red5.io.flv.meta.ICueType;
 import org.red5.io.flv.meta.IMetaCue;
 import org.red5.io.flv.meta.MetaCue;
-import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
 import org.red5.server.cache.NoCacheImpl;
 
@@ -56,8 +51,6 @@ public class MetaDataInjectionTest extends TestCase {
 	@Override
 	public void setUp() {
 		service = new FLVService();
-		service.setSerializer(new Serializer());
-		service.setDeserializer(new Deserializer());
 	}
 
 	/**
@@ -77,7 +70,7 @@ public class MetaDataInjectionTest extends TestCase {
 			System.out.println("Path: " + f.getAbsolutePath());
 			if (f.exists()) {
 				f.delete();
-			}			
+			}
 		}
 		// Create new file
 		f.createNewFile();
@@ -129,21 +122,21 @@ public class MetaDataInjectionTest extends TestCase {
 		ITag tag = null;
 		ITag injectedTag = null;
 
-		while(reader.hasMoreTags()) {
+		while (reader.hasMoreTags()) {
 			tag = reader.readTag();
 
-			if(tag.getDataType() != IoConstants.TYPE_METADATA) {
+			if (tag.getDataType() != IoConstants.TYPE_METADATA) {
 				//injectNewMetaData();
 			} else {
 				//in
 			}
 
 			// if there are cuePoints in the TreeSet
-			if(!ts.isEmpty()) {
+			if (!ts.isEmpty()) {
 
 				// If the tag has a greater timestamp than the
 				// cuePointTimeStamp, then inject the tag
-				while(tag.getTimestamp() > cuePointTimeStamp) {
+				while (tag.getTimestamp() > cuePointTimeStamp) {
 
 					injectedTag = injectMetaData(ts.first(), tag);
 					writer.writeTag(injectedTag);
@@ -152,7 +145,7 @@ public class MetaDataInjectionTest extends TestCase {
 					// Advance to the next CuePoint
 					ts.remove(ts.first());
 
-					if(ts.isEmpty()) {
+					if (ts.isEmpty()) {
 						break;
 					}
 
@@ -176,9 +169,8 @@ public class MetaDataInjectionTest extends TestCase {
 
 		IMetaCue cp = (MetaCue<?, ?>) cue;
 		Output out = new Output(IoBuffer.allocate(1000));
-		Serializer ser = new Serializer();
-		ser.serialize(out,"onCuePoint");
-		ser.serialize(out,cp);
+		Serializer.serialize(out, "onCuePoint");
+		Serializer.serialize(out, cp);
 
 		IoBuffer tmpBody = out.buf().flip();
 		int tmpBodySize = out.buf().limit();

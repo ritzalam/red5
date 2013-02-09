@@ -38,24 +38,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RemotingProtocolDecoder {
-	/**
-	 * Logger
-	 */
+
 	protected static Logger log = LoggerFactory.getLogger(RemotingProtocolDecoder.class);
-
-	/**
-	 * Data deserializer
-	 */
-	private Deserializer deserializer;
-
-	/**
-	 * Setter for deserializer.
-	 *
-	 * @param deserializer  Deserializer
-	 */
-	public void setDeserializer(Deserializer deserializer) {
-		this.deserializer = deserializer;
-	}
 
 	/**
 	 * Decodes the given buffer.
@@ -107,8 +91,6 @@ public class RemotingProtocolDecoder {
 			// No headers present
 			return Collections.EMPTY_MAP;
 		}
-
-		Deserializer deserializer = new Deserializer();
 		Input input;
 		if (version == 3) {
 			input = new org.red5.io.amf3.Input(in);
@@ -120,7 +102,7 @@ public class RemotingProtocolDecoder {
 			String name = input.getString();
 			boolean required = in.get() == 0x01;
 			int size = in.getInt();
-			Object value = deserializer.deserialize(input, Object.class);
+			Object value = Deserializer.deserialize(input, Object.class);
 			log.debug("Header: {} Required: {} Size: {} Value: {}", new Object[] { name, required, size, value });
 			result.put(name, value);
 		}
@@ -182,7 +164,7 @@ public class RemotingProtocolDecoder {
 					// prepare remoting mode
 					input.reset();
 					// add deserialized object to the value list
-					values.add(deserializer.deserialize(input, Object.class));
+					values.add(Deserializer.deserialize(input, Object.class));
 					if (isAMF3) {
 						refStorage = ((org.red5.io.amf3.Input) input).getRefStorage();
 					}

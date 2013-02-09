@@ -42,7 +42,6 @@ import org.red5.io.amf.Output;
 import org.red5.io.flv.FLVHeader;
 import org.red5.io.flv.IKeyFrameDataAnalyzer;
 import org.red5.io.object.Deserializer;
-import org.red5.io.object.Serializer;
 import org.red5.io.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -566,7 +565,7 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			setCurrentPosition(old);
 		}
 		props.put("canSeekToEnd", true);
-		out.writeMap(props, new Serializer());
+		out.writeMap(props);
 		buf.flip();
 
 		ITag result = new Tag(IoConstants.TYPE_METADATA, 0, buf.limit(), null, 0);
@@ -886,10 +885,9 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 						// construct the meta
 						IoBuffer ioBuf = IoBuffer.wrap(buf);
 						Input input = new Input(ioBuf);
-						Deserializer deserializer = new Deserializer();
-						String metaType = deserializer.deserialize(input, String.class);
+						String metaType = Deserializer.deserialize(input, String.class);
 						log.debug("Metadata type: {}", metaType);
-						Map<String, ?> meta = deserializer.deserialize(input, Map.class);
+						Map<String, ?> meta = Deserializer.deserialize(input, Map.class);
 						Object tmp = meta.get("duration");
 						if (tmp != null) {
 							if (tmp instanceof Double) {

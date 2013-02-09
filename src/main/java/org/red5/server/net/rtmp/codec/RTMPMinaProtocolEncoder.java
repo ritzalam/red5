@@ -36,7 +36,7 @@ public class RTMPMinaProtocolEncoder extends ProtocolEncoderAdapter {
 	protected static Logger log = LoggerFactory.getLogger(RTMPMinaProtocolEncoder.class);
 
 	private RTMPProtocolEncoder encoder = new RTMPProtocolEncoder();
-	
+
 	/** {@inheritDoc} */
 	public void encode(IoSession session, Object message, ProtocolEncoderOutput out) throws ProtocolCodecException {
 		final ProtocolState state = (ProtocolState) session.getAttribute(ProtocolState.SESSION_KEY);
@@ -72,15 +72,6 @@ public class RTMPMinaProtocolEncoder extends ProtocolEncoderAdapter {
 	 */
 	public RTMPProtocolEncoder getEncoder() {
 		return encoder;
-	}
-
-	/**
-	 * Setter for serializer.
-	 *
-	 * @param serializer Serializer
-	 */
-	public void setSerializer(org.red5.io.object.Serializer serializer) {
-		encoder.setSerializer(serializer);
 	}
 
 	/**

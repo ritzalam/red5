@@ -33,7 +33,7 @@ public class ProtocolState {
     public static byte DECODER_OK = 0x00;
 
     /**
-     * Deconding continues state constant.
+     * Decoding continues state constant.
      */
     public static byte DECODER_CONTINUE = 0x01;
 

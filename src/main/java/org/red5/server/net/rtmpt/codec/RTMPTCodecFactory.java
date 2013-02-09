@@ -18,8 +18,6 @@
 
 package org.red5.server.net.rtmpt.codec;
 
-import org.red5.io.object.Deserializer;
-import org.red5.io.object.Serializer;
 import org.red5.server.net.rtmp.codec.RTMPCodecFactory;
 import org.red5.server.net.rtmp.codec.RTMPProtocolDecoder;
 import org.red5.server.net.rtmp.codec.RTMPProtocolEncoder;
@@ -38,41 +36,21 @@ public class RTMPTCodecFactory extends RTMPCodecFactory {
 	 * RTMP encoder
 	 */
 	private RTMPTProtocolEncoder encoder;
-	
+
 	private long baseTolerance = 5000;
-	
+
 	private boolean dropLiveFuture;
-	
+
 	/**
 	 * Initialization
 	 */
 	public void init() {
 		decoder = new RTMPTProtocolDecoder();
-		decoder.setDeserializer(deserializer);
 		encoder = new RTMPTProtocolEncoder();
-		encoder.setSerializer(serializer);
 		encoder.setBaseTolerance(baseTolerance);
 		encoder.setDropLiveFuture(dropLiveFuture);
 	}
 
-	/**
-	 * Setter for deserializer.
-	 *
-	 * @param deserializer  Deserializer used by this codec factory.
-	 */
-	public void setDeserializer(Deserializer deserializer) {
-		this.deserializer = deserializer;
-	}
-
-	/**
-	 * Setter for serializer
-	 *
-	 * @param serializer Value to set for property 'serializer'.
-	 */
-	public void setSerializer(Serializer serializer) {
-		this.serializer = serializer;
-	}
-	
 	/**
 	 * @param baseTolerance the baseTolerance to set
 	 */
@@ -98,5 +76,5 @@ public class RTMPTCodecFactory extends RTMPCodecFactory {
 	public RTMPProtocolEncoder getRTMPEncoder() {
 		return encoder;
 	}
-	
+
 }

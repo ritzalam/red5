@@ -45,11 +45,6 @@ public class StatusObjectService implements StatusCodes, InitializingBean {
 	protected static Logger log = LoggerFactory.getLogger(StatusObjectService.class);
 
 	/**
-	 * Serializer
-	 */
-	protected Serializer serializer;
-
-	/**
 	 * Status objects map
 	 */
 	protected Map<String, StatusObject> statusObjects;
@@ -58,15 +53,6 @@ public class StatusObjectService implements StatusCodes, InitializingBean {
 	 * Cached status objects map
 	 */
 	protected Map<String, byte[]> cachedStatusObjects;
-
-	/**
-	 * Setter for serializer
-	 *
-	 * @param serializer  Serializer object
-	 */
-	public void setSerializer(Serializer serializer) {
-		this.serializer = serializer;
-	}
 
 	/**
 	 * Initialization
@@ -170,7 +156,7 @@ public class StatusObjectService implements StatusCodes, InitializingBean {
 	public void serializeStatusObject(IoBuffer out, StatusObject statusObject) {
 		Map<?, ?> statusMap = new BeanMap(statusObject);
 		Output output = new Output(out);
-		serializer.serialize(output, statusMap);
+		Serializer.serialize(output, statusMap);
 	}
 
 	/**

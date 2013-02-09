@@ -26,16 +26,21 @@ import java.util.Set;
 
 import junit.framework.TestCase;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.red5.server.Context;
+import org.red5.server.Server;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IClientRegistry;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IContext;
 import org.red5.server.api.Red5;
 import org.red5.server.api.TestConnection;
+import org.red5.server.api.listeners.IScopeListener;
 import org.red5.server.api.scope.IScope;
 import org.red5.server.api.service.IServiceCapableConnection;
+import org.red5.server.scheduling.QuartzSchedulingService;
 import org.red5.server.util.ScopeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +58,9 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 
 	protected static Logger log = LoggerFactory.getLogger(ScopeTest.class);
 
+	@SuppressWarnings("unused")
+	private static QuartzSchedulingService service;	
+	
 	private static Context context;
 
 	private static WebScope appScope;
@@ -65,8 +73,8 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 
 	static {
 		System.setProperty("red5.deployment.type", "junit");
-		System.setProperty("red5.root", "bin");
-		System.setProperty("red5.config_root", "bin/conf");
+		System.setProperty("red5.root", "target/test-classes");
+		System.setProperty("red5.config_root", "src/main/server/conf");
 		System.setProperty("logback.ContextSelector", "org.red5.logging.LoggingContextSelector");
 	}
 
@@ -76,9 +84,28 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		log.debug("Property - red5.config_root: {}", System.getProperty("red5.config_root"));
 	}
 
+
+	@Before
+	public void setUp() throws Exception {
+		service = (QuartzSchedulingService) applicationContext.getBean("schedulingService");
+		context = (Context) applicationContext.getBean("web.context");
+		Server server = (Server) applicationContext.getBean("red5.server");
+		server.addListener(new IScopeListener() {
+			public void notifyScopeCreated(IScope scope) {
+				System.out.println("Scope created: " + scope.getName());
+			}
+			public void notifyScopeRemoved(IScope scope) {
+				System.out.println("Scope removed: " + scope.getName());				
+			}			
+		});
+	}
+
+	@After
+	public void tearDown() throws Exception {
+	}	
+	
 	@Test
 	public void client() {
-		context = (Context) applicationContext.getBean("web.context");
 		IClientRegistry reg = context.getClientRegistry();
 		IClient client = reg.newClient(null);
 		assertTrue("client should not be null", client != null);
@@ -86,7 +113,6 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 
 	@Test
 	public void connectionHandler() {
-		context = (Context) applicationContext.getBean("web.context");
 		TestConnection conn = new TestConnection(host, "/", null);
 		// add the connection to thread local
 		Red5.setConnectionLocal(conn);
@@ -113,7 +139,6 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 
 	@Test
 	public void context() {
-		context = (Context) applicationContext.getBean("web.context");
 		IScope testRoom = context.resolveScope(roomPath);
 		IContext context = testRoom.getContext();
 		assertTrue("context should not be null", context != null);
@@ -124,19 +149,15 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 
 	@Test
 	public void handler() throws InterruptedException {
-		context = (Context) applicationContext.getBean("web.context");
-
-		Scope testApp = (Scope) context.resolveScope(appPath);
+		IScope testApp = context.resolveScope(appPath);
 		assertTrue("should have a handler", testApp.hasHandler());
 
 		IClientRegistry reg = context.getClientRegistry();
 		IClient client = reg.newClient(null);
 
 		TestConnection conn = new TestConnection(host, appPath, client.getId());
-		conn.initialize(client);
-
 		Red5.setConnectionLocal(conn);
-
+		conn.initialize(client);
 		assertTrue("client should not be null", client != null);
 		log.debug("{}", client);
 
@@ -145,27 +166,25 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		client.setAttribute(key, value);
 		assertTrue("attributes not working", client.getAttribute(key) == value);
 
-		assertTrue(conn.connect(testApp));
-		
-		// give connect a moment to settle
-		Thread.sleep(250L);
-
-		assertTrue("app should have 1 client", testApp.getActiveClients() == 1);
-		assertTrue("host should have 1 client", testApp.getParent().getClients().size() == 1);
-
-		conn.close();
-
-		assertTrue("app should have 0 client", testApp.getActiveClients() == 0);
-		assertTrue("host should have 0 client", testApp.getParent().getClients().size() == 0);
-
+		if (!conn.connect(testApp)) {
+			assertTrue("Didnt connect", false);
+		} else {
+			// give connect a moment to settle
+			Thread.sleep(100L);
+			assertTrue("Should have a scope", conn.getScope() != null);
+			assertTrue("app should have 1 client", ((Scope) testApp).getActiveClients() == 1);
+			assertTrue("host should have 1 client", testApp.getParent().getClients().size() == 1);
+			conn.close();
+			assertTrue("Should not be connected", !conn.isConnected());
+			assertTrue("app should have 0 client", ((Scope) testApp).getActiveClients() == 0);
+			assertTrue("host should have 0 client", testApp.getParent().getClients().size() == 0);
+		}
 		//client.disconnect();
 		Red5.setConnectionLocal(null);
 	}
 
 	@Test
 	public void scopeResolver() {
-		context = (Context) applicationContext.getBean("web.context");
-
 		// Global
 		IScope global = context.getGlobalScope();
 		assertNotNull("global scope should be set", global);

@@ -163,7 +163,6 @@ public class PersistableAttributeStore extends AttributeStore implements IPersis
 	 * @throws IOException if error
 	 */
 	public void serialize(Output output) throws IOException {
-		Serializer serializer = new Serializer();
 		Map<String, Object> persistentAttributes = new HashMap<String, Object>();
 		for (Map.Entry<String, Object> entry : getAttributes().entrySet()) {
 			final String name = entry.getKey();
@@ -173,7 +172,7 @@ public class PersistableAttributeStore extends AttributeStore implements IPersis
 
 			persistentAttributes.put(name, entry.getValue());
 		}
-		serializer.serialize(output, persistentAttributes);
+		Serializer.serialize(output, persistentAttributes);
 	}
 
 	/**
@@ -183,8 +182,7 @@ public class PersistableAttributeStore extends AttributeStore implements IPersis
 	 * @throws IOException       I/O exception
 	 */
 	public void deserialize(Input input) throws IOException {
-		Deserializer deserializer = new Deserializer();
-		setAttributes(deserializer.<Map<String, Object>> deserialize(input, Map.class));
+		setAttributes(Deserializer.<Map<String, Object>> deserialize(input, Map.class));
 	}
 
 	/**

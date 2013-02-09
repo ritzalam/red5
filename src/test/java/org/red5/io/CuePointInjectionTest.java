@@ -26,10 +26,6 @@ import junit.framework.Assert;
 import junit.framework.TestCase;
 
 import org.apache.mina.core.buffer.IoBuffer;
-import org.red5.io.ITag;
-import org.red5.io.ITagReader;
-import org.red5.io.ITagWriter;
-import org.red5.io.IoConstants;
 import org.red5.io.amf.Output;
 import org.red5.io.flv.IFLV;
 import org.red5.io.flv.IFLVService;
@@ -38,7 +34,6 @@ import org.red5.io.flv.impl.Tag;
 import org.red5.io.flv.meta.ICueType;
 import org.red5.io.flv.meta.IMetaCue;
 import org.red5.io.flv.meta.MetaCue;
-import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
 import org.red5.server.cache.NoCacheImpl;
 
@@ -58,8 +53,6 @@ public class CuePointInjectionTest extends TestCase {
 	@Override
 	public void setUp() {
 		service = new FLVService();
-		service.setSerializer(new Serializer());
-		service.setDeserializer(new Deserializer());
 	}
 
 	/**
@@ -174,9 +167,8 @@ public class CuePointInjectionTest extends TestCase {
 	private ITag injectCuePoint(Object cue, ITag tag) {
 		IMetaCue cp = (MetaCue<?, ?>) cue;
 		Output out = new Output(IoBuffer.allocate(1000));
-		Serializer ser = new Serializer();
-		ser.serialize(out, "onCuePoint");
-		ser.serialize(out, cp);
+		Serializer.serialize(out, "onCuePoint");
+		Serializer.serialize(out, cp);
 
 		IoBuffer tmpBody = out.buf().flip();
 		int tmpBodySize = out.buf().limit();

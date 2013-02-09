@@ -73,11 +73,6 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	protected static Logger log = LoggerFactory.getLogger(RTMPProtocolEncoder.class);
 
 	/**
-	 * Serializer object.
-	 */
-	protected Serializer serializer;
-
-	/**
 	 * Tolerance (in milliseconds) for late media on streams. A set of levels based on this
 	 * value will be determined. 
 	 */
@@ -656,9 +651,9 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 							String key = (String) o;
 							output.putString(key);
 							if (encoding == Encoding.AMF3) {
-								serializer.serialize(amf3output, initialData.get(key));
+								Serializer.serialize(amf3output, initialData.get(key));
 							} else {
-								serializer.serialize(output, initialData.get(key));
+								Serializer.serialize(output, initialData.get(key));
 							}
 							len = out.position() - mark - 4;
 							out.putInt(mark, len);
@@ -669,9 +664,9 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 						out.skip(4); // we will be back
 						output.putString(event.getKey());
 						if (encoding == Encoding.AMF3) {
-							serializer.serialize(amf3output, event.getValue());
+							Serializer.serialize(amf3output, event.getValue());
 						} else {
-							serializer.serialize(output, event.getValue());
+							Serializer.serialize(output, event.getValue());
 						}
 						len = out.position() - mark - 4;
 						out.putInt(mark, len);
@@ -684,13 +679,13 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 					mark = out.position();
 					out.skip(4);
 					// Serialize name of the handler to call...
-					serializer.serialize(output, event.getKey());
+					Serializer.serialize(output, event.getKey());
 					// ...and the arguments
 					for (Object arg : (List<?>) event.getValue()) {
 						if (encoding == Encoding.AMF3) {
-							serializer.serialize(amf3output, arg);
+							Serializer.serialize(amf3output, arg);
 						} else {
-							serializer.serialize(output, arg);
+							Serializer.serialize(output, arg);
 						}
 					}
 					len = out.position() - mark - 4;
@@ -714,9 +709,9 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 					out.skip(4); // we will be back
 					output.putString(event.getKey());
 					if (encoding == Encoding.AMF3) {
-						serializer.serialize(amf3output, event.getValue());
+						Serializer.serialize(amf3output, event.getValue());
 					} else {
-						serializer.serialize(output, event.getValue());
+						Serializer.serialize(output, event.getValue());
 					}
 					len = out.position() - mark - 4;
 					out.putInt(mark, len);
@@ -762,7 +757,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 		log.debug("Call: {} pending: {}", call, isPending);
 		if (!isPending) {
 			log.debug("Call has been executed, send result");
-			serializer.serialize(output, call.isSuccess() ? "_result" : "_error");
+			Serializer.serialize(output, call.isSuccess() ? "_result" : "_error");
 		} else {
 			log.debug("This is a pending call, send request");
 			// for request we need to use AMF3 for client mode if the connection is AMF3
@@ -770,11 +765,11 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 			//	output = new org.red5.io.amf3.Output(out);
 			//}
 			final String action = (call.getServiceName() == null) ? call.getServiceMethodName() : call.getServiceName() + '.' + call.getServiceMethodName();
-			serializer.serialize(output, action); // seems right
+			Serializer.serialize(output, action); // seems right
 		}
 		if (invoke instanceof Invoke) {
-			serializer.serialize(output, Integer.valueOf(invoke.getInvokeId()));
-			serializer.serialize(output, invoke.getConnectionParams());
+			Serializer.serialize(output, Integer.valueOf(invoke.getInvokeId()));
+			Serializer.serialize(output, invoke.getConnectionParams());
 		}
 
 		if (call.getServiceName() == null && "connect".equals(call.getServiceMethodName())) {
@@ -797,13 +792,13 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 			}
 			Object res = pendingCall.getResult();
 			log.debug("Writing result: {}", res);
-			serializer.serialize(output, res);
+			Serializer.serialize(output, res);
 		} else {
 			log.debug("Writing params");
 			final Object[] args = call.getArguments();
 			if (args != null) {
 				for (Object element : args) {
-					serializer.serialize(output, element);
+					Serializer.serialize(output, element);
 				}
 			}
 		}
@@ -956,15 +951,6 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	private void updateTolerance() {
 		midTolerance = baseTolerance + (long) (baseTolerance * 0.3);
 		highestTolerance = baseTolerance + (long) (baseTolerance * 0.6);
-	}
-
-	/**
-	 * Setter for serializer.
-	 *
-	 * @param serializer Serializer
-	 */
-	public void setSerializer(Serializer serializer) {
-		this.serializer = serializer;
 	}
 
 	public void setBaseTolerance(long baseTolerance) {

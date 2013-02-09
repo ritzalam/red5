@@ -24,8 +24,6 @@ import java.io.IOException;
 import org.red5.io.BaseStreamableFileService;
 import org.red5.io.IStreamableFile;
 import org.red5.io.flv.IFLVService;
-import org.red5.io.object.Deserializer;
-import org.red5.io.object.Serializer;
 
 /**
  * A FLVServiceImpl sets up the service and hands out FLV objects to 
@@ -37,16 +35,6 @@ import org.red5.io.object.Serializer;
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public class FLVService extends BaseStreamableFileService implements IFLVService {
-
-	/**
-	 * Serializer
-	 */
-	private Serializer serializer;
-
-	/**
-	 * Deserializer
-	 */
-	private Deserializer deserializer;
 
 	/**
 	 * Generate FLV metadata?
@@ -65,21 +53,6 @@ public class FLVService extends BaseStreamableFileService implements IFLVService
 		return ".flv";
 	}
 
-	/** 
-	 * {@inheritDoc}
-	 */
-	public void setSerializer(Serializer serializer) {
-		this.serializer = serializer;
-
-	}
-
-	/** {@inheritDoc}
-	 */
-	public void setDeserializer(Deserializer deserializer) {
-		this.deserializer = deserializer;
-
-	}
-
 	/** {@inheritDoc}
 	 */
 	@Override
@@ -96,21 +69,4 @@ public class FLVService extends BaseStreamableFileService implements IFLVService
 		generateMetadata = generate;
 	}
 
-	/**
-	 * Getter for serializer
-	 *
-	 * @return  Serializer
-	 */
-	public Serializer getSerializer() {
-		return serializer;
-	}
-
-	/**
-	 * Getter for deserializer
-	 *
-	 * @return  Deserializer
-	 */
-	public Deserializer getDeserializer() {
-		return deserializer;
-	}
 }

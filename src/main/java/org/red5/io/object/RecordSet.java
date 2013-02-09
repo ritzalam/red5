@@ -113,10 +113,7 @@ public class RecordSet {
 	 */
 	@SuppressWarnings({ "unchecked" })
 	public RecordSet(Input input) {
-		// Create deserializer
-		Deserializer deserializer = new Deserializer();
-		Map<String, Object> dataMap = input.readKeyValues(deserializer);
-
+		Map<String, Object> dataMap = input.readKeyValues();
 		Object map = dataMap.get("serverinfo");
 		Map<String, Object> serverInfo = null;
 		if (map != null) {
@@ -131,7 +128,6 @@ public class RecordSet {
 			columns = (List<String>) serverInfo.get("columnNames");
 			version = (Integer) serverInfo.get("version");
 			id = serverInfo.get("id");
-
 			this.data = new ArrayList<List<Object>>(totalCount);
 			for (int i = 0; i < initialData.size(); i++) {
 				this.data.add(i + cursor - 1, initialData.get(i));

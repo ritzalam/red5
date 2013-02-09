@@ -28,11 +28,7 @@ import junit.framework.TestCase;
 import org.red5.io.ITag;
 import org.red5.io.ITagReader;
 import org.red5.io.ITagWriter;
-import org.red5.io.flv.IFLV;
-import org.red5.io.flv.IFLVService;
 import org.red5.io.flv.impl.FLVService;
-import org.red5.io.object.Deserializer;
-import org.red5.io.object.Serializer;
 import org.red5.server.cache.NoCacheImpl;
 
 /**
@@ -52,8 +48,6 @@ public class FLVServiceImplTest extends TestCase {
 	@Override
 	public void setUp() {
 		service = new FLVService();
-		service.setSerializer(new Serializer());
-		service.setDeserializer(new Deserializer());
 	}
 
 	/**

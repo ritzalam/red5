@@ -342,7 +342,7 @@ public class QuartzSchedulingService implements ISchedulingService, QuartzSchedu
 	public void destroy() throws Exception {
 		if (scheduler != null) {
 			log.debug("Destroying...");
-			scheduler.shutdown();
+			scheduler.shutdown(false);
 		}
 	}
 

@@ -33,6 +33,10 @@
         <level value="DEBUG" />
     </logger>
 
+    
+    <logger name="org.red5.server.so">
+        <level value="TRACE" />
+    </logger>
 <!-- 
     <logger name="org.red5.io.mp4.impl.MP4Reader">
         <level value="TRACE" />
@@ -72,6 +76,10 @@
 
     <logger name="net.sf">
         <level value="WARN" />
+    </logger>
+
+    <logger name="org.quartz">
+        <level value="OFF" />
     </logger>
 
 </configuration>

@@ -67,64 +67,56 @@ public interface Output {
 
 	/**
 	 * Write array.
-	 * @param array     	Array to write.
-	 * @param serializer	Serializer to use for subobjects.
+	 * @param array     	Array to write
 	 */
-	void writeArray(Collection<?> array, Serializer serializer);
+	void writeArray(Collection<?> array);
 
 	/**
 	 * Write array.
-	 * @param array     	Array to write.
-	 * @param serializer	Serializer to use for subobjects.
+	 * @param array     	Array to write
 	 */
-	void writeArray(Object[] array, Serializer serializer);
+	void writeArray(Object[] array);
 
 	/**
 	 * Write primitive array.
-	 * @param array     	Array to write.
-	 * @param serializer	Serializer to use for subobjects.
+	 * @param array     	Array to write
 	 */
-	void writeArray(Object array, Serializer serializer);
+	void writeArray(Object array);
 
 	/**
 	 * Write map.
 	 *
 	 * @param map			Map to write
-	 * @param serializer	Serializer to use for subobjects.
 	 */
-	void writeMap(Map<Object, Object> map, Serializer serializer);
+	void writeMap(Map<Object, Object> map);
 
 	/**
 	 * Write array as map.
 	 *
 	 * @param array			Array to write
-	 * @param serializer	Serializer to use for subobjects.
 	 */
-	void writeMap(Collection<?> array, Serializer serializer);
+	void writeMap(Collection<?> array);
 
 	/**
 	 * Write object.
 	 *
 	 * @param object		Object to write
-	 * @param serializer	Serializer to use for subobjects.
 	 */
-	void writeObject(Object object, Serializer serializer);
+	void writeObject(Object object);
 
 	/**
 	 * Write map as object.
 	 *
 	 * @param map			Map to write
-	 * @param serializer	Serializer to use for subobjects.
 	 */
-	void writeObject(Map<Object, Object> map, Serializer serializer);
+	void writeObject(Map<Object, Object> map);
 
 	/**
 	 * Write recordset.
 	 *
-	 * @param recordset		Recordset to write.
-	 * @param serializer	Serializer to use for subobjects.
+	 * @param recordset		Recordset to write
 	 */
-	void writeRecordSet(RecordSet recordset, Serializer serializer);
+	void writeRecordSet(RecordSet recordset);
 
 	/**
 	 * Write XML object

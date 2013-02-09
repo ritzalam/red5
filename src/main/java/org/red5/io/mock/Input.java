@@ -18,15 +18,14 @@
 
 package org.red5.io.mock;
 
+import java.lang.reflect.Type;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
-import java.lang.reflect.Type;
 
 import org.red5.io.amf3.ByteArray;
 import org.red5.io.object.BaseInput;
-import org.red5.io.object.Deserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -95,25 +94,25 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	// Array
 
 	/** {@inheritDoc} */
-	public Object readArray(Deserializer deserializer, Type target) {
+	public Object readArray(Type target) {
 		return getNext();
 	}
 
 	/** {@inheritDoc} */
-	public Object readMap(Deserializer deserializer, Type target) {
+	public Object readMap(Type target) {
 		return getNext();
 	}
 
 	/** {@inheritDoc} */
 	@SuppressWarnings("unchecked")
-	public Map<String, Object> readKeyValues(Deserializer deserializer) {
+	public Map<String, Object> readKeyValues() {
 		return (Map<String, Object>) getNext();
 	}
 
 	// Object
 
 	/** {@inheritDoc} */
-	public Object readObject(Deserializer deserializer, Type target) {
+	public Object readObject(Type target) {
 		return getNext();
 	}
 

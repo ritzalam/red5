@@ -19,8 +19,6 @@
 package org.red5.io.flv;
 
 import org.red5.io.IStreamableFileService;
-import org.red5.io.object.Deserializer;
-import org.red5.io.object.Serializer;
 
 /**
  * A FLVService sets up the service and hands out FLV objects to 
@@ -31,19 +29,5 @@ import org.red5.io.object.Serializer;
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public interface IFLVService extends IStreamableFileService {
-
-	/**
-	 * Sets the serializer
-	 * 
-	 * @param serializer        Serializer object
-	 */
-	public void setSerializer(Serializer serializer);
-
-	/**
-	 * Sets the deserializer
-	 * 
-	 * @param deserializer      Deserializer object
-	 */
-	public void setDeserializer(Deserializer deserializer);
 
 }

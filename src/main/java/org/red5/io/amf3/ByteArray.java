@@ -25,8 +25,6 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
 import org.apache.mina.core.buffer.IoBuffer;
-import org.red5.io.object.Deserializer;
-import org.red5.io.object.Serializer;
 
 /**
  * Red5 version of the Flex ByteArray class.
@@ -77,11 +75,10 @@ public class ByteArray implements IDataInput, IDataOutput {
 		// we assume that everything in ByteArray is in AMF3
 		Input input = new Input(data);
 		input.enforceAMF3();
-		dataInput = new DataInput(input, new Deserializer());
-
+		dataInput = new DataInput(input);
 		Output output = new Output(data);
 		output.enforceAMF3();
-		dataOutput = new DataOutput(output, new Serializer());
+		dataOutput = new DataOutput(output);
 	}
 
 	/**
