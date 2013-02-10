@@ -44,7 +44,7 @@ import org.red5.server.api.scope.IScope;
  *   
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
- * @author Paul Gregoire (mondain@gmail.com)    
+ * @author Paul Gregoire (mondain@gmail.com) 
  */
 public final class Red5 {
 
@@ -64,12 +64,12 @@ public final class Red5 {
 	/**
 	 * Current server version with revision
 	 */
-	public static final String VERSION = "Red5 Server 1.0.2 $Rev: 4450 $";
+	public static final String VERSION = "Red5 Server 1.0.2 $Rev$";
 
 	/**
 	 * Current server version for fmsVer requests 
 	 */
-	public static final String FMS_VERSION = "RED5/1,0,1,0";
+	public static final String FMS_VERSION = "RED5/1,0,2,0";
 
 	/**
 	 * Data version for NetStatusEvents
