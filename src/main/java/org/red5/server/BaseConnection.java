@@ -30,6 +30,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.event.IEvent;
@@ -81,7 +82,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	/**
 	 *  Connection session identifier
 	 */
-	protected volatile String sessionId;
+	protected final String sessionId;
 
 	/**
 	 *  Number of read messages
@@ -143,6 +144,8 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	public BaseConnection() {
 		log.debug("New BaseConnection");
 		this.type = PERSISTENT;
+		this.sessionId = RandomStringUtils.randomAlphanumeric(13).toUpperCase();
+		log.debug("Generated session id: {}", sessionId);
 	}
 
 	/**
@@ -154,6 +157,8 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	public BaseConnection(String type) {
 		log.debug("New BaseConnection - type: {}", type);
 		this.type = type;
+		this.sessionId = RandomStringUtils.randomAlphanumeric(13).toUpperCase();
+		log.debug("Generated session id: {}", sessionId);
 	}
 
 	/**

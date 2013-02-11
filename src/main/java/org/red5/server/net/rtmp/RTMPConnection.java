@@ -332,13 +332,11 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * 
 	 * @param host Connection host
 	 * @param path Connection path
-	 * @param sessionId Connection session id
 	 * @param params Params passed from client
 	 */
-	public void setup(String host, String path, String sessionId, Map<String, Object> params) {
+	public void setup(String host, String path, Map<String, Object> params) {
 		this.host = host;
 		this.path = path;
-		this.sessionId = sessionId;
 		this.params = params;
 		if (Integer.valueOf(3).equals(params.get("objectEncoding"))) {
 			log.info("Setting object encoding to AMF3");
@@ -1188,7 +1186,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	public String toString() {
 		if (log.isDebugEnabled()) {
 			String id = getClient() != null ? getClient().getId() : null;
-			return String.format("%1$s %2$s:%3$s client: %4$s", new Object[] { getClass().getSimpleName(), getRemoteAddress(), getRemotePort(), id});
+			return String.format("%1$s %2$s:%3$s client: %4$s session: %5$s", new Object[] { getClass().getSimpleName(), getRemoteAddress(), getRemotePort(), id, sessionId});
 		} else {
 			Object[] args = new Object[] { getClass().getSimpleName(), getRemoteAddress(), getRemotePort(), getHost(), getReadBytes(), getWrittenBytes() };
 			return String.format("%1$s from %2$s:%3$s to %4$s (in: %5$s out: %6$s)", args);

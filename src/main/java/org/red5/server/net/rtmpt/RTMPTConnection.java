@@ -145,20 +145,19 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 		return pendingOutMessages.isEmpty();
 	}
 
+	public void setRemoteAddress(String remoteAddress) {
+		this.remoteAddress = remoteAddress;
+	}
+	
+	public void setRemotePort(int remotePort) {
+		this.remotePort = remotePort;
+	}
+	
 	/** {@inheritDoc} */
 	@Override
 	public void setSchedulingService(ISchedulingService schedulingService) {
 		this.schedulingService = schedulingService;
 		processJobName = schedulingService.addScheduledJob(250, new ProcessJob(this));
-	}
-
-	/**
-	 * Sets the client session id.
-	 * 
-	 * @param sessionId
-	 */
-	public void setSessionId(String sessionId) {
-		this.sessionId = sessionId;
 	}
 
 	/**

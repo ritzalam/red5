@@ -24,17 +24,16 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.Red5;
 import org.red5.server.net.IConnectionManager;
+import org.red5.server.net.rtmp.RTMPConnManager;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.servlet.ServletUtils;
 import org.slf4j.Logger;
@@ -55,9 +54,6 @@ public class RTMPTServlet extends HttpServlet {
 	 */
 	private static final long serialVersionUID = 5925399677454936613L;
 
-	/**
-	 * Logger
-	 */
 	protected static Logger log = Red5LoggerFactory.getLogger(RTMPTServlet.class);
 
 	/**
@@ -99,18 +95,7 @@ public class RTMPTServlet extends HttpServlet {
 	/**
 	 * Web app context
 	 */
-	protected transient WebApplicationContext appCtx;
-
-	/** {@inheritDoc} */
-	@Override
-	public void init() throws ServletException {
-		super.init();
-		ServletContext ctx = getServletContext();
-		appCtx = WebApplicationContextUtils.getWebApplicationContext(ctx);
-		if (appCtx == null) {
-			appCtx = (WebApplicationContext) ctx.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
-		}
-	}
+	protected transient WebApplicationContext applicationContext;
 
 	/**
 	 * Return an error message to the client.
@@ -271,13 +256,23 @@ public class RTMPTServlet extends HttpServlet {
 		// skip sent data
 		skipData(req);
 		// TODO: should we evaluate the pathinfo?
-		RTMPTConnection connection = createConnection();
-		if (connection != null) {
-			connection.setServlet(this);
-			connection.setServletRequest(req);
-			if (connection.getId() != 0) {
+		RTMPTConnection conn = (RTMPTConnection) rtmpConnManager.createConnection(RTMPTConnection.class);
+		if (conn != null) {
+			// set properties
+			conn.setServlet(this);
+			conn.setServletRequest(req);
+			// add the connection to the manager
+			RTMPConnManager.getInstance().setConnection(conn);
+			// set handler 
+			conn.setHandler(handler);
+			conn.setDecoder(handler.getCodecFactory().getRTMPDecoder());
+			conn.setEncoder(handler.getCodecFactory().getRTMPEncoder());
+			handler.connectionOpened(conn, conn.getState());
+			// set thread local reference
+			Red5.setConnectionLocal(conn);			
+			if (conn.getId() != 0) {
 				// return session id to client
-				returnMessage(connection.getSessionId() + "\n", resp);
+				returnMessage(conn.getSessionId() + "\n", resp);
 			} else {
 				// no more clients are available for serving
 				returnMessage((byte) 0, resp);
@@ -386,6 +381,14 @@ public class RTMPTServlet extends HttpServlet {
 	 */
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		if (applicationContext == null) {
+			ServletContext ctx = getServletContext();
+			applicationContext = WebApplicationContextUtils.getWebApplicationContext(ctx);
+			if (applicationContext == null) {
+				applicationContext = (WebApplicationContext) ctx.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+			}
+			log.debug("Application context: {}", applicationContext);
+		}
 		log.debug("Request - method: {} content type: {} path: {}", new Object[] { req.getMethod(), req.getContentType(), req.getServletPath() });
 		// allow only POST requests with valid content length
 		if (!REQUEST_METHOD.equals(req.getMethod()) || req.getContentLength() == 0) {
@@ -498,28 +501,6 @@ public class RTMPTServlet extends HttpServlet {
 			Red5.setConnectionLocal(conn);
 		} else {
 			log.warn("Null connection for session id: {}", sessionId);
-		}
-		return conn;
-	}
-
-	/**
-	 * Creates an RTMPT connection.
-	 * 
-	 * @return RTMPT connection
-	 */
-	protected RTMPTConnection createConnection() {
-		RTMPTConnection conn = (RTMPTConnection) rtmpConnManager.createConnection(RTMPTConnection.class);
-		if (conn != null) {
-			String sessionId = RandomStringUtils.randomAlphanumeric(13).toUpperCase();
-			log.debug("Generated session id: {}", sessionId);
-			conn.setSessionId(sessionId);
-			// set handler 
-			conn.setHandler(handler);
-			conn.setDecoder(handler.getCodecFactory().getRTMPDecoder());
-			conn.setEncoder(handler.getCodecFactory().getRTMPEncoder());
-			handler.connectionOpened(conn, conn.getState());
-			// set thread local reference
-			Red5.setConnectionLocal(conn);
 		}
 		return conn;
 	}

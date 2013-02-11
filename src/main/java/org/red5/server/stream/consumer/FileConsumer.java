@@ -68,9 +68,6 @@ import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
  */
 public class FileConsumer implements Constants, IPushableConsumer, IPipeConnectionListener {
 
-	/**
-	 * Logger
-	 */
 	private static final Logger log = LoggerFactory.getLogger(FileConsumer.class);
 
 	/**
@@ -261,13 +258,11 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 				} finally {
 					readLock.unlock();
 				}
-
 				if (msg instanceof VideoData) {
 					writeQueuedDataSlice(createTimestampLimitedSlice(msg.getTimestamp()));
 				} else if (queueThreshold >= 0 && queueSize >= queueThreshold) {
 					writeQueuedDataSlice(createFixedLengthSlice(queueThreshold / (100 / percentage)));
 				}
-
 			}
 		} else if (message instanceof ResetMessage) {
 			startTimestamp = -1;
@@ -382,7 +377,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 				}
 			case PipeConnectionEvent.PROVIDER_DISCONNECT:
 				// we only support one provider at a time so releasing when provider disconnects
-				uninit();
+				//uninit();
 				break;
 			default:
 				break;
@@ -449,7 +444,9 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 				} catch (Exception e) {
 					log.warn("Exception waiting for write result on uninit", e);
 				}
-				writerFuture.cancel(true);
+				if (writerFuture.cancel(false)) {
+					log.debug("Future completed");
+				}
 			}
 			writerFuture = null;
 			if (delayWrite) {
@@ -475,7 +472,9 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		writeLock.lock();
 		try {
 			slice = queue.toArray(new QueuedData[0]);
-			queue.removeAll(Arrays.asList(slice));
+			if (queue.removeAll(Arrays.asList(slice))) {
+				log.debug("Queued writes transfered, count: {}", slice.length);
+			}
 		} finally {
 			writeLock.unlock();
 		}

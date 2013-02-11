@@ -26,6 +26,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.IKeyFrameMetaCache;
 import org.red5.server.api.IConnection;
+import org.red5.server.api.scheduling.IScheduledJob;
+import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.scope.IScope;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IStreamFilenameGenerator;
@@ -39,6 +41,7 @@ import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.message.Constants;
+import org.red5.server.scheduling.QuartzSchedulingService;
 import org.red5.server.stream.consumer.FileConsumer;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.util.ScopeUtils;
@@ -55,6 +58,16 @@ public class RecordingListener implements IStreamListener {
 
 	private static final Logger log = LoggerFactory.getLogger(RecordingListener.class);
 
+	/**
+	 * Scheduler
+	 */
+	private QuartzSchedulingService scheduler;
+	
+	/**
+	 * Event queue worker job name
+	 */
+	private String eventQueueJobName;
+	
 	/**
 	 * Whether we are recording or not
 	 */
@@ -79,12 +92,7 @@ public class RecordingListener implements IStreamListener {
 	 * Queue to hold incoming stream event packets.
 	 */
 	private final BlockingQueue<CachedEvent> queue = new LinkedBlockingQueue<CachedEvent>();
-
-	/**
-	 * Internal worker stop flag.
-	 */
-	private boolean stop;
-
+	
 	/**
 	 * Initialize the listener.
 	 * 
@@ -164,21 +172,22 @@ public class RecordingListener implements IStreamListener {
 			} else {
 				recordingConsumer.setMode("record");
 			}
+			// set the filename
+			setFileName(file.getName());			
+			// get the scheduler
+			scheduler = (QuartzSchedulingService) scope.getParent().getContext().getBean(QuartzSchedulingService.BEAN_NAME);			
 			// set recording true
 			recording = true;
 			// since init finished, return true as well
 			return true;
-		} else {
-			log.warn("Record file is null");
-			return false;
 		}
+		log.warn("Record file is null");
+		return false;
 	}
 
 	public void start() {
-		// start the worker thread
-		Thread worker = new Thread(new EventQueueWorker(), "RecorderWorker@" + fileName);
-		worker.setDaemon(true);
-		worker.start();
+		// start the worker
+		eventQueueJobName = scheduler.addScheduledJob(1000, new EventQueueJob());
 	}
 
 	public void packetReceived(IBroadcastStream stream, IStreamPacket packet) {
@@ -226,9 +235,75 @@ public class RecordingListener implements IStreamListener {
 		return file;
 	}
 
-	public void closeStream() {
-		// flag the worker to stop when queue is empty
-		stop = true;
+	public void stop() {
+		// remove the scheduled job
+		scheduler.removeScheduledJob(eventQueueJobName);
+		if (queue.isEmpty()) {
+			log.debug("Event queue was empty on stop");
+		} else {
+			log.debug("Event queue was not empty on stop, processing...");
+			do {
+				processQueue();
+			} while (!queue.isEmpty());
+		}
+		recordingConsumer.uninit();
+	}
+	
+	private void processQueue() {
+		CachedEvent cachedEvent;
+		try {
+			IRTMPEvent event = null;
+			RTMPMessage message = null;
+			// get first event in the queue
+			cachedEvent = queue.take();
+			// get the data type
+			final byte dataType = cachedEvent.getDataType();
+			// get the data
+			IoBuffer buffer = cachedEvent.getData();
+			// get the current size of the buffer / data
+			int bufferLimit = buffer.limit();
+			if (bufferLimit > 0) {
+				// create new RTMP message and push to the consumer
+				switch (dataType) {
+					case Constants.TYPE_AGGREGATE:
+						event = new Aggregate(buffer);
+						event.setTimestamp(cachedEvent.getTimestamp());
+						message = RTMPMessage.build(event);
+						break;
+					case Constants.TYPE_AUDIO_DATA:
+						event = new AudioData(buffer);
+						event.setTimestamp(cachedEvent.getTimestamp());
+						message = RTMPMessage.build(event);
+						break;
+					case Constants.TYPE_VIDEO_DATA:
+						event = new VideoData(buffer);
+						event.setTimestamp(cachedEvent.getTimestamp());
+						message = RTMPMessage.build(event);
+						break;
+					default:
+						event = new Notify(buffer);
+						event.setTimestamp(cachedEvent.getTimestamp());
+						message = RTMPMessage.build(event);
+						break;
+				}
+				// push it down to the recorder
+				recordingConsumer.pushMessage(null, message);
+			} else if (bufferLimit == 0 && dataType == Constants.TYPE_AUDIO_DATA) {
+				log.debug("Stream data size was 0, sending empty audio message");
+				// allow for 0 byte audio packets
+				event = new AudioData(IoBuffer.allocate(0));
+				event.setTimestamp(cachedEvent.getTimestamp());
+				message = RTMPMessage.build(event);
+				// push it down to the recorder
+				recordingConsumer.pushMessage(null, message);
+			} else {
+				log.debug("Stream data size was 0, recording pipe will not be notified");
+			}
+		} catch (InterruptedException e) {
+			log.warn("Taking from queue interrupted", e);
+		} catch (IOException e) {
+			log.warn("Exception while pushing to consumer", e);
+		}				
 	}
 
 	/**
@@ -270,75 +345,17 @@ public class RecordingListener implements IStreamListener {
 	 * @param fileName the fileName to set
 	 */
 	public void setFileName(String fileName) {
+		log.debug("File name: {}", fileName);
 		this.fileName = fileName;
 	}
 
-	private class EventQueueWorker implements Runnable {
+	private class EventQueueJob implements IScheduledJob {
 
-		public void run() {
-			do {
-				CachedEvent cachedEvent;
-				try {
-					IRTMPEvent event = null;
-					RTMPMessage message = null;
-					// get first event in the queue
-					cachedEvent = queue.take();
-					// get the data type
-					final byte dataType = cachedEvent.getDataType();
-					// get the data
-					IoBuffer buffer = cachedEvent.getData();
-					// get the current size of the buffer / data
-					int bufferLimit = buffer.limit();
-					if (bufferLimit > 0) {
-						// create new RTMP message and push to the consumer
-						switch (dataType) {
-							case Constants.TYPE_AGGREGATE:
-								event = new Aggregate(buffer);
-								event.setTimestamp(cachedEvent.getTimestamp());
-								message = RTMPMessage.build(event);
-								break;
-							case Constants.TYPE_AUDIO_DATA:
-								event = new AudioData(buffer);
-								event.setTimestamp(cachedEvent.getTimestamp());
-								message = RTMPMessage.build(event);
-								break;
-							case Constants.TYPE_VIDEO_DATA:
-								event = new VideoData(buffer);
-								event.setTimestamp(cachedEvent.getTimestamp());
-								message = RTMPMessage.build(event);
-								break;
-							default:
-								event = new Notify(buffer);
-								event.setTimestamp(cachedEvent.getTimestamp());
-								message = RTMPMessage.build(event);
-								break;
-						}
-						// push it down to the recorder
-						recordingConsumer.pushMessage(null, message);
-					} else if (bufferLimit == 0 && dataType == Constants.TYPE_AUDIO_DATA) {
-						log.debug("Stream data size was 0, sending empty audio message");
-						// allow for 0 byte audio packets
-						event = new AudioData(IoBuffer.allocate(0));
-						event.setTimestamp(cachedEvent.getTimestamp());
-						message = RTMPMessage.build(event);
-						// push it down to the recorder
-						recordingConsumer.pushMessage(null, message);
-					} else {
-						log.debug("Stream data size was 0, recording pipe will not be notified");
-					}
-				} catch (InterruptedException e) {
-					log.warn("Taking from queue interrupted", e);
-				} catch (IOException e) {
-					log.warn("Exception while pushing to consumer", e);
-				}
-				// go to sleep
-				try {
-					Thread.sleep(100L);
-				} catch (InterruptedException e) {
-				}
-			} while (!stop && !queue.isEmpty());
-			// tell the consumer we're done and to complete its work
-			recordingConsumer.uninit();
+		public void execute(ISchedulingService service) {
+			if (!queue.isEmpty()) {
+				log.debug("Event queue size: {}", queue.size());
+				processQueue();
+			}
 		}
 
 	}

@@ -520,85 +520,78 @@ public class FLVWriter implements ITagWriter {
 	public void close() {
 		log.debug("close");
 		// spawn a thread to finish up our flv writer work
-		Thread closer = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				log.debug("Meta tags: {}", metaTags);
-				long bytesTransferred = 0L;
-				try {
-					lock.acquire();
-					if (!append) {
-						// write the file header
-						writeHeader();
-						// write the metadata with the final duration
-						writeMetadataTag(duration * 0.001d, videoCodecId, audioCodecId);
-						// set the data file the beginning 
-						dataFile.seek(0);
-						bytesTransferred = file.getChannel().transferFrom(dataFile.getChannel(), bytesWritten, dataFile.length());
-					} else {
-						// TODO update duration
+		log.debug("Meta tags: {}", metaTags);
+		long bytesTransferred = 0L;
+		try {
+			lock.acquire();
+			if (!append) {
+				// write the file header
+				writeHeader();
+				// write the metadata with the final duration
+				writeMetadataTag(duration * 0.001d, videoCodecId, audioCodecId);
+				// set the data file the beginning 
+				dataFile.seek(0);
+				bytesTransferred = file.getChannel().transferFrom(dataFile.getChannel(), bytesWritten, dataFile.length());
+			} else {
+				// TODO update duration
 
-					}
-				} catch (IOException e) {
-					log.error("IO error on close", e);
-				} catch (InterruptedException e) {
-					log.warn("Exception acquiring lock", e);
-				} finally {
-					try {
-						if (dataFile != null) {
-							// close the file
-							dataFile.close();
-							// delete the data file only if the bytes were transferred to the flv destination
-							if (bytesTransferred > 0) {
-								File dat = new File(filePath + ".ser");
-								if (dat.exists()) {
-									dat.delete();
-								}
-							} else {
-								log.warn("FLV serial file not deleted due to transfer error");
-							}
-						}
-					} catch (IOException e) {
-						log.error("", e);
-					}
-					try {
-						if (file != null) {
-							// run a test on the flv if debugging is on
-							if (log.isDebugEnabled()) {
-								// debugging
-								try {
-									ITagReader reader = null;
-									if (flv != null) {
-										reader = flv.getReader();
-									}
-									if (reader == null) {
-										file.seek(0);
-										reader = new FLVReader(file.getChannel());
-									}
-									log.trace("reader: {}", reader);
-									log.debug("Has more tags: {}", reader.hasMoreTags());
-									ITag tag = null;
-									while (reader.hasMoreTags()) {
-										tag = reader.readTag();
-										log.debug("\n{}", tag);
-									}
-								} catch (IOException e) {
-									log.warn("", e);
-								}
-							}
-							// close the file
-							file.close();
-						}
-					} catch (IOException e) {
-						log.error("", e);
-					}
-					lock.release();
-					log.debug("{}.flv closed", filePath);
-				}
 			}
-		}, "FLVCloser#" + System.currentTimeMillis());
-		closer.setDaemon(true);
-		closer.start();
+		} catch (IOException e) {
+			log.error("IO error on close", e);
+		} catch (InterruptedException e) {
+			log.warn("Exception acquiring lock", e);
+		} finally {
+			try {
+				if (dataFile != null) {
+					// close the file
+					dataFile.close();
+					// delete the data file only if the bytes were transferred to the flv destination
+					if (bytesTransferred > 0) {
+						File dat = new File(filePath + ".ser");
+						if (dat.exists()) {
+							dat.delete();
+						}
+					} else {
+						log.warn("FLV serial file not deleted due to transfer error");
+					}
+				}
+			} catch (IOException e) {
+				log.error("", e);
+			}
+			try {
+				if (file != null) {
+					// run a test on the flv if debugging is on
+					if (log.isDebugEnabled()) {
+						// debugging
+						try {
+							ITagReader reader = null;
+							if (flv != null) {
+								reader = flv.getReader();
+							}
+							if (reader == null) {
+								file.seek(0);
+								reader = new FLVReader(file.getChannel());
+							}
+							log.trace("reader: {}", reader);
+							log.debug("Has more tags: {}", reader.hasMoreTags());
+							ITag tag = null;
+							while (reader.hasMoreTags()) {
+								tag = reader.readTag();
+								log.debug("\n{}", tag);
+							}
+						} catch (IOException e) {
+							log.warn("", e);
+						}
+					}
+					// close the file
+					file.close();
+				}
+			} catch (IOException e) {
+				log.error("", e);
+			}
+			lock.release();
+			log.debug("{}.flv closed", filePath);
+		}
 	}
 
 	/** {@inheritDoc}

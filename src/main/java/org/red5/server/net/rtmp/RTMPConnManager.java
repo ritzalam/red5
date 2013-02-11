@@ -82,6 +82,22 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection>, Appl
 	}
 
 	/**
+	 * Adds a connection.
+	 * 
+	 * @param conn
+	 */
+	public void setConnection(RTMPTConnection conn) {
+		log.debug("Adding connection: {}", conn);
+		int id = conn.getId();
+		if (id == -1) {
+			log.debug("Connection has unsupported id");
+			id = conn.getSessionId().hashCode();
+		}
+		// add to local map
+		connMap.put(id, conn);
+	}
+	
+	/**
 	 * Returns a connection for a given client id.
 	 * 
 	 * @param clientId
@@ -100,11 +116,12 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection>, Appl
 	 */
 	public RTMPConnection getConnectionBySessionId(String sessionId) {
 		log.debug("Getting connection by session id: {}", sessionId);
+		if (connMap.containsKey(sessionId.hashCode())) {
+			return connMap.get(sessionId.hashCode());
+		}
 		for (RTMPConnection conn : connMap.values()) {
-			if (conn instanceof RTMPTConnection) {
-				if (sessionId.equals(((RTMPTConnection) conn).getSessionId())) {
-					return conn;
-				}
+			if (sessionId.equals(conn.getSessionId())) {
+				return conn;
 			}
 		}
 		return null;

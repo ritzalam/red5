@@ -204,9 +204,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 				final Map<String, Object> params = invoke.getConnectionParams();
 				// Get hostname
 				String host = getHostname((String) params.get("tcUrl"));
-
-				// App name as path, but without query string if there is
-				// one
+				// app name as path, but without query string if there is one
 				String path = (String) params.get("app");
 				if (path.indexOf("?") != -1) {
 					int idx = path.indexOf("?");
@@ -214,9 +212,8 @@ public class RTMPHandler extends BaseRTMPHandler {
 					path = path.substring(0, idx);
 				}
 				params.put("path", path);
-
-				final String sessionId = null;
-				conn.setup(host, path, sessionId, params);
+				// connection setup
+				conn.setup(host, path, params);
 				try {
 					// Lookup server scope when connected
 					// Use host and application name

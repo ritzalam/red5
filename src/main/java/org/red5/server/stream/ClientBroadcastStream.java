@@ -200,9 +200,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		}
 		// if we have a recording listener, inform that this stream is done
 		if (recordingListener != null) {
-			recordingListener.get().closeStream();
 			sendRecordStopNotify();
 			notifyRecordingStop();
+			// inform the listener to finish and close
+			recordingListener.get().stop();
 		}
 		sendPublishStopNotify();
 		// TODO: can we send the client something to make sure he stops sending data?

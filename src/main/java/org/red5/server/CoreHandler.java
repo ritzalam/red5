@@ -31,6 +31,7 @@ import org.red5.server.api.service.IServiceCall;
 import org.red5.server.jmx.mxbeans.CoreHandlerMXBean;
 import org.red5.server.net.rtmp.RTMPConnManager;
 import org.red5.server.net.rtmp.RTMPConnection;
+import org.red5.server.net.rtmpt.RTMPTConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,10 +100,13 @@ public class CoreHandler implements IScopeHandler, CoreHandlerMXBean {
 					// set the client on the connection
 					conn.setClient(client);
 					// add any rtmp connections to the manager
+					RTMPConnManager connManager = RTMPConnManager.getInstance();
 					if (conn instanceof RTMPConnection) {
-						RTMPConnManager connManager = RTMPConnManager.getInstance();
 						// add the connection
 						connManager.setConnection((RTMPConnection) conn);
+					} else if (conn instanceof RTMPTConnection) {
+						// add the connection
+						connManager.setConnection((RTMPTConnection) conn);
 					}
 				}
 				// assign connection to client
