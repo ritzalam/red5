@@ -33,6 +33,9 @@ import org.slf4j.LoggerFactory;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class QuartzSchedulingServiceJob implements Job {
+
+	private Logger log = LoggerFactory.getLogger(QuartzSchedulingServiceJob.class);
+	
 	/**
 	 * Scheduling service constant
 	 */
@@ -42,11 +45,6 @@ public class QuartzSchedulingServiceJob implements Job {
 	 * Scheduled job constant
 	 */
 	protected static final String SCHEDULED_JOB = "scheduled_job";
-
-	/**
-	 * Logger
-	 */
-	private Logger log = LoggerFactory.getLogger(QuartzSchedulingServiceJob.class);
 
 	/** {@inheritDoc} */
 	public void execute(JobExecutionContext arg0) throws JobExecutionException {

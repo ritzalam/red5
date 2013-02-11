@@ -20,10 +20,11 @@
 	</bean>
 	
 	<!-- RTMP -->
-	
-    <bean id="rtmpCodecFactory" class="org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory"/>
+        
+    <!-- RTMP connection manager --> 
+    <bean id="rtmpConnManager" class="org.red5.server.net.rtmp.RTMPConnManager" />  	
     
-	<bean id="rtmpMinaConnManager" class="org.red5.server.net.rtmp.RTMPConnManager" />
+    <bean id="rtmpCodecFactory" class="org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory"/>
 	    
 	<!-- RTMP Handler -->
 	<bean id="rtmpHandler" class="org.red5.server.net.rtmp.RTMPHandler">
@@ -38,7 +39,7 @@
 	<bean id="rtmpMinaIoHandler" class="org.red5.server.net.rtmp.RTMPMinaIoHandler">
 		<property name="handler" ref="rtmpHandler" />
         <property name="codecFactory" ref="rtmpCodecFactory" />
-		<property name="rtmpConnManager" ref="rtmpMinaConnManager" />
+		<property name="rtmpConnManager" ref="rtmpConnManager" />
 	</bean>
 	
 	<!-- RTMP Mina Transport -->
@@ -95,9 +96,7 @@
 	</bean>
 	
 	<!-- RTMPT -->
-	
-	<bean id="rtmptConnManager" class="org.red5.server.net.rtmp.RTMPConnManager" />
-	
+		
 	<!-- RTMPT Handler -->
 	<bean id="rtmptHandler" class="org.red5.server.net.rtmpt.RTMPTHandler" autowire="byType">
 		<property name="codecFactory" ref="rtmptCodecFactory" />
@@ -106,7 +105,7 @@
 	<!-- Use injection to store RTMPT handler in servlet -->
 	<bean id="rtmptServlet"	class="org.red5.server.net.rtmpt.RTMPTServlet">
 		<property name="handler" ref="rtmptHandler" />
-		<property name="rtmpConnManager" ref="rtmptConnManager" />
+		<property name="rtmpConnManager" ref="rtmpConnManager" />
 		<!-- Increasing this value results in better stream performance, but also increases the latency -->
 		<property name="targetResponseSize" value="${rtmpt.target_reponse_size}" />
 		<!-- Response for /fcs/ident2 requests -->
@@ -135,7 +134,7 @@
 <!--    
     <bean id="rtmpsMinaIoHandler" class="org.red5.server.net.rtmps.RTMPSMinaIoHandler">
         <property name="handler" ref="rtmpHandler" />
-        <property name="rtmpConnManager" ref="rtmpMinaConnManager" />
+        <property name="rtmpConnManager" ref="rtmpConnManager" />
         <property name="keyStorePassword" value="${rtmps.keystorepass}" />
         <property name="keystoreFile" value="conf/keystore" />
     </bean>

@@ -18,11 +18,43 @@
 
 package org.red5.server.jmx.mxbeans;
 
+import java.util.List;
+
 import javax.management.MXBean;
 
 @MXBean
-public interface RTMPMinaConnectionMXBean extends RTMPConnectionMXBean {
+public interface RTMPConnectionMXBean extends AttributeStoreMXBean {
 
-    public void invokeMethod(String method);	
-	
+	public String getType();
+
+	public String getHost();
+
+	public String getRemoteAddress();
+
+	public List<String> getRemoteAddresses();
+
+	public int getRemotePort();
+
+	public String getPath();
+
+	public String getSessionId();
+
+	public boolean isConnected();
+
+	public void close();
+
+	public long getReadBytes();
+
+	public long getWrittenBytes();
+
+	public long getReadMessages();
+
+	public long getWrittenMessages();
+
+	public long getDroppedMessages();
+
+	public long getPendingMessages();
+
+	public long getPendingVideoMessages(int streamId);
+
 }

@@ -86,6 +86,14 @@ public class SharedObjectMessage extends BaseEvent implements ISharedObjectMessa
 		this.persistent = persistent;
 	}
 
+	/**
+	 * Resets the version and events to an initial state.
+	 */
+	public void reset() {
+		version = 0;
+		events.clear();
+	}
+	
 	/** {@inheritDoc} */
 	@Override
 	public byte getDataType() {
@@ -191,7 +199,7 @@ public class SharedObjectMessage extends BaseEvent implements ISharedObjectMessa
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder();
-		sb.append(getClass().getSimpleName()).append(": ").append(name).append(" { ");
+		sb.append(getClass().getSimpleName()).append(": ").append(name).append(" v=").append(version).append(" { ");
 		final Iterator<ISharedObjectEvent> it = events.iterator();
 		while (it.hasNext()) {
 			sb.append(it.next());

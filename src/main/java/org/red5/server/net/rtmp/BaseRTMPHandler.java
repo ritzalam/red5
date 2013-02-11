@@ -363,9 +363,9 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 	 *            Channel
 	 * @param source
 	 *            Header
-	 * @param object
-	 *            Shared object event context
+	 * @param message
+	 *            Shared object message
 	 */
-	protected abstract void onSharedObject(RTMPConnection conn, Channel channel, Header source, SharedObjectMessage object);
+	protected abstract void onSharedObject(RTMPConnection conn, Channel channel, Header source, SharedObjectMessage message);
 
 }

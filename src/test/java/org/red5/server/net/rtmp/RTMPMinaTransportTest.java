@@ -102,7 +102,7 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 		int noAV = 0;
 		for (TestRunnable r : trs) {
 			TestClient cli = ((CreatorWorker) r).getClient();
-			System.out.printf("Client %d - audio: %d video: %d\n", cli.getConnection().clientId, cli.getAudioCounter(), cli.getVideoCounter());
+			System.out.printf("Client %d - audio: %d video: %d\n", cli.getConnection().getId(), cli.getAudioCounter(), cli.getVideoCounter());
 			if (cli.getAudioCounter() == 0 || cli.getVideoCounter() == 0) {
 				noAV++;
 			}

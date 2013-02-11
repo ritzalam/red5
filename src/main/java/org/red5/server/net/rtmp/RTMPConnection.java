@@ -225,8 +225,6 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 */
 	protected int limitType = 0;
 
-	protected volatile int clientId;
-
 	/**
 	 * Protocol state
 	 */
@@ -261,11 +259,13 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	}
 
 	public int getId() {
-		return clientId;
+		// handle the fact that a client id is a String
+		return client != null ? client.getId().hashCode() : -1;
 	}
 
+	@Deprecated
 	public void setId(int clientId) {
-		this.clientId = clientId;
+		log.warn("Setting of a client id is deprecated, use IClient to manipulate the id", new Exception("RTMPConnection.setId is deprecated"));
 	}
 
 	public RTMP getState() {
@@ -1146,7 +1146,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + clientId;
+		result = prime * result + getId();
 		if (host != null) {
 			result = result + host.hashCode();
 		}
@@ -1171,7 +1171,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 			return false;
 		}
 		RTMPConnection other = (RTMPConnection) obj;
-		if (clientId != other.clientId) {
+		if (getId() != other.getId()) {
 			return false;
 		}
 		if (host != null && !host.equals(other.getHost())) {
@@ -1186,8 +1186,13 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	/** {@inheritDoc} */
 	@Override
 	public String toString() {
-		Object[] args = new Object[] { getClass().getSimpleName(), getRemoteAddress(), getRemotePort(), getHost(), getReadBytes(), getWrittenBytes() };
-		return String.format("%1$s from %2$s : %3$s to %4$s (in: %5$s out: %6$s)", args);
+		if (log.isDebugEnabled()) {
+			String id = getClient() != null ? getClient().getId() : null;
+			return String.format("%1$s %2$s:%3$s client: %4$s", new Object[] { getClass().getSimpleName(), getRemoteAddress(), getRemotePort(), id});
+		} else {
+			Object[] args = new Object[] { getClass().getSimpleName(), getRemoteAddress(), getRemotePort(), getHost(), getReadBytes(), getWrittenBytes() };
+			return String.format("%1$s from %2$s:%3$s to %4$s (in: %5$s out: %6$s)", args);
+		}
 	}	
 	
 	/**

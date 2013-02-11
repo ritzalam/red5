@@ -30,10 +30,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.Red5;
-import org.red5.server.net.rtmp.IRTMPConnManager;
+import org.red5.server.net.IConnectionManager;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.servlet.ServletUtils;
 import org.slf4j.Logger;
@@ -80,7 +81,7 @@ public class RTMPTServlet extends HttpServlet {
 	 */
 	private static RTMPTHandler handler;
 
-	private static IRTMPConnManager rtmpConnManager;
+	private static IConnectionManager<RTMPTConnection> rtmpConnManager;
 
 	/**
 	 * Response sent for ident2 requests. If this is null a 404 will be returned
@@ -462,7 +463,7 @@ public class RTMPTServlet extends HttpServlet {
 	public void destroy() {
 		if (rtmpConnManager != null) {
 			// Cleanup connections
-			Collection<RTMPConnection> conns = rtmpConnManager.removeConnections();
+			Collection<RTMPTConnection> conns = rtmpConnManager.removeConnections();
 			for (RTMPConnection conn : conns) {
 				if (conn instanceof RTMPTConnection) {
 					log.debug("Connection scope on destroy: {}", conn.getScope());
@@ -509,6 +510,10 @@ public class RTMPTServlet extends HttpServlet {
 	protected RTMPTConnection createConnection() {
 		RTMPTConnection conn = (RTMPTConnection) rtmpConnManager.createConnection(RTMPTConnection.class);
 		if (conn != null) {
+			String sessionId = RandomStringUtils.randomAlphanumeric(13).toUpperCase();
+			log.debug("Generated session id: {}", sessionId);
+			conn.setSessionId(sessionId);
+			// set handler 
 			conn.setHandler(handler);
 			conn.setDecoder(handler.getCodecFactory().getRTMPDecoder());
 			conn.setEncoder(handler.getCodecFactory().getRTMPEncoder());
@@ -528,7 +533,7 @@ public class RTMPTServlet extends HttpServlet {
 		}
 	}
 
-	public void setRtmpConnManager(IRTMPConnManager rtmpConnManager) {
+	public void setRtmpConnManager(IConnectionManager<RTMPTConnection> rtmpConnManager) {
 		RTMPTServlet.rtmpConnManager = rtmpConnManager;
 	}
 

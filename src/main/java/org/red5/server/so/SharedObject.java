@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.red5.io.object.Deserializer;
@@ -35,8 +36,6 @@ import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
-import org.red5.server.api.scheduling.IScheduledJob;
-import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.scope.ScopeType;
 import org.red5.server.api.statistics.ISharedObjectStatistics;
 import org.red5.server.api.statistics.support.StatisticsCounter;
@@ -66,9 +65,7 @@ import org.slf4j.LoggerFactory;
  * synchronized for multi-threaded access.
  */
 public class SharedObject extends AttributeStore implements ISharedObjectStatistics, IPersistable, Constants {
-	/**
-	 * Logger
-	 */
+ 
 	protected static Logger log = LoggerFactory.getLogger(SharedObject.class);
 
 	/**
@@ -162,6 +159,11 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 	 */
 	protected AtomicInteger sendStats = new AtomicInteger();
 
+	/**
+	 * Whether or not this shared object is closed
+	 */
+	protected AtomicBoolean closed = new AtomicBoolean(false);
+	
 	/** Constructs a new SharedObject. */
 	public SharedObject() {
 		// This is used by the persistence framework
@@ -329,12 +331,12 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 					if (listener instanceof RTMPConnection) {
 						final RTMPConnection con = (RTMPConnection) listener;
 						// create a worker
-						IScheduledJob job = new IScheduledJob() {
-							public void execute(ISchedulingService service) {
+						//IScheduledJob job = new IScheduledJob() {
+						//	public void execute(ISchedulingService service) {
 								con.sendSharedObjectMessage(name, currentVersion, persistent, events);
-							}
-						};
-						SharedObjectService.submitJob(job);
+						//	}
+						//};
+						//SharedObjectService.submitJob(job);
 					} else {
 						log.warn("Can't send sync message to unknown connection {}", listener);
 					}
@@ -574,7 +576,6 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 		log.debug("unregister - listener: {}", listener);
 		listeners.remove(listener);
 		listenerStats.decrement();
-		checkRelease();
 	}
 
 	/**
@@ -690,6 +691,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 	 */
 	protected void close() {
 		log.debug("close");
+		closed.compareAndSet(false, true);
 		// clear collections
 		super.removeAttributes();
 		listeners.clear();
@@ -731,6 +733,10 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 		}
 	}
 
+	public boolean isClosed() {
+		return closed.get();
+	}
+	
 	/** {@inheritDoc} */
 	public long getCreationTime() {
 		return creationTime;

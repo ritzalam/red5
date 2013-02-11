@@ -29,6 +29,8 @@ import org.red5.server.api.scope.IScope;
 import org.red5.server.api.scope.IScopeHandler;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.jmx.mxbeans.CoreHandlerMXBean;
+import org.red5.server.net.rtmp.RTMPConnManager;
+import org.red5.server.net.rtmp.RTMPConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +40,7 @@ import org.slf4j.LoggerFactory;
 public class CoreHandler implements IScopeHandler, CoreHandlerMXBean {
 
 	protected static Logger log = LoggerFactory.getLogger(CoreHandler.class);
-
+	
 	/** {@inheritDoc} */
 	public boolean addChildScope(IBasicScope scope) {
 		return true;
@@ -64,22 +66,19 @@ public class CoreHandler implements IScopeHandler, CoreHandlerMXBean {
 	 * @return                      true if client was registered within scope, false otherwise
 	 */
 	public boolean connect(IConnection conn, IScope scope, Object[] params) {
+		log.debug("connect - conn: {} scope: {}", conn, scope);
 		// DW urrr this is a slightly strange place to do this, but this is where we create the Client object that consolidates connections
 		// from a single client/FP. Now for more strangeness, I've only been looking at RTMPConnection derivatives, but it's setup() method
 		// seems the only way that the session id is passed in to the newly established connection and this is currently *always* passed in
 		// as null. I'm guessing that either the Flash Player passes some kind of unique id to us that is not being used, or that the idea
 		// originally was to make our own session id, for example by combining client information with the IP address or something like that.
-		log.debug("Connect to core handler");
 		boolean connect = false;
-
 		// Get session id
 		String id = conn.getSessionId();
 		log.trace("Session id: {}", id);
-
 		// Use client registry from scope the client connected to
 		IScope connectionScope = Red5.getConnectionLocal().getScope();
 		log.debug("Connection scope: {}", (connectionScope == null ? "is null" : "not null"));
-
 		// when the scope is null bad things seem to happen, if a null scope is OK then
 		// this block will need to be removed - Paul
 		if (connectionScope != null) {
@@ -97,8 +96,16 @@ public class CoreHandler implements IScopeHandler, CoreHandlerMXBean {
 				} else {
 					// This is a new connection. Create a new client to hold it
 					client = clientRegistry.newClient(params);
+					// set the client on the connection
+					conn.setClient(client);
+					// add any rtmp connections to the manager
+					if (conn instanceof RTMPConnection) {
+						RTMPConnManager connManager = RTMPConnManager.getInstance();
+						// add the connection
+						connManager.setConnection((RTMPConnection) conn);
+					}
 				}
-				// Assign connection to client
+				// assign connection to client
 				conn.initialize(client);
 				// we could checked for banned clients here
 				connect = true;
@@ -108,7 +115,6 @@ public class CoreHandler implements IScopeHandler, CoreHandlerMXBean {
 		} else {
 			log.error("No connection scope was found");
 		}
-
 		return connect;
 	}
 

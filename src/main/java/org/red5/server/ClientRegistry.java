@@ -53,7 +53,7 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMXBean {
 	/**
 	 *  Next client id
 	 */
-	private AtomicInteger nextId = new AtomicInteger();
+	private AtomicInteger nextId = new AtomicInteger(0);
 
 	/**
 	 * The identifier for this client registry

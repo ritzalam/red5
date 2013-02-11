@@ -117,10 +117,17 @@ public interface IConnection extends ICoreObject, ICastingAttributeStore {
 	/**
 	 * Return the parameters that were given in the call to "connect".
 	 * 
-	 * @return                 Connection parameters passed from client-side (Flex/Flash application)
+	 * @return Connection parameters passed from client-side (Flex/Flash application)
 	 */
 	public Map<String, Object> getConnectParams();
 
+	/**
+	 * Sets the Client.
+	 * 
+	 * @param client
+	 */
+	public void setClient(IClient client);
+	
 	/**
 	 * Get the client object associated with this connection.
 	 * 
@@ -226,14 +233,14 @@ public interface IConnection extends ICoreObject, ICastingAttributeStore {
 	public long getClientBytesRead();
 
 	/**
-	 * Start measuring the roundtrip time for a packet on the connection.
+	 * Start measuring the round-trip time for a packet on the connection.
 	 */
 	public void ping();
 
 	/**
-	 * Return roundtrip time of last ping command.
+	 * Return round-trip time of last ping command.
 	 * 
-	 * @return roundtrip time in milliseconds
+	 * @return round-trip time in milliseconds
 	 */
 	public int getLastPingTime();
 
@@ -273,4 +280,5 @@ public interface IConnection extends ICoreObject, ICastingAttributeStore {
 	 * @param listener
 	 */
 	public void removeListener(IConnectionListener listener);
+
 }

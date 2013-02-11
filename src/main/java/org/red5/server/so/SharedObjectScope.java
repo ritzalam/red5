@@ -34,6 +34,8 @@ import org.red5.server.api.IContext;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.persistence.IPersistenceStore;
+import org.red5.server.api.scheduling.IScheduledJob;
+import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.scope.IScope;
 import org.red5.server.api.scope.ScopeType;
 import org.red5.server.api.so.ISharedObject;
@@ -42,6 +44,7 @@ import org.red5.server.api.so.ISharedObjectSecurity;
 import org.red5.server.api.so.ISharedObjectSecurityService;
 import org.red5.server.api.statistics.ISharedObjectStatistics;
 import org.red5.server.net.rtmp.status.StatusCodes;
+import org.red5.server.scheduling.QuartzSchedulingService;
 import org.red5.server.scope.BasicScope;
 import org.red5.server.service.ReflectionUtils;
 import org.red5.server.util.ScopeUtils;
@@ -52,9 +55,7 @@ import org.slf4j.LoggerFactory;
  * Special scope for shared objects
  */
 public class SharedObjectScope extends BasicScope implements ISharedObject, StatusCodes {
-	/**
-	 * Logger
-	 */
+
 	private Logger log = LoggerFactory.getLogger(SharedObjectScope.class);
 
 	/**
@@ -81,6 +82,16 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 	 * Scoped shared object
 	 */
 	protected volatile SharedObject so;
+
+	/**
+	 * Time to linger before checking for disposal
+	 */
+	private long lingerPeriod = 5000L;
+	
+	/**
+	 * Linger job name
+	 */
+	private String lingerJobName;
 
 	/**
 	 * Creates shared object with given parent scope, name, persistence flag state and store object
@@ -283,12 +294,12 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 			listener.onSharedObjectClear(this);
 		}
 	}
-	
+
 	/** {@inheritDoc} */
 	public int size() {
 		return so != null ? so.getAttributeNames().size() : 0;
-	}	
-	
+	}
+
 	/** {@inheritDoc} */
 	@Override
 	public boolean addEventListener(IEventListener listener) {
@@ -302,6 +313,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 	/** {@inheritDoc} */
 	@Override
 	public boolean removeEventListener(IEventListener listener) {
+		// remove the listener from the so
 		so.unregister(listener);
 		// if we have not been released by all that acquired then keep on disconnection of the last listener
 		if (so.isAcquired()) {
@@ -310,15 +322,27 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 		}
 		// remove the listener
 		boolean result = super.removeEventListener(listener);
-		// check acquire
-		if (!so.isPersistent() && !so.isAcquired() && so.getListeners().isEmpty()) {
-			log.debug("Removing scope: {}", this);
-			getParent().removeChildScope(this);
-		} else {
-			log.debug("Shared object has listeners: {}", !so.getListeners().isEmpty());
-		}
+		// notify other listeners that someone has stopped listening
 		for (ISharedObjectListener soListener : serverListeners) {
 			soListener.onSharedObjectDisconnect(this);
+		}
+		// check that linger job has be set
+		if (lingerJobName == null) {
+			// start a job to allow the so to linger for just a few ticks
+			QuartzSchedulingService scheduler = (QuartzSchedulingService) getParent().getContext().getBean(QuartzSchedulingService.BEAN_NAME);
+			IScheduledJob job = new IScheduledJob() {
+				public void execute(ISchedulingService service) {
+					if (so != null && !so.isClosed()) {
+						so.checkRelease();
+					}
+				}
+			};
+			lingerJobName = scheduler.addScheduledOnceJob(lingerPeriod, job);
+		}
+		// check acquire
+		if (so.isClosed()) {
+			log.debug("Removing scope: {}", this);
+			getParent().removeChildScope(this);
 		}
 		return result;
 	}

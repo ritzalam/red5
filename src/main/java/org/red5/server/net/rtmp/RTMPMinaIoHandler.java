@@ -26,6 +26,7 @@ import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.logging.LoggingFilter;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
+import org.red5.server.net.IConnectionManager;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmpe.RTMPEIoFilter;
@@ -46,7 +47,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 
 	protected ProtocolCodecFactory codecFactory;
 	
-	protected IRTMPConnManager rtmpConnManager;
+	protected IConnectionManager<RTMPConnection> rtmpConnManager;
 
 	/** {@inheritDoc} */
 	@Override
@@ -198,11 +199,11 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		this.codecFactory = codecFactory;
 	}
 
-	public void setRtmpConnManager(IRTMPConnManager rtmpConnManager) {
+	public void setRtmpConnManager(IConnectionManager<RTMPConnection> rtmpConnManager) {
 		this.rtmpConnManager = rtmpConnManager;
 	}
 
-	protected IRTMPConnManager getRtmpConnManager() {
+	protected IConnectionManager<RTMPConnection> getRtmpConnManager() {
 		return rtmpConnManager;
 	}
 

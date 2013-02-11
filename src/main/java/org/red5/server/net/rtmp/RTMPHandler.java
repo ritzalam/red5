@@ -148,6 +148,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 			log.debug("Scope: {} handler: {}", scope, handler);
 			if (!handler.serviceCall(conn, call)) {
 				// XXX: What to do here? Return an error?
+				log.warn("Scope: {} handler failed on service call", scope.getName(), new Exception("Service call failed"));
 				return;
 			}
 		}
@@ -180,7 +181,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 	@SuppressWarnings({ "unchecked" })
 	@Override
 	protected void onInvoke(RTMPConnection conn, Channel channel, Header source, Notify invoke, RTMP rtmp) {
-		log.debug("Invoke: {}", invoke);
+		log.debug("{}", invoke);
 		// Get call
 		final IServiceCall call = invoke.getCall();
 		//log.debug("Call: {}", call);
@@ -257,7 +258,11 @@ public class RTMPHandler extends BaseRTMPHandler {
 							disconnectOnReturn = true;
 						}
 						if (scope != null) {
-							log.info("Connecting to: {}", scope);
+							if (log.isDebugEnabled()) {
+								log.debug("Connecting to: {}", scope);								
+							} else {
+								log.info("Connecting to: {}", scope.getName());
+							}
 							boolean okayToConnect;
 							try {
 								log.debug("Conn {}, scope {}, call {}", new Object[] { conn, scope, call });
@@ -389,6 +394,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 						}
 						break;
 					default:
+						log.debug("Defaulting to invoke for: {}", action);
 						invokeCall(conn, call);
 				}
 			}
@@ -461,7 +467,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 				if (stream == null) {
 					// Remember buffer time until stream is created
 					conn.rememberStreamBufferDuration(streamId, buffer);
-					log.info("Remembering client buffer on stream: {}", buffer);
+					log.debug("Remembering client buffer on stream: {}", buffer);
 				}
 				break;
 			case Ping.PONG_SERVER:
@@ -477,27 +483,35 @@ public class RTMPHandler extends BaseRTMPHandler {
 	 * Create and send SO message stating that a SO could not be created.
 	 * 
 	 * @param conn
-	 * @param name
-	 * @param persistent
+	 * @param message Shared object message that incurred the failure
 	 */
-	private void sendSOCreationFailed(RTMPConnection conn, String name, boolean persistent) {
-		log.warn("sendSOCreationFailed - name: {} persistent: {} conn: {}", new Object[] { name, persistent, conn });
-		SharedObjectMessage msg = new SharedObjectMessage(name, 0, persistent);
-		msg.addEvent(new SharedObjectEvent(ISharedObjectEvent.Type.CLIENT_STATUS, "error", SO_CREATION_FAILED));
-		conn.getChannel(3).write(msg);
+	private void sendSOCreationFailed(RTMPConnection conn, SharedObjectMessage message) {
+		log.debug("sendSOCreationFailed - message: {} conn: {}", message, conn);
+		// reset the object so we can re-use it
+		message.reset();
+		// add the error event
+		message.addEvent(new SharedObjectEvent(ISharedObjectEvent.Type.CLIENT_STATUS, "error", SO_CREATION_FAILED));
+		if (conn.isChannelUsed(3)) {
+			// XXX Paul: I dont like this direct write stuff, need to move to event-based
+			conn.getChannel(3).write(message);
+		} else {
+			log.warn("Channel is not in-use and cannot handle SO event: {}", message, new Exception("SO event handling failure"));
+			// XXX Paul: I dont like this direct write stuff, need to move to event-based
+			conn.getChannel(3).write(message);
+		}
 	}
 
 	/** {@inheritDoc} */
 	@Override
-	protected void onSharedObject(RTMPConnection conn, Channel channel, Header source, SharedObjectMessage object) {
-		log.debug("onSharedObject: {}", object);
-		// so name
-		String name = object.getName();
-		// whether or not the incoming so is persistent
-		boolean persistent = object.isPersistent();
-		log.debug("Incoming shared object - name: {} persistence: {}", name, persistent);
+	protected void onSharedObject(RTMPConnection conn, Channel channel, Header source, SharedObjectMessage message) {
+		log.debug("onSharedObject - conn: {} so message: {}", conn, message);
 		final IScope scope = conn.getScope();
 		if (scope != null) {
+			// so name
+			String name = message.getName();
+			// whether or not the incoming so is persistent
+			boolean persistent = message.isPersistent();
+			// shared object service
 			ISharedObjectService sharedObjectService = (ISharedObjectService) ScopeUtils.getScopeService(scope, ISharedObjectService.class, SharedObjectService.class, false);
 			if (!sharedObjectService.hasSharedObject(scope, name)) {
 				log.debug("Shared object service doesnt have requested object, creation will be attempted");
@@ -507,32 +521,32 @@ public class RTMPHandler extends BaseRTMPHandler {
 					for (ISharedObjectSecurity handler : security.getSharedObjectSecurity()) {
 						if (!handler.isCreationAllowed(scope, name, persistent)) {
 							log.debug("Shared object create failed, creation is not allowed");
-							sendSOCreationFailed(conn, name, persistent);
+							sendSOCreationFailed(conn, message);
 							return;
 						}
 					}
 				}
 				if (!sharedObjectService.createSharedObject(scope, name, persistent)) {
 					log.debug("Shared object create failed");
-					sendSOCreationFailed(conn, name, persistent);
+					sendSOCreationFailed(conn, message);
 					return;
 				}
 			}
 			ISharedObject so = sharedObjectService.getSharedObject(scope, name);
-			so.dispatchEvent(object);
-			if (so.isPersistent() != persistent) {
+			if (so.isPersistent() == persistent) {
+				so.dispatchEvent(message);
+			} else {
 				log.warn("Shared object persistence mismatch - current: {} incoming: {}", so.isPersistent(), persistent);
-				/* Sending the following message seems to screw up follow-on handling of SO events
-				SharedObjectMessage msg = new SharedObjectMessage(name, 0, persistent);
-				msg.addEvent(new SharedObjectEvent(ISharedObjectEvent.Type.CLIENT_STATUS, "error", SO_PERSISTENCE_MISMATCH));
-				conn.getChannel(3).write(msg);
-				*/
+				// reset the object so we can re-use it
+				message.reset();
+				// add the error event
+				message.addEvent(new SharedObjectEvent(ISharedObjectEvent.Type.CLIENT_STATUS, "error", SO_PERSISTENCE_MISMATCH));
+				conn.getChannel(3).write(message);
 			}
 		} else {
 			// The scope already has been deleted
 			log.debug("Shared object scope was not found");
-			sendSOCreationFailed(conn, name, persistent);
-			return;
+			sendSOCreationFailed(conn, message);
 		}
 	}
 

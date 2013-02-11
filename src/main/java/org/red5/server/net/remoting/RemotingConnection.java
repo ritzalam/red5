@@ -196,6 +196,11 @@ public class RemotingConnection implements IRemotingConnection {
 	public Map<String, Object> getConnectParams() {
 		return packet.getHeaders();
 	}
+	
+	/** {@inheritDoc} */
+	public void setClient(IClient client) {
+		session.setAttribute(CLIENT, client);
+	}	
 
 	/** {@inheritDoc} */
 	public IClient getClient() {

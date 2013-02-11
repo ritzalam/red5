@@ -45,7 +45,7 @@ public interface ISharedObjectService extends IScopeService {
 	 * @param scope the scope to create the shared object in
 	 * @param name the name of the shared object
 	 * @param persistent will the shared object be persistent
-	 * @return <code>true</code> if the shared object was created, otherwise
+	 * @return <code>true</code> if the shared object was created or already exists, otherwise
 	 *         <code>false</code>
 	 */
 	public boolean createSharedObject(IScope scope, String name, boolean persistent);

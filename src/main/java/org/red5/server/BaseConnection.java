@@ -28,7 +28,6 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.red5.server.api.IClient;
@@ -138,11 +137,6 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	private final Semaphore writeLock = new Semaphore(1, true);
 
 	/**
-	 * Used for generation of client ids that may be shared across the server
-	 */
-	private final static AtomicInteger clientIdGenerator = new AtomicInteger(0);
-
-	/**
 	 * Creates a new persistent base connection
 	 */
 	@ConstructorProperties(value = { "persistent" })
@@ -198,15 +192,6 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	/** {@inheritDoc} */
 	public void removeListener(IConnectionListener listener) {
 		this.connectionListeners.remove(listener);
-	}
-
-	/**
-	 * Returns the next available client id.
-	 *
-	 * @return new client id
-	 */
-	public static int getNextClientId() {
-		return clientIdGenerator.incrementAndGet();
 	}
 
 	/**
@@ -295,12 +280,13 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	public Map<String, Object> getConnectParams() {
 		return Collections.unmodifiableMap(params);
 	}
+	
+	/** {@inheritDoc} */
+	public void setClient(IClient client) {
+		this.client = client;
+	}
 
-	/**
-	 * Returns the Client
-	 * 
-	 * @return client
-	 */
+	/** {@inheritDoc} */
 	public IClient getClient() {
 		return client;
 	}
