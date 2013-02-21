@@ -18,8 +18,8 @@
 
 package org.red5.server.net.rtmp.codec;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.net.protocol.ProtocolState;
@@ -30,9 +30,9 @@ import org.red5.server.net.rtmp.message.Packet;
  * RTMP is the RTMP protocol state representation.
  */
 public class RTMP extends ProtocolState {
-	
-	public String[] states = {"connect", "handshake", "connected", "error", "disconnecting", "disconnected"};
-	
+
+	public String[] states = { "connect", "handshake", "connected", "error", "disconnecting", "disconnected" };
+
 	/**
 	 * Connect state
 	 */
@@ -56,8 +56,8 @@ public class RTMP extends ProtocolState {
 	/**
 	 * In the processing of disconnecting
 	 */
-	public static final byte STATE_DISCONNECTING = 0x04;	
-	
+	public static final byte STATE_DISCONNECTING = 0x04;
+
 	/**
 	 * Disconnected
 	 */
@@ -89,105 +89,14 @@ public class RTMP extends ProtocolState {
 	private volatile byte state = STATE_CONNECT;
 
 	/**
-	 * Debug flag.
-	 */
-	private boolean debug;
-
-	/**
 	 * Encryption flag.
 	 */
 	private boolean encrypted = false;
 
 	/**
-	 * Last read channel.
+	 * Map for channels, keyed by channel id.
 	 */
-	private int lastReadChannel = 0x00;
-
-	/**
-	 * Last write channel.
-	 */
-	private int lastWriteChannel = 0x00;
-
-	/**
-	 * Read headers, keyed by channel id.
-	 */
-	private final Map<Integer, Header> readHeaders = new HashMap<Integer, Header>();
-
-	/**
-	 * Write headers, keyed by channel id.
-	 */
-	private final Map<Integer, Header> writeHeaders = new HashMap<Integer, Header>();
-
-	/**
-	 * Headers actually used for a packet, keyed by channel id.
-	 */
-	private final Map<Integer, Header> readPacketHeaders = new HashMap<Integer, Header>();
-
-	/**
-	 * Read packets, keyed by channel id.
-	 */
-	private final Map<Integer, Packet> readPackets = new HashMap<Integer, Packet>();
-
-	/**
-	 * Written packets, keyed by channel id.
-	 */
-	private final Map<Integer, Packet> writePackets = new HashMap<Integer, Packet>();
-
-	/**
-	 * Written timestamps
-	 */
-	private final Map<Integer, Integer> writeTimestamps = new HashMap<Integer, Integer>();
-
-	/**
-	 * Class for mapping between clock time and stream time for live streams
-	 * @author aclarke
-	 *
-	 */
-	static class LiveTimestampMapping {
-		private final long clockStartTime;
-
-		private final long streamStartTime;
-
-		private boolean keyFrameNeeded;
-
-		private long lastStreamTime;
-
-		public LiveTimestampMapping(long clockStartTime, long streamStartTime) {
-			this.clockStartTime = clockStartTime;
-			this.streamStartTime = streamStartTime;
-			this.keyFrameNeeded = true; // Always start with a key frame
-			this.lastStreamTime = streamStartTime;
-		}
-
-		public long getStreamStartTime() {
-			return streamStartTime;
-		}
-
-		public long getClockStartTime() {
-			return clockStartTime;
-		}
-
-		public void setKeyFrameNeeded(boolean keyFrameNeeded) {
-			this.keyFrameNeeded = keyFrameNeeded;
-		}
-
-		public boolean isKeyFrameNeeded() {
-			return keyFrameNeeded;
-		}
-
-		public long getLastStreamTime() {
-			return lastStreamTime;
-		}
-
-		public void setLastStreamTime(long lastStreamTime) {
-			this.lastStreamTime = lastStreamTime;
-		}
-	}
-
-	/**
-	 * Mapping between channel and the last clock to stream mapping
-	 */
-	private final Map<Integer, LiveTimestampMapping> liveTimestamps = new HashMap<Integer, LiveTimestampMapping>();
+	private final ConcurrentMap<Integer, ChannelInfo> channels = new ConcurrentHashMap<Integer, ChannelInfo>(3, 0.9f, 1);
 
 	/**
 	 * Read chunk size. Packets are read and written chunk-by-chunk.
@@ -211,21 +120,21 @@ public class RTMP extends ProtocolState {
 	}
 
 	/**
-	 * Getter for debug.
-	 *
-	 * @return  Debug state
+	 * Returns channel information for a given channel id.
+	 * 
+	 * @param channelId
+	 * @return channel info
 	 */
-	public boolean isDebug() {
-		return debug;
-	}
-
-	/**
-	 * Setter for debug.
-	 *
-	 * @param debug  Debug flag new value
-	 */
-	public void setDebug(boolean debug) {
-		this.debug = debug;
+	private ChannelInfo getChannelInfo(int channelId) {
+		ChannelInfo info = channels.get(channelId);
+		if (info == null) {
+			info = new ChannelInfo();
+			ChannelInfo prev = channels.putIfAbsent(channelId, info);
+			if (prev != null) {
+				info = prev;
+			}
+		}
+		return info;
 	}
 
 	/**
@@ -252,17 +161,25 @@ public class RTMP extends ProtocolState {
 	}
 
 	/**
-	 * Releases number of packets.
+	 * Releases a packet.
 	 *
-	 * @param packets            Packets to release
+	 * @param packet            Packet to release
 	 */
-	private void freePackets(Map<Integer, Packet> packets) {
-		for (Packet packet : packets.values()) {
-			if (packet != null) {
-				packet.clearData();
-			}
+	private void freePacket(Packet packet) {
+		if (packet != null && packet.getData() != null) {
+			packet.clearData();
 		}
-		packets.clear();
+	}
+
+	/**
+	 * Releases the channels.
+	 */
+	private void freeChannels() {
+		for (ChannelInfo info : channels.values()) {
+			freePacket(info.getReadPacket());
+			freePacket(info.getWritePacket());
+		}
+		channels.clear();
 	}
 
 	/**
@@ -273,11 +190,7 @@ public class RTMP extends ProtocolState {
 	public void setState(byte state) {
 		this.state = state;
 		if (state == STATE_DISCONNECTED) {
-			// Free temporary packets
-			freePackets(readPackets);
-			freePackets(writePackets);
-			readHeaders.clear();
-			writeHeaders.clear();
+			freeChannels();
 		}
 	}
 
@@ -288,8 +201,7 @@ public class RTMP extends ProtocolState {
 	 * @param header               Header
 	 */
 	public void setLastReadHeader(int channelId, Header header) {
-		lastReadChannel = channelId;
-		readHeaders.put(channelId, header);
+		getChannelInfo(channelId).setReadHeader(header);
 	}
 
 	/**
@@ -299,7 +211,7 @@ public class RTMP extends ProtocolState {
 	 * @return                      Last read header
 	 */
 	public Header getLastReadHeader(int channelId) {
-		return readHeaders.get(channelId);
+		return getChannelInfo(channelId).getReadHeader();
 	}
 
 	/**
@@ -309,8 +221,7 @@ public class RTMP extends ProtocolState {
 	 * @param header                Header
 	 */
 	public void setLastWriteHeader(int channelId, Header header) {
-		lastWriteChannel = channelId;
-		writeHeaders.put(channelId, header);
+		getChannelInfo(channelId).setWriteHeader(header);
 	}
 
 	/**
@@ -320,7 +231,7 @@ public class RTMP extends ProtocolState {
 	 * @return                      Last written header
 	 */
 	public Header getLastWriteHeader(int channelId) {
-		return writeHeaders.get(channelId);
+		return getChannelInfo(channelId).getWriteHeader();
 	}
 
 	/**
@@ -330,10 +241,13 @@ public class RTMP extends ProtocolState {
 	 * @param packet              Packet
 	 */
 	public void setLastReadPacket(int channelId, Packet packet) {
-		Packet prevPacket = readPackets.put(channelId, packet);
-		if (prevPacket != null) {
-			prevPacket.clearData();
-		}
+		final ChannelInfo info = getChannelInfo(channelId);
+		// grab last packet
+		Packet prevPacket = info.getReadPacket();
+		// set new one
+		info.setReadPacket(packet);
+		// free the previous packet
+		freePacket(prevPacket);
 	}
 
 	/**
@@ -343,7 +257,7 @@ public class RTMP extends ProtocolState {
 	 * @return                    Last read packet for that channel
 	 */
 	public Packet getLastReadPacket(int channelId) {
-		return readPackets.get(channelId);
+		return getChannelInfo(channelId).getReadPacket();
 	}
 
 	/**
@@ -370,25 +284,7 @@ public class RTMP extends ProtocolState {
 	 * @return                    Packet that has been written last
 	 */
 	public Packet getLastWritePacket(int channelId) {
-		return writePackets.get(channelId);
-	}
-
-	/**
-	 * Return channel being read last.
-	 *
-	 * @return  Last read channel
-	 */
-	public int getLastReadChannel() {
-		return lastReadChannel;
-	}
-
-	/**
-	 * Getter for channel being written last.
-	 *
-	 * @return  Last write channel
-	 */
-	public int getLastWriteChannel() {
-		return lastWriteChannel;
+		return getChannelInfo(channelId).getWritePacket();
 	}
 
 	/**
@@ -446,27 +342,27 @@ public class RTMP extends ProtocolState {
 	}
 
 	public void setLastFullTimestampWritten(int channelId, int timer) {
-		writeTimestamps.put(channelId, timer);
+		getChannelInfo(channelId).setWriteTimestamp(timer);
 	}
 
-	public Integer getLastFullTimestampWritten(int channelId) {
-		return writeTimestamps.get(channelId);
+	public int getLastFullTimestampWritten(int channelId) {
+		return getChannelInfo(channelId).getWriteTimestamp();
 	}
 
 	public void setLastReadPacketHeader(int channelId, Header header) {
-		readPacketHeaders.put(channelId, header);
+		getChannelInfo(channelId).setReadPacketHeader(header);
 	}
 
 	public Header getLastReadPacketHeader(int channelId) {
-		return readPacketHeaders.get(channelId);
+		return getChannelInfo(channelId).getReadPacketHeader();
 	}
 
 	LiveTimestampMapping getLastTimestampMapping(int channelId) {
-		return liveTimestamps.get(channelId);
+		return getChannelInfo(channelId).getLiveTimestamp();
 	}
 
 	void setLastTimestampMapping(int channelId, LiveTimestampMapping mapping) {
-		liveTimestamps.put(channelId, mapping);
+		getChannelInfo(channelId).setLiveTimestamp(mapping);
 	}
 
 	/* (non-Javadoc)
@@ -474,10 +370,177 @@ public class RTMP extends ProtocolState {
 	 */
 	@Override
 	public String toString() {
-		return "RTMP [state=" + states[state] + ", debug=" + debug + ", encrypted=" + encrypted + ", lastReadChannel=" + lastReadChannel + ", lastWriteChannel="
-				+ lastWriteChannel + ", readHeaders=" + readHeaders + ", writeHeaders=" + writeHeaders + ", readPacketHeaders=" + readPacketHeaders + ", readPackets="
-				+ readPackets + ", writePackets=" + writePackets + ", writeTimestamps=" + writeTimestamps + ", liveTimestamps=" + liveTimestamps + ", readChunkSize="
-				+ readChunkSize + ", writeChunkSize=" + writeChunkSize + ", encoding=" + encoding + "]";
+		return "RTMP [state=" + states[state] + ", encrypted=" + encrypted + ", readChunkSize=" + readChunkSize + ", writeChunkSize=" + writeChunkSize + ", encoding=" + encoding
+				+ "]";
+	}
+
+	/**
+	 * Class for mapping between clock time and stream time for live streams
+	 */
+	final static class LiveTimestampMapping {
+		private final long clockStartTime;
+
+		private final long streamStartTime;
+
+		private boolean keyFrameNeeded;
+
+		private long lastStreamTime;
+
+		public LiveTimestampMapping(long clockStartTime, long streamStartTime) {
+			this.clockStartTime = clockStartTime;
+			this.streamStartTime = streamStartTime;
+			this.keyFrameNeeded = true; // Always start with a key frame
+			this.lastStreamTime = streamStartTime;
+		}
+
+		public long getStreamStartTime() {
+			return streamStartTime;
+		}
+
+		public long getClockStartTime() {
+			return clockStartTime;
+		}
+
+		public void setKeyFrameNeeded(boolean keyFrameNeeded) {
+			this.keyFrameNeeded = keyFrameNeeded;
+		}
+
+		public boolean isKeyFrameNeeded() {
+			return keyFrameNeeded;
+		}
+
+		public long getLastStreamTime() {
+			return lastStreamTime;
+		}
+
+		public void setLastStreamTime(long lastStreamTime) {
+			this.lastStreamTime = lastStreamTime;
+		}
+	}
+
+	/**
+	 * Channel details
+	 */
+	private final static class ChannelInfo {
+		// read header
+		private Header readHeader;
+
+		// write header
+		private Header writeHeader;
+
+		// packet header
+		private Header readPacketHeader;
+
+		// read packet
+		private Packet readPacket;
+
+		// written packet
+		private Packet writePacket;
+
+		// written timestamp
+		private int writeTimestamp;
+
+		// used for live streams
+		private LiveTimestampMapping liveTimestamp;
+
+		/**
+		 * @return the readHeader
+		 */
+		public Header getReadHeader() {
+			return readHeader;
+		}
+
+		/**
+		 * @param readHeader the readHeader to set
+		 */
+		public void setReadHeader(Header readHeader) {
+			this.readHeader = readHeader;
+		}
+
+		/**
+		 * @return the writeHeader
+		 */
+		public Header getWriteHeader() {
+			return writeHeader;
+		}
+
+		/**
+		 * @param writeHeader the writeHeader to set
+		 */
+		public void setWriteHeader(Header writeHeader) {
+			this.writeHeader = writeHeader;
+		}
+
+		/**
+		 * @return the readPacketHeader
+		 */
+		public Header getReadPacketHeader() {
+			return readPacketHeader;
+		}
+
+		/**
+		 * @param readPacketHeader the readPacketHeader to set
+		 */
+		public void setReadPacketHeader(Header readPacketHeader) {
+			this.readPacketHeader = readPacketHeader;
+		}
+
+		/**
+		 * @return the readPacket
+		 */
+		public Packet getReadPacket() {
+			return readPacket;
+		}
+
+		/**
+		 * @param readPacket the readPacket to set
+		 */
+		public void setReadPacket(Packet readPacket) {
+			this.readPacket = readPacket;
+		}
+
+		/**
+		 * @return the writePacket
+		 */
+		public Packet getWritePacket() {
+			return writePacket;
+		}
+
+		/**
+		 * @param writePacket the writePacket to set
+		 */
+		@SuppressWarnings("unused")
+		public void setWritePacket(Packet writePacket) {
+			this.writePacket = writePacket;
+		}
+
+		/**
+		 * @return the writeTimestamp
+		 */
+		public int getWriteTimestamp() {
+			return writeTimestamp;
+		}
+
+		/**
+		 * @param writeTimestamp the writeTimestamp to set
+		 */
+		public void setWriteTimestamp(int writeTimestamp) {
+			this.writeTimestamp = writeTimestamp;
+		}
+
+		/**
+		 * @return the liveTimestamp
+		 */
+		public LiveTimestampMapping getLiveTimestamp() {
+			return liveTimestamp;
+		}
+
+		/**
+		 * @param liveTimestamp the liveTimestamp to set
+		 */
+		public void setLiveTimestamp(LiveTimestampMapping liveTimestamp) {
+			this.liveTimestamp = liveTimestamp;
+		}
 	}
 
 }

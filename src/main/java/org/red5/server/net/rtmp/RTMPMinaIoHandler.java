@@ -88,11 +88,10 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 	public void sessionClosed(IoSession session) throws Exception {
 		log.debug("Session closed");
 		log.trace("Session attributes: {}", session.getAttributeKeys());
-		RTMP rtmp = (RTMP) session.removeAttribute(ProtocolState.SESSION_KEY);
+		RTMP rtmp = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
 		log.trace("RTMP state: {}", rtmp);
 		RTMPMinaConnection conn = (RTMPMinaConnection) session.removeAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		try {
-			conn.sendPendingServiceCallsCloseError();
 			// fire-off closed event
 			handler.connectionClosed(conn, rtmp);
 			// clear any session attributes we may have previously set
@@ -105,9 +104,17 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 				session.removeAttribute(RTMPConnection.RTMPE_CIPHER_OUT);
 			}
 		} finally {
-			// DW we *always* remove the connection from the RTMP manager even if unexpected exception gets thrown e.g. by handler.connectionClosed
-			// Otherwise connection stays around forever, and everything it references e.g. Client, ...
-			rtmpConnManager.removeConnection(conn.getId());
+			// remove RTMP state now
+			session.removeAttribute(ProtocolState.SESSION_KEY);
+			// always remove the connection from the RTMP manager even if unexpected exception gets thrown e.g. by handler.connectionClosed
+			// otherwise connection stays around forever, and everything it references e.g. Client, ...
+			int id = conn.getId();
+			// handle the times when a connection does not have a client yet
+			if (id == -1) {
+				rtmpConnManager.removeConnection(conn.getSessionId().hashCode());				
+			} else {
+				rtmpConnManager.removeConnection(conn.getId());
+			}
 		}
 	}
 
@@ -178,9 +185,6 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 	@Override
 	public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
 		log.warn("Exception caught", cause);
-		if (log.isDebugEnabled()) {
-			log.debug("Exception detail", cause.getMessage());
-		}
 	}
 
 	/**

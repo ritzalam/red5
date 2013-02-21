@@ -18,6 +18,8 @@
 
 package org.red5.server.net.rtmp.codec;
 
+import java.util.LinkedList;
+
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecException;
@@ -37,22 +39,34 @@ public class RTMPMinaProtocolEncoder extends ProtocolEncoderAdapter {
 
 	private RTMPProtocolEncoder encoder = new RTMPProtocolEncoder();
 
+	private int targetChunkSize = 2048;
+	
 	/** {@inheritDoc} */
 	public void encode(IoSession session, Object message, ProtocolEncoderOutput out) throws ProtocolCodecException {
-		final ProtocolState state = (ProtocolState) session.getAttribute(ProtocolState.SESSION_KEY);
+		final RTMP state = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
 		// pass the connection to the encoder for its use
 		encoder.setConnection((RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY));
 		try {
-			// We need to synchronize on the output and flush the generated data to prevent two packages to the same channel
-			// to be sent in different order thus resulting in wrong headers being generated.
 			final IoBuffer buf = encoder.encode(state, message);
 			if (buf != null) {
-				out.write(buf);
-				out.mergeAll();
-				out.flush();
+				int requestedWriteChunkSize = state.getWriteChunkSize();
+				log.debug("Requested chunk size: {} target chunk size: {}", requestedWriteChunkSize, targetChunkSize);
+				if (buf.remaining() <= targetChunkSize * 2) {
+					out.write(buf);
+				} else {
+					log.debug("Chunking output data");
+					LinkedList<IoBuffer> chunks = Chunker.chunk(buf, requestedWriteChunkSize, targetChunkSize);
+					for (IoBuffer chunk : chunks) {
+						out.write(chunk);
+					}
+					chunks.clear();
+					chunks = null;
+				}
+				buf.free();
 			} else {
 				log.trace("Response buffer was null after encoding");
 			}
+			out.flush();
 		} catch (Exception ex) {
 			log.error("Exception during encode", ex);
 		}
@@ -86,6 +100,74 @@ public class RTMPMinaProtocolEncoder extends ProtocolEncoderAdapter {
 	 * */
 	public void setDropLiveFuture(boolean dropLiveFuture) {
 		encoder.setDropLiveFuture(dropLiveFuture);
+	}
+
+	/**
+	 * @return the targetChunkSize
+	 */
+	public int getTargetChunkSize() {
+		return targetChunkSize;
+	}
+
+	/**
+	 * @param targetChunkSize the targetChunkSize to set
+	 */
+	public void setTargetChunkSize(int targetChunkSize) {
+		this.targetChunkSize = targetChunkSize;
+	}
+
+	/**
+	 * Output data chunker.
+	 */
+	private static final class Chunker {
+
+		public static LinkedList<IoBuffer> chunk(IoBuffer message, int chunkSize, int desiredSize) {
+			LinkedList<IoBuffer> chunks = new LinkedList<IoBuffer>();
+			int targetSize = desiredSize > chunkSize ? desiredSize : chunkSize;
+			int limit = message.limit();
+			do {
+				int length = 0;				
+				int pos = message.position();
+				while (length < targetSize && pos < limit) {
+					byte basicHeader = message.get(pos);
+					length += getDataSize(basicHeader) + chunkSize;
+					pos += length;
+				}
+				log.debug("Length: {} remaining: {} pos+len: {} limit: {}", new Object[]{length, message.remaining(), (message.position() + length), limit});
+				if (length > message.remaining()) {
+					length = message.remaining();
+				}
+				// add a chunk
+				chunks.add(message.getSlice(length));
+			} while (message.hasRemaining());
+			return chunks;
+		}
+
+		private static int getDataSize(byte basicHeader) {
+			final int streamId = basicHeader & 0x0000003F;
+			final int headerType = (basicHeader >> 6) & 0x00000003;
+			int size = 0;
+			switch (headerType) {
+				case 0:
+					size = 12;
+					break;
+				case 1:
+					size = 8;
+					break;
+				case 2:
+					size = 4;
+					break;
+				default:
+					size = 1;
+					break;
+			}
+			if (streamId == 0) {
+				size += 1;
+			} else if (streamId == 1) {
+				size += 2;
+			}
+			return size;
+		}
 	}
 
 }

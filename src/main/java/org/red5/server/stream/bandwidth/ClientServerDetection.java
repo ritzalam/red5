@@ -26,6 +26,7 @@ import org.red5.server.api.Red5;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.stream.IStreamCapableConnection;
+import org.red5.server.service.Call;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +43,12 @@ public class ClientServerDetection implements IPendingServiceCallback {
 	 * Handle callback from service call.
 	 */
 	public void resultReceived(IPendingServiceCall call) {
-
+		// if we aren't connection, skip any further testing
+		if (Call.STATUS_NOT_CONNECTED != call.getStatus()) {
+			
+		} else {
+			log.debug("Pending call skipped due to being no longer connected");
+		}
 	}
 
 	private IStreamCapableConnection getStats() {

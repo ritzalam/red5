@@ -81,7 +81,7 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMXBean {
 	 * Add client to registry
 	 * @param client           Client to add
 	 */
-	protected void addClient(IClient client) {
+	public void addClient(IClient client) {
 		addClient(client.getId(), client);
 	}
 
@@ -180,7 +180,7 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMXBean {
 	 * @throws ClientRejectedException if client rejected
 	 */
 	public IClient newClient(Object[] params) throws ClientNotFoundException, ClientRejectedException {
-		// DW I'm guessing perhaps that originally there was some idea to derive client id from the connection params?
+		// derive client id from the connection params or use next
 		String id = nextId();
 		IClient client = new Client(id, this);
 		addClient(id, client);

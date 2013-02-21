@@ -326,8 +326,6 @@ public class RTMPTServlet extends HttpServlet {
 			final IoBuffer data = IoBuffer.allocate(length);
 			ServletUtils.copy(req.getInputStream(), data.asOutputStream());
 			data.flip();
-			//			Thread reader = new Thread(new Runnable() {
-			//				public void run() {
 			// decode the objects in the data
 			final List<?> messages = connection.decode(data);
 			// clear the buffer
@@ -335,17 +333,8 @@ public class RTMPTServlet extends HttpServlet {
 			// messages are either of IoBuffer or Packet type
 			// handshaking uses IoBuffer and everything else should be Packet
 			connection.read(messages);
-			//				}
-			//			}, "Reader#" + sessionId + "@" + System.nanoTime());
-			//			reader.start();
-			// return pending
+			// return pending messages
 			returnPendingMessages(connection, resp);
-			//
-			//			try {
-			//				reader.join();
-			//			} catch (InterruptedException e) {
-			//				e.printStackTrace();
-			//			}
 		} else {
 			handleBadRequest(String.format("Send: unknown client session: %s", requestInfo.get().getSessionId()), resp);
 		}
@@ -470,9 +459,7 @@ public class RTMPTServlet extends HttpServlet {
 			for (RTMPConnection conn : conns) {
 				if (conn instanceof RTMPTConnection) {
 					log.debug("Connection scope on destroy: {}", conn.getScope());
-					if (conn.isConnected() && !((RTMPTConnection) conn).isClosing()) {
-						conn.close();
-					}
+					conn.close();
 				}
 			}
 		}

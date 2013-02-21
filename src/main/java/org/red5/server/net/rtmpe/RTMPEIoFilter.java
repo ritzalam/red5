@@ -104,11 +104,17 @@ public class RTMPEIoFilter extends IoFilterAdapter {
 			// assume message is an IoBuffer
 			IoBuffer message = (IoBuffer) obj;
 			if (rtmp.getState() == RTMP.STATE_HANDSHAKE) {
-				//skip the first 1536
-				byte[] handshakeReply = new byte[Constants.HANDSHAKE_SIZE];
-				message.get(handshakeReply);
-				// TODO verify reply, for now just set to connected
-				rtmp.setState(RTMP.STATE_CONNECTED);
+				// ensure there are enough bytes to skip
+				if (message.limit() > Constants.HANDSHAKE_SIZE) {
+    				//skip the first 1536
+    				byte[] handshakeReply = new byte[Constants.HANDSHAKE_SIZE];
+    				message.get(handshakeReply);
+    				// TODO verify reply, for now just set to connected
+    				rtmp.setState(RTMP.STATE_CONNECTED);
+				} else {
+					log.warn("There may be a network issue on this RTMPE connection: {}", session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY));
+					return;
+				}
 			}
 			log.debug("Decrypting buffer: {}", message);
 			byte[] encrypted = new byte[message.remaining()];

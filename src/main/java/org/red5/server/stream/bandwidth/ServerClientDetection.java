@@ -28,6 +28,7 @@ import org.red5.server.api.Red5;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCapableConnection;
+import org.red5.server.service.Call;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,10 +44,10 @@ import org.slf4j.LoggerFactory;
 public class ServerClientDetection implements IPendingServiceCallback, IBandwidthDetection {
 
 	private static Logger log = LoggerFactory.getLogger(ServerClientDetection.class);
-	
+
 	// maximum latency alloted for in milliseconds
 	private static final double LATENCY_MAX = 1000d;
-	
+
 	// minimum latency alloted for in milliseconds
 	private static final double LATENCY_MIN = 10d;
 
@@ -103,47 +104,52 @@ public class ServerClientDetection implements IPendingServiceCallback, IBandwidt
 	 * Handle callback from service call.
 	 */
 	public void resultReceived(IPendingServiceCall call) {
-		// receive time using nanos
-		long now = System.nanoTime();
-		// increment received
-		int received = packetsReceived.incrementAndGet();
-		log.debug("Call time stamps - write: {} read: {}", call.getWriteTime(), call.getReadTime());
-		// time passed is in milliseconds
-		timePassed = (now - startTime) / 1000000;
-		log.debug("Received count: {} sent: {} timePassed: {} ms", new Object[] { received, packetsSent.get(), timePassed });
-		switch (received) {
-			case 1:
-				// first packet is used to test latency
-				latency = Math.max(Math.min(timePassed, LATENCY_MAX), LATENCY_MIN);
-				log.debug("Receive latency: {}", latency);
-				// We now have a latency figure so can start sending test data.
-				// Second call. 1st packet sent
-				log.debug("Sending first payload at {} ns", now);
-				callBWCheck(payload); // 1k	
-				break;
-			case 2:
-				log.debug("Sending second payload at {} ns", now);
-				// increment cumulative latency
-				cumLatency++;
-				callBWCheck(payload1); // 32k
-				break;
-			default: 
-				log.debug("Doing calculations at {} ns", now);
-				// increment cumulative latency
-				cumLatency++;
-				// bytes to kbits
-				deltaDown = ((conn.getWrittenBytes() - startBytesWritten) * 8) / 1000d;
-				log.debug("Delta kbits: {}", deltaDown);
-				// total dl time - latency for each packet sent in secs
-				deltaTime = (timePassed - (latency * cumLatency));
-				if (deltaTime <= 0) {
-					deltaTime = (timePassed + latency);
-				}
-				log.debug("Delta time: {} ms", deltaTime);
-				// calculate kbit/s
-				kbitDown = Math.round(deltaDown / (deltaTime / 1000d));
-				log.debug("onBWDone: kbitDown: {} deltaDown: {} deltaTime: {} latency: {} ", new Object[] { kbitDown, deltaDown, deltaTime, latency });
-				callBWDone();
+		// if we aren't connection, skip any further testing
+		if (Call.STATUS_NOT_CONNECTED != call.getStatus()) {
+			// receive time using nanos
+			long now = System.nanoTime();
+			// increment received
+			int received = packetsReceived.incrementAndGet();
+			log.debug("Call time stamps - write: {} read: {}", call.getWriteTime(), call.getReadTime());
+			// time passed is in milliseconds
+			timePassed = (now - startTime) / 1000000;
+			log.debug("Received count: {} sent: {} timePassed: {} ms", new Object[] { received, packetsSent.get(), timePassed });
+			switch (received) {
+				case 1:
+					// first packet is used to test latency
+					latency = Math.max(Math.min(timePassed, LATENCY_MAX), LATENCY_MIN);
+					log.debug("Receive latency: {}", latency);
+					// We now have a latency figure so can start sending test data.
+					// Second call. 1st packet sent
+					log.debug("Sending first payload at {} ns", now);
+					callBWCheck(payload); // 1k	
+					break;
+				case 2:
+					log.debug("Sending second payload at {} ns", now);
+					// increment cumulative latency
+					cumLatency++;
+					callBWCheck(payload1); // 32k
+					break;
+				default:
+					log.debug("Doing calculations at {} ns", now);
+					// increment cumulative latency
+					cumLatency++;
+					// bytes to kbits
+					deltaDown = ((conn.getWrittenBytes() - startBytesWritten) * 8) / 1000d;
+					log.debug("Delta kbits: {}", deltaDown);
+					// total dl time - latency for each packet sent in secs
+					deltaTime = (timePassed - (latency * cumLatency));
+					if (deltaTime <= 0) {
+						deltaTime = (timePassed + latency);
+					}
+					log.debug("Delta time: {} ms", deltaTime);
+					// calculate kbit/s
+					kbitDown = Math.round(deltaDown / (deltaTime / 1000d));
+					log.debug("onBWDone: kbitDown: {} deltaDown: {} deltaTime: {} latency: {} ", new Object[] { kbitDown, deltaDown, deltaTime, latency });
+					callBWDone();
+			}
+		} else {
+			log.debug("Pending call skipped due to being no longer connected");
 		}
 	}
 

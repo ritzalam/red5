@@ -48,8 +48,7 @@ public interface IClientRegistry {
 	 * @throws ClientNotFoundException no client could be created from the passed parameters
 	 * @throws ClientRejectedException the client is not allowed to connect
 	 */
-	public IClient newClient(Object[] params) throws ClientNotFoundException,
-			ClientRejectedException;
+	public IClient newClient(Object[] params) throws ClientNotFoundException, ClientRejectedException;
 
 	/**
 	 * Return an existing client from a client id.
@@ -59,5 +58,12 @@ public interface IClientRegistry {
 	 * @throws ClientNotFoundException no client with the passed id exists
 	 */
 	public IClient lookupClient(String id) throws ClientNotFoundException;
+
+	/**
+	 * Adds a client to the registry.
+	 * 
+	 * @param client
+	 */
+	public void addClient(IClient client);
 
 }

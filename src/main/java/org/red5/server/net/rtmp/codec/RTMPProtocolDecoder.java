@@ -187,29 +187,41 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 */
 	public IoBuffer decodeHandshake(RTMP rtmp, IoBuffer in) {
 		log.debug("decodeHandshake - rtmp: {} buffer: {}", rtmp, in);
-		final int remaining = in.remaining();
-		if (rtmp.getState() == RTMP.STATE_CONNECT) {
-			if (remaining < HANDSHAKE_SIZE + 1) {
-				log.debug("Handshake init too small, buffering. remaining: {}", remaining);
-				rtmp.bufferDecoding(HANDSHAKE_SIZE + 1);
-			} else {
-				final IoBuffer hs = IoBuffer.allocate(HANDSHAKE_SIZE);
-				in.get(); // skip the header byte
-				BufferUtils.put(hs, in, HANDSHAKE_SIZE);
-				hs.flip();
-				rtmp.setState(RTMP.STATE_HANDSHAKE);
-				return hs;
-			}
-		} else if (rtmp.getState() == RTMP.STATE_HANDSHAKE) {
-			log.debug("Handshake reply");
-			if (remaining < HANDSHAKE_SIZE) {
-				log.debug("Handshake reply too small, buffering. remaining: {}", remaining);
-				rtmp.bufferDecoding(HANDSHAKE_SIZE);
-			} else {
-				in.skip(HANDSHAKE_SIZE);
-				rtmp.setState(RTMP.STATE_CONNECTED);
-				rtmp.continueDecoding();
-			}
+		// number of byte remaining in the buffer
+		int remaining = in.remaining();
+		switch (rtmp.getState()) {
+			// first step: client has connected and handshaking is not complete
+			case RTMP.STATE_CONNECT:
+				log.debug("Connecting");	
+				if (remaining < HANDSHAKE_SIZE + 1) {
+					log.debug("Handshake init too small, buffering. remaining: {}", remaining);
+					rtmp.bufferDecoding(HANDSHAKE_SIZE + 1);
+				} else {
+					final IoBuffer hs = IoBuffer.allocate(HANDSHAKE_SIZE);
+					in.get(); // skip the header byte
+					BufferUtils.put(hs, in, HANDSHAKE_SIZE);
+					hs.flip();
+					rtmp.setState(RTMP.STATE_HANDSHAKE);
+					return hs;
+				}				
+				break;
+			// second step: all handshake data received, collecting handshake reply data
+			case RTMP.STATE_HANDSHAKE:
+				// TODO Paul: re-examine how remaining data is buffered between handshake reply and next message when using rtmpe
+				// connections sending partial tcp are getting dropped
+				log.debug("Handshake reply");		
+				// how many bytes left to get
+				int required = rtmp.getDecoderBufferAmount();
+				log.trace("Handshake reply - required: {} remaining: {}", required, remaining);
+				if (remaining < HANDSHAKE_SIZE) {
+					log.debug("Handshake reply too small, buffering. remaining: {}", remaining);
+					rtmp.bufferDecoding(HANDSHAKE_SIZE);
+				} else {
+					in.skip(HANDSHAKE_SIZE);
+					rtmp.setState(RTMP.STATE_CONNECTED);
+					rtmp.continueDecoding();
+				}
+				break;				
 		}
 		return null;
 	}

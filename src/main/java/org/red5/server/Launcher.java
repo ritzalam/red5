@@ -46,20 +46,23 @@ public class Launcher {
 		System.out.printf("Root: %s\nDeploy type: %s\nLogback selector: %s\n", System.getProperty("red5.root"), System.getProperty("red5.deployment.type"),
 				System.getProperty("logback.ContextSelector"));
 		try {
-			//install the slf4j bridge (mostly for JUL logging)
+			// install the slf4j bridge (mostly for JUL logging)
 			SLF4JBridgeHandler.install();
-			//we create the logger here so that it is instanced inside the expected 
-			//classloader
+			// we create the logger here so that it is instanced inside the expected classloader
+			// check for the logback disable flag
+			boolean useLogback = Boolean.valueOf(System.getProperty("useLogback", "true"));
+			Red5LoggerFactory.setUseLogback(useLogback);
+			// get the first logger
 			Logger log = Red5LoggerFactory.getLogger(Launcher.class);
-			//version info banner
+			// version info banner
 			log.info("{} (http://code.google.com/p/red5/)", Red5.getVersion());
-			//pimp red5
+			// pimp red5
 			System.out.printf("%s (http://code.google.com/p/red5/)\n", Red5.getVersion());
-			//create red5 app context
+			// create red5 app context
 			FileSystemXmlApplicationContext ctx = new FileSystemXmlApplicationContext(new String[] { "classpath:/red5.xml" }, false);
-			//set the current threads classloader as the loader for the factory/appctx
+			// set the current threads classloader as the loader for the factory/appctx
 			ctx.setClassLoader(Thread.currentThread().getContextClassLoader());
-			//refresh must be called before accessing the bean factory
+			// refresh must be called before accessing the bean factory
 			ctx.refresh();
 			/*
 			if (log.isTraceEnabled()) {

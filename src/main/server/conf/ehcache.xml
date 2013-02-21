@@ -282,7 +282,7 @@
 
     <!--
     Mandatory Default Cache configuration. These settings will be applied to caches
-    created programmtically using CacheManager.add(String cacheName)
+    created programmatically using CacheManager.add(String cacheName)
     -->
 
     <defaultCache

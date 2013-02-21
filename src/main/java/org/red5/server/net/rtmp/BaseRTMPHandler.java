@@ -210,7 +210,11 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 
 	/** {@inheritDoc} */
 	public void connectionClosed(RTMPConnection conn, RTMP state) {
+		// set as disconnected
 		state.setState(RTMP.STATE_DISCONNECTED);
+		// inform any callbacks for pending calls that the connection is closed
+		conn.sendPendingServiceCallsCloseError();
+		// close the connection
 		conn.close();
 	}
 

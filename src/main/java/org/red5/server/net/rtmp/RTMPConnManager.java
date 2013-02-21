@@ -77,22 +77,12 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection>, Appl
 	 */
 	public void setConnection(RTMPConnection conn) {
 		log.debug("Adding connection: {}", conn);
-		// add to local map
-		connMap.put(conn.getId(), conn);
-	}
-
-	/**
-	 * Adds a connection.
-	 * 
-	 * @param conn
-	 */
-	public void setConnection(RTMPTConnection conn) {
-		log.debug("Adding connection: {}", conn);
 		int id = conn.getId();
 		if (id == -1) {
-			log.debug("Connection has unsupported id");
+			log.debug("Connection has unsupported id, using session id hash");
 			id = conn.getSessionId().hashCode();
 		}
+		log.debug("Connection id: {} session id hash: {}", conn.getId(), conn.getSessionId().hashCode());
 		// add to local map
 		connMap.put(id, conn);
 	}

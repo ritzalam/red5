@@ -1,11 +1,10 @@
 package org.red5.server.net.rtmp;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import java.net.InetSocketAddress;
 
 import junit.framework.Assert;
-
 import net.sourceforge.groboutils.junit.v1.MultiThreadedTestRunner;
 import net.sourceforge.groboutils.junit.v1.TestRunnable;
 
@@ -24,16 +23,17 @@ import org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
 import org.red5.server.net.rtmp.message.Header;
+import org.red5.server.service.Call;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
 @ContextConfiguration(locations = { "../context.xml" })
 public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
-	
+
 	private long clientLifetime = 3 * 60 * 1000;
 
 	private int threads = 300;
-	
+
 	static {
 		System.setProperty("red5.deployment.type", "junit");
 		System.setProperty("red5.root", "target/test-classes");
@@ -52,10 +52,10 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 
 	@Test
 	public void testLoad() throws Exception {
-//		try {
-//			Thread.sleep(10000L);
-//		} catch (Exception e) {
-//		}
+		//		try {
+		//			Thread.sleep(10000L);
+		//		} catch (Exception e) {
+		//		}
 		RTMPMinaTransport mina = (RTMPMinaTransport) applicationContext.getBean("rtmpTransport");
 		// check the io handler
 		RTMPMinaIoHandler ioHandler = (RTMPMinaIoHandler) mina.ioHandler;
@@ -68,8 +68,8 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 		if (ioHandler.rtmpConnManager == null) {
 			RTMPConnManager rtmpConnManager = new RTMPConnManager();
 			rtmpConnManager.setApplicationContext(applicationContext);
-			ioHandler.setRtmpConnManager(rtmpConnManager);						
-		}		
+			ioHandler.setRtmpConnManager(rtmpConnManager);
+		}
 		mina.setBacklog(128);
 		mina.setEnableDefaultAcceptor(false);
 		mina.setEnableMinaMonitor(false);
@@ -107,12 +107,12 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 				noAV++;
 			}
 			try {
-				cli.disconnect();				
+				cli.disconnect();
 			} catch (Throwable t) {
 			}
 		}
 		System.out.printf("Free mem: %s\n", rt.freeMemory());
-		System.out.printf("Client fail count: %d\n", noAV);		
+		System.out.printf("Client fail count: %d\n", noAV);
 		assertTrue(noAV == 0);
 		try {
 			Thread.sleep(2000L);
@@ -145,9 +145,9 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 		private int port = 1935;
 
 		private String application = "junit";
-		
+
 		private int audioCounter;
-		
+
 		private int videoCounter;
 
 		public void connect() {
@@ -175,26 +175,36 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 
 		private IPendingServiceCallback connectCallback = new IPendingServiceCallback() {
 			public void resultReceived(IPendingServiceCall call) {
-				//System.out.println("connectCallback");
-				ObjectMap<?, ?> map = (ObjectMap<?, ?>) call.getResult();
-				String code = (String) map.get("code");
-				if ("NetConnection.Connect.Rejected".equals(code)) {
-					System.out.printf("Rejected: %s\n", map.get("description"));
-					disconnect();
-				} else if ("NetConnection.Connect.Success".equals(code)) {
-					createStream(createStreamCallback);
+				//System.out.println("connectCallback");		
+				// if we aren't connection, skip any further processing
+				if (Call.STATUS_NOT_CONNECTED != call.getStatus()) {
+					ObjectMap<?, ?> map = (ObjectMap<?, ?>) call.getResult();
+					String code = (String) map.get("code");
+					if ("NetConnection.Connect.Rejected".equals(code)) {
+						System.out.printf("Rejected: %s\n", map.get("description"));
+						disconnect();
+					} else if ("NetConnection.Connect.Success".equals(code)) {
+						createStream(createStreamCallback);
+					} else {
+						System.out.printf("Unhandled response code: %s\n", code);
+					}
 				} else {
-					System.out.printf("Unhandled response code: %s\n", code);
+					System.err.println("Pending call skipped due to being no longer connected");
 				}
 			}
 		};
 
 		private IPendingServiceCallback createStreamCallback = new IPendingServiceCallback() {
 			public void resultReceived(IPendingServiceCall call) {
-				int streamId = (Integer) call.getResult();
-				conn.ping(new Ping(Ping.CLIENT_BUFFER, streamId, 4000));
-				// play 2 min test clip
-				play(streamId, "h264_mp3", 0, -1);				
+				// if we aren't connection, skip any further processing
+				if (Call.STATUS_NOT_CONNECTED != call.getStatus()) {
+					int streamId = (Integer) call.getResult();
+					conn.ping(new Ping(Ping.CLIENT_BUFFER, streamId, 4000));
+					// play 2 min test clip
+					play(streamId, "h264_mp3", 0, -1);
+				} else {
+					System.err.println("Pending call skipped due to being no longer connected");
+				}
 			}
 		};
 

@@ -115,6 +115,13 @@ public class RTMPHandler extends BaseRTMPHandler {
 	/** {@inheritDoc} */
 	@Override
 	protected void onChunkSize(RTMPConnection conn, Channel channel, Header source, ChunkSize chunkSize) {
+		int requestedChunkSize = chunkSize.getSize();
+		log.debug("Chunk size: {}", requestedChunkSize);
+		// set chunk size on the connection
+		RTMP state = conn.getState();
+	    state.setReadChunkSize(requestedChunkSize);
+	    state.setWriteChunkSize(requestedChunkSize);
+	    // set on each of the streams
 		for (IClientStream stream : conn.getStreams()) {
 			if (stream instanceof IClientBroadcastStream) {
 				IClientBroadcastStream bs = (IClientBroadcastStream) stream;
@@ -128,7 +135,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 				if (setChunkSize.getServiceParamMap() == null) {
 					setChunkSize.setServiceParamMap(new HashMap<String, Object>());
 				}
-				setChunkSize.getServiceParamMap().put("chunkSize", chunkSize.getSize());
+				setChunkSize.getServiceParamMap().put("chunkSize", requestedChunkSize);
 				scope.sendOOBControlMessage((IConsumer) null, setChunkSize);
 				log.debug("Sending chunksize {} to {}", chunkSize, bs.getProvider());
 			}
@@ -270,7 +277,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 									okayToConnect = conn.connect(scope);
 								}
 								if (okayToConnect) {
-									log.debug("Connected - Client: {}", conn.getClient());
+									log.debug("Connected - {}", conn.getClient());
 									call.setStatus(Call.STATUS_SUCCESS_RESULT);
 									if (call instanceof IPendingServiceCall) {
 										IPendingServiceCall pc = (IPendingServiceCall) call;
@@ -284,7 +291,6 @@ public class RTMPHandler extends BaseRTMPHandler {
 									}
 									// Measure initial roundtrip time after connecting
 									conn.ping(new Ping(Ping.STREAM_BEGIN, 0, -1));
-									conn.startRoundTripMeasurement();
 								} else {
 									log.debug("Connect failed");
 									call.setStatus(Call.STATUS_ACCESS_DENIED);

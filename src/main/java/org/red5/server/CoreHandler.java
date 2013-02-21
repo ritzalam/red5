@@ -68,8 +68,8 @@ public class CoreHandler implements IScopeHandler, CoreHandlerMXBean {
 	 */
 	public boolean connect(IConnection conn, IScope scope, Object[] params) {
 		log.debug("connect - conn: {} scope: {}", conn, scope);
-		// DW urrr this is a slightly strange place to do this, but this is where we create the Client object that consolidates connections
-		// from a single client/FP. Now for more strangeness, I've only been looking at RTMPConnection derivatives, but it's setup() method
+		// this is where we create the Client object that consolidates connections from a single client/FP. 
+		// Now for more strangeness, I've only been looking at RTMPConnection derivatives, but it's setup() method
 		// seems the only way that the session id is passed in to the newly established connection and this is currently *always* passed in
 		// as null. I'm guessing that either the Flash Player passes some kind of unique id to us that is not being used, or that the idea
 		// originally was to make our own session id, for example by combining client information with the IP address or something like that.
@@ -92,22 +92,29 @@ public class CoreHandler implements IScopeHandler, CoreHandlerMXBean {
 					// this is an existing connection that is being moved to another scope server-side
 					client = conn.getClient();
 				} else if (clientRegistry.hasClient(id)) {
-					// Use session id as client id. DW this is required for remoting
+					// use session id as client id; this is required for remoting
 					client = clientRegistry.lookupClient(id);
 				} else {
-					// This is a new connection. Create a new client to hold it
-					client = clientRegistry.newClient(params);
-					// set the client on the connection
-					conn.setClient(client);
 					// add any rtmp connections to the manager
 					RTMPConnManager connManager = RTMPConnManager.getInstance();
-					if (conn instanceof RTMPConnection) {
-						// add the connection
-						connManager.setConnection((RTMPConnection) conn);
-					} else if (conn instanceof RTMPTConnection) {
+					if (conn instanceof RTMPTConnection) {
+						log.debug("Creating new client for RTMPT connection");
+						// create a new client using the session id as the client's id
+						client = new Client(id, (ClientRegistry) clientRegistry);
+						clientRegistry.addClient(client);
+						// set the client on the connection
+						conn.setClient(client);					
 						// add the connection
 						connManager.setConnection((RTMPTConnection) conn);
-					}
+					} else if (conn instanceof RTMPConnection) {
+						log.debug("Creating new client for RTMP connection");
+						// this is a new connection, create a new client to hold it
+						client = clientRegistry.newClient(params);
+						// set the client on the connection
+						conn.setClient(client);
+						// add the connection
+						connManager.setConnection((RTMPConnection) conn);
+					} 
 				}
 				// assign connection to client
 				conn.initialize(client);

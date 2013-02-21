@@ -143,6 +143,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 * Real close
 	 */
 	public void realClose() {
+		log.debug("realClose - isClosing: {}", isClosing());
 		if (isClosing()) {
 			state.setState(RTMP.STATE_DISCONNECTED);
 			log.trace("Clearing pending messages (in: {} and out: {})", pendingInMessages.size(), pendingOutMessages.size());
@@ -172,7 +173,11 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	/** {@inheritDoc} */
 	@Override
 	public long getPendingMessages() {
-		log.debug("Checking pending queue size");
+		log.debug("Checking pending queue size. Session id: {} closing: {} state: {}", sessionId, closing, state);
+		if (state.getState() == RTMP.STATE_DISCONNECTED) {
+			log.debug("Connection is disconnected");
+			pendingOutMessages.clear();
+		}
 		return pendingOutMessages.size();
 	}
 

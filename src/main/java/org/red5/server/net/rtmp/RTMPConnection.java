@@ -236,7 +236,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	protected ISchedulingService schedulingService;
 	
 	/**
-	 * Keepalive worker flag
+	 * Keep-alive worker flag
 	 */
 	private final AtomicBoolean running;	
 	
@@ -617,7 +617,9 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	/** {@inheritDoc} */
 	@Override
 	public void close() {
+		log.debug("close: {}", sessionId);
 		if (keepAliveJobName != null) {
+			log.debug("Removing keep-alive");
 			schedulingService.removeScheduledJob(keepAliveJobName);
 			keepAliveJobName = null;
 		}
@@ -704,6 +706,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 */
 	public void sendPendingServiceCallsCloseError() {
 		if (pendingCalls != null && !pendingCalls.isEmpty()) {
+			log.debug("Connection calls pending: {}", pendingCalls.size());
 			for (IPendingServiceCall call : pendingCalls.values()) {
 				call.setStatus(Call.STATUS_NOT_CONNECTED);
 				for (IPendingServiceCallback callback : call.getCallbacks()) {
@@ -1044,6 +1047,8 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 			lastPingTime.set((int) (now & 0xffffffff) - pong.getValue2());
 		}
 		lastPongReceived.set(now);
+		// start keep alive after first pong
+		startRoundTripMeasurement();		
 	}	
 	
 	/** {@inheritDoc} */
@@ -1076,6 +1081,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 */
 	public void startRoundTripMeasurement() {
 		if (pingInterval > 0 && keepAliveJobName == null) {
+			log.debug("startRoundTripMeasurement - {}", sessionId);
 			keepAliveJobName = schedulingService.addScheduledJob(pingInterval, new KeepAliveJob());
 			log.debug("Keep alive job name {} for client id {}", keepAliveJobName, getId());
 		}
@@ -1224,7 +1230,6 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 					// client may not have updated bytes yet, but may have received messages waiting, no need to drop them if processing hasn't
 					// caught up yet
 					log.debug("Reader is not idle, possible flood. Pending write messages: {}", getPendingMessages());
-
 				} else {
 					// client didn't send response to ping command and didn't sent data for too long, disconnect
 					long lastPingTime = lastPingSent.get();

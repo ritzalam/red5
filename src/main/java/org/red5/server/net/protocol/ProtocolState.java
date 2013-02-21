@@ -85,11 +85,7 @@ public class ProtocolState {
 	 * @return				<code>true</code> if there is data to decode, <code>false</code> otherwise
 	 */
 	public boolean canStartDecoding(int remaining) {
-		if (remaining >= decoderBufferAmount) {
-			return true;
-		} else {
-			return false;
-		}
+		return remaining >= decoderBufferAmount;
 	}
 	
 	/**

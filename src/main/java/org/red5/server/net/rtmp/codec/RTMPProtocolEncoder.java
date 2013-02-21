@@ -18,6 +18,7 @@
 
 package org.red5.server.net.rtmp.codec;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -118,7 +119,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Encode packet.
 	 *
@@ -128,7 +129,6 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	 */
 	public IoBuffer encodePacket(RTMP rtmp, Packet packet) {
 		IoBuffer out = null;
-		IoBuffer data = null;
 		final Header header = packet.getHeader();
 		final int channelId = header.getChannelId();
 		log.debug("Channel id: {}", channelId);
@@ -139,7 +139,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 		}
 		// normally the message is expected not to be dropped
 		if (!dropMessage(rtmp, channelId, message)) {
-			data = encodeMessage(rtmp, header, message);
+			IoBuffer data = encodeMessage(rtmp, header, message);
 			if (data != null) {
 				if (data.position() != 0) {
 					data.flip();
@@ -172,7 +172,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 					for (int i = 0; i < numChunks - 1; i++) {
 						BufferUtils.put(out, data, chunkSize);
 						dataLen -= chunkSize;
-						RTMPUtils.encodeHeaderByte(out, HEADER_CONTINUE, header.getChannelId());
+						RTMPUtils.encodeHeaderByte(out, HEADER_CONTINUE, channelId);
 						if (extendedTimestamp != 0) {
 							out.putInt(extendedTimestamp);
 						}
@@ -257,7 +257,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 				if (lastPingTime > 0) {
 					tardiness -= lastPingTime;
 				}
-				
+
 				//subtract the buffer time
 				int streamId = conn.getStreamIdForChannel(channelId);
 				IClientStream stream = conn.getStreamById(streamId);
@@ -519,7 +519,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 				if (message instanceof SetBuffer) {
 					return encodePing((SetBuffer) message);
 				} else if (message instanceof SWFResponse) {
-					return encodePing((SWFResponse) message);					
+					return encodePing((SWFResponse) message);
 				} else {
 					return encodePing((Ping) message);
 				}
@@ -798,7 +798,19 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 			final Object[] args = call.getArguments();
 			if (args != null) {
 				for (Object element : args) {
-					Serializer.serialize(output, element);
+					if (element instanceof ByteBuffer) {
+						// a byte buffer indicates that serialization is already complete, send raw
+						final ByteBuffer buf = (ByteBuffer) element;
+						buf.mark();
+						try {
+							out.put(buf);
+						} finally {
+							buf.reset();
+						}
+					} else {
+						// standare serialize
+						Serializer.serialize(output, element);
+					}
 				}
 			}
 		}
@@ -824,34 +836,34 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 		}
 		final IoBuffer out = IoBuffer.allocate(len);
 		out.putShort(type);
-        switch (type) {
-            case Ping.STREAM_BEGIN:
-            case Ping.STREAM_PLAYBUFFER_CLEAR:
-            case Ping.STREAM_DRY:
-            case Ping.RECORDED_STREAM:
-            case Ping.PING_CLIENT:
-            case Ping.PONG_SERVER:
-            case Ping.BUFFER_EMPTY:
-            case Ping.BUFFER_FULL:
-            	out.putInt(ping.getValue2());
-                break;
-            case Ping.CLIENT_BUFFER:
-            	if (ping instanceof SetBuffer) {
-                	SetBuffer setBuffer = (SetBuffer) ping;
-                	out.putInt(setBuffer.getStreamId());
-                	out.putInt(setBuffer.getBufferLength());           		
-            	} else {
-                	out.putInt(ping.getValue2());
-                	out.putInt(ping.getValue3());
-            	}
-                break;
-            case Ping.PING_SWF_VERIFY:                
-                break;
-            case Ping.PONG_SWF_VERIFY:
-                out.put(((SWFResponse) ping).getBytes());
-                break;
-        }
-        // this may not be needed anymore
+		switch (type) {
+			case Ping.STREAM_BEGIN:
+			case Ping.STREAM_PLAYBUFFER_CLEAR:
+			case Ping.STREAM_DRY:
+			case Ping.RECORDED_STREAM:
+			case Ping.PING_CLIENT:
+			case Ping.PONG_SERVER:
+			case Ping.BUFFER_EMPTY:
+			case Ping.BUFFER_FULL:
+				out.putInt(ping.getValue2());
+				break;
+			case Ping.CLIENT_BUFFER:
+				if (ping instanceof SetBuffer) {
+					SetBuffer setBuffer = (SetBuffer) ping;
+					out.putInt(setBuffer.getStreamId());
+					out.putInt(setBuffer.getBufferLength());
+				} else {
+					out.putInt(ping.getValue2());
+					out.putInt(ping.getValue3());
+				}
+				break;
+			case Ping.PING_SWF_VERIFY:
+				break;
+			case Ping.PONG_SWF_VERIFY:
+				out.put(((SWFResponse) ping).getBytes());
+				break;
+		}
+		// this may not be needed anymore
 		if (ping.getValue4() != Ping.UNDEFINED) {
 			out.putInt(ping.getValue4());
 		}

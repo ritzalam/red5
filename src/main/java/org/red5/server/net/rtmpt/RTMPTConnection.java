@@ -175,10 +175,10 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	 * @param request Servlet request
 	 */
 	public void setServletRequest(HttpServletRequest request) {
-		host = request.getLocalName();
-		// default http port isn't included in the host.
-		if (request.getLocalPort() != 80) {
-			host += ":" + request.getLocalPort();
+		if (request.getLocalPort() == 80) {
+			host = request.getLocalName();
+		} else {
+			host = String.format("%s:%d", request.getLocalName(), request.getLocalPort());
 		}
 		remoteAddress = request.getRemoteAddr();
 		remoteAddresses = ServletUtils.getRemoteAddresses(request);
