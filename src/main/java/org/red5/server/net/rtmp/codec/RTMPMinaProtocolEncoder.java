@@ -40,7 +40,7 @@ public class RTMPMinaProtocolEncoder extends ProtocolEncoderAdapter {
 	private RTMPProtocolEncoder encoder = new RTMPProtocolEncoder();
 
 	private int targetChunkSize = 2048;
-	
+
 	/** {@inheritDoc} */
 	public void encode(IoSession session, Object message, ProtocolEncoderOutput out) throws ProtocolCodecException {
 		final RTMP state = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
@@ -62,11 +62,19 @@ public class RTMPMinaProtocolEncoder extends ProtocolEncoderAdapter {
 					chunks.clear();
 					chunks = null;
 				}
-				buf.free();
 			} else {
 				log.trace("Response buffer was null after encoding");
 			}
-			out.flush();
+//			WriteFuture future = out.flush();
+//			if (future != null) {
+//				future.addListener(new IoFutureListener<WriteFuture>() {
+//					@Override
+//					public void operationComplete(WriteFuture future) {
+//						//log.debug("Buffer freed");
+//						buf.free();
+//					}
+//				});
+//			}
 		} catch (Exception ex) {
 			log.error("Exception during encode", ex);
 		}
@@ -126,14 +134,14 @@ public class RTMPMinaProtocolEncoder extends ProtocolEncoderAdapter {
 			int targetSize = desiredSize > chunkSize ? desiredSize : chunkSize;
 			int limit = message.limit();
 			do {
-				int length = 0;				
+				int length = 0;
 				int pos = message.position();
 				while (length < targetSize && pos < limit) {
 					byte basicHeader = message.get(pos);
 					length += getDataSize(basicHeader) + chunkSize;
 					pos += length;
 				}
-				log.debug("Length: {} remaining: {} pos+len: {} limit: {}", new Object[]{length, message.remaining(), (message.position() + length), limit});
+				log.debug("Length: {} remaining: {} pos+len: {} limit: {}", new Object[] { length, message.remaining(), (message.position() + length), limit });
 				if (length > message.remaining()) {
 					length = message.remaining();
 				}
