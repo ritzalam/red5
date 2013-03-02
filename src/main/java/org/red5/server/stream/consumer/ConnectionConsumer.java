@@ -92,19 +92,33 @@ public class ConnectionConsumer implements IPushableConsumer, IPipeConnectionLis
 	private boolean chunkSizeSent;
 
 	/**
-	 * Create rtmp connection consumer for given connection and channels
+	 * Create RTMP connection consumer for given connection and channels.
+	 * 
 	 * @param conn                 RTMP connection
 	 * @param videoChannel         Video channel
 	 * @param audioChannel         Audio channel
 	 * @param dataChannel          Data channel
 	 */
-	public ConnectionConsumer(RTMPConnection conn, int videoChannel, int audioChannel, int dataChannel) {
+	public ConnectionConsumer(RTMPConnection conn, Channel videoChannel, Channel audioChannel, Channel dataChannel) {
 		log.debug("Channel ids - video: {} audio: {} data: {}", new Object[] { videoChannel, audioChannel, dataChannel });
 		this.conn = conn;
-		this.video = conn.getChannel(videoChannel);
-		this.audio = conn.getChannel(audioChannel);
-		this.data = conn.getChannel(dataChannel);
+		this.video = videoChannel;
+		this.audio = audioChannel;
+		this.data = dataChannel;
 	}
+	
+	/**
+	 * Create connection consumer without an RTMP connection. 
+	 * 
+	 * @param videoChannel
+	 * @param audioChannel
+	 * @param dataChannel
+	 */
+	public ConnectionConsumer(Channel videoChannel, Channel audioChannel, Channel dataChannel) {
+		this.video = videoChannel;
+		this.audio = audioChannel;
+		this.data = dataChannel;
+	}	
 
 	/** {@inheritDoc} */
 	public void pushMessage(IPipe pipe, IMessage message) {

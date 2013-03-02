@@ -82,9 +82,7 @@ import org.springframework.jmx.export.annotation.ManagedResource;
  * recording mode for live streams, that is, broadcasted stream has broadcast mode. It can be either
  * "live" or "record" and latter causes server-side application to record broadcasted stream.
  *
- * Note that recorded streams are recorded as FLV files. The same is correct for audio, because
- * NellyMoser codec that Flash Player uses prohibits on-the-fly transcoding to audio formats like MP3
- * without paying of licensing fee or buying SDK.
+ * Note that recorded streams are recorded as FLV files.
  *
  * This type of stream uses two different pipes for live streaming and recording.
  * 
@@ -173,8 +171,13 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 * Recording listener
 	 */
 	private WeakReference<RecordingListener> recordingListener;
-	
+
 	protected long latestTimeStamp = -1;
+
+	/**
+	 * Whether or not to register with JMX.
+	 */
+	private boolean registerJMX = true;
 
 	/**
 	 * Check and send notification if necessary
@@ -207,7 +210,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		}
 		sendPublishStopNotify();
 		// TODO: can we send the client something to make sure he stops sending data?
-		connMsgOut.unsubscribe(this);
+		if (connMsgOut != null) {
+			connMsgOut.unsubscribe(this);
+		}
 		notifyBroadcastClose();
 		// clear the listener after all the notifications have been sent
 		if (recordingListener != null) {
@@ -449,6 +454,13 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	}
 
 	/**
+	 * @param registerJMX the registerJMX to set
+	 */
+	public void setRegisterJMX(boolean registerJMX) {
+		this.registerJMX = registerJMX;
+	}
+
+	/**
 	 *  Notifies handler on stream broadcast close
 	 */
 	private void notifyBroadcastClose() {
@@ -644,7 +656,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 					} else {
 						log.debug("No decoder configuration available, audioCodec is null.");
 					}
-				}	
+				}
 				// set as primary listener
 				recordingListener = new WeakReference<RecordingListener>(listener);
 				// add as a listener
@@ -653,7 +665,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 				listener.start();
 			} else {
 				log.warn("Recording listener failed to initialize for stream: {}", name);
-			}			
+			}
 		} else {
 			log.info("Recording listener already exists for stream: {}", name);
 		}
@@ -669,11 +681,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 
 		StatusMessage startMsg = new StatusMessage();
 		startMsg.setBody(publishStatus);
-		try {
-			connMsgOut.pushMessage(startMsg);
-		} catch (IOException err) {
-			log.error("Error while pushing message.", err);
-		}
+		pushMessage(startMsg);
 	}
 
 	/**
@@ -686,11 +694,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 
 		StatusMessage stopMsg = new StatusMessage();
 		stopMsg.setBody(stopStatus);
-		try {
-			connMsgOut.pushMessage(stopMsg);
-		} catch (IOException err) {
-			log.error("Error while pushing message.", err);
-		}
+		pushMessage(stopMsg);
 	}
 
 	/**
@@ -705,11 +709,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 
 		StatusMessage failedMsg = new StatusMessage();
 		failedMsg.setBody(failedStatus);
-		try {
-			connMsgOut.pushMessage(failedMsg);
-		} catch (IOException err) {
-			log.error("Error while pushing message.", err);
-		}
+		pushMessage(failedMsg);
 	}
 
 	/**
@@ -722,11 +722,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 
 		StatusMessage startMsg = new StatusMessage();
 		startMsg.setBody(recordStatus);
-		try {
-			connMsgOut.pushMessage(startMsg);
-		} catch (IOException err) {
-			log.error("Error while pushing message.", err);
-		}
+		pushMessage(startMsg);
 	}
 
 	/**
@@ -739,10 +735,23 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 
 		StatusMessage stopMsg = new StatusMessage();
 		stopMsg.setBody(stopStatus);
-		try {
-			connMsgOut.pushMessage(stopMsg);
-		} catch (IOException err) {
-			log.error("Error while pushing message.", err);
+		pushMessage(stopMsg);
+	}
+
+	/**
+	 * Pushes a message out to a consumer.
+	 * 
+	 * @param msg StatusMessage
+	 */
+	protected void pushMessage(StatusMessage msg) {
+		if (connMsgOut != null) {
+			try {
+				connMsgOut.pushMessage(msg);
+			} catch (IOException err) {
+				log.error("Error while pushing message: {}", msg, err);
+			}
+		} else {
+			log.warn("Consumer message output is null");
 		}
 	}
 
@@ -787,21 +796,24 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	}
 
 	/**
-	 * Starts stream. Creates pipes, connects
+	 * Starts stream, creates pipes, connects
 	 */
 	public void start() {
 		log.info("Stream start");
-		IConsumerService consumerManager = (IConsumerService) getScope().getContext().getBean(IConsumerService.KEY);
 		checkVideoCodec = true;
 		checkAudioCodec = true;
 		firstPacketTime = -1;
 		latestTimeStamp = -1;
-		connMsgOut = consumerManager.getConsumerOutput(this);
-		connMsgOut.subscribe(this, null);
-		setCodecInfo(new StreamCodecInfo());
-		closed = false;
 		bytesReceived = 0;
-		creationTime = System.currentTimeMillis();
+		IConsumerService consumerManager = (IConsumerService) getScope().getContext().getBean(IConsumerService.KEY);
+		connMsgOut = consumerManager.getConsumerOutput(this);
+		if (connMsgOut != null && connMsgOut.subscribe(this, null)) {
+			setCodecInfo(new StreamCodecInfo());
+			creationTime = System.currentTimeMillis();
+			closed = false;
+		} else {
+			log.warn("Subscribe failed");
+		}
 	}
 
 	/** {@inheritDoc} */
@@ -868,26 +880,30 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	}
 
 	protected void registerJMX() {
-		// register with jmx
-		MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-		try {
-			ObjectName oName = new ObjectName(String.format("org.red5.server:type=ClientBroadcastStream,scope=%s,publishedName=%s", getScope().getName(), publishedName));
-			mbs.registerMBean(new StandardMBean(this, ClientBroadcastStreamMXBean.class, true), oName);
-		} catch (InstanceAlreadyExistsException e) {
-			log.info("Instance already registered", e);
-		} catch (Exception e) {
-			log.warn("Error on jmx registration", e);
+		if (registerJMX) {
+			// register with jmx
+			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+			try {
+				ObjectName oName = new ObjectName(String.format("org.red5.server:type=ClientBroadcastStream,scope=%s,publishedName=%s", getScope().getName(), publishedName));
+				mbs.registerMBean(new StandardMBean(this, ClientBroadcastStreamMXBean.class, true), oName);
+			} catch (InstanceAlreadyExistsException e) {
+				log.info("Instance already registered", e);
+			} catch (Exception e) {
+				log.warn("Error on jmx registration", e);
+			}
 		}
 	}
 
 	protected void unregisterJMX() {
-		if (StringUtils.isNotEmpty(publishedName) && !"false".equals(publishedName)) {
-			MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-			try {
-				ObjectName oName = new ObjectName(String.format("org.red5.server:type=ClientBroadcastStream,scope=%s,publishedName=%s", getScope().getName(), publishedName));
-				mbs.unregisterMBean(oName);
-			} catch (Exception e) {
-				log.warn("Exception unregistering", e);
+		if (registerJMX) {
+			if (StringUtils.isNotEmpty(publishedName) && !"false".equals(publishedName)) {
+				MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+				try {
+					ObjectName oName = new ObjectName(String.format("org.red5.server:type=ClientBroadcastStream,scope=%s,publishedName=%s", getScope().getName(), publishedName));
+					mbs.unregisterMBean(oName);
+				} catch (Exception e) {
+					log.warn("Exception unregistering", e);
+				}
 			}
 		}
 	}

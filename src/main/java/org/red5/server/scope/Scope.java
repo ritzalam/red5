@@ -38,6 +38,7 @@ import javax.management.StandardMBean;
 import javax.management.openmbean.CompositeData;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jruby.util.collections.WeakHashSet;
 import org.red5.server.AttributeStore;
 import org.red5.server.Server;
 import org.red5.server.api.IClient;
@@ -102,7 +103,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	/**
 	 * Child scopes
 	 */
-	private final ConcurrentScopeSet<IBasicScope> children = new ConcurrentScopeSet<IBasicScope>();
+	private final ConcurrentScopeSet children = new ConcurrentScopeSet();
 
 	/**
 	 * Connected clients map
@@ -318,12 +319,15 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			getHandler().stop(this);
 		}
 		// kill all child scopes
-		for (IBasicScope child : children) {
+		Set<IBasicScope> childScopes = new WeakHashSet<IBasicScope>();
+		childScopes.addAll(children);
+		for (IBasicScope child : childScopes) {
 			removeChildScope(child);
 			if (child instanceof Scope) {
 				((Scope) child).uninit();
 			}
 		}
+		childScopes.clear();
 	}
 
 	/**
@@ -442,13 +446,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * @return broadcast scope or null if not found
 	 */
 	public IBroadcastScope getBroadcastScope(String name) {
-		for (IBasicScope child : children) {
-			if (child.getType().equals(ScopeType.BROADCAST) && child.getName().equals(name)) {
-				log.debug("Returning broadcast scope");
-				return (IBroadcastScope) child;
-			}
-		}
-		return null;
+		return (IBroadcastScope) children.getBasicScope(ScopeType.BROADCAST, name);
 	}
 
 	/**
@@ -459,13 +457,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * @return Basic scope object
 	 */
 	public IBasicScope getBasicScope(ScopeType type, String name) {
-		for (IBasicScope child : children) {
-			if (child.getType().equals(type) && name.equals(child.getName())) {
-				log.debug("Returning basic scope");
-				return child;
-			}
-		}
-		return null;
+		return children.getBasicScope(type, name);
 	}
 
 	/**
@@ -477,15 +469,16 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	public Set<String> getBasicScopeNames(ScopeType type) {
 		if (type != null) {
 			Set<String> names = new HashSet<String>();
-			for (IBasicScope child : children) {
+			Set<IBasicScope> childScopes = new WeakHashSet<IBasicScope>();
+			childScopes.addAll(children);
+			for (IBasicScope child : childScopes) {
 				if (child.getType().equals(type)) {
 					names.add(child.getName());
 				}
 			}
 			return names;
-		} else {
-			return getScopeNames();
 		}
+		return getScopeNames();
 	}
 
 	/**
@@ -686,8 +679,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	}
 
 	/**
-	 * Return array of resources from path string, usually used with pattern
-	 * path
+	 * Return array of resources from path string, usually used with pattern path
 	 * 
 	 * @param path Resources path
 	 * @return Resources
@@ -707,17 +699,11 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * @return Child scope with given name
 	 */
 	public IScope getScope(String name) {
-		for (IBasicScope child : children) {
-			if (child.getName().equals(name)) {
-				log.debug("Returning child scope");
-				if (child instanceof IScope) {
-					return (IScope) child;
-				} else {
-					log.warn("Requested scope: {} is not of IScope type: {}", name, child.getClass().getName());
-					break;
-				}
-			}
+		IBasicScope child = children.getBasicScope(ScopeType.UNDEFINED, name);
+		if (child instanceof IScope) {
+			return (IScope) child;
 		}
+		log.warn("Requested scope: {} is not of IScope type: {}", name, child.getClass().getName());
 		return null;
 	}
 
@@ -728,11 +714,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 */
 	public Set<String> getScopeNames() {
 		log.debug("Children: {}", children);
-		Set<String> names = new HashSet<String>();
-		for (IBasicScope child : children) {
-			names.add(child.getName());
-		}
-		return names;
+		return children.getNames();
 	}
 
 	/**
@@ -834,12 +816,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		log.debug("Has child scope? {} in {}", name, this);
 		try {
 			lock.acquire();
-			for (IBasicScope child : children) {
-				if (child.getName().equals(name)) {
-					log.debug("Child scope exists");
-					return true;
-				}
-			}
+			return children.getNames().contains(name);
 		} catch (Exception e) {
 			log.warn("Exception aquiring lock for has subscope check", e);
 		} finally {
@@ -859,13 +836,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 */
 	public boolean hasChildScope(ScopeType type, String name) {
 		log.debug("Has child scope? {} in {}", name, this);
-		for (IBasicScope child : children) {
-			if (child.getName().equals(name) && child.getType().equals(type)) {
-				log.debug("Child scope exists");
-				return true;
-			}
-		}
-		return false;
+		return children.getBasicScope(type, name) != null;
 	}
 
 	/**
@@ -929,11 +900,14 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 */
 	public void uninit() {
 		log.debug("Un-init scope");
-		for (IBasicScope child : children) {
+		Set<IBasicScope> childScopes = new WeakHashSet<IBasicScope>();
+		childScopes.addAll(children);
+		for (IBasicScope child : childScopes) {
 			if (child instanceof Scope) {
 				((Scope) child).uninit();
 			}
 		}
+		childScopes.clear();
 		stop();
 		if (hasParent()) {
 			if (parent.hasChildScope(name)) {
@@ -994,12 +968,10 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 */
 	public void removeChildScope(IBasicScope scope) {
 		log.debug("removeChildScope: {}", scope);
-		if (hasChildScope(scope.getName())) {
-			// remove from parent
-			children.remove(scope);
-			if (scope instanceof Scope) {
-				unregisterJMX();
-			}
+		// remove from parent
+		children.remove(scope);
+		if (scope instanceof Scope) {
+			unregisterJMX();
 		}
 	}
 
@@ -1007,7 +979,9 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * Removes all the child scopes
 	 */
 	public void removeChildren() {
-		for (IBasicScope child : children) {
+		Set<IBasicScope> childScopes = new WeakHashSet<IBasicScope>();
+		childScopes.addAll(children);
+		for (IBasicScope child : childScopes) {
 			removeChildScope(child);
 		}
 	}
@@ -1201,22 +1175,24 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 
 	//for debugging
 	public void dump() {
-		if (log.isDebugEnabled()) {
-			log.debug("Scope: {} {}", this.getClass().getName(), this);
-			log.debug("Running: {}", running);
+		if (log.isTraceEnabled()) {
+			log.trace("Scope: {} {}", this.getClass().getName(), this);
+			log.trace("Running: {}", running);
 			if (hasParent()) {
-				log.debug("Parent: {}", parent);
+				log.trace("Parent: {}", parent);
 				Set<String> names = parent.getBasicScopeNames(null);
-				log.debug("Sibling count: {}", names.size());
+				log.trace("Sibling count: {}", names.size());
 				for (String sib : names) {
-					log.debug("Siblings - {}", sib);
+					log.trace("Siblings - {}", sib);
 				}
 				names = null;
 			}
-			log.debug("Handler: {}", handler);
-			log.debug("Child count: {}", children.size());
-			for (IBasicScope entry : children) {
-				log.debug("Child: {}", entry);
+			log.trace("Handler: {}", handler);
+			log.trace("Child count: {}", children.size());
+			Set<IBasicScope> childScopes = new WeakHashSet<IBasicScope>();
+			childScopes.addAll(children);
+			for (IBasicScope child : childScopes) {
+				log.trace("Child: {}", child);
 			}
 		}
 	}
@@ -1304,10 +1280,11 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		return true;
 	}
 
-	@SuppressWarnings({ "hiding", "serial" })
-	private final class ConcurrentScopeSet<IBasicScope> extends HashSet<IBasicScope> {
+	private final class ConcurrentScopeSet extends WeakHashSet<org.red5.server.api.scope.IBasicScope> {
 
 		private Semaphore lock = new Semaphore(1, true);
+
+		private Set<String> names = new HashSet<String>();
 
 		@Override
 		public boolean add(IBasicScope scope) {
@@ -1316,7 +1293,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				added = add((IScope) scope);
 			} else {
 				log.debug("Adding basic scope to scope set");
-				if (hasHandler() && !getHandler().addChildScope((org.red5.server.api.scope.IBasicScope) scope)) {
+				if (hasHandler() && !getHandler().addChildScope(scope)) {
 					log.debug("Failed to add child scope: {} to {}", scope, this);
 					return false;
 				}
@@ -1329,13 +1306,13 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 					lock.release();
 				}
 				if (added) {
+					names.add(scope.getName());
 					subscopeStats.increment();
 				}
 			}
 			return added;
 		}
 
-		@SuppressWarnings("unchecked")
 		public boolean add(IScope scope) {
 			log.debug("Adding scope to scope set");
 			if (hasHandler()) {
@@ -1361,6 +1338,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				lock.release();
 			}
 			if (added) {
+				names.add(scope.getName());
 				subscopeStats.increment();
 				// post notification
 				IServer server = getServer();
@@ -1376,7 +1354,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			log.debug("Remove child scope: {}", scope);
 			if (hasHandler()) {
 				log.debug("Remove child scope");
-				getHandler().removeChildScope((org.red5.server.api.scope.IBasicScope) scope);
+				getHandler().removeChildScope((IBasicScope) scope);
 			}
 			if (scope instanceof IScope) {
 				if (hasHandler()) {
@@ -1401,11 +1379,63 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				lock.release();
 			}
 			if (removed) {
+				names.remove(((IBasicScope) scope).getName());
 				subscopeStats.decrement();
 			} else {
 				log.debug("Subscope was not removed");
 			}
 			return removed;
+		}
+
+		@Override
+		public boolean contains(Object scope) {
+			return super.contains(scope);
+		}
+
+		/**
+		 * Returns the number of child scopes.
+		 * 
+		 * @return size
+		 */
+		@Override
+		public int size() {
+			return super.size();
+		}
+
+		/**
+		 * Returns the scope names.
+		 * 
+		 * @return names
+		 */
+		public Set<String> getNames() {
+			return names;
+		}
+
+		/**
+		 * Returns a child scope for a given name and type.
+		 * 
+		 * @param type Scope type
+		 * @param name Scope name
+		 * @return scope
+		 */
+		public IBasicScope getBasicScope(ScopeType type, String name) {
+			boolean skipTypeCheck = ScopeType.UNDEFINED.equals(type);
+			if (skipTypeCheck) {
+				for (IBasicScope child : this) {
+					if (name.equals(child.getName())) {
+						log.debug("Returning basic scope: {}", child);
+						return child;
+					}
+				}
+			} else {
+				for (IBasicScope child : this) {
+					if (child.getType().equals(type) && name.equals(child.getName())) {
+						log.debug("Returning basic scope: {}", child);
+						return child;
+					}
+				}
+			}
+			return null;
 		}
 
 	}

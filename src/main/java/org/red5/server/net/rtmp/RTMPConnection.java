@@ -339,7 +339,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		this.path = path;
 		this.params = params;
 		if (Integer.valueOf(3).equals(params.get("objectEncoding"))) {
-			log.info("Setting object encoding to AMF3");
+			log.debug("Setting object encoding to AMF3");
 			encoding = Encoding.AMF3;
 		}
 	}

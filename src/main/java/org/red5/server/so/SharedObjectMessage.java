@@ -21,7 +21,6 @@ package org.red5.server.so;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -198,16 +197,13 @@ public class SharedObjectMessage extends BaseEvent implements ISharedObjectMessa
 	/** {@inheritDoc} */
 	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder();
-		sb.append(getClass().getSimpleName()).append(": ").append(name).append(" v=").append(version).append(" { ");
-		final Iterator<ISharedObjectEvent> it = events.iterator();
-		while (it.hasNext()) {
-			sb.append(it.next());
-			if (it.hasNext()) {
-				sb.append(" , ");
-			}
+		StringBuilder sb = new StringBuilder(getClass().getSimpleName());
+		sb.append(": ").append(name).append(" v=").append(version).append(" { ");
+		for (ISharedObjectEvent event : events) {
+			sb.append(event);
+			sb.append(' ');
 		}
-		sb.append(" } ");
+		sb.append('}');
 		return sb.toString();
 	}
 
@@ -219,6 +215,9 @@ public class SharedObjectMessage extends BaseEvent implements ISharedObjectMessa
 		version = in.readInt();
 		persistent = in.readBoolean();
 		Object o = in.readObject();
+		if (o != null) {
+			System.out.println("SharedObjectMessage: events type=" + o.getClass().getName());
+		}
 		if (o != null && o instanceof ConcurrentLinkedQueue) {
 			events = (ConcurrentLinkedQueue<ISharedObjectEvent>) o;
 		}

@@ -51,8 +51,8 @@ public interface IScopeHandler extends IEventHandler {
 
 	/**
 	 * Called just before a scope is disposed.
-     * @param scope         Scope that id disposed
-     */
+	 * @param scope         Scope that id disposed
+	 */
 	void stop(IScope scope);
 
 	/**
@@ -70,7 +70,7 @@ public interface IScopeHandler extends IEventHandler {
 	 * 
 	 * 
 	 * @return <code>true</code> to allow, <code>false</code> to deny
-     * @param scope           Scope object
+	 * @param scope           Scope object
 	 */
 	boolean connect(IConnection conn, IScope scope, Object[] params);
 
@@ -108,7 +108,7 @@ public interface IScopeHandler extends IEventHandler {
 	 * 			Client object
 	 * @return <code>true</code> to allow, <code>false</code> to deny
 	 *         connection
-     * @param scope      Scope that is joined by client
+	 * @param scope      Scope that is joined by client
 	 */
 	boolean join(IClient client, IScope scope);
 

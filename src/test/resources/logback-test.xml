@@ -16,11 +16,12 @@
 	</appender>
 
 	<root>
-		<level value="DEBUG" />
+		<level value="TRACE" />
 		<!-- <appender-ref ref="CONSOLE" /> -->
 		<appender-ref ref="FILE" />
 	</root>   
 	   
+<!-- 
     <logger name="org.red5.server.api">
         <level value="DEBUG" />
     </logger>
@@ -28,7 +29,7 @@
     <logger name="org.red5.server.api.service">
         <level value="DEBUG" />
     </logger>
-		
+        
     <logger name="org.red5.server.scope">
         <level value="DEBUG" />
     </logger>
@@ -37,7 +38,7 @@
     <logger name="org.red5.server.so">
         <level value="TRACE" />
     </logger>
-<!-- 
+
     <logger name="org.red5.io.mp4.impl.MP4Reader">
         <level value="TRACE" />
     </logger>   
@@ -70,9 +71,14 @@
 		<level value="INFO" />
 	</logger>
  -->
-	<logger name="ch.qos">
-		<level value="WARN" />
-	</logger>
+ 
+    <logger name="org.apache">
+        <level value="DEBUG" />
+    </logger>
+
+    <logger name="ch.qos">
+        <level value="WARN" />
+    </logger>
 
     <logger name="net.sf">
         <level value="WARN" />

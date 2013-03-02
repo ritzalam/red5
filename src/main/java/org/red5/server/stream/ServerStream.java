@@ -27,6 +27,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.red5.io.IKeyFrameMetaCache;
+import org.red5.server.api.IContext;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.scope.IScope;
@@ -450,10 +451,12 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 			throw new IllegalStateException("A published name is needed to start");
 		}
 		try {
-			providerService = (IProviderService) getScope().getContext().getBean(IProviderService.BEAN_NAME);
+			IScope scope = getScope();
+			IContext context = scope.getContext();
+			providerService = (IProviderService) context.getBean(IProviderService.BEAN_NAME);
 			// publish this server-side stream
-			providerService.registerBroadcastStream(getScope(), publishedName, this);
-			scheduler = (ISchedulingService) getScope().getContext().getBean(ISchedulingService.BEAN_NAME);
+			providerService.registerBroadcastStream(scope, publishedName, this);
+			scheduler = (ISchedulingService) context.getBean(ISchedulingService.BEAN_NAME);
 		} catch (NullPointerException npe) {
 			log.warn("Context beans were not available; this is ok during unit testing", npe);
 		}
@@ -704,8 +707,7 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	}
 
 	/**
-	 * Pull the next message from IMessageInput and schedule
-	 * it for push according to the timestamp.
+	 * Pull the next message from IMessageInput and schedule it for push according to the timestamp.
 	 */
 	protected void scheduleNextMessage() {
 		boolean first = (nextRTMPMessage == null);

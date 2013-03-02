@@ -77,9 +77,6 @@ public class ProviderService implements IProviderService {
 	/** {@inheritDoc} */
 	public IMessageInput getLiveProviderInput(IScope scope, String name, boolean needCreate) {
 		log.debug("Get live provider input for {} scope: {}", name, scope);
-		if (log.isDebugEnabled()) {
-			((Scope) scope).dump();
-		}
 		//make sure the create is actually needed
 		IBroadcastScope broadcastScope = scope.getBroadcastScope(name);
 		if (broadcastScope == null) {
@@ -127,9 +124,7 @@ public class ProviderService implements IProviderService {
 	/** {@inheritDoc} */
 	public boolean registerBroadcastStream(IScope scope, String name, IBroadcastStream bs) {
 		log.debug("Registering - name: {} stream: {} scope: {}", new Object[] { name, bs, scope });
-		if (log.isDebugEnabled()) {
-			((Scope) scope).dump();
-		}
+		((Scope) scope).dump();
 		IBroadcastScope broadcastScope = scope.getBroadcastScope(name);
 		if (broadcastScope == null) {
 			log.debug("Creating a new scope");
@@ -157,9 +152,7 @@ public class ProviderService implements IProviderService {
 	/** {@inheritDoc} */
 	public boolean unregisterBroadcastStream(IScope scope, String name, IBroadcastStream bs) {
 		log.debug("Unregistering - name: {} stream: {} scope: {}", new Object[] { name, bs, scope });
-		if (log.isTraceEnabled()) {
-			((Scope) scope).dump();
-		}
+		((Scope) scope).dump();
 		IBroadcastScope broadcastScope = scope.getBroadcastScope(name);
 		if (bs != null) {
 			log.debug("Unsubscribing scope {} from provider {}", broadcastScope, bs.getProvider());

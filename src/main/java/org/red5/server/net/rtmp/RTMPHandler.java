@@ -243,6 +243,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 								disconnectOnReturn = true;
 							}
 						} catch (ScopeNotFoundException err) {
+							log.warn("Scope not found", err);
 							call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 							if (call instanceof IPendingServiceCall) {
 								StatusObject status = getStatus(NC_CONNECT_REJECTED);
@@ -252,6 +253,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 							log.info("Scope {} not found on {}", path, host);
 							disconnectOnReturn = true;
 						} catch (ScopeShuttingDownException err) {
+							log.warn("Scope shutting down", err);
 							call.setStatus(Call.STATUS_APP_SHUTTING_DOWN);
 							if (call instanceof IPendingServiceCall) {
 								StatusObject status = getStatus(NC_CONNECT_APPSHUTDOWN);
@@ -262,10 +264,10 @@ public class RTMPHandler extends BaseRTMPHandler {
 							disconnectOnReturn = true;
 						}
 						if (scope != null) {
-							if (log.isDebugEnabled()) {
-								log.debug("Connecting to: {}", scope);								
+							if (log.isTraceEnabled()) {
+								log.trace("Connecting to: {}", scope);								
 							} else {
-								log.info("Connecting to: {}", scope.getName());
+								log.debug("Connecting to: {}", scope.getName());
 							}
 							boolean okayToConnect;
 							try {
@@ -318,6 +320,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 							}
 						}
 					} else {
+						log.warn("Scope {} not found", path);
 						call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 						if (call instanceof IPendingServiceCall) {
 							StatusObject status = getStatus(NC_CONNECT_INVALID_APPLICATION);
