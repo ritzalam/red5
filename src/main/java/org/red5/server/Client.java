@@ -27,10 +27,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import javax.management.openmbean.CompositeData;
 
@@ -59,9 +57,9 @@ public class Client extends AttributeStore implements IClient {
 	protected static final String PERMISSIONS = IPersistable.TRANSIENT_PREFIX + "_red5_permissions";
 
 	/**
-	 * Scopes this client connected to
+	 * Connections this client is associated with.
 	 */
-	protected ConcurrentMap<IConnection, IScope> connToScope = new ConcurrentHashMap<IConnection, IScope>(1, 0.9f, 1);
+	protected CopyOnWriteArraySet<IConnection> connections = new CopyOnWriteArraySet<IConnection>();
 
 	/**
 	 * Creation time as Timestamp
@@ -104,8 +102,8 @@ public class Client extends AttributeStore implements IClient {
 	 */
 	public void disconnect() {
 		log.debug("Disconnect - id: {}", id);
-		if (connToScope != null && !connToScope.isEmpty()) {
-			log.debug("Closing {} connections", connToScope.size());
+		if (connections != null && !connections.isEmpty()) {
+			log.debug("Closing {} scope connections", connections.size());
 			// close all connections held to Red5 by client
 			for (IConnection con : getConnections()) {
 				try {
@@ -128,7 +126,7 @@ public class Client extends AttributeStore implements IClient {
 	 * @return           Set of connections
 	 */
 	public Set<IConnection> getConnections() {
-		return connToScope.keySet();
+		return Collections.unmodifiableSet(connections);
 	}
 
 	/**
@@ -141,13 +139,15 @@ public class Client extends AttributeStore implements IClient {
 		if (scope == null) {
 			return getConnections();
 		}
-		Set<IConnection> result = new HashSet<IConnection>(connToScope.size());
-		for (Entry<IConnection, IScope> entry : connToScope.entrySet()) {
-			if (scope.equals(entry.getValue())) {
-				result.add(entry.getKey());
+		Set<IClient> scopeClients = scope.getClients();
+		if (scopeClients.contains(this)) {
+			for (IClient cli : scopeClients) {
+				if (this.equals(cli)) {
+					return cli.getConnections();
+				}
 			}
 		}
-		return result;
+		return Collections.emptySet();
 	}
 
 	/**
@@ -188,7 +188,11 @@ public class Client extends AttributeStore implements IClient {
 	 * @return scopes on this client
 	 */
 	public Collection<IScope> getScopes() {
-		return connToScope.values();
+		Set<IScope> scopes = new HashSet<IScope>();
+		for (IConnection conn : connections) {
+			scopes.add(conn.getScope());
+		}
+		return scopes;
 	}
 
 	/**
@@ -199,11 +203,12 @@ public class Client extends AttributeStore implements IClient {
 	 */
 	public List<String> iterateScopeNameList() {
 		log.debug("iterateScopeNameList called");
-		int scopeCount = connToScope.values().size();
-		List<String> scopeNames = new ArrayList<String>(scopeCount);
-		log.debug("Scopes: {}", scopeCount);
-		for (IScope scope : connToScope.values()) {
+		Collection<IScope> scopes = getScopes();
+		log.debug("Scopes: {}", scopes.size());
+		List<String> scopeNames = new ArrayList<String>(scopes.size());
+		for (IScope scope : scopes) {
 			log.debug("Client scope: {}", scope);
+			scopeNames.add(scope.getName());
 			for (Map.Entry<String, Object> entry : scope.getAttributes().entrySet()) {
 				log.debug("Client scope attr: {} = {}", entry.getKey(), entry.getValue());
 			}
@@ -218,9 +223,10 @@ public class Client extends AttributeStore implements IClient {
 	protected void register(IConnection conn) {
 		log.debug("Registering connection for this client {}", id);
 		if (conn != null) {
-			IScope scp = conn.getScope();
-			if (scp != null) {
-				connToScope.put(conn, scp);
+			IScope scope = conn.getScope();
+			if (scope != null) {
+				log.debug("Registering for scope: {}", scope);
+				connections.add(conn);
 			} else {
 				log.warn("Clients scope is null. Id: {}", id);
 			}
@@ -243,10 +249,10 @@ public class Client extends AttributeStore implements IClient {
 	 * @param deleteIfNoConns Whether to delete this client if it no longer has any connections
 	 */
 	protected void unregister(IConnection conn, boolean deleteIfNoConns) {
-		// Remove connection from connected scopes list
-		connToScope.remove(conn);
+		// remove connection from connected scopes list
+		connections.remove(conn);
 		// If client is not connected to any scope any longer then remove
-		if (deleteIfNoConns && connToScope.isEmpty()) {
+		if (deleteIfNoConns && connections.isEmpty()) {
 			// TODO DW dangerous the way this is called from BaseConnection.initialize(). Could we unexpectedly pop a Client out of the registry?
 			removeInstance();
 		}
@@ -336,14 +342,10 @@ public class Client extends AttributeStore implements IClient {
 		}
 	}
 
-	/**
-	 * if overriding equals then also do hashCode
-	 * @return a has code
-	 */
 	@Override
 	public int hashCode() {
 		if (StringUtils.isNumeric(id)) {
-			return Integer.valueOf(id);			
+			return Integer.valueOf(id);
 		} else {
 			return id.hashCode();
 		}

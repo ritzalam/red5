@@ -1300,14 +1300,14 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				try {
 					lock.acquire();
 					added = super.add(scope);
+					if (added) {
+						names.add(scope.getName());
+						subscopeStats.increment();
+					}
 				} catch (InterruptedException e) {
 					log.warn("Exception aquiring lock for scope set", e);
 				} finally {
 					lock.release();
-				}
-				if (added) {
-					names.add(scope.getName());
-					subscopeStats.increment();
 				}
 			}
 			return added;
@@ -1332,19 +1332,21 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				lock.acquire();
 				// add the entry
 				added = super.add((IBasicScope) scope);
+				if (added) {
+					names.add(scope.getName());
+					subscopeStats.increment();
+				} else {
+					log.debug("Subscope was not added");
+				}
 			} catch (InterruptedException e) {
 				log.warn("Exception aquiring lock for scope set", e);
 			} finally {
 				lock.release();
 			}
 			if (added) {
-				names.add(scope.getName());
-				subscopeStats.increment();
 				// post notification
 				IServer server = getServer();
 				((Server) server).notifyScopeCreated((IScope) scope);
-			} else {
-				log.debug("Subscope was not added");
 			}
 			return added;
 		}
@@ -1373,16 +1375,16 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				lock.acquire();
 				// remove the entry
 				removed = super.remove(scope);
+				if (removed) {
+					names.remove(((IBasicScope) scope).getName());
+					subscopeStats.decrement();
+				} else {
+					log.debug("Subscope was not removed");
+				}
 			} catch (InterruptedException e) {
 				log.warn("Exception aquiring lock for scope set", e);
 			} finally {
 				lock.release();
-			}
-			if (removed) {
-				names.remove(((IBasicScope) scope).getName());
-				subscopeStats.decrement();
-			} else {
-				log.debug("Subscope was not removed");
 			}
 			return removed;
 		}

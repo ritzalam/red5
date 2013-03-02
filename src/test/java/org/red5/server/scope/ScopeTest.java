@@ -20,6 +20,7 @@ package org.red5.server.scope;
 
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -183,9 +184,7 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		client.setAttribute(key, value);
 		assertTrue("attributes not working", client.getAttribute(key) == value);
 
-		if (!conn.connect(testApp)) {
-			assertTrue("Didnt connect", false);
-		} else {
+		if (conn.connect(testApp)) {
 			// give connect a moment to settle
 			Thread.sleep(100L);
 			assertTrue("Should have a scope", conn.getScope() != null);
@@ -195,6 +194,8 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 			assertTrue("Should not be connected", !conn.isConnected());
 			assertTrue("app should have 0 client", ((Scope) testApp).getActiveClients() == 0);
 			assertTrue("host should have 0 client", testApp.getParent().getClients().size() == 0);
+		} else {
+			fail("Didnt connect");
 		}
 		//client.disconnect();
 		Red5.setConnectionLocal(null);
@@ -300,7 +301,7 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		TestConnection conn = new TestConnection(host, appPath, client.getId());
 		conn.initialize(client);
 		Red5.setConnectionLocal(conn);
-		conn.connect(room5);
+		assertTrue(conn.connect(room5));
 		// their code
 		IScope scope = Red5.getConnectionLocal().getScope();
 		for (IConnection tempConn : scope.getClientConnections()) {
