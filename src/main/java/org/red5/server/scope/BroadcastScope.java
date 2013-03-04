@@ -252,5 +252,13 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope, IPipe
 		this.clientBroadcastStream = clientBroadcastStream;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "BroadcastScope [clientBroadcastStream=" + clientBroadcastStream + ", compCounter=" + compCounter + ", removed=" + removed + "]";
+	}
+
 
 }
