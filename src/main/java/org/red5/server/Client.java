@@ -209,8 +209,10 @@ public class Client extends AttributeStore implements IClient {
 		for (IScope scope : scopes) {
 			log.debug("Client scope: {}", scope);
 			scopeNames.add(scope.getName());
-			for (Map.Entry<String, Object> entry : scope.getAttributes().entrySet()) {
-				log.debug("Client scope attr: {} = {}", entry.getKey(), entry.getValue());
+			if (log.isDebugEnabled()) {
+    			for (Map.Entry<String, Object> entry : scope.getAttributes().entrySet()) {
+    				log.debug("Client scope attr: {} = {}", entry.getKey(), entry.getValue());
+    			}
 			}
 		}
 		return scopeNames;

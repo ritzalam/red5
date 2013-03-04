@@ -302,28 +302,30 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 */
 	@Override
 	public boolean connect(IConnection conn, IScope scope, Object[] params) {
-		//ensure the log is not null at this point
+		// ensure the log is not null at this point
 		if (log == null) {
 			log = Red5LoggerFactory.getLogger(this.getClass());
 		}
-		//hit the super class first
-		if (!super.connect(conn, scope, params)) {
-			return false;
-		}
-		if (log.isInfoEnabled()) {
-			// log w3c connect event
-			IClient client = conn.getClient();
-			if (client == null) {
-				log.info("W3C x-category:session x-event:connect c-ip:{}", conn.getRemoteAddress());
-			} else {
-				log.info("W3C x-category:session x-event:connect c-ip:{} c-client-id:{}", conn.getRemoteAddress(), client.getId());
-			}
-		}
+		log.debug("connect: {} > {}", conn, scope);
 		boolean success = false;
-		if (ScopeUtils.isApp(scope)) {
-			success = appConnect(conn, params);
-		} else if (ScopeUtils.isRoom(scope)) {
-			success = roomConnect(conn, params);
+		// hit the super class first
+		if (super.connect(conn, scope, params)) {
+			if (log.isInfoEnabled()) {
+				// log w3c connect event
+				IClient client = conn.getClient();
+				if (client == null) {
+					log.info("W3C x-category:session x-event:connect c-ip:{}", conn.getRemoteAddress());
+				} else {
+					log.info("W3C x-category:session x-event:connect c-ip:{} c-client-id:{}", conn.getRemoteAddress(), client.getId());
+				}
+			}
+			if (ScopeUtils.isApp(scope)) {
+				success = appConnect(conn, params);
+			} else if (ScopeUtils.isRoom(scope)) {
+				success = roomConnect(conn, params);
+			} else {
+				log.warn("Scope was not of app or room type, connect failed");
+			}
 		}
 		return success;
 	}
@@ -343,6 +345,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 		if (log == null) {
 			log = Red5LoggerFactory.getLogger(this.getClass());
 		}
+		log.debug("start: {}", scope);
 		//setup plug-ins
 		log.trace("Plugins: {}", plugins);
 		if (plugins != null) {
@@ -395,12 +398,16 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 				}
 			}
 		}
+		boolean started = false;
 		// verify that we can start
-		if (!super.start(scope)) {
-			return false;
-		}
-		if (ScopeUtils.isApp(scope)) {
-			boolean started = appStart(scope);
+		if (super.start(scope)) {
+			if (ScopeUtils.isApp(scope)) {
+				started = appStart(scope);
+			} else if (ScopeUtils.isRoom(scope)) {
+				started = roomStart(scope);
+			} else {
+				log.warn("Scope wasn't of app or room type, it was not started");
+			}
 			// fix for issue 91
 			if (started) {
 				// we dont allow connections until we are started
@@ -408,10 +415,8 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 				// we also dont allow service calls until started
 				super.setCanCallService(true);
 			}
-			return started;
-		} else {
-			return ScopeUtils.isRoom(scope) && roomStart(scope);
-		}
+		}	
+		return started;
 	}
 
 	/**
@@ -426,7 +431,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 */
 	@Override
 	public void disconnect(IConnection conn, IScope scope) {
-		log.debug("disconnect: {} << {}", conn, scope);
+		log.debug("disconnect: {} < {}", conn, scope);
 		if (log.isInfoEnabled()) {
 			// log w3c connect event
 			IClient client = conn.getClient();
@@ -457,12 +462,14 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 */
 	@Override
 	public void stop(IScope scope) {
+		log.debug("stop: {}", scope);
+		// we dont allow connections after we stop
+		super.setCanConnect(false);
+		// we also dont allow service calls 
+		super.setCanCallService(false);
+		// stop the app / room / etc
 		if (ScopeUtils.isApp(scope)) {
 			appStop(scope);
-			// we dont allow connections after we stop
-			super.setCanConnect(false);
-			// we also dont allow service calls 
-			super.setCanCallService(false);
 		} else if (ScopeUtils.isRoom(scope)) {
 			roomStop(scope);
 		}
@@ -565,7 +572,6 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 				return false;
 			}
 		}
-
 		return true;
 	}
 

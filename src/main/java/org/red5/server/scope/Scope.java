@@ -62,7 +62,6 @@ import org.red5.server.jmx.mxbeans.ScopeMXBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
-import org.springframework.core.style.ToStringCreator;
 import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
@@ -104,12 +103,12 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	/**
 	 * Child scopes
 	 */
-	private final ConcurrentScopeSet children = new ConcurrentScopeSet();
+	private final ConcurrentScopeSet children;
 
 	/**
 	 * Connected clients map
 	 */
-	private final CopyOnWriteArraySet<IClient> clients = new CopyOnWriteArraySet<IClient>();
+	private final CopyOnWriteArraySet<IClient> clients;
 
 	/**
 	 * Storage for scope attributes
@@ -183,6 +182,8 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	@ConstructorProperties(value = { "" })
 	public Scope() {
 		super(null, ScopeType.UNDEFINED, null, false);
+		children = new ConcurrentScopeSet();
+		clients = new CopyOnWriteArraySet<IClient>();
 	}
 
 	/**
@@ -193,6 +194,8 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	@ConstructorProperties({ "builder" })
 	public Scope(Builder builder) {
 		super(builder.parent, builder.type, builder.name, builder.persistent);
+		children = new ConcurrentScopeSet();
+		clients = new CopyOnWriteArraySet<IClient>();
 	}
 
 	/**
@@ -297,14 +300,18 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	}
 
 	/**
-	 * Create child scope with given name
+	 * Create child scope of room type, with the given name.
 	 * 
-	 * @param name Child scope name
+	 * @param name child scope name
 	 * @return <code>true</code> on success, <code>false</code> otherwise
 	 */
 	public boolean createChildScope(String name) {
-		final Scope scope = new Builder(this, ScopeType.ROOM, name, false).build();
-		return addChildScope(scope);
+		// quick lookup by name
+		log.debug("createChildScope: {} existing children: {}", name, children.getNames());
+		if (!children.getNames().contains(name)) {
+			return addChildScope(new Builder(this, ScopeType.ROOM, name, false).build());
+		}
+		return false;
 	}
 
 	/**
@@ -518,8 +525,9 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			if (set.size() > 1) {
 				log.warn("Client connections exceeded expected single count; size: {}", set.size());
 			}
-			IConnection conn = set.iterator().next();
-			result.add(conn);
+			for (IConnection conn : set) {
+				result.add(conn);
+			}
 		}
 		return result;
 	}
@@ -1103,6 +1111,10 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 					// if we dont have a handler of our own dont try to start it
 					if (handler != null) {
 						result = handler.start(this);
+					} else {
+						// always start scopes without handlers
+						log.debug("Scope {} has no handler of its own, allowing start", this);
+						result = true;
 					}
 				} catch (Throwable e) {
 					log.error("Could not start scope {} {}", this, e);
@@ -1110,7 +1122,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 					lock.release();
 				}
 			} else {
-				// Always start scopes without handlers
+				// always start scopes without handlers
 				log.debug("Scope {} has no handler, allowing start", this);
 				result = true;
 			}
@@ -1134,15 +1146,19 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			} finally {
 				lock.release();
 			}
+			// remove all children
+			removeChildren();
 		}
 		running = false;
 	}
 
-	/** {@inheritDoc} */
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
-		final ToStringCreator tsc = new ToStringCreator(this);
-		return tsc.append("Name", getName()).append("Created", creation).append("Parent path", getPath()).append("Depth", getDepth()).toString();
+		return "Scope [name=" + getName() + ", path=" + getPath() + ", type=" + type + ", autoStart=" + autoStart + ", creationTime=" + creationTime + ", depth=" + getDepth()
+				+ ", enabled=" + enabled + ", running=" + running + "]";
 	}
 
 	/**
@@ -1259,7 +1275,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + ((getPath() == null) ? 0 : getPath().hashCode());
-		result = prime * result + depth;
+		result = prime * result + getDepth();
 		return result;
 	}
 
@@ -1287,72 +1303,56 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 
 		private Set<String> names = new HashSet<String>();
 
-		ConcurrentScopeSet() {		
+		ConcurrentScopeSet() {
 			super(3, 0.9f);
 		}
-		
+
 		public boolean add(IBasicScope scope) {
 			boolean added = false;
-			if (scope instanceof IScope) {
-				added = add((IScope) scope);
-			} else {
-				log.debug("Adding basic scope to scope set");
-				if (hasHandler() && !getHandler().addChildScope(scope)) {
-					log.debug("Failed to add child scope: {} to {}", scope, this);
-					return false;
+			// check #1
+			if (!keySet().contains(scope)) {
+				log.debug("Adding {} to scope set: {}", scope, this);
+				if (hasHandler()) {
+					IScopeHandler hdlr = getHandler();
+					// add the scope to the handler
+					if (!hdlr.addChildScope(scope)) {
+						log.debug("Failed to add child scope: {} to {}", scope, this);
+						return false;
+					}
 				}
 				try {
 					lock.acquire();
-					// expected return from put is null; indicating this scope didn't already exist
-					added = (super.put(scope, Boolean.TRUE) == null);
-					if (added) {
-						names.add(scope.getName());
-						subscopeStats.increment();
+					// check #2 for entry
+					if (!keySet().contains(scope)) {
+						// add the entry
+						// expected return from put is null; indicating this scope didn't already exist
+						added = (super.put(scope, Boolean.TRUE) == null);
+						if (added) {
+							names.add(scope.getName());
+							subscopeStats.increment();
+						} else {
+							log.debug("Subscope was not added");
+						}
+					} else {
+						log.debug("Subscope already exists");
 					}
 				} catch (InterruptedException e) {
 					log.warn("Exception aquiring lock for scope set", e);
 				} finally {
 					lock.release();
 				}
-			}
-			return added;
-		}
-
-		public boolean add(IScope scope) {
-			log.debug("Adding scope to scope set");
-			if (hasHandler()) {
-				// add the scope to the handler
-				if (!getHandler().addChildScope(scope)) {
-					log.debug("Failed to add child scope: {} to {}", scope, this);
-					return false;
+				if (added && scope instanceof IScope) {
+					if (scope instanceof Scope) {
+						// start the scope
+						if (((Scope) scope).start()) {
+							log.debug("Child scope started");
+						} else {
+							log.debug("Failed to start child scope: {} in {}", scope, this);
+						}
+					}
+					// post notification
+					((Server) getServer()).notifyScopeCreated((IScope) scope);
 				}
-				// start the scope
-				if (!getHandler().start((IScope) scope)) {
-					log.debug("Failed to start child scope: {} in {}", scope, this);
-					return false;
-				}
-			}
-			boolean added = false;
-			try {
-				lock.acquire();
-				// add the entry
-				// expected return from put is null; indicating this scope didn't already exist
-				added = (super.put((IBasicScope) scope, Boolean.TRUE) == null);
-				if (added) {
-					names.add(scope.getName());
-					subscopeStats.increment();
-				} else {
-					log.debug("Subscope was not added");
-				}
-			} catch (InterruptedException e) {
-				log.warn("Exception aquiring lock for scope set", e);
-			} finally {
-				lock.release();
-			}
-			if (added) {
-				// post notification
-				IServer server = getServer();
-				((Server) server).notifyScopeCreated((IScope) scope);
 			}
 			return added;
 		}
@@ -1361,36 +1361,36 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		public Boolean remove(Object scope) {
 			log.debug("Remove child scope: {}", scope);
 			if (hasHandler()) {
+				IScopeHandler hdlr = getHandler();
 				log.debug("Remove child scope");
-				getHandler().removeChildScope((IBasicScope) scope);
-			}
-			if (scope instanceof IScope) {
-				if (hasHandler()) {
-					getHandler().stop((IScope) scope);
-				}
-				// remove all children
-				((IScope) scope).removeChildren();
-				// post notification
-				final IServer server = getServer();
-				if (server instanceof Server) {
-					((Server) server).notifyScopeRemoved((IScope) scope);
+				hdlr.removeChildScope((IBasicScope) scope);
+				if (scope instanceof Scope) {
+					((Scope) scope).stop();
 				}
 			}
 			boolean removed = false;
 			try {
 				lock.acquire();
-				// remove the entry, ensure removed value is equal to the given object
-				removed = super.remove(scope).equals(scope);
-				if (removed) {
-					names.remove(((IBasicScope) scope).getName());
-					subscopeStats.decrement();
+				if (keySet().contains(scope)) {
+					// remove the entry, ensure removed value is equal to the given object
+					removed = super.remove(scope).equals(Boolean.TRUE);
+					if (removed) {
+						names.remove(((IBasicScope) scope).getName());
+						subscopeStats.decrement();
+					} else {
+						log.debug("Subscope was not removed");
+					}
 				} else {
-					log.debug("Subscope was not removed");
+					log.debug("Subscope was not removed, it was not found");
 				}
 			} catch (InterruptedException e) {
 				log.warn("Exception aquiring lock for scope set", e);
 			} finally {
 				lock.release();
+			}
+			if (removed && scope instanceof IScope) {
+				// post notification
+				((Server) getServer()).notifyScopeRemoved((IScope) scope);
 			}
 			return removed;
 		}
@@ -1402,7 +1402,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		 * @return true if it exists and false otherwise
 		 */
 		public boolean contains(Object scope) {
-			return super.containsKey(scope);
+			return keySet().contains(scope);
 		}
 
 		/**

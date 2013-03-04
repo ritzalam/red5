@@ -83,7 +83,7 @@ public abstract class BasicScope implements IBasicScope, Comparable<BasicScope> 
 	/**
 	 * Set to true to prevent the scope from being freed upon disconnect.
 	 */
-	protected boolean keepOnDisconnect = false;
+	protected boolean keepOnDisconnect;
 
 	/**
 	 * Set to amount of time (in seconds) the scope will be kept before being freed,

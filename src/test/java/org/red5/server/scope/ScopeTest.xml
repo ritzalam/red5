@@ -89,9 +89,9 @@
 		<property name="virtualHosts" value="*" />
 	</bean>
 
-	<bean id="web.handler" class="org.red5.server.adapter.ApplicationAdapter" />
+	<bean id="web.handler" class="org.red5.server.adapter.MultiThreadedApplicationAdapter" />
 
-	<bean id="room1" class="org.red5.server.scope.RoomScope" init-method="init">
+	<bean id="room1" class="org.red5.server.scope.RoomScope" init-method="init" depends-on="web.context,web.scope,web.handler">
 		<property name="parent" ref="web.scope" />
 		<property name="name" value="room1" />
 		<property name="handler" ref="web.handler" />

@@ -187,6 +187,7 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		assertTrue("attributes not working", client.getAttribute(key) == value);
 
 		conn.initialize(client);
+		
 		if (conn.connect(testApp)) {
 			// give connect a moment to settle
 			Thread.sleep(100L);
@@ -241,7 +242,7 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 
 		//Room 1
 		// /default/junit/room1
-		TestCase.assertTrue(appScope.createChildScope("room1"));
+		TestCase.assertFalse(appScope.createChildScope("room1")); // room1 is defined in context xml file, this should fail
 		IScope room1 = appScope.getScope("room1");
 		log.debug("Room 1: {}", room1);
 		assertTrue(room1.getDepth() == 2);

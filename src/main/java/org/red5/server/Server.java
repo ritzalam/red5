@@ -115,13 +115,7 @@ public class Server implements IServer, ApplicationContextAware, InitializingBea
 	 * @return Scope key as string
 	 */
 	protected String getKey(String hostName, String contextPath) {
-		if (hostName == null) {
-			hostName = EMPTY;
-		}
-		if (contextPath == null) {
-			contextPath = EMPTY;
-		}
-		return hostName + SLASH + contextPath;
+		return String.format("%s/%s", (hostName == null ? EMPTY : hostName), (contextPath == null ? EMPTY : contextPath));
 	}
 
 	/**
@@ -136,8 +130,7 @@ public class Server implements IServer, ApplicationContextAware, InitializingBea
 		log.debug("Lookup global scope - host name: {} context path: {}", hostName, contextPath);
 		// Init mappings key
 		String key = getKey(hostName, contextPath);
-		// If context path contains slashes get complex key and look for it
-		// in mappings
+		// If context path contains slashes get complex key and look for it in mappings
 		while (contextPath.indexOf(SLASH) != -1) {
 			key = getKey(hostName, contextPath);
 			log.trace("Check: {}", key);
@@ -146,15 +139,12 @@ public class Server implements IServer, ApplicationContextAware, InitializingBea
 				return getGlobal(globalName);
 			}
 			final int slashIndex = contextPath.lastIndexOf(SLASH);
-			// Context path is substring from the beginning and till last slash
-			// index
+			// Context path is substring from the beginning and till last slash index
 			contextPath = contextPath.substring(0, slashIndex);
 		}
-
 		// Get global scope key
 		key = getKey(hostName, contextPath);
 		log.trace("Check host and path: {}", key);
-
 		// Look up for global scope switching keys if still not found
 		String globalName = mapping.get(key);
 		if (globalName != null) {
