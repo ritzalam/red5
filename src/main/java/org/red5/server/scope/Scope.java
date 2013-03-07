@@ -232,7 +232,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 					((Scope) scope).setPersistenceClass(persistenceClass);
 				}
 			} catch (Exception error) {
-				log.error("Could not set persistence class.", error);
+				log.error("Could not set persistence class", error);
 			}
 		}
 		return added;
@@ -619,8 +619,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	}
 
 	/**
-	 * Return scope handler or parent's scope handler if this scope doesn't have
-	 * one
+	 * Return scope handler or parent's scope handler if this scope doesn't have one.
 	 * 
 	 * @return Scope handler (or parent's one)
 	 */
@@ -756,8 +755,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	}
 
 	/**
-	 * Return map of service handlers. The map is created if it doesn't exist
-	 * yet.
+	 * Return map of service handlers. The map is created if it doesn't exist yet.
 	 * 
 	 * @return Map of service handlers
 	 */
@@ -766,8 +764,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	}
 
 	/**
-	 * Return map of service handlers and optionally created it if it doesn't
-	 * exist.
+	 * Return map of service handlers and optionally created it if it doesn't exist.
 	 * 
 	 * @param allowCreate
 	 *            Should the map be created if it doesn't exist?
@@ -1105,26 +1102,28 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		boolean result = false;
 		if (enabled && !running) {
 			// check for any handlers
-			if (hasHandler()) {
-				try {
-					lock.acquire();
-					// if we dont have a handler of our own dont try to start it
-					if (handler != null) {
-						result = handler.start(this);
-					} else {
-						// always start scopes without handlers
-						log.debug("Scope {} has no handler of its own, allowing start", this);
-						result = true;
-					}
-				} catch (Throwable e) {
-					log.error("Could not start scope {} {}", this, e);
-				} finally {
-					lock.release();
-				}
+			if (handler != null) {
+				log.debug("Scope {} has a handler {}", this.getName(), handler);
 			} else {
-				// always start scopes without handlers
-				log.debug("Scope {} has no handler, allowing start", this);
-				result = true;
+				log.debug("Scope {} has no handler", this);
+				handler = parent.getHandler();
+			}
+			try {
+				lock.acquire();
+				// if we dont have a handler of our own dont try to start it
+				if (handler != null) {
+					result = handler.start(this);
+				} else {
+					// always start scopes without handlers
+					log.debug("Scope {} has no handler of its own, allowing start", this);
+					result = true;
+				}
+			} catch (Throwable e) {
+				log.error("Could not start scope {} {}", this, e);
+			} finally {
+				lock.release();
+				// post notification
+				((Server) getServer()).notifyScopeCreated(this);				
 			}
 			running = result;
 		}
@@ -1145,6 +1144,8 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				log.error("Could not stop scope {}", this, e);
 			} finally {
 				lock.release();
+				// post notification
+				((Server) getServer()).notifyScopeRemoved(this);
 			}
 			// remove all children
 			removeChildren();
@@ -1313,12 +1314,15 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			if (!keySet().contains(scope)) {
 				log.debug("Adding {} to scope set: {}", scope, this);
 				if (hasHandler()) {
+					// get the handler for the scope to which we are adding this new scope 
 					IScopeHandler hdlr = getHandler();
 					// add the scope to the handler
 					if (!hdlr.addChildScope(scope)) {
 						log.debug("Failed to add child scope: {} to {}", scope, this);
 						return false;
 					}
+				} else {
+					log.debug("No handler found for {}", this);
 				}
 				try {
 					lock.acquire();
@@ -1341,17 +1345,15 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				} finally {
 					lock.release();
 				}
-				if (added && scope instanceof IScope) {
-					if (scope instanceof Scope) {
-						// start the scope
-						if (((Scope) scope).start()) {
-							log.debug("Child scope started");
-						} else {
-							log.debug("Failed to start child scope: {} in {}", scope, this);
-						}
+				if (added && scope instanceof Scope) {
+					// cast it
+					Scope scp = (Scope) scope;
+					// start the scope
+					if (scp.start()) {
+						log.debug("Child scope started");
+					} else {
+						log.debug("Failed to start child scope: {} in {}", scope, this);
 					}
-					// post notification
-					((Server) getServer()).notifyScopeCreated((IScope) scope);
 				}
 			}
 			return added;
@@ -1365,8 +1367,13 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				log.debug("Remove child scope");
 				hdlr.removeChildScope((IBasicScope) scope);
 				if (scope instanceof Scope) {
-					((Scope) scope).stop();
+					// cast it
+					Scope scp = (Scope) scope;
+					// stop the scope
+					scp.stop();
 				}
+			} else {
+				log.debug("No handler found for {}", this);
 			}
 			boolean removed = false;
 			try {
@@ -1387,10 +1394,6 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				log.warn("Exception aquiring lock for scope set", e);
 			} finally {
 				lock.release();
-			}
-			if (removed && scope instanceof IScope) {
-				// post notification
-				((Server) getServer()).notifyScopeRemoved((IScope) scope);
 			}
 			return removed;
 		}

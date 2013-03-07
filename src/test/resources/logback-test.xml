@@ -71,9 +71,12 @@
 		<level value="INFO" />
 	</logger>
  -->
+    <logger name="org.springframework">
+        <level value="INFO" />
+    </logger>
  
     <logger name="org.apache">
-        <level value="DEBUG" />
+        <level value="INFO" />
     </logger>
 
     <logger name="ch.qos">
