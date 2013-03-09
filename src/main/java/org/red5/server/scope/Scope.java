@@ -307,8 +307,10 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 */
 	public boolean createChildScope(String name) {
 		// quick lookup by name
-		log.debug("createChildScope: {} existing children: {}", name, children.getNames());
-		if (!children.getNames().contains(name)) {
+		log.debug("createChildScope: {}", name);
+		if (children.getNames().contains(name)) {
+			log.debug("Scope: {} already exists, children: {}", name, children.getNames());
+		} else {
 			return addChildScope(new Builder(this, ScopeType.ROOM, name, false).build());
 		}
 		return false;
@@ -1123,7 +1125,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			} finally {
 				lock.release();
 				// post notification
-				((Server) getServer()).notifyScopeCreated(this);				
+				((Server) getServer()).notifyScopeCreated(this);
 			}
 			running = result;
 		}
@@ -1436,7 +1438,15 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		 */
 		public IBasicScope getBasicScope(ScopeType type, String name) {
 			boolean skipTypeCheck = ScopeType.UNDEFINED.equals(type);
-			Set<IBasicScope> childScopes = this.keySet();
+			Set<IBasicScope> childScopes = Collections.emptySet();
+			try {
+				lock.acquire();
+				childScopes = Collections.unmodifiableSet(this.keySet());
+			} catch (InterruptedException e) {
+				log.warn("Exception aquiring lock for scope set", e);
+			} finally {
+				lock.release();
+			}
 			if (skipTypeCheck) {
 				for (IBasicScope child : childScopes) {
 					if (name.equals(child.getName())) {
