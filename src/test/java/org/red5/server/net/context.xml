@@ -36,6 +36,8 @@
         
     <bean id="rtmpCodecFactory" class="org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory"/>
         
+    <bean id="rtmpMinaConnManager" class="org.red5.server.net.rtmp.RTMPConnManager" />        
+        
     <!-- RTMP Handler -->
     <bean id="rtmpHandler" class="org.red5.server.net.rtmp.RTMPHandler">
         <property name="server" ref="red5.server" />
@@ -151,7 +153,11 @@
         <property name="virtualHosts" value="*" />
     </bean>
 
+<!-- 
     <bean id="web.handler" class="org.red5.server.adapter.ApplicationAdapter" />
+    <bean id="web.handler" class="org.red5.server.adapter.MultiThreadedApplicationAdapter" />
+     -->
+    <bean id="web.handler" class="org.red5.server.so.SOApplication" />
 
     <bean id="streamFilenameGenerator" class="org.red5.server.FilenameGenerator" >
         <property name="playbackPath" value="/target/test-classes/fixtures" />

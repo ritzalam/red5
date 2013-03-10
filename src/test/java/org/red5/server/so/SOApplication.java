@@ -1,5 +1,7 @@
 package org.red5.server.so;
 
+import java.util.Arrays;
+
 import org.red5.server.adapter.MultiThreadedApplicationAdapter;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
@@ -60,6 +62,12 @@ public class SOApplication extends MultiThreadedApplicationAdapter {
 	 */
 	@Override
 	public boolean appConnect(IConnection conn, Object[] params) {
+		log.trace("Connection params: {}", conn.getConnectParams());
+		log.trace("Connection attributes: {}", conn.getAttributes());
+		if (params != null) {
+			log.trace("Params: {}", Arrays.toString(params));
+		}
+		
 		return super.appConnect(conn, params);
 	}
 
