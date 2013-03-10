@@ -729,6 +729,12 @@
             <scope>system</scope>
             <systemPath>${basedir}/lib/red5-client-1.0.2-SNAPSHOT.jar</systemPath>
  -->           
+            <exclusions>
+                <exclusion>
+                    <groupId>org.red5</groupId>
+                    <artifactId>red5-server</artifactId>
+                </exclusion>
+            </exclusions> 
         </dependency>       
 	</dependencies>
 </project>
