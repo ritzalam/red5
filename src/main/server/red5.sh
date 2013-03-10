@@ -13,6 +13,11 @@ case "$OS" in
   Darwin*)
 
   ;;
+  SunOS*)
+      if [ -z "$JAVA_HOME" ]; then 
+          export JAVA_HOME=/opt/local/java/sun6; 
+      fi
+  //
   *)
   # Do nothing
   ;;
@@ -50,7 +55,7 @@ then
   exit
 fi
 
-export RED5_CLASSPATH="${RED5_HOME}/red5-server-1.0-bootstrap.jar${P}${RED5_HOME}/conf${P}${CLASSPATH}"
+export RED5_CLASSPATH="${RED5_HOME}/red5-server-bootstrap.jar${P}${RED5_HOME}/conf${P}${CLASSPATH}"
 
 # start Red5
 echo "Starting Red5"

@@ -141,7 +141,7 @@ public final class ClassLoaderBuilder {
 
 			try {
 				//add red5.jar to the classpath
-				File red5jar = new File(home, "red5-server-1.0.jar");
+				File red5jar = new File(home, "red5-server.jar");
 				if (!red5jar.exists()) {
 					System.out.println("Red5 server jar was not found, using fallback.");
 					red5jar = new File(home, "red5.jar");
