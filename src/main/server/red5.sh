@@ -17,7 +17,7 @@ case "$OS" in
       if [ -z "$JAVA_HOME" ]; then 
           export JAVA_HOME=/opt/local/java/sun6; 
       fi
-  //
+  ;;
   *)
   # Do nothing
   ;;
