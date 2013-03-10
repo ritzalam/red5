@@ -12,7 +12,7 @@ import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 @ContextConfiguration(locations = { "context.xml" })
 public class QuartzSchedulingServiceTest extends AbstractJUnit4SpringContextTests {
 
-	private static QuartzSchedulingService service;
+	private QuartzSchedulingService service;
 
 	static {
 		System.setProperty("red5.deployment.type", "junit");
@@ -28,7 +28,7 @@ public class QuartzSchedulingServiceTest extends AbstractJUnit4SpringContextTest
 
 	@After
 	public void tearDown() throws Exception {
-		service.scheduler.shutdown(true);
+		//service.scheduler.shutdown(true);
 	}
 
 	@Test

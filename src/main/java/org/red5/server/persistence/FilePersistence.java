@@ -25,12 +25,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.amf.Input;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Deserializer;
+import org.red5.server.api.IContext;
 import org.red5.server.api.persistence.IPersistable;
+import org.red5.server.api.scheduling.IScheduledJob;
+import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.scope.IScope;
 import org.red5.server.net.servlet.ServletUtils;
 import org.red5.server.so.SharedObject;
@@ -48,10 +52,17 @@ import org.springframework.web.context.support.ServletContextResource;
  */
 public class FilePersistence extends RamPersistence {
 
-	/**
-	 * Logger
-	 */
 	private Logger log = LoggerFactory.getLogger(FilePersistence.class);
+
+	/**
+	 * Scheduler for persistence job.
+	 */
+	private ISchedulingService schedulingService;
+
+	/**
+	 * Modified objects.
+	 */
+	private ConcurrentLinkedQueue<IPersistable> queue = new ConcurrentLinkedQueue<IPersistable>();
 
 	/**
 	 * Files path
@@ -71,13 +82,17 @@ public class FilePersistence extends RamPersistence {
 	/**
 	 * Whether there's need to check for empty directories
 	 */
-	// TODO: make this configurable
 	private boolean checkForEmptyDirectories = true;
 
 	/**
-	 * Thread to serialize persistent objects.
+	 * Interval to serialize modified objects in milliseconds.
 	 */
-	private FilePersistenceThread storeThread;
+	private int persistenceInterval = 10000;
+
+	/**
+	 * Name of the job for serializing persistent objects.
+	 */
+	private String storeJobName;
 
 	/**
 	 * Create file persistence object from given resource pattern resolver
@@ -95,6 +110,15 @@ public class FilePersistence extends RamPersistence {
 	public FilePersistence(IScope scope) {
 		super(scope);
 		setPath(path);
+		IContext ctx = scope.getContext();
+		if (ctx.hasBean(ISchedulingService.BEAN_NAME)) {
+			schedulingService = (ISchedulingService) ctx.getBean(ISchedulingService.BEAN_NAME);
+		} else {
+			//try the parent
+			schedulingService = (ISchedulingService) scope.getParent().getContext().getBean(ISchedulingService.BEAN_NAME);
+		}
+		// add the job
+		storeJobName = schedulingService.addScheduledJob(persistenceInterval, new FilePersistenceJob());
 	}
 
 	/**
@@ -171,7 +195,6 @@ public class FilePersistence extends RamPersistence {
 			log.debug("Root dir: {} path: {}", rootDir, path);
 			// set the path
 			this.path = path;
-			storeThread = FilePersistenceThread.getInstance();
 		} catch (IOException err) {
 			log.error("I/O exception thrown when setting file path to {}", path, err);
 			throw new RuntimeException(err);
@@ -185,6 +208,27 @@ public class FilePersistence extends RamPersistence {
 	 */
 	public void setExtension(String extension) {
 		this.extension = extension;
+	}
+
+	/**
+	 * @param checkForEmptyDirectories the checkForEmptyDirectories to set
+	 */
+	public void setCheckForEmptyDirectories(boolean checkForEmptyDirectories) {
+		this.checkForEmptyDirectories = checkForEmptyDirectories;
+	}
+
+	/**
+	 * @return the persistenceInterval
+	 */
+	public int getPersistenceInterval() {
+		return persistenceInterval;
+	}
+
+	/**
+	 * @param persistenceInterval the persistenceInterval to set
+	 */
+	public void setPersistenceInterval(int persistenceInterval) {
+		this.persistenceInterval = persistenceInterval;
 	}
 
 	/**
@@ -285,24 +329,19 @@ public class FilePersistence extends RamPersistence {
 	private IPersistable doLoad(String name, IPersistable object) {
 		log.debug("doLoad - name: {} object: {}", name, object);
 		IPersistable result = object;
-		if (log.isTraceEnabled()) {
-			try {
-				log.debug("Relative #1: {}", resources.getResource(name).getFile().getAbsolutePath());
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
-		}
+//		if (log.isTraceEnabled()) {
+//			try {
+//				log.trace("Relative #1: {}", (resources.getResource(name) != null ? resources.getResource(name).getFile().getAbsolutePath() : "Not found"));
+//				log.trace("Absolute #2: {}", (resources.getResource("file://" + rootDir + '/' + name) != null ? resources.getResource("file://" + rootDir + '/' + name).getFile()
+//						.getAbsolutePath() : "Not found"));
+//			} catch (IOException e) {
+//				log.warn("", e);
+//			}
+//		}
 		Resource data = resources.getResource(name);
 		if (data == null || !data.exists()) {
-			// No such file
+			// no such file
 			log.debug("Resource / data was not found");
-			if (log.isTraceEnabled()) {
-				try {
-					log.trace("Absolute #2: {}", resources.getResource("file://" + rootDir + '/' + name).getFile().getAbsolutePath());
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
 			// try again with full path
 			data = resources.getResource("file://" + rootDir + '/' + name);
 			if (data == null || !data.exists()) {
@@ -316,17 +355,16 @@ public class FilePersistence extends RamPersistence {
 			File fp = data.getFile();
 			if (fp.length() == 0) {
 				// File is empty
-				log.error("The file at {} is empty.", data.getFilename());
+				log.error("The file at {} is empty", data.getFilename());
 				return null;
 			}
-
 			filename = fp.getAbsolutePath();
 			input = new FileInputStream(filename);
 		} catch (FileNotFoundException e) {
-			log.error("The file at {} does not exist.", data.getFilename());
+			log.error("The file at {} does not exist", data.getFilename());
 			return null;
 		} catch (IOException e) {
-			log.error("Could not load file from {}.", data.getFilename(), e);
+			log.error("Could not load file from {}", data.getFilename(), e);
 			return null;
 		}
 
@@ -418,7 +456,7 @@ public class FilePersistence extends RamPersistence {
 	public boolean load(IPersistable object) {
 		log.debug("load - name: {}", object);
 		if (object.isPersistent()) {
-			// Already loaded
+			// already loaded
 			return true;
 		}
 		return (doLoad(getObjectFilename(object), object) != null);
@@ -466,10 +504,8 @@ public class FilePersistence extends RamPersistence {
 			}
 		} catch (IOException err) {
 			log.error("Could not create resource file for path {}", path, err);
-			err.printStackTrace();
 			result = false;
 		}
-
 		//if we made it this far and everything seems ok
 		if (result) {
 			// if it's a persistent SharedObject and it's empty don't write it to disk. APPSERVER-364
@@ -527,11 +563,10 @@ public class FilePersistence extends RamPersistence {
 	/** {@inheritDoc} */
 	@Override
 	public boolean save(IPersistable object) {
-		if (!super.save(object)) {
-			return false;
+		if (super.save(object)) {
+			queue.add(object);
 		}
-		storeThread.modified(object, this);
-		return true;
+		return false;
 	}
 
 	/**
@@ -539,33 +574,31 @@ public class FilePersistence extends RamPersistence {
 	 * @param base             Base directory
 	 */
 	protected void checkRemoveEmptyDirectories(String base) {
-		if (!checkForEmptyDirectories) {
-			return;
-		}
-		String dir;
-		Resource resFile = resources.getResource(base.substring(0, base.lastIndexOf('/')));
-		try {
-			dir = resFile.getFile().getAbsolutePath();
-		} catch (IOException err) {
-			return;
-		}
-
-		while (!dir.equals(rootDir)) {
-			File fp = new File(dir);
-			if (!fp.isDirectory()) {
-				// This should never happen
-				break;
+		if (checkForEmptyDirectories) {
+			String dir;
+			Resource resFile = resources.getResource(base.substring(0, base.lastIndexOf('/')));
+			try {
+				dir = resFile.getFile().getAbsolutePath();
+			} catch (IOException err) {
+				return;
 			}
-			if (fp.list().length != 0) {
-				// Directory is not empty
-				break;
+			while (!dir.equals(rootDir)) {
+				File fp = new File(dir);
+				if (!fp.isDirectory()) {
+					// This should never happen
+					break;
+				}
+				if (fp.list().length != 0) {
+					// Directory is not empty
+					break;
+				}
+				if (!fp.delete()) {
+					// Could not remove directory
+					break;
+				}
+				// Move up one directory
+				dir = fp.getParent();
 			}
-			if (!fp.delete()) {
-				// Could not remove directory
-				break;
-			}
-			// Move up one directory
-			dir = fp.getParent();
 		}
 	}
 
@@ -573,21 +606,20 @@ public class FilePersistence extends RamPersistence {
 	@Override
 	public boolean remove(String name) {
 		super.remove(name);
+		boolean result = true;
 		String filename = path + '/' + name + extension;
 		Resource resFile = resources.getResource(filename);
-		if (!resFile.exists()) {
-			// File already deleted
-			return true;
-		}
-		try {
-			boolean result = resFile.getFile().delete();
-			if (result) {
-				checkRemoveEmptyDirectories(filename);
+		if (resFile.exists()) {
+			try {
+				result = resFile.getFile().delete();
+				if (result) {
+					checkRemoveEmptyDirectories(filename);
+				}
+			} catch (IOException err) {
+				result = false;
 			}
-			return result;
-		} catch (IOException err) {
-			return false;
 		}
+		return result;
 	}
 
 	/** {@inheritDoc} */
@@ -599,9 +631,37 @@ public class FilePersistence extends RamPersistence {
 	/** {@inheritDoc} */
 	@Override
 	public void notifyClose() {
-		// Write any pending objects
-		storeThread.notifyClose(this);
+		// stop the job
+		if (storeJobName != null) {
+			schedulingService.removeScheduledJob(storeJobName);
+			storeJobName = null;
+		}
+		// write any pending objects
+		persist();
+		//
 		super.notifyClose();
+	}
+
+	private void persist() {
+		IPersistable persistable = null;
+		while (!queue.isEmpty()) {
+			try {
+				persistable = queue.poll();
+				if (!saveObject(persistable)) {
+					log.warn("Object persist failed for: {}", persistable);
+				}
+			} catch (Throwable e) {
+				log.error("Error while saving {} in {}. {}", new Object[] { persistable, this, e });
+			}
+		}
+	}
+
+	private final class FilePersistenceJob implements IScheduledJob {
+
+		public void execute(ISchedulingService svc) {
+			persist();
+		}
+
 	}
 
 }

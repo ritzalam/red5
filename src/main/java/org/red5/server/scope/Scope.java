@@ -209,8 +209,16 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		log.debug("Add child: {}", scope);
 		boolean added = false;
 		if (scope.isValid()) {
+			log.trace("Permits at addChild: {} queued: {}", lock.availablePermits(), lock.hasQueuedThreads());
+			boolean acquired = false;
 			try {
-				lock.acquire();
+				acquired = lock.tryAcquire();
+				// if we couldn't acquire and no threads are queued, continue on; otherwise block
+				if (!acquired && lock.hasQueuedThreads()) {
+					// block
+					lock.acquire();
+					acquired = true;
+				}
 				if (!children.contains(scope)) {
 					log.debug("Adding child scope: {} to {}", scope, this);
 					added = children.add(scope);
@@ -220,7 +228,9 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			} catch (Exception e) {
 				log.warn("Exception aquiring lock for add subscope", e);
 			} finally {
-				lock.release();
+				if (acquired) {
+					lock.release();
+				}
 			}
 		} else {
 			log.warn("Invalid scope rejected: {}", scope);
@@ -710,10 +720,13 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 */
 	public IScope getScope(String name) {
 		IBasicScope child = children.getBasicScope(ScopeType.UNDEFINED, name);
-		if (child instanceof IScope) {
-			return (IScope) child;
+		log.debug("Child of {}: {}", this.name, child);
+		if (child != null) {
+			if (child instanceof IScope) {
+				return (IScope) child;
+			}
+			log.warn("Requested scope: {} is not of IScope type: {}", name, child.getClass().getName());
 		}
-		log.warn("Requested scope: {} is not of IScope type: {}", name, child.getClass().getName());
 		return null;
 	}
 
@@ -822,16 +835,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 */
 	public boolean hasChildScope(String name) {
 		log.debug("Has child scope? {} in {}", name, this);
-		try {
-			lock.acquire();
-			return children.getNames().contains(name);
-		} catch (Exception e) {
-			log.warn("Exception aquiring lock for has subscope check", e);
-		} finally {
-			lock.release();
-		}
-		log.debug("Child scope does not exist");
-		return false;
+		return children.getNames().contains(name);
 	}
 
 	/**
@@ -1110,6 +1114,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				log.debug("Scope {} has no handler", this);
 				handler = parent.getHandler();
 			}
+			log.trace("Permits at start: {} queued: {}", lock.availablePermits(), lock.hasQueuedThreads());
 			try {
 				lock.acquire();
 				// if we dont have a handler of our own dont try to start it
@@ -1302,7 +1307,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 
 	private final class ConcurrentScopeSet extends WeakHashMap<org.red5.server.api.scope.IBasicScope, Boolean> {
 
-		private Semaphore lock = new Semaphore(1, true);
+		private Semaphore internalLock = new Semaphore(1, true);
 
 		private Set<String> names = new HashSet<String>();
 
@@ -1320,14 +1325,14 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 					IScopeHandler hdlr = getHandler();
 					// add the scope to the handler
 					if (!hdlr.addChildScope(scope)) {
-						log.debug("Failed to add child scope: {} to {}", scope, this);
+						log.warn("Failed to add child scope: {} to {}", scope, this);
 						return false;
 					}
 				} else {
 					log.debug("No handler found for {}", this);
 				}
 				try {
-					lock.acquire();
+					internalLock.acquire();
 					// check #2 for entry
 					if (!keySet().contains(scope)) {
 						// add the entry
@@ -1345,7 +1350,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				} catch (InterruptedException e) {
 					log.warn("Exception aquiring lock for scope set", e);
 				} finally {
-					lock.release();
+					internalLock.release();
 				}
 				if (added && scope instanceof Scope) {
 					// cast it
@@ -1379,7 +1384,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			}
 			boolean removed = false;
 			try {
-				lock.acquire();
+				internalLock.acquire();
 				if (keySet().contains(scope)) {
 					// remove the entry, ensure removed value is equal to the given object
 					removed = super.remove(scope).equals(Boolean.TRUE);
@@ -1395,7 +1400,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			} catch (InterruptedException e) {
 				log.warn("Exception aquiring lock for scope set", e);
 			} finally {
-				lock.release();
+				internalLock.release();
 			}
 			return removed;
 		}
@@ -1438,28 +1443,30 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		 */
 		public IBasicScope getBasicScope(ScopeType type, String name) {
 			boolean skipTypeCheck = ScopeType.UNDEFINED.equals(type);
-			Set<IBasicScope> childScopes = Collections.emptySet();
-			try {
-				lock.acquire();
-				childScopes = Collections.unmodifiableSet(this.keySet());
-			} catch (InterruptedException e) {
-				log.warn("Exception aquiring lock for scope set", e);
-			} finally {
-				lock.release();
-			}
-			if (skipTypeCheck) {
-				for (IBasicScope child : childScopes) {
-					if (name.equals(child.getName())) {
-						log.debug("Returning basic scope: {}", child);
-						return child;
-					}
-				}
-			} else {
-				for (IBasicScope child : childScopes) {
-					if (child.getType().equals(type) && name.equals(child.getName())) {
-						log.debug("Returning basic scope: {}", child);
-						return child;
-					}
+			if (names.contains(name)) {
+				log.debug("Child scopes (key set): {}", this.keySet());
+				log.trace("Permits at getBasicScope: {} queued: {}", internalLock.availablePermits(), internalLock.hasQueuedThreads());
+				try {
+					internalLock.acquire();
+					if (skipTypeCheck) {
+						for (IBasicScope child : keySet()) {
+							if (name.equals(child.getName())) {
+								log.debug("Returning basic scope: {}", child);
+								return child;
+							}
+						}
+					} else {
+						for (IBasicScope child : keySet()) {
+							if (child.getType().equals(type) && name.equals(child.getName())) {
+								log.debug("Returning basic scope: {}", child);
+								return child;
+							}
+						}
+					}									
+				} catch (InterruptedException e) {
+					log.warn("Exception aquiring lock for scope set", e);
+				} finally {
+					internalLock.release();
 				}
 			}
 			return null;

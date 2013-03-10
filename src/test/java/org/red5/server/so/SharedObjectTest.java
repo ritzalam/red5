@@ -18,12 +18,12 @@
 
 package org.red5.server.so;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Set;
 
-import junit.framework.TestCase;
 import net.sourceforge.groboutils.junit.v1.MultiThreadedTestRunner;
 import net.sourceforge.groboutils.junit.v1.TestRunnable;
 
@@ -88,7 +88,7 @@ public class SharedObjectTest extends AbstractJUnit4SpringContextTests {
 
 		//Room 1
 		// /default/junit/room1
-		TestCase.assertTrue(appScope.createChildScope("room1"));
+		assertNotNull(appScope.getScope("room1"));
 		IScope room1 = appScope.getScope("room1");
 		log.debug("Room 1: {}", room1);
 		assertTrue(room1.getDepth() == 2);
@@ -96,7 +96,7 @@ public class SharedObjectTest extends AbstractJUnit4SpringContextTests {
 		// get the SO
 		ISharedObject sharedObject = app.getSharedObject(room1, soName, true);
 		log.debug("SO: {}", sharedObject);
-		assertTrue(sharedObject != null);
+		assertNotNull(sharedObject);
 
 		log.debug("testSharedObject-end");
 	}

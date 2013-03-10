@@ -18,6 +18,8 @@
 
 package org.red5.server.service;
 
+import static org.junit.Assert.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -31,6 +33,7 @@ import net.sourceforge.groboutils.junit.v1.TestRunnable;
 import org.junit.Test;
 import org.red5.server.Context;
 import org.red5.server.DummyClient;
+import org.red5.server.adapter.ApplicationAdapter;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IClientRegistry;
 import org.red5.server.api.IConnection;
@@ -126,64 +129,81 @@ public class ServiceInvokerTest extends AbstractJUnit4SpringContextTests {
 	/**
 	 * Test for memory leak bug #631
 	 * http://trac.red5.org/ticket/631
+	 * @throws InterruptedException 
 	 */
 	@Test
-	public void testBug631() {
+	public void testBug631() throws InterruptedException {
+		log.debug("-----------------------------------------------------------------testBug631");
 
 		final String message = "This is a test";
 
 		//create our sender conn and set local
 		IClientRegistry dummyReg = (IClientRegistry) applicationContext.getBean("global.clientRegistry");
 
-		IScope scp = (WebScope) applicationContext.getBean("web.scope"); //conn.getScope();
-		IContext ctx = (Context) applicationContext.getBean("web.context"); //scope.getContext();
+		final IScope scp = (WebScope) applicationContext.getBean("web.scope"); //conn.getScope();
+		final IContext ctx = (Context) applicationContext.getBean("web.context"); //scope.getContext();
 
-		IConnection recipient = new SvcCapableTestConnection("localhost", "/junit", "1");//host, path, session id
+		final IConnection recipient = new SvcCapableTestConnection("localhost", "/junit", "1");//host, path, session id
 		IClient rClient = dummyReg.newClient(new Object[] { "recipient" });
 		((TestConnection) recipient).setClient(rClient);
 		((TestConnection) recipient).setScope((Scope) scp);
 		((DummyClient) rClient).registerConnection(recipient);
 
-		IConnection sender = new SvcCapableTestConnection("localhost", "/junit", "2");//host, path, session id
+		final IConnection sender = new SvcCapableTestConnection("localhost", "/junit", "2");//host, path, session id
 		IClient sClient = dummyReg.newClient(new Object[] { "sender" });
 		((TestConnection) sender).setClient(sClient);
 		((TestConnection) sender).setScope((Scope) scp);
 		((DummyClient) sClient).registerConnection(sender);
 
-		Red5.setConnectionLocal(sender);
-
-		//start standard process
-
-		IConnection conn = Red5.getConnectionLocal();
-
-		log.debug("Check s/c -\n s1: {} s2: {}\n c1: {} c2: {}", new Object[] { scp, conn.getScope(), ctx, conn.getScope().getContext() });
-
-		IClient client = conn.getClient();
-		IScope scope = (WebScope) conn.getScope();
-		IContext context = (Context) scope.getContext();
-
-		IClientRegistry reg = context.getClientRegistry();
+		Thread r = new Thread(new Runnable() { 
+			public void run() {
+				Red5.setConnectionLocal(recipient);
+				ApplicationAdapter app = (ApplicationAdapter) applicationContext.getBean("web.handler");
+				IConnection conn = Red5.getConnectionLocal();
+				assertTrue(app.connect(recipient, scp, null));
+				try {
+					Thread.sleep(120L);
+				} catch (InterruptedException e) {
+				}
+				log.debug("Check s/c -\n s1: {} s2: {}\n c1: {} c2: {}", new Object[] { scp, conn.getScope(), ctx, conn.getScope().getContext() });
+			}
+		});
+		Thread s = new Thread(new Runnable() { 
+			public void run() {
+				Red5.setConnectionLocal(sender);
+				ApplicationAdapter app = (ApplicationAdapter) applicationContext.getBean("web.handler");
+				IConnection conn = Red5.getConnectionLocal();
+				assertTrue(app.connect(sender, scp, null));
+				try {
+					Thread.sleep(10L);
+				} catch (InterruptedException e) {
+				}
+				Object[] sendobj = new Object[] { conn.getClient().getId(), message };
+				((IServiceCapableConnection) conn).invoke("privMessage", sendobj);
+				try {
+					Thread.sleep(100L);
+				} catch (InterruptedException e) {
+				}
+				log.debug("Check s/c -\n s1: {} s2: {}\n c1: {} c2: {}", new Object[] { scp, conn.getScope(), ctx, conn.getScope().getContext() });
+			}
+		});
+		r.start();
+		s.start();
+		
+		IClientRegistry reg = ctx.getClientRegistry();
 		log.debug("Client registry: {}", reg.getClass().getName());
-
-		IServiceCapableConnection serviceCapCon = null;
-
 		if (reg.hasClient("recipient")) {
 			IClient recip = reg.lookupClient("recipient");
-			Set<IConnection> rcons = recip.getConnections(scope);
+			Set<IConnection> rcons = recip.getConnections(scp);
 			log.debug("Recipient has {} connections", rcons.size());
-			Object[] sendobj = new Object[] { client.getId(), message };
-			for (IConnection rcon : rcons) {
-				if (rcon instanceof IServiceCapableConnection) {
-					serviceCapCon = (IServiceCapableConnection) rcon;
-					serviceCapCon.invoke("privMessage", sendobj);
-					break;
-				} else {
-					log.info("Connection is not service capable");
-				}
-			}
+		} else {
+			fail("Recipient not found");
 		}
 
-		Assert.assertTrue(((SvcCapableTestConnection) serviceCapCon).getPrivateMessageCount() == 1);
+		r.join();
+		s.join();
+		
+		Assert.assertTrue(((SvcCapableTestConnection) recipient).getPrivateMessageCount() == 1);
 	}
 
 	/**
@@ -192,6 +212,7 @@ public class ServiceInvokerTest extends AbstractJUnit4SpringContextTests {
 	 */
 	@Test
 	public void testMultiThreadBug631() throws Throwable {
+		log.debug("-----------------------------------------------------------------testMultiThreadBug631");
 
 		//leak doesnt appear unless this is around 1000 and running outside eclipse
 		int threadCount = 2000;
@@ -218,7 +239,9 @@ public class ServiceInvokerTest extends AbstractJUnit4SpringContextTests {
 			//close them all down
 			wkr.close();
 			//
-			Assert.assertTrue(wkr.getServiceCapableConnection().getPrivateMessageCount() > threadCount);
+			int msgCount = wkr.getServiceCapableConnection().getPrivateMessageCount();
+			log.debug("Message count: {}", msgCount);
+			Assert.assertTrue(msgCount > threadCount);
 		}
 
 		//make sure all threads finished
@@ -256,10 +279,6 @@ public class ServiceInvokerTest extends AbstractJUnit4SpringContextTests {
 		public void runTest() throws Throwable {
 			Red5.setConnectionLocal(conn);
 
-			//start standard process
-
-			IConnection conn = Red5.getConnectionLocal();
-
 			IClient client = conn.getClient();
 			IScope scope = (WebScope) conn.getScope();
 			IContext context = (Context) scope.getContext();
@@ -267,6 +286,9 @@ public class ServiceInvokerTest extends AbstractJUnit4SpringContextTests {
 			IClientRegistry reg = context.getClientRegistry();
 
 			IServiceCapableConnection serviceCapCon = null;
+
+			//start standard process
+			assertTrue(conn.connect(scope));
 
 			//go through the client list and send at least one message to everyone
 			for (String worker : workerList) {

@@ -35,7 +35,6 @@ import org.red5.server.Context;
 import org.red5.server.MappingStrategy;
 import org.red5.server.Server;
 import org.red5.server.api.Red5;
-import org.red5.server.persistence.FilePersistenceThread;
 import org.red5.server.scope.GlobalScope;
 import org.red5.server.scope.ScopeResolver;
 import org.red5.server.scope.WebScope;
@@ -200,11 +199,6 @@ public class WarLoaderServlet extends ContextLoaderListener {
 					if (driver.getClass().getClassLoader() == getClass().getClassLoader()) {
 						DriverManager.deregisterDriver(driver);
 					}
-				}
-				// shutdown the persistence thread
-				FilePersistenceThread persistenceThread = FilePersistenceThread.getInstance();
-				if (persistenceThread != null) {
-					persistenceThread.shutdown();
 				}
 				// clear the AMF output cache
 				Output.destroyCache();

@@ -1,5 +1,6 @@
 package org.red5.server.net.rtmp;
 
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertTrue;
 
 import java.net.InetSocketAddress;
@@ -102,13 +103,16 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 		int noAV = 0;
 		for (TestRunnable r : trs) {
 			TestClient cli = ((CreatorWorker) r).getClient();
-			System.out.printf("Client %d - audio: %d video: %d\n", cli.getConnection().getId(), cli.getAudioCounter(), cli.getVideoCounter());
-			if (cli.getAudioCounter() == 0 || cli.getVideoCounter() == 0) {
-				noAV++;
-			}
-			try {
-				cli.disconnect();
-			} catch (Throwable t) {
+			assertNotNull(cli);
+			if (cli != null) {
+				System.out.printf("Client %d - audio: %d video: %d\n", cli.getConnection().getId(), cli.getAudioCounter(), cli.getVideoCounter());
+				if (cli.getAudioCounter() == 0 || cli.getVideoCounter() == 0) {
+					noAV++;
+				}
+				try {
+					cli.disconnect();
+				} catch (Throwable t) {
+				}
 			}
 		}
 		System.out.printf("Free mem: %s\n", rt.freeMemory());

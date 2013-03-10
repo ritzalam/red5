@@ -20,11 +20,6 @@
     <!-- Server bean -->
     <bean id="red5.server" class="org.red5.server.Server" />
 
-    <!-- Thread that writes modified objects to disk periodically -->
-    <bean id="filePersistenceThread" class="org.red5.server.persistence.FilePersistenceThread">
-        <property name="storeInterval" value="250" />
-    </bean>
-
     <!-- Handles creation / lookup of shared objects -->
     <bean id="sharedObjectService" class="org.red5.server.so.SharedObjectService">
         <property name="persistenceClassName" value="org.red5.server.persistence.FilePersistence"/>

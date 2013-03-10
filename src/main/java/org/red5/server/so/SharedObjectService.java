@@ -137,9 +137,9 @@ public class SharedObjectService implements ISharedObjectService, ApplicationCon
 		if (!scope.hasAttribute(SO_PERSISTENCE_STORE)) {
 			try {
 				store = PersistenceUtils.getPersistenceStore(scope, persistenceClassName);
-				log.info("Created persistence store {} for shared objects.", store);
+				log.info("Created persistence store {} for shared objects", store);
 			} catch (Exception err) {
-				log.warn("Could not create persistence store ({}) for shared objects, falling back to Ram persistence.", persistenceClassName, err);
+				log.warn("Could not create persistence store ({}) for shared objects, falling back to Ram persistence", persistenceClassName, err);
 				store = new RamPersistence(scope);
 			}
 			scope.setAttribute(SO_PERSISTENCE_STORE, store);
