@@ -87,7 +87,7 @@ public class ServerStreamTest extends AbstractJUnit4SpringContextTests {
 	public void testGetCurrentItem() {
 		SimplePlayItem item = SimplePlayItem.build("f1");
 		serverStream.addItem(item);
-		//serverStream.start();
+		serverStream.start();
 		assertEquals(item, serverStream.getCurrentItem());
 	}
 

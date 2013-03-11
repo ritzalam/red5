@@ -1,6 +1,6 @@
 package org.red5.server.net.rtmp;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.net.InetSocketAddress;
 
@@ -32,7 +32,7 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 
 	private long clientLifetime = 3 * 60 * 1000;
 
-	private int threads = 300;
+	private int threads = 2;
 
 	static {
 		System.setProperty("red5.deployment.type", "junit");
@@ -52,10 +52,6 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 
 	@Test
 	public void testLoad() throws Exception {
-		//		try {
-		//			Thread.sleep(10000L);
-		//		} catch (Exception e) {
-		//		}
 		RTMPMinaTransport mina = (RTMPMinaTransport) applicationContext.getBean("rtmpTransport");
 		// check the io handler
 		RTMPMinaIoHandler ioHandler = (RTMPMinaIoHandler) mina.ioHandler;
@@ -66,8 +62,9 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 			ioHandler.setCodecFactory(codecFactory);
 		}
 		if (ioHandler.rtmpConnManager == null) {
-			RTMPConnManager rtmpConnManager = new RTMPConnManager();
-			rtmpConnManager.setApplicationContext(applicationContext);
+			RTMPConnManager rtmpConnManager = applicationContext.getBean(RTMPConnManager.class);
+			//RTMPConnManager rtmpConnManager = new RTMPConnManager();
+			//rtmpConnManager.setApplicationContext(applicationContext);
 			ioHandler.setRtmpConnManager(rtmpConnManager);
 		}
 		mina.setBacklog(128);
@@ -102,22 +99,21 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 		int noAV = 0;
 		for (TestRunnable r : trs) {
 			TestClient cli = ((CreatorWorker) r).getClient();
-			System.out.printf("Client %d - audio: %d video: %d\n", cli.getConnection().getId(), cli.getAudioCounter(), cli.getVideoCounter());
-			if (cli.getAudioCounter() == 0 || cli.getVideoCounter() == 0) {
-				noAV++;
-			}
-			try {
-				cli.disconnect();
-			} catch (Throwable t) {
+			assertNotNull(cli);
+			if (cli != null) {
+				System.out.printf("Client %d - audio: %d video: %d\n", cli.getConnection().getId(), cli.getAudioCounter(), cli.getVideoCounter());
+				if (cli.getAudioCounter() == 0 || cli.getVideoCounter() == 0) {
+					noAV++;
+				}
+				try {
+					cli.disconnect();
+				} catch (Throwable t) {
+				}
 			}
 		}
 		System.out.printf("Free mem: %s\n", rt.freeMemory());
 		System.out.printf("Client fail count: %d\n", noAV);
 		assertTrue(noAV == 0);
-		try {
-			Thread.sleep(2000L);
-		} catch (Exception e) {
-		}
 		// stop
 		mina.stop();
 	}
@@ -182,6 +178,9 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 					String code = (String) map.get("code");
 					if ("NetConnection.Connect.Rejected".equals(code)) {
 						System.out.printf("Rejected: %s\n", map.get("description"));
+						disconnect();
+					} else if ("NetConnection.Connect.Failed".equals(code)) {
+						System.out.printf("Failed: %s\n", map.get("description"));
 						disconnect();
 					} else if ("NetConnection.Connect.Success".equals(code)) {
 						createStream(createStreamCallback);

@@ -19,6 +19,7 @@
 package org.red5.server.util;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 
 import org.red5.server.api.IContext;
 import org.red5.server.api.persistence.IPersistable;
@@ -53,6 +54,7 @@ public class ScopeUtils {
 	 * @return	Resolved scope
 	 */
 	public static IScope resolveScope(IScope from, String path) {
+		log.debug("resolveScope from: {} path: {}", from.getName(), path);
 		IScope current = from;
 		if (path.startsWith(SLASH)) {
 			current = ScopeUtils.findRoot(current);
@@ -61,8 +63,11 @@ public class ScopeUtils {
 		if (path.endsWith(SLASH)) {
 			path = path.substring(0, path.length() - 1);
 		}
+		log.trace("Current: {}", current);
 		String[] parts = path.split(SLASH);
+		log.trace("Parts: {}", Arrays.toString(parts));
 		for (String part : parts) {
+			log.trace("Part: {}", part);
 			if (part.equals(".")) {
 				continue;
 			}
@@ -77,6 +82,7 @@ public class ScopeUtils {
 				return null;
 			}
 			current = current.getScope(part);
+			log.trace("Current: {}", current);
 		}
 		return current;
 	}

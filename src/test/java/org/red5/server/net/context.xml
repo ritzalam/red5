@@ -19,24 +19,12 @@
         </property>
     </bean>
 
-	<!-- Serializes objects to AMF binary -->
-	<bean id="serializer" class="org.red5.io.object.Serializer" />
-
-	<!-- Deserializes objects from AMF binary -->
-	<bean id="deserializer" class="org.red5.io.object.Deserializer" />
-
 	<bean id="minaEncoder" class="org.red5.server.net.rtmp.codec.RTMPMinaProtocolEncoder" scope="prototype">
-		<property name="serializer">
-			<ref bean="serializer" />
-		</property>
 		<property name="baseTolerance" value="5000" />
 		<property name="dropLiveFuture" value="false" />
 	</bean>
 
 	<bean id="minaDecoder" class="org.red5.server.net.rtmp.codec.RTMPMinaProtocolDecoder" scope="prototype">
-		<property name="deserializer">
-			<ref bean="deserializer" />
-		</property>
 	</bean>
 
     <!-- Server bean -->
@@ -47,6 +35,8 @@
     <!-- RTMP -->
         
     <bean id="rtmpCodecFactory" class="org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory"/>
+        
+    <bean id="rtmpMinaConnManager" class="org.red5.server.net.rtmp.RTMPConnManager" />        
         
     <!-- RTMP Handler -->
     <bean id="rtmpHandler" class="org.red5.server.net.rtmp.RTMPHandler">
@@ -89,9 +79,6 @@
         </property>
     </bean>
     
-    <!-- Thread that writes modified objects to disk periodically -->
-    <bean id="filePersistenceThread" class="org.red5.server.persistence.FilePersistenceThread" />
-
     <!-- Handles creation / lookup of shared objects -->
     <bean id="sharedObjectService" class="org.red5.server.so.SharedObjectService">
         <property name="persistenceClassName">
@@ -166,7 +153,11 @@
         <property name="virtualHosts" value="*" />
     </bean>
 
+<!-- 
     <bean id="web.handler" class="org.red5.server.adapter.ApplicationAdapter" />
+    <bean id="web.handler" class="org.red5.server.adapter.MultiThreadedApplicationAdapter" />
+     -->
+    <bean id="web.handler" class="org.red5.server.so.SOApplication" />
 
     <bean id="streamFilenameGenerator" class="org.red5.server.FilenameGenerator" >
         <property name="playbackPath" value="/target/test-classes/fixtures" />

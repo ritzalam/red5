@@ -840,12 +840,20 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	}
 
 	/**
-	 * Stops any currently active recordings.
+	 * Stops any currently active recording.
 	 */
 	public void stopRecording() {
-		if (recordingListener != null && recordingListener.get().isRecording()) {
+		RecordingListener listener = null;
+		if (recordingListener != null && (listener = recordingListener.get()).isRecording()) {
 			sendRecordStopNotify();
 			notifyRecordingStop();
+			// remove the listener
+			removeStreamListener(listener);
+			// stop the recording listener
+			listener.stop();
+			// clear and null-out the thread local
+            recordingListener.clear();
+            recordingListener = null;
 		}
 	}
 

@@ -76,6 +76,10 @@ public class ClientRegistryTest {
 
 	@Test
 	public void testGetClientList() {
+		//create and add 10 clients
+		for (int c = 0; c < 10; c++) {
+			reg.addClient(new Client(reg.nextId(), reg));
+		}
 		ClientList<Client> clients = reg.getClientList();
 		int listSize = clients.size();
 		Assert.assertTrue(listSize > 0);
@@ -85,7 +89,6 @@ public class ClientRegistryTest {
 			System.out.println(client);
 			Assert.assertTrue(client.getId() != null);
 		}
-
 	}
 
 	@Test
@@ -96,11 +99,6 @@ public class ClientRegistryTest {
 		}
 		Assert.assertNotNull(reg.getClient("2"));
 		System.gc();
-		try {
-			Thread.sleep(2000);
-			System.gc();
-		} catch (InterruptedException e) {
-		}
 		Assert.assertTrue(reg.getClients().size() >= 10);
 	}
 
@@ -142,7 +140,6 @@ public class ClientRegistryTest {
 			Assert.assertTrue(cli == null);
 		}
 		System.gc();
-		Thread.sleep(1000);
 		System.out.printf("Free mem diff at end: %s\n", Math.abs(startFreeMem - rt.freeMemory()));
 	}	
 	

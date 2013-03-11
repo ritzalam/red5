@@ -3,11 +3,10 @@
 <beans>
 
 	<bean id="boringPlaceholderConfig" class="org.red5.spring.ExtendedPropertyPlaceholderConfigurer">
-
-		<property name="locations">
-
+        <property name="ignoreResourceNotFound" value="true" />
+        <property name="ignoreUnresolvablePlaceholders" value="true" />
+        <property name="locations">
 			<list>
-
 				<value>
 					classpath:/org/red5/spring/test.properties
 				</value>
@@ -16,15 +15,13 @@
 	</bean>
 
 	<bean id="wildcard1PlaceholderConfig" class="org.red5.spring.ExtendedPropertyPlaceholderConfigurer">
-
+        <property name="ignoreResourceNotFound" value="true" />
+        <property name="ignoreUnresolvablePlaceholders" value="true" />
 		<property name="wildcardLocations">
-
 			<list>
-
 				<value>
 					classpath:/org/red5/spring/test.properties
 				</value>
-
 				<value>
 					classpath*:/org/red5/spring/test_*.properties
 				</value>
@@ -33,15 +30,13 @@
 	</bean>
 
 	<bean id="wildcard2PlaceholderConfig" class="org.red5.spring.ExtendedPropertyPlaceholderConfigurer">
-
-		<property name="wildcardLocations">
-
+        <property name="ignoreResourceNotFound" value="true" />
+        <property name="ignoreUnresolvablePlaceholders" value="true" />
+        <property name="wildcardLocations">
 			<list>
-
 				<value>
 					classpath*:/org/red5/spring/test_*.properties
 				</value>
-
 				<value>
 					classpath:/org/red5/spring/test.properties
 				</value>
@@ -49,23 +44,18 @@
 		</property>
 	</bean>
 
-	<bean id="locationsOverridesWildcardLocationsPlaceholderConfig"
-		class="org.red5.spring.ExtendedPropertyPlaceholderConfigurer">
-
-		<property name="wildcardLocations">
-
+	<bean id="locationsOverridesWildcardLocationsPlaceholderConfig" class="org.red5.spring.ExtendedPropertyPlaceholderConfigurer">
+        <property name="ignoreResourceNotFound" value="true" />
+        <property name="ignoreUnresolvablePlaceholders" value="true" />
+        <property name="wildcardLocations">
 			<list>
-
 				<value>
 					classpath*:/org/red5/spring/test_*.properties
 				</value>
 			</list>
 		</property>
-
 		<property name="locations">
-
 			<list>
-
 				<value>
 					classpath:/org/red5/spring/test.properties
 				</value>

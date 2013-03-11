@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.red5.server.Context;
 import org.red5.server.api.scheduling.ISchedulingService;
@@ -35,24 +37,19 @@ import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.scope.Scope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.test.AbstractDependencyInjectionSpringContextTests;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
-@SuppressWarnings("deprecation")
-public class PlaylistSubscriberStreamTest extends AbstractDependencyInjectionSpringContextTests {
+@ContextConfiguration(locations = { "PlaylistSubscriberStreamTest.xml" })
+public class PlaylistSubscriberStreamTest extends AbstractJUnit4SpringContextTests {
 
 	protected static Logger log = LoggerFactory.getLogger(PlaylistSubscriberStreamTest.class);
 
 	private static PlaylistSubscriberStream pss;
 
-	@Override
-	protected String[] getConfigLocations() {
-		return new String[] { "org/red5/server/stream/PlaylistSubscriberStreamTest.xml" };
-	}
-
-	@Override
-	protected void onSetUp() throws Exception {
-		System.out.println("onSetUp");
-		super.onSetUp();
+	@Before
+	public void setUp() throws Exception {
+		System.out.println("setUp");
 		//
 		System.setProperty("red5.deployment.type", "junit");
 		if (pss == null) {
@@ -71,20 +68,21 @@ public class PlaylistSubscriberStreamTest extends AbstractDependencyInjectionSpr
 			PlayEngine engine = pss.createEngine(schedulingService, consumerService, providerService);
 			//mock the message output
 			engine.setMessageOut(new DummyMessageOut());
+			// add an item
+			SimplePlayItem item = SimplePlayItem.build("DarkKnight.flv");
+			pss.addItem(item);
 		}
 	}
 
-	@Override
-	protected void onTearDown() throws Exception {
-		System.out.println("onTearDown");
-		super.onTearDown();
+	@After
+	public void tearDown() throws Exception {
+		System.out.println("tearDown");
+		pss = null;
 	}
 
 	@Test
 	public void testStart() {
 		System.out.println("testStart");
-		SimplePlayItem item = SimplePlayItem.build("DarkKnight.flv");
-		pss.addItem(item);
 		pss.start();
 	}
 
@@ -95,9 +93,12 @@ public class PlaylistSubscriberStreamTest extends AbstractDependencyInjectionSpr
 	}
 
 	@Test
-	public void testPause() {
-		System.out.println("testPause");
+	public void testPause() throws IOException {
+		System.out.println("testPause - items: " + pss.getItemSize());
+		pss.start();
+		pss.play();
 		long sent = pss.getBytesSent();
+		pss.getCurrentItem().getName();
 		pss.pause((int) sent);
 	}
 

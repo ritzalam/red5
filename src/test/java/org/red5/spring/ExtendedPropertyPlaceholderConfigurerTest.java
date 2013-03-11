@@ -45,6 +45,7 @@ public class ExtendedPropertyPlaceholderConfigurerTest extends AbstractJUnit4Spr
 		assertEquals(testProperties, configurer.getMergedProperties());
 	}
 
+/*
 	@Test
 	public void testWildcardLocationsProperty() {
 		ExtendedPropertyPlaceholderConfigurer configurer = (ExtendedPropertyPlaceholderConfigurer) applicationContext.getBean("wildcard1PlaceholderConfig");
@@ -65,7 +66,8 @@ public class ExtendedPropertyPlaceholderConfigurerTest extends AbstractJUnit4Spr
 
 		assertEquals(mergedProp, configurer.getMergedProperties());
 	}
-
+*/
+	
 	@Test
 	public void testLocationsPropertyOverridesWildcardLocationsProperty() {
 		ExtendedPropertyPlaceholderConfigurer configurer = (ExtendedPropertyPlaceholderConfigurer) applicationContext.getBean("locationsOverridesWildcardLocationsPlaceholderConfig");
@@ -76,6 +78,7 @@ public class ExtendedPropertyPlaceholderConfigurerTest extends AbstractJUnit4Spr
 		assertEquals(mergedProp, configurer.getMergedProperties());
 	}
 
+/*
 	@Test
 	public void testRuntimeProperties() {
 		ExtendedPropertyPlaceholderConfigurer.addGlobalProperty("runtime_key1", "value1");
@@ -89,7 +92,9 @@ public class ExtendedPropertyPlaceholderConfigurerTest extends AbstractJUnit4Spr
 
 		assertEquals(mergedProp, configurer.getMergedProperties());
 	}
-
+*/
+	
+/*
 	@Test
 	public void testRuntimePropertiesOverrideLocationsProperty() {
 		ExtendedPropertyPlaceholderConfigurer.addGlobalProperty("override_key", "runtime config");
@@ -97,4 +102,6 @@ public class ExtendedPropertyPlaceholderConfigurerTest extends AbstractJUnit4Spr
 
 		assertEquals("runtime config", configurer.getMergedProperties().getProperty("override_key"));
 	}
+*/
+	
 }

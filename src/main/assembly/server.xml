@@ -7,19 +7,24 @@
 		<format>tar.gz</format>
 		<format>zip</format>
 	</formats>
+    <files>
+        <file>
+            <source>${project.build.directory}/red5-server-${project.version}-bootstrap.jar</source>
+            <outputDirectory>/</outputDirectory>
+            <destName>red5-server-bootstrap.jar</destName>
+        </file>
+        <file>
+            <source>${project.build.directory}/red5-server-${project.version}.jar</source>
+            <outputDirectory>/</outputDirectory>
+            <destName>red5-server.jar</destName>
+        </file>
+    </files>	
 	<fileSets>
 		<fileSet>
 			<directory>${project.basedir}</directory>
 			<outputDirectory>/</outputDirectory>
 			<includes>
 				<include>license.txt</include>
-			</includes>
-		</fileSet>
-		<fileSet>
-			<directory>${project.build.directory}</directory>
-			<outputDirectory>/</outputDirectory>
-			<includes>
-				<include>*.jar</include>
 			</includes>
 		</fileSet>
 		<fileSet>
@@ -39,12 +44,19 @@
 		<fileSet>
 			<directory>${project.basedir}/src/main/server</directory>
 			<outputDirectory>/</outputDirectory>
-			<fileMode>0755</fileMode>
 			<includes>
 				<include>*.bat</include>
-				<include>*.sh</include>
 			</includes>
 		</fileSet>
+        <fileSet>
+            <directory>${project.basedir}/src/main/server</directory>
+            <outputDirectory>/</outputDirectory>
+            <fileMode>0755</fileMode>
+            <includes>
+                <include>*.sh</include>
+            </includes>
+            <filtered>true</filtered>
+        </fileSet>
 		<fileSet>
 			<directory>${project.basedir}/src/main/server/conf</directory>
 			<outputDirectory>/conf</outputDirectory>
