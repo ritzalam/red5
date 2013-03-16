@@ -22,6 +22,8 @@
 	<!-- Server bean -->
 	<bean id="red5.server" class="org.red5.server.Server" />
 
+    <bean id="rtmpMinaConnManager" class="org.red5.server.net.rtmp.RTMPConnManager" />        
+    
 	<!-- Handles creation / lookup of shared objects -->
 	<bean id="sharedObjectService" class="org.red5.server.so.SharedObjectService">
 		<property name="persistenceClassName">

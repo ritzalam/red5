@@ -177,12 +177,6 @@ public class SharedObjectTest extends AbstractJUnit4SpringContextTests {
 		mttr.runTestRunnables();
 		System.out.println("Runtime: " + (System.nanoTime() - start) + "ns");
 
-		// go to sleep
-		try {
-			Thread.sleep(3000);
-		} catch (Exception e) {
-		}
-
 		for (TestRunnable r : trs) {
 			SOClientWorker cl = (SOClientWorker) r;
 			log.debug("Worker: {} shared object: {}", cl.getId(), cl.getSO().getAttributes());
@@ -236,6 +230,61 @@ public class SharedObjectTest extends AbstractJUnit4SpringContextTests {
 		}
 		// set something on the so
 		assertFalse(app.hasSharedObject(appScope, "issue323"));
+	}	
+	
+	@Test
+	public void testMissingHandler() throws Throwable {
+		log.debug("testMissingHandler");
+		String soName = "messager";
+		SOApplication app = (SOApplication) applicationContext.getBean("web.handler");
+		assertTrue(appScope.hasHandler());
+		IScope top = ScopeUtils.resolveScope(appScope, "/junit");
+		assertTrue(top.hasHandler());
+		IScope room = ScopeUtils.resolveScope(appScope, "/junit/room13");
+		if (room == null) {
+			assertTrue(top.createChildScope("room13"));
+			room = ScopeUtils.resolveScope(appScope, "/junit/room13");
+			assertNotNull(room);
+		}
+		assertTrue(room.hasHandler());
+		// get rooms
+		IScope room1 = ScopeUtils.resolveScope(appScope, "/junit/room13/subroomA");
+		if (room1 == null) {
+			assertTrue(room.createChildScope("subroomA"));
+			room1 = ScopeUtils.resolveScope(appScope, "/junit/room13/subroomA");
+			assertNotNull(room1);
+		}
+		IScope room2 = ScopeUtils.resolveScope(appScope, "/junit/room13/subroomB");
+		if (room2 == null) {
+			assertTrue(room.createChildScope("subroomB"));
+			room2 = ScopeUtils.resolveScope(appScope, "/junit/room13/subroomB");
+			assertNotNull(room2);
+		}
+		Thread.sleep(100L);
+		// create the SOs
+		if (!app.hasSharedObject(room1, soName)) {
+			app.createSharedObject(room1, soName, false);
+		}
+		assertNotNull(app.getSharedObject(room1, soName, false));
+		if (!app.hasSharedObject(room2, soName)) {
+			app.createSharedObject(room2, soName, false);
+		}
+		assertNotNull(app.getSharedObject(room2, soName, false));
+		// test runnables represent clients
+		trs = new TestRunnable[2];
+		trs[0] = new SOClientWorkerA(0, app, room1);
+		trs[1] = new SOClientWorkerB(1, app, room2);
+		MultiThreadedTestRunner mttr = new MultiThreadedTestRunner(trs);
+		// fires off threads
+		long start = System.nanoTime();
+		mttr.runTestRunnables();
+		System.out.println("Runtime: " + (System.nanoTime() - start) + "ns");
+		SOClientWorkerA soa = (SOClientWorkerA) trs[0];
+		log.debug("Worker: {} shared object: {}", soa.getId(), soa.getSO().getAttributes());
+		SOClientWorkerB sob = (SOClientWorkerB) trs[1];
+		log.debug("Worker: {} shared object: {}", sob.getId(), sob.getSO().getAttributes());
+		Thread.sleep(300L);
+		log.debug("testMissingHandler-end");
 	}	
 	
 	// Used to ensure all the test-runnables are in "runTest" block.
@@ -295,4 +344,81 @@ public class SharedObjectTest extends AbstractJUnit4SpringContextTests {
 		}
 	}
 
+	/** Used for handler test */
+	private class SOClientWorkerA extends TestRunnable {
+
+		private int id;
+
+		private IScope room;
+		
+		private ISharedObject so;
+		
+		public SOClientWorkerA(int id, SOApplication app, IScope room) {
+			this.id = id;
+			this.room = room;
+			this.so = app.getSharedObject(room, "messager", false);
+			ISharedObjectListener listener = new SOListener(id);
+			so.addSharedObjectListener(listener);
+		}
+
+		public void runTest() throws Throwable {
+			log.debug("runTest#{}", id);
+			Thread.sleep(50);
+			so.setAttribute("client-id", id);
+			// sleep 100 ms for client A
+			Thread.sleep(50);
+			assertTrue(so.getIntAttribute("client-id") == id);
+			// remove the room we used for this client; hopefully this will cause the
+			// handler "missing" error to surface
+			room.removeChildScope(so);
+			room.getParent().removeChildScope(room);
+			log.debug("runTest-end#{}", id);
+		}
+
+		public int getId() {
+			return id;
+		}
+
+		public ISharedObject getSO() {
+			return so;
+		}
+		
+	}	
+
+	/** Used for handler test */
+	private class SOClientWorkerB extends TestRunnable {
+
+		private int id;
+
+		private ISharedObject so;
+
+		public SOClientWorkerB(int id, SOApplication app, IScope room) {
+			this.id = id;
+			this.so = app.getSharedObject(room, "messager", false);
+			ISharedObjectListener listener = new SOListener(id);
+			so.addSharedObjectListener(listener);
+		}
+
+		public void runTest() throws Throwable {
+			log.debug("runTest#{}", id);
+			Thread.sleep(50);
+			so.setAttribute("client-id", id);
+			// sleep 200 ms for client B
+			Thread.sleep(200);
+			assertTrue(so.getIntAttribute("client-id") == id);
+			so.sendMessage("sendMessage", null);
+			Thread.sleep(50);
+			log.debug("runTest-end#{}", id);
+		}
+
+		public int getId() {
+			return id;
+		}
+
+		public ISharedObject getSO() {
+			return so;
+		}
+		
+	}	
+	
 }

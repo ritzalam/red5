@@ -150,18 +150,20 @@ public class SharedObjectService implements ISharedObjectService, ApplicationCon
 
 	/** {@inheritDoc} */
 	public boolean createSharedObject(IScope scope, String name, boolean persistent) {
-		boolean added = false;
-		if (!hasSharedObject(scope, name)) {
+		boolean added = hasSharedObject(scope, name);
+		if (!added) {
+			log.debug("Attempting to add shared object: {} to {}", name, scope.getName());
 			added = scope.addChildScope(new SharedObjectScope(scope, name, persistent, getStore(scope, persistent)));
 			if (!added) {
-				boolean soExists = hasSharedObject(scope, name);
-				log.debug("Add failed on create, shared object already exists: {}", soExists);
-				return soExists;
+				added = hasSharedObject(scope, name);
+				log.debug("Add failed on create, shared object already exists: {}", added);
 			}
+		} else {
+			// the shared object already exists
+			log.trace("Shared object ({}) already exists. Persistent: {}", name, persistent);			
 		}
-		// the shared object already exists
-		log.trace("Shared object ({}) already exists. Persistent: {}", name, persistent);
-		return true;
+		// added or already existing will be true
+		return added;
 	}
 
 	/** {@inheritDoc} */

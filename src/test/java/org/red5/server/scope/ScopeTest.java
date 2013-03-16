@@ -18,7 +18,9 @@
 
 package org.red5.server.scope;
 
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.NoSuchElementException;
@@ -116,21 +118,17 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		appScope.getScope("room1").removeChildren();
 		appScope = null;
 	}
-	
 
 	private void setupScopes() {
 		log.debug("-------------------------------------------------------------setupScopes");
-
 		//Room 1
 		// /default/junit/room1
 		assertFalse(appScope.createChildScope("room1")); // room1 is defined in context xml file, this should fail
 		IScope room1 = appScope.getScope("room1");
 		log.debug("Room 1: {}", room1);
 		assertTrue(room1.getDepth() == 2);
-
 		IContext rmCtx1 = room1.getContext();
 		log.debug("Context 1: {}", rmCtx1);
-
 		//Room 2
 		// /default/junit/room1/room2
 		if (room1.getScope("room2") == null) {
@@ -140,49 +138,42 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		log.debug("Room 2: {}", room2);
 		assertNotNull(room2);
 		assertTrue(room2.getDepth() == 3);
-
 		IContext rmCtx2 = room2.getContext();
 		log.debug("Context 2: {}", rmCtx2);
-
 		//Room 3
 		// /default/junit/room1/room2/room3
 		if (room2.getScope("room3") == null) {
 			assertTrue(room2.createChildScope("room3"));
-		}		
+		}
 		IScope room3 = room2.getScope("room3");
 		log.debug("Room 3: {}", room3);
 		assertNotNull(room3);
 		assertTrue(room3.getDepth() == 4);
-
 		IContext rmCtx3 = room3.getContext();
 		log.debug("Context 3: {}", rmCtx3);
-
 		//Room 4 attaches at Room 1 (per bug example)
 		// /default/junit/room1/room4
 		if (room1.getScope("room4") == null) {
 			assertTrue(room1.createChildScope("room4"));
-		}		
+		}
 		IScope room4 = room1.getScope("room4");
 		log.debug("Room 4: {}", room4);
 		assertNotNull(room4);
 		assertTrue(room4.getDepth() == 3);
-
 		IContext rmCtx4 = room4.getContext();
 		log.debug("Context 4: {}", rmCtx4);
-
 		//Room 5
 		// /default/junit/room1/room4/room5
 		if (room4.getScope("room5") == null) {
 			assertTrue(room4.createChildScope("room5"));
-		}		
+		}
 		IScope room5 = room4.getScope("room5");
 		log.debug("Room 5: {}", room5);
 		assertNotNull(room5);
 		assertTrue(room5.getDepth() == 4);
-
 		IContext rmCtx5 = room5.getContext();
 		log.debug("Context 5: {}", rmCtx5);
-	}	
+	}
 
 	@Test
 	public void client() {
@@ -275,16 +266,13 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		assertNotNull("global scope should be set", global);
 		assertTrue("should be global", ScopeUtils.isGlobal(global));
 		log.debug("{}", global);
-
 		// Test App
 		IScope testApp = context.resolveScope(appPath);
 		assertTrue("testApp scope not null", testApp != null);
 		log.debug("{}", testApp);
-
 		// Test Room
 		IScope testRoom = context.resolveScope(roomPath);
 		log.debug("{}", testRoom);
-
 		// Test App Not Found
 		try {
 			IScope notFoundApp = context.resolveScope(appPath + "notfound");
@@ -294,16 +282,13 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		}
 	}
 
-	
 	@Test
 	public void testScopeConnection() {
 		log.debug("-----------------------------------------------------------------testScopeConnection");
 		setupScopes();
-		
 		IScope room5 = ScopeUtils.resolveScope(appScope, "/junit/room1/room4/room5");
 		log.debug("Room 5 scope: {}", room5);
 		// test section for issue #259
-
 		// a little pre-setup is needed first
 		IClientRegistry reg = context.getClientRegistry();
 		IClient client = reg.newClient(null);
@@ -330,7 +315,6 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 	public void testGetScopeNames() throws Exception {
 		log.debug("-----------------------------------------------------------------testGetScopeNames");
 		setupScopes();
-		
 		IScope room1 = ScopeUtils.resolveScope(appScope, "/junit/room1");
 		log.debug("Room 1 scope: {}", room1);
 		assertTrue(room1.getDepth() == 2);
@@ -351,7 +335,6 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 	public void testRemoveScope() throws Exception {
 		log.debug("-----------------------------------------------------------------testRemoveScope");
 		setupScopes();
-		
 		IScope room1 = ScopeUtils.resolveScope(appScope, "/junit/room1");
 		IScope room4 = ScopeUtils.resolveScope(appScope, "/junit/room1/room4");
 		log.debug("Room 4 scope: {}", room4);
@@ -380,7 +363,6 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 	public void testScopeMultiThreadHandling() throws Throwable {
 		log.debug("-----------------------------------------------------------------testScopeMultiThreadHandling");
 		setupScopes();
-		
 		// create app
 		MultiThreadedApplicationAdapter app = new MultiThreadedApplicationAdapter();
 		// change the handler
@@ -425,6 +407,74 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		//		log.debug("Room 4 child scope exists: {}", room1.hasChildScope("room4"));
 		//		room1.removeChildScope(room4);
 		//		log.debug("Room 4 child scope exists: {}", room1.hasChildScope("room4"));
+	}
+
+	/**
+	 * Test created to address missing handler when a subscope child is removed. The handler seems to get
+	 * removed from other children in the set.
+	 * 
+	 * @throws Throwable 
+	 */
+	@Test
+	public void testScopeMissingHandler() throws Throwable {
+		log.debug("-----------------------------------------------------------------testScopeMissingHandler");
+		// create app
+		MultiThreadedApplicationAdapter app = new MultiThreadedApplicationAdapter();
+		// change the handler
+		appScope.setHandler(app);
+		// start
+		app.start(appScope);
+		// create our additional scopes
+		assertTrue(appScope.hasHandler());
+		IScope top = ScopeUtils.resolveScope(appScope, "/junit");
+		assertTrue(top.hasHandler());
+		IScope room = ScopeUtils.resolveScope(appScope, "/junit/room13");
+		if (room == null) {
+			assertTrue(top.createChildScope("room13"));
+			room = ScopeUtils.resolveScope(appScope, "/junit/room13");
+			assertNotNull(room);
+		}
+		assertTrue(room.hasHandler());
+		// get rooms
+		IScope room1 = ScopeUtils.resolveScope(appScope, "/junit/room13/subroomA");
+		if (room1 == null) {
+			assertTrue(room.createChildScope("subroomA"));
+			room1 = ScopeUtils.resolveScope(appScope, "/junit/room13/subroomA");
+			assertNotNull(room1);
+		}
+		IScope room2 = ScopeUtils.resolveScope(appScope, "/junit/room13/subroomB");
+		if (room2 == null) {
+			assertTrue(room.createChildScope("subroomB"));
+			room2 = ScopeUtils.resolveScope(appScope, "/junit/room13/subroomB");
+			assertNotNull(room2);
+		}
+		// let it settle for a moment
+		Thread.sleep(50L);
+		// create the SOs
+		String soName = "messager";
+		if (!app.hasSharedObject(room1, soName)) {
+			app.createSharedObject(room1, soName, false);
+		}
+		assertNotNull(app.getSharedObject(room1, soName, false));
+		if (!app.hasSharedObject(room2, soName)) {
+			app.createSharedObject(room2, soName, false);
+		}
+		assertNotNull(app.getSharedObject(room2, soName, false));
+		// test runnables represent clients
+		trs = new TestRunnable[2];
+		trs[0] = new ScopeClientWorkerA(0, app, room1);
+		trs[1] = new ScopeClientWorkerB(1, app, room2);
+		MultiThreadedTestRunner mttr = new MultiThreadedTestRunner(trs);
+		// fires off threads
+		long start = System.nanoTime();
+		mttr.runTestRunnables();
+		System.out.println("Runtime: " + (System.nanoTime() - start) + "ns");
+		ScopeClientWorkerA soa = (ScopeClientWorkerA) trs[0];
+		log.debug("Worker: {} shared object: {}", soa.getId(), soa.getSharedObject().getAttributes());
+		ScopeClientWorkerB sob = (ScopeClientWorkerB) trs[1];
+		log.debug("Worker: {} shared object: {}", sob.getId(), sob.getSharedObject().getAttributes());
+		Thread.sleep(300L);
+		app.stop(appScope);
 	}
 
 	// Used to ensure all the test-runnables are in "runTest" block.
@@ -544,6 +594,92 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 
 		public IClientBroadcastStream newBroadcastStream(int streamId) {
 			return null;
+		}
+
+	}
+
+	private class ScopeClientWorkerA extends TestRunnable {
+
+		private int id;
+
+		private IScope room;
+
+		private IConnection conn;
+
+		private ISharedObject so;
+
+		public ScopeClientWorkerA(int id, MultiThreadedApplicationAdapter app, IScope room) {
+			this.id = id;
+			this.room = room;
+			this.so = app.getSharedObject(room, "messager", false);
+			System.out.println("Connect path: " + room.getContextPath());
+			conn = new TestStreamConnection("localhost", room.getContextPath(), "session" + id);
+		}
+
+		public void runTest() throws Throwable {
+			log.debug("runTest#{}", id);
+			Red5.setConnectionLocal(conn);
+			conn.connect(room);
+			Thread.sleep(50);
+			// set a value
+			so.setAttribute("client-id", id);
+			so.setAttribute("time", System.currentTimeMillis() + Integer.valueOf(RandomStringUtils.randomNumeric(3)));
+			Thread.sleep(50);
+			conn.close();
+			Red5.setConnectionLocal(null);
+			log.debug("runTest-end#{}", id);
+		}
+
+		public int getId() {
+			return id;
+		}
+
+		public ISharedObject getSharedObject() {
+			return so;
+		}
+
+	}
+
+	private class ScopeClientWorkerB extends TestRunnable {
+
+		private int id;
+
+		private IScope room;
+
+		private IConnection conn;
+
+		private ISharedObject so;
+
+		public ScopeClientWorkerB(int id, MultiThreadedApplicationAdapter app, IScope room) {
+			this.id = id;
+			this.room = room;
+			this.so = app.getSharedObject(room, "messager", false);
+			System.out.println("Connect path: " + room.getContextPath());
+			conn = new TestStreamConnection("localhost", room.getContextPath(), "session" + id);
+		}
+
+		public void runTest() throws Throwable {
+			log.debug("runTest#{}", id);
+			Red5.setConnectionLocal(conn);
+			conn.connect(room);
+			Thread.sleep(50);
+			// set a value
+			so.setAttribute("client-id", id);
+			so.setAttribute("time", System.currentTimeMillis() + Integer.valueOf(RandomStringUtils.randomNumeric(3)));
+			Thread.sleep(200);
+			so.sendMessage("sendMessage", null);
+			Thread.sleep(50);
+			conn.close();
+			Red5.setConnectionLocal(null);
+			log.debug("runTest-end#{}", id);
+		}
+
+		public int getId() {
+			return id;
+		}
+
+		public ISharedObject getSharedObject() {
+			return so;
 		}
 
 	}
