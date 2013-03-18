@@ -32,6 +32,8 @@ import org.red5.server.api.scope.IBasicScope;
 import org.red5.server.api.scope.IScope;
 import org.red5.server.api.scope.ScopeType;
 import org.red5.server.util.ScopeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Generalizations of one of main Red5 object types, Scope.
@@ -41,13 +43,15 @@ import org.red5.server.util.ScopeUtils;
  */
 public abstract class BasicScope implements IBasicScope, Comparable<BasicScope> {
 
+	protected static Logger log = LoggerFactory.getLogger(BasicScope.class);
+
 	/**
 	 * Parent scope. Scopes can be nested.
 	 *
 	 * @see org.red5.server.api.scope.IScope
 	 */
 	protected IScope parent;
-	
+
 	/**
 	 * Scope type.
 	 *
@@ -59,12 +63,12 @@ public abstract class BasicScope implements IBasicScope, Comparable<BasicScope> 
 	 * String identifier for this scope
 	 */
 	protected String name;
-	
+
 	/**
 	 * Creation timestamp
 	 */
 	protected long creation;
-	
+
 	/**
 	 * Whether or not to persist attributes
 	 */
@@ -86,8 +90,7 @@ public abstract class BasicScope implements IBasicScope, Comparable<BasicScope> 
 	protected boolean keepOnDisconnect;
 
 	/**
-	 * Set to amount of time (in seconds) the scope will be kept before being freed,
-	 * after the last disconnect.
+	 * Set to amount of time (in seconds) the scope will be kept before being freed, after the last disconnect.
 	 */
 	protected int keepDelay = 0;
 
@@ -95,6 +98,11 @@ public abstract class BasicScope implements IBasicScope, Comparable<BasicScope> 
 	 * List of event listeners
 	 */
 	protected CopyOnWriteArraySet<IEventListener> listeners;
+
+	/**
+	 * Scheduled job name for keep alive check
+	 */
+	private String keepAliveJobName;
 
 	/**
 	 * Creates unnamed scope
@@ -181,7 +189,7 @@ public abstract class BasicScope implements IBasicScope, Comparable<BasicScope> 
 	public void setKeepDelay(int keepDelay) {
 		this.keepDelay = keepDelay;
 	}
-	
+
 	/**
 	 * Validates a scope based on its name and type
 	 * 
@@ -198,6 +206,7 @@ public abstract class BasicScope implements IBasicScope, Comparable<BasicScope> 
 	 * @return true if listener is added and false otherwise
 	 */
 	public boolean addEventListener(IEventListener listener) {
+		log.debug("addEventListener - scope: {} {}", getName(), listener);
 		return listeners.add(listener);
 	}
 
@@ -207,18 +216,22 @@ public abstract class BasicScope implements IBasicScope, Comparable<BasicScope> 
 	 * @return true if listener is removed and false otherwise
 	 */
 	public boolean removeEventListener(IEventListener listener) {
+		log.debug("removeEventListener - scope: {} {}", getName(), listener);
+		if (log.isTraceEnabled()) {
+			log.trace("Listeners: {}", listeners);
+		}
 		boolean removed = listeners.remove(listener);
 		if (!keepOnDisconnect) {
-			if (ScopeUtils.isRoom(this) && listeners.isEmpty()) {
-				if (keepDelay > 0) {
-					// create a job to keep alive for n seconds
+			if (removed && keepAliveJobName == null) {
+				if (ScopeUtils.isRoom(this) && listeners.isEmpty()) {
+					// create job to kill the scope off if no listeners join within the delay
 					ISchedulingService schedulingService = (ISchedulingService) parent.getContext().getBean(ISchedulingService.BEAN_NAME);
-					schedulingService.addScheduledOnceJob(keepDelay * 1000, new KeepAliveJob(this));
-				} else {
-					// delete empty rooms
-					parent.removeChildScope(this);
+					// by default keep a scope around for a fraction of a second
+					keepAliveJobName = schedulingService.addScheduledOnceJob((keepDelay > 0 ? keepDelay * 1000 : 100), new KeepAliveJob(this));
 				}
 			}
+		} else {
+			log.debug("Scope: {} is exempt from removal when empty", getName());
 		}
 		return removed;
 	}
@@ -331,6 +344,7 @@ public abstract class BasicScope implements IBasicScope, Comparable<BasicScope> 
 				// delete empty rooms
 				parent.removeChildScope(scope);
 			}
+			keepAliveJobName = null;
 		}
 
 	}

@@ -38,13 +38,13 @@ import org.red5.server.jmx.mxbeans.ClientRegistryMXBean;
 import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
- * Registry for clients. Associates client with it's id so it's possible to get client by id
- * from whenever we need.
+ * Registry for clients, wherein clients are mapped by their id.
  *
  * @author The Red5 Project (red5@osflash.org)
  */
 @ManagedResource(objectName="org.red5.server:type=ClientRegistry,name=default", description="ClientRegistry")
 public class ClientRegistry implements IClientRegistry, ClientRegistryMXBean {
+	
 	/**
 	 * Clients map
 	 */

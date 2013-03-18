@@ -39,17 +39,11 @@ public class ServerTest {
 
 	protected static Logger log = LoggerFactory.getLogger(ServerTest.class);
 	
-	
 	static {
 		System.setProperty("red5.deployment.type", "junit");
-		System.setProperty("red5.root", "bin");
-		System.setProperty("red5.config_root", "bin/conf");
-	}
-	
-	{
-		log.debug("Property - user.dir: {}", System.getProperty("user.dir"));
-		log.debug("Property - red5.root: {}", System.getProperty("red5.root"));
-		log.debug("Property - red5.config_root: {}", System.getProperty("red5.config_root"));
+		System.setProperty("red5.root", "target/classes");
+		System.setProperty("red5.config_root", "src/main/server/conf");
+		System.setProperty("logback.ContextSelector", "org.red5.logging.LoggingContextSelector");
 	}
 	
 	@Before
