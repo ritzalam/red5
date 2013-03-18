@@ -33,6 +33,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.red5.server.ClientRegistry;
 import org.red5.server.Context;
 import org.red5.server.Server;
 import org.red5.server.adapter.MultiThreadedApplicationAdapter;
@@ -77,6 +78,8 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 	@SuppressWarnings("unused")
 	private QuartzSchedulingService service;
 
+	private ClientRegistry registry;
+	
 	private Context context;
 
 	private WebScope appScope;
@@ -97,6 +100,7 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 	@Before
 	public void setUp() throws Exception {
 		service = (QuartzSchedulingService) applicationContext.getBean("schedulingService");
+		registry = (ClientRegistry) applicationContext.getBean("global.clientRegistry");
 		context = (Context) applicationContext.getBean("web.context");
 		Server server = (Server) applicationContext.getBean("red5.server");
 		server.addListener(new IScopeListener() {
@@ -363,6 +367,7 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 	public void testScopeMultiThreadHandling() throws Throwable {
 		log.debug("-----------------------------------------------------------------testScopeMultiThreadHandling");
 		setupScopes();
+		boolean persistent = false;
 		// create app
 		MultiThreadedApplicationAdapter app = new MultiThreadedApplicationAdapter();
 		// change the handler
@@ -376,8 +381,13 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 			room = ScopeUtils.resolveScope(appScope, "/junit/mt");
 		}
 		// create the SO
-		assertTrue(app.createSharedObject(room, "mtSO", false));
-		app.getSharedObject(room, "mtSO").acquire();
+		assertTrue(app.createSharedObject(room, "mtSO", persistent));
+		ISharedObject so = app.getSharedObject(room, "mtSO");
+		// acquire only works with non-persistent so's
+		if (!persistent) {
+			so.acquire();
+			assertTrue(so.isAcquired());
+		}
 		// test runnables represent clients
 		trs = new TestRunnable[21];
 		for (int t = 0; t < trs.length; t++) {
@@ -397,7 +407,11 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 			ScopeClientWorker cl = (ScopeClientWorker) r;
 			log.debug("Worker: {} shared object: {}", cl.getId(), cl.getSharedObject().getAttributes());
 		}
-		app.getSharedObject(room, "mtSO").release();
+		if (!persistent) {
+			assertTrue(so.isAcquired());
+			so.release();
+			assertFalse(so.isAcquired());
+		}
 		app.stop(appScope);
 
 		//		IScope room1 = ScopeUtils.resolveScope(appScope, "/junit/room1");
@@ -442,6 +456,7 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 			room1 = ScopeUtils.resolveScope(appScope, "/junit/room13/subroomA");
 			assertNotNull(room1);
 		}
+		Thread.sleep(10);
 		IScope room2 = ScopeUtils.resolveScope(appScope, "/junit/room13/subroomB");
 		if (room2 == null) {
 			assertTrue(room.createChildScope("subroomB"));
@@ -474,6 +489,7 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		ScopeClientWorkerB sob = (ScopeClientWorkerB) trs[1];
 		log.debug("Worker: {} shared object: {}", sob.getId(), sob.getSharedObject().getAttributes());
 		Thread.sleep(300L);
+		// clean up / stop
 		app.stop(appScope);
 	}
 
@@ -501,13 +517,15 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 			this.id = id;
 			this.so = app.getSharedObject(room, "mtSO", true);
 			if (id % 2 == 0) {
+				TestStreamConnection conn = new TestStreamConnection("localhost", "/junit/mt", "session" + id);
+				conn.setClient(registry.newClient(null));
 				// create a few streams
 				this.stream = new ClientBroadcastStream();
 				String name = "stream" + id;
 				stream.setRegisterJMX(false);
 				stream.setPublishedName(name);
 				stream.setScope(room);
-				stream.setConnection(new TestStreamConnection("localhost", "/junit/mt", "session" + id));
+				stream.setConnection(conn);				
 				// 
 				IProviderService providerService = (IProviderService) room.getContext().getBean(IProviderService.BEAN_NAME);
 				// publish this server-side stream
@@ -596,6 +614,14 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 			return null;
 		}
 
+		/* (non-Javadoc)
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			return "TestStreamConnection [path=" + path + ", sessionId=" + sessionId + ", client=" + client + ", scope=" + scope + ", closed=" + closed + "]";
+		}
+
 	}
 
 	private class ScopeClientWorkerA extends TestRunnable {
@@ -614,12 +640,13 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 			this.so = app.getSharedObject(room, "messager", false);
 			System.out.println("Connect path: " + room.getContextPath());
 			conn = new TestStreamConnection("localhost", room.getContextPath(), "session" + id);
+			conn.setClient(registry.newClient(null));
 		}
 
 		public void runTest() throws Throwable {
 			log.debug("runTest#{}", id);
 			Red5.setConnectionLocal(conn);
-			conn.connect(room);
+			assertTrue(conn.connect(room));
 			Thread.sleep(50);
 			// set a value
 			so.setAttribute("client-id", id);
@@ -656,17 +683,18 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 			this.so = app.getSharedObject(room, "messager", false);
 			System.out.println("Connect path: " + room.getContextPath());
 			conn = new TestStreamConnection("localhost", room.getContextPath(), "session" + id);
+			conn.setClient(registry.newClient(null));
 		}
 
 		public void runTest() throws Throwable {
 			log.debug("runTest#{}", id);
 			Red5.setConnectionLocal(conn);
-			conn.connect(room);
+			assertTrue(conn.connect(room));
 			Thread.sleep(50);
 			// set a value
 			so.setAttribute("client-id", id);
 			so.setAttribute("time", System.currentTimeMillis() + Integer.valueOf(RandomStringUtils.randomNumeric(3)));
-			Thread.sleep(200);
+			Thread.sleep(100);
 			so.sendMessage("sendMessage", null);
 			Thread.sleep(50);
 			conn.close();

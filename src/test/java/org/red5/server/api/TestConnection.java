@@ -199,6 +199,48 @@ public class TestConnection extends BaseConnection implements IServiceCapableCon
 	}
 
 	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		if (path != null) {
+			result = prime * result + path.hashCode();
+		}
+		if (sessionId != null) {
+			result = prime * result + sessionId.hashCode();
+		}
+		if (client != null) {
+			result = prime * result + client.hashCode();
+		}
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (path != null && !path.equals(((TestConnection) obj).getPath())) {
+			return false;
+		}
+		if (sessionId != null && !sessionId.equals(((TestConnection) obj).getSessionId())) {
+			return false;
+		}
+		if (client != null && ((TestConnection) obj).getClient() != null && !client.getId().equals(((TestConnection) obj).getClient().getId())) {
+			return false;
+		}
+		return true;
+	}	
+	
+	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override

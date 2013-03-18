@@ -7,8 +7,7 @@
     http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd 
     http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
-	<bean id="placeholderConfig"
-		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+	<bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="ignoreResourceNotFound" value="true" />
 		<property name="ignoreUnresolvablePlaceholders" value="true" />
 		<property name="locations">
@@ -27,9 +26,7 @@
 	<!-- Handles creation / lookup of shared objects -->
 	<bean id="sharedObjectService" class="org.red5.server.so.SharedObjectService">
 		<property name="persistenceClassName">
-			<value>
-				org.red5.server.persistence.FilePersistence
-			</value>
+			<value>org.red5.server.persistence.FilePersistence</value>
 		</property>
 	</bean>
 
@@ -41,7 +38,7 @@
 
 	<!-- Global stuff from red5-default.xml -->
 
-	<bean id="global.clientRegistry" class="org.red5.server.ClientRegistry" />
+	<bean id="global.clientRegistry" class="org.red5.server.DummyClientRegistry" />
 
 	<bean id="global.serviceInvoker" class="org.red5.server.service.ServiceInvoker">
 		<property name="serviceResolvers">
@@ -61,8 +58,7 @@
 
 	<bean id="global.handler" autowire="byType" class="org.red5.server.CoreHandler" />
 
-	<bean id="global.scope" class="org.red5.server.scope.GlobalScope"
-		init-method="register">
+	<bean id="global.scope" class="org.red5.server.scope.GlobalScope" init-method="register">
 		<property name="server" ref="red5.server" />
 		<property name="name" value="default" />
 		<property name="context" ref="global.context" />

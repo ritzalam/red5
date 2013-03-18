@@ -73,13 +73,12 @@ public class ServiceInvokerTest extends AbstractJUnit4SpringContextTests {
 	private static AtomicInteger finishedCount = new AtomicInteger(0);
 
 	private final static Random rnd = new Random();
-
+	
 	static {
-		String userDir = System.getProperty("user.dir");
-		System.out.println("User dir: " + userDir);
 		System.setProperty("red5.deployment.type", "junit");
-		System.setProperty("red5.root", "file:" + userDir + "/bin");
-		System.setProperty("red5.config_root", System.getProperty("red5.root") + "/conf");
+		System.setProperty("red5.root", "target/classes");
+		System.setProperty("red5.config_root", "src/main/server/conf");
+		System.setProperty("logback.ContextSelector", "org.red5.logging.LoggingContextSelector");
 	}
 
 	@Test
@@ -158,9 +157,8 @@ public class ServiceInvokerTest extends AbstractJUnit4SpringContextTests {
 		Thread r = new Thread(new Runnable() { 
 			public void run() {
 				Red5.setConnectionLocal(recipient);
-				ApplicationAdapter app = (ApplicationAdapter) applicationContext.getBean("web.handler");
 				IConnection conn = Red5.getConnectionLocal();
-				assertTrue(app.connect(recipient, scp, null));
+				assertTrue(scp.connect(conn));
 				try {
 					Thread.sleep(120L);
 				} catch (InterruptedException e) {
@@ -171,15 +169,17 @@ public class ServiceInvokerTest extends AbstractJUnit4SpringContextTests {
 		Thread s = new Thread(new Runnable() { 
 			public void run() {
 				Red5.setConnectionLocal(sender);
-				ApplicationAdapter app = (ApplicationAdapter) applicationContext.getBean("web.handler");
 				IConnection conn = Red5.getConnectionLocal();
-				assertTrue(app.connect(sender, scp, null));
+				assertTrue(scp.connect(conn));
 				try {
 					Thread.sleep(10L);
 				} catch (InterruptedException e) {
 				}
 				Object[] sendobj = new Object[] { conn.getClient().getId(), message };
-				((IServiceCapableConnection) conn).invoke("privMessage", sendobj);
+				// get the recipient
+				IClientRegistry reg = ctx.getClientRegistry();
+				IConnection rcon = reg.lookupClient("recipient").getConnections(scp).iterator().next();
+				((IServiceCapableConnection) rcon).invoke("privMessage", sendobj);
 				try {
 					Thread.sleep(100L);
 				} catch (InterruptedException e) {
@@ -189,6 +189,9 @@ public class ServiceInvokerTest extends AbstractJUnit4SpringContextTests {
 		});
 		r.start();
 		s.start();
+		
+		r.join();
+		s.join();
 		
 		IClientRegistry reg = ctx.getClientRegistry();
 		log.debug("Client registry: {}", reg.getClass().getName());
@@ -200,17 +203,15 @@ public class ServiceInvokerTest extends AbstractJUnit4SpringContextTests {
 			fail("Recipient not found");
 		}
 
-		r.join();
-		s.join();
-		
 		Assert.assertTrue(((SvcCapableTestConnection) recipient).getPrivateMessageCount() == 1);
+		
 	}
 
 	/**
 	 * Test for memory leak bug #631 with multiple threads
 	 * http://trac.red5.org/ticket/631
 	 */
-	@Test
+	//@Test
 	public void testMultiThreadBug631() throws Throwable {
 		log.debug("-----------------------------------------------------------------testMultiThreadBug631");
 
@@ -324,7 +325,7 @@ public class ServiceInvokerTest extends AbstractJUnit4SpringContextTests {
 				String worker = workerList.get(rnd.nextInt(connectionCount));
 				//dont send to ourself
 				if (name.equals(worker)) {
-					log.debug("Dont send to self");
+					//log.debug("Dont send to self");
 					continue;
 				}
 				if (reg.hasClient(worker)) {
@@ -365,7 +366,7 @@ public class ServiceInvokerTest extends AbstractJUnit4SpringContextTests {
 		}
 	}
 
-	final static class SvcCapableTestConnection extends TestConnection implements IServiceCapableConnection {
+	final class SvcCapableTestConnection extends TestConnection implements IServiceCapableConnection {
 
 		private int privateMessageCount = 0;
 
@@ -378,9 +379,9 @@ public class ServiceInvokerTest extends AbstractJUnit4SpringContextTests {
 		}
 
 		public void invoke(String method, Object[] params) {
-			//log.debug("Invoke on connection: {}", this.client.getId());
+			log.debug("Invoke on connection: {}", this.client.getId());
 			if ("privMessage".equals(method)) {
-				//log.info("Got a private message from: {} message: {}", params);
+				log.info("Got a private message from: {} message: {}", params);
 				privateMessageCount++;
 			} else {
 				log.warn("Method: {} not implemented", method);

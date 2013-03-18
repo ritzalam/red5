@@ -67,11 +67,10 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 /**
  * The scope object.
  * <p>
- * A stateful object shared between a group of clients connected to the same
- * context path. Scopes are arranged in a hierarchical way, so its possible for
- * a scope to have a parent. If a client is connect to a scope then they are
- * also connected to its parent scope. The scope object is used to access
- * resources, shared object, streams, etc.</p>
+ * A stateful object shared between a group of clients connected to the same context path. Scopes are arranged in a hierarchical way,
+ * so a scope always has a parent unless its a "global" scope. If a client is connected to a scope then they are also connected to its
+ * parent scope. The scope object is used to access resources, shared object, streams, etc.</p>
+ * <p>
  * Scope layout:
  * <pre>
  *  /Global scope - Contains application scopes
@@ -80,7 +79,7 @@ import org.springframework.jmx.export.annotation.ManagedResource;
  *              /Shared object scope - Contains shared object
  *              /Broadcast stream scope - Contains a broadcast stream
  * </pre>
- * 
+ * </p>
  * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)
  * @author Nathan Smith (nathgs@gmail.com)
@@ -357,8 +356,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 */
 	public void disconnect(IConnection conn) {
 		log.debug("Disconnect: {}", conn);
-		// We call the disconnect handlers in reverse order they were called during connection, 
-		// ie. roomDisconnect is called before appDisconnect.
+		// call disconnect handlers in reverse order of connection. ie. roomDisconnect is called before appDisconnect.
 		final IClient client = conn.getClient();
 		if (client == null) {
 			// early bail out
@@ -1444,10 +1442,10 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		public IBasicScope getBasicScope(ScopeType type, String name) {
 			boolean skipTypeCheck = ScopeType.UNDEFINED.equals(type);
 			if (names.contains(name)) {
-				log.debug("Child scopes (key set): {}", this.keySet());
 				log.trace("Permits at getBasicScope: {} queued: {}", internalLock.availablePermits(), internalLock.hasQueuedThreads());
 				try {
 					internalLock.acquire();
+					log.debug("Child scopes (key set): {}", this.keySet());
 					if (skipTypeCheck) {
 						for (IBasicScope child : keySet()) {
 							if (name.equals(child.getName())) {
