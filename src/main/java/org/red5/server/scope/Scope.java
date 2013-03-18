@@ -634,6 +634,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * @return Scope handler (or parent's one)
 	 */
 	public IScopeHandler getHandler() {
+		log.trace("getHandler from {}", name);
 		if (handler != null) {
 			return handler;
 		} else if (hasParent()) {
@@ -989,6 +990,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * Removes all the child scopes
 	 */
 	public void removeChildren() {
+		log.trace("removeChildren of {}", name);
 		List<IBasicScope> childScopes = new ArrayList<IBasicScope>();
 		childScopes.addAll(children.keySet());
 		for (IBasicScope child : childScopes) {
@@ -1048,7 +1050,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * @param handler Event handler
 	 */
 	public void setHandler(IScopeHandler handler) {
-		log.debug("Set handler: {}", handler);
+		log.debug("setHandler: {} on {}", handler, name);
 		this.handler = handler;
 		if (handler instanceof IScopeAware) {
 			((IScopeAware) handler).setScope(this);
@@ -1139,7 +1141,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * Stops scope
 	 */
 	public void stop() {
-		log.debug("Stop scope");
+		log.debug("stop: {}", name);
 		if (enabled && running && handler != null) {
 			try {
 				lock.acquire();
@@ -1317,7 +1319,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			boolean added = false;
 			// check #1
 			if (!keySet().contains(scope)) {
-				log.debug("Adding {} to scope set: {}", scope, this);
+				log.debug("Adding child scope: {} to {}", (((IBasicScope) scope).getName()), this);
 				if (hasHandler()) {
 					// get the handler for the scope to which we are adding this new scope 
 					IScopeHandler hdlr = getHandler();
@@ -1369,7 +1371,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			log.debug("Remove child scope: {}", scope);
 			if (hasHandler()) {
 				IScopeHandler hdlr = getHandler();
-				log.debug("Remove child scope");
+				log.debug("Removing child scope: {}", (((IBasicScope) scope).getName()));
 				hdlr.removeChildScope((IBasicScope) scope);
 				if (scope instanceof Scope) {
 					// cast it

@@ -218,7 +218,7 @@ public abstract class BasicScope implements IBasicScope, Comparable<BasicScope> 
 	public boolean removeEventListener(IEventListener listener) {
 		log.debug("removeEventListener - scope: {} {}", getName(), listener);
 		if (log.isTraceEnabled()) {
-			log.trace("Listeners: {}", listeners);
+			log.trace("Listeners - check #1: {}", listeners);
 		}
 		boolean removed = listeners.remove(listener);
 		if (!keepOnDisconnect) {
@@ -231,8 +231,11 @@ public abstract class BasicScope implements IBasicScope, Comparable<BasicScope> 
 				}
 			}
 		} else {
-			log.debug("Scope: {} is exempt from removal when empty", getName());
+			log.trace("Scope: {} is exempt from removal when empty", getName());
 		}
+		if (log.isTraceEnabled()) {
+			log.trace("Listeners - check #2: {}", listeners);
+		}		
 		return removed;
 	}
 
@@ -342,6 +345,7 @@ public abstract class BasicScope implements IBasicScope, Comparable<BasicScope> 
 		public void execute(ISchedulingService service) {
 			if (listeners.isEmpty()) {
 				// delete empty rooms
+				log.trace("Removing {} from {}", scope.getName(), parent.getName());
 				parent.removeChildScope(scope);
 			}
 			keepAliveJobName = null;

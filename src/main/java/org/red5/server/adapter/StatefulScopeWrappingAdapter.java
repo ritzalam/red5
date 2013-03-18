@@ -41,6 +41,8 @@ import org.springframework.core.io.Resource;
  */
 public class StatefulScopeWrappingAdapter extends AbstractScopeAdapter implements IScopeAware, IAttributeStore {
 
+	//private static Logger log = LoggerFactory.getLogger(StatefulScopeWrappingAdapter.class);
+	
 	/**
 	 * Wrapped scope
 	 */
@@ -53,6 +55,7 @@ public class StatefulScopeWrappingAdapter extends AbstractScopeAdapter implement
 
 	/** {@inheritDoc} */
 	public void setScope(IScope scope) {
+		//log.trace("setScope: {}", scope.getName());
 		this.scope = scope;
 	}
 
@@ -62,6 +65,7 @@ public class StatefulScopeWrappingAdapter extends AbstractScopeAdapter implement
 	 * @return  Wrapped scope
 	 */
 	public IScope getScope() {
+		//log.trace("getScope: {}", scope.getName());
 		return scope;
 	}
 

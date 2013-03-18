@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Semaphore;
 
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
@@ -42,6 +43,8 @@ import ch.qos.logback.core.util.StatusPrinter;
 public class LoggingContextSelector implements ContextSelector {
 
 	private static final ConcurrentMap<String, LoggerContext> contextMap = new ConcurrentHashMap<String, LoggerContext>(6, 0.9f, 1);
+
+	private static final Semaphore lock = new Semaphore(1, true);
 
 	private final ThreadLocal<LoggerContext> threadLocal = new ThreadLocal<LoggerContext>();
 
@@ -64,57 +67,60 @@ public class LoggingContextSelector implements ContextSelector {
 			//System.out.printf("Thread local found: %s\n", lc.getName());
 			return lc;
 		}
-
 		if (contextName == null) {
 			//System.out.println("Context name was null, returning default");
 			// We return the default context
 			return defaultContext;
 		} else {
-			// Let's see if we already know such a context
-			LoggerContext loggerContext = contextMap.get(contextName);
-			//System.out.printf("Logger context for %s is %s\n", contextName, loggerContext);
-
-			if (loggerContext == null) {
-				// We have to create a new LoggerContext
-				loggerContext = new LoggerContext();
-				loggerContext.setName(contextName);
-
-				// allow override using logbacks system prop
-				String overrideProperty = System.getProperty("logback.configurationFile");
-				if (overrideProperty == null) {
-					contextConfigFile = String.format("logback-%s.xml", contextName);
-				} else {
-					contextConfigFile = String.format(overrideProperty, contextName);
-				}
-				System.out.printf("Context logger config file: %s\n", contextConfigFile);
-
-				ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-				//System.out.printf("Thread context cl: %s\n", classloader);
-				//ClassLoader classloader2 = Loader.class.getClassLoader();
-				//System.out.printf("Loader tcl: %s\n", classloader2);
-
-				//URL url = Loader.getResourceBySelfClassLoader(contextConfigFile);
-				URL url = Loader.getResource(contextConfigFile, classloader);
-				if (url != null) {
-					try {
-						JoranConfigurator configurator = new JoranConfigurator();
-						loggerContext.reset();
-						configurator.setContext(loggerContext);
-						configurator.doConfigure(url);
-					} catch (JoranException e) {
-						StatusPrinter.print(loggerContext);
+			LoggerContext loggerContext = null;
+			try {
+				// use a semaphore to protect against the .001% times when this gets hit too quickly
+				lock.acquire();
+				// Let's see if we already know such a context
+				loggerContext = contextMap.get(contextName);
+				//System.out.printf("Logger context for %s is %s\n", contextName, loggerContext);
+				if (loggerContext == null) {
+					// We have to create a new LoggerContext
+					loggerContext = new LoggerContext();
+					loggerContext.setName(contextName);
+					// allow override using logbacks system prop
+					String overrideProperty = System.getProperty("logback.configurationFile");
+					if (overrideProperty == null) {
+						contextConfigFile = String.format("logback-%s.xml", contextName);
+					} else {
+						contextConfigFile = String.format(overrideProperty, contextName);
 					}
-				} else {
-					try {
-						ContextInitializer ctxInit = new ContextInitializer(loggerContext);
-						ctxInit.autoConfig();
-					} catch (JoranException je) {
-						StatusPrinter.print(loggerContext);
+					System.out.printf("Context logger config file: %s\n", contextConfigFile);
+					ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+					//System.out.printf("Thread context cl: %s\n", classloader);
+					//ClassLoader classloader2 = Loader.class.getClassLoader();
+					//System.out.printf("Loader tcl: %s\n", classloader2);
+					//URL url = Loader.getResourceBySelfClassLoader(contextConfigFile);
+					URL url = Loader.getResource(contextConfigFile, classloader);
+					if (url != null) {
+						try {
+							JoranConfigurator configurator = new JoranConfigurator();
+							loggerContext.reset();
+							configurator.setContext(loggerContext);
+							configurator.doConfigure(url);
+						} catch (JoranException e) {
+							StatusPrinter.print(loggerContext);
+						}
+					} else {
+						try {
+							ContextInitializer ctxInit = new ContextInitializer(loggerContext);
+							ctxInit.autoConfig();
+						} catch (JoranException je) {
+							StatusPrinter.print(loggerContext);
+						}
 					}
+					System.out.printf("Adding logger context: %s to map for context: %s\n", loggerContext.getName(), contextName);
+					contextMap.put(contextName, loggerContext);
 				}
-
-				System.out.printf("Adding logger context: %s to map for context: %s\n", loggerContext.getName(), contextName);
-				contextMap.put(contextName, loggerContext);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} finally {
+				lock.release();
 			}
 			return loggerContext;
 		}

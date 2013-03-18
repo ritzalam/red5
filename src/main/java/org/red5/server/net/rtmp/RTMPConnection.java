@@ -1149,13 +1149,9 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	@Override
 	public int hashCode() {
 		final int prime = 31;
-		int result = 1;
-		result = prime * result + getId();
-		if (host != null) {
-			result = result + host.hashCode();
-		}
-		if (remoteAddress != null) {
-			result = result + remoteAddress.hashCode();
+		int result = super.hashCode();
+		if (client != null) {
+			result += prime * client.hashCode();
 		}
 		return result;
 	}
@@ -1174,15 +1170,12 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
+		if (!super.equals(obj)) {
+			return false;			
+		}
 		RTMPConnection other = (RTMPConnection) obj;
-		if (getId() != other.getId()) {
-			return false;
-		}
-		if (host != null && !host.equals(other.getHost())) {
-			return false;
-		}
-		if (remoteAddress != null && !remoteAddress.equals(other.getRemoteAddress())) {
-			return false;
+		if (client != null && other.getClient() != null) {
+			return client.equals(other.getClient());
 		}
 		return true;
 	}

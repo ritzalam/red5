@@ -310,7 +310,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 		boolean success = false;
 		// hit the super class first
 		if (super.connect(conn, scope, params)) {
-			if (log.isInfoEnabled()) {
+			if (log.isInfoEnabled() && ScopeUtils.isApp(scope)) {
 				// log w3c connect event
 				IClient client = conn.getClient();
 				if (client == null) {
@@ -432,7 +432,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	@Override
 	public void disconnect(IConnection conn, IScope scope) {
 		log.debug("disconnect: {} < {}", conn, scope);
-		if (log.isInfoEnabled()) {
+		if (log.isInfoEnabled() && ScopeUtils.isApp(scope)) {
 			// log w3c connect event
 			IClient client = conn.getClient();
 			if (client == null) {
@@ -462,13 +462,14 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 */
 	@Override
 	public void stop(IScope scope) {
-		log.debug("stop: {}", scope);
-		// we dont allow connections after we stop
-		super.setCanConnect(false);
-		// we also dont allow service calls 
-		super.setCanCallService(false);
+		log.debug("stop: {}", scope.getName());
 		// stop the app / room / etc
 		if (ScopeUtils.isApp(scope)) {
+			// we don't allow connections after we stop
+			super.setCanConnect(false);
+			// we also don't allow service calls 
+			super.setCanCallService(false);
+			// stop the app
 			appStop(scope);
 		} else if (ScopeUtils.isRoom(scope)) {
 			roomStop(scope);

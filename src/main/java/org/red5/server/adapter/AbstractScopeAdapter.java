@@ -34,6 +34,8 @@ import org.red5.server.api.service.IServiceCall;
  */
 public abstract class AbstractScopeAdapter implements IScopeHandler {
 	
+	//private static Logger log = LoggerFactory.getLogger(AbstractScopeAdapter.class);
+	
 	/**
 	 * Can start flag.
 	 * <code>true</code> if scope is ready to be activated, <code>false</code> otherwise
@@ -56,7 +58,7 @@ public abstract class AbstractScopeAdapter implements IScopeHandler {
 	 * Can call service flag.
 	 * <code>true</code> if remote service calls are allowed for the scope, <code>false</code> otherwise
 	 */
-	private boolean canCallService;
+	private boolean canCallService = true;
 
 	/**
 	 * Can add child scope flag. <code>true</code> if scope is allowed to add child scopes, <code>false</code> otherwise
@@ -84,6 +86,7 @@ public abstract class AbstractScopeAdapter implements IScopeHandler {
 	 * @param canCallService <code>true</code> if remote service calls are allowed for the scope, <code>false</code> otherwise
 	 */
 	public void setCanCallService(boolean canCallService) {
+		//log.trace("setCanCallService: {}", canCallService);
 		this.canCallService = canCallService;
 	}
 
@@ -137,6 +140,7 @@ public abstract class AbstractScopeAdapter implements IScopeHandler {
 
 	/** {@inheritDoc} */
 	public boolean serviceCall(IConnection conn, IServiceCall call) {
+		//log.trace("serviceCall - canCallService: {} scope: {} method: {}", canCallService, conn.getScope().getName(), call.getServiceMethodName());
 		return canCallService;
 	}
 
