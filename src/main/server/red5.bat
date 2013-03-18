@@ -9,8 +9,8 @@ if NOT DEFINED RED5_MAINCLASS set RED5_MAINCLASS=org.red5.server.Bootstrap
 if NOT DEFINED JAVA_HOME goto err
 
 REM JAVA options
-REM You can set JAVA_OPTS to add additional options if you want
-set JVM_OPTS=-Xverify:none -XX:+TieredCompilation -XX:+UseBiasedLocking -XX:+UseStringCache -XX:+OptimizeStringConcat -XX:+UseParNewGC -XX:InitialCodeCacheSize=8m -XX:ReservedCodeCacheSize=32m -Dorg.terracotta.quartz.skipUpdateCheck=true
+REM You can set JVM additional options here if you want
+if NOT DEFINED JVM_OPTS set JVM_OPTS=-Xverify:none -XX:+TieredCompilation -XX:+UseBiasedLocking -XX:+UseStringCache -XX:+OptimizeStringConcat -XX:+UseParNewGC -XX:InitialCodeCacheSize=8m -XX:ReservedCodeCacheSize=32m -Dorg.terracotta.quartz.skipUpdateCheck=true
 REM Set up logging options
 set LOGGING_OPTS=-Dlogback.ContextSelector=org.red5.logging.LoggingContextSelector -Dcatalina.useNaming=true
 REM Set up security options
@@ -19,7 +19,7 @@ set SECURITY_OPTS=-Djava.security.debug=failure
 REM Setup python/jython path
 set JYTHON_OPTS=-Dpython.home=lib
 REM Combined java options
-set JAVA_OPTS=%LOGGING_OPTS% %SECURITY_OPTS% %JAVA_OPTS% %JYTHON_OPTS%
+set JAVA_OPTS=%LOGGING_OPTS% %SECURITY_OPTS% %JAVA_OPTS% %JVM_OPTS% %JYTHON_OPTS%
 
 set RED5_CLASSPATH=%RED5_HOME%\red5-server-bootstrap.jar;%RED5_HOME%\conf;%CLASSPATH%
 
