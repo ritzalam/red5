@@ -32,7 +32,6 @@ import org.red5.server.api.scope.IScope;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IStreamFilenameGenerator;
 import org.red5.server.api.stream.IStreamFilenameGenerator.GenerationType;
-import org.red5.server.api.stream.IStreamListener;
 import org.red5.server.api.stream.IStreamPacket;
 import org.red5.server.net.rtmp.event.Aggregate;
 import org.red5.server.net.rtmp.event.AudioData;
@@ -54,7 +53,7 @@ import org.springframework.core.io.Resource;
  * 
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public class RecordingListener implements IStreamListener {
+public class RecordingListener implements IRecordingListener {
 
 	private static final Logger log = LoggerFactory.getLogger(RecordingListener.class);
 
@@ -62,12 +61,12 @@ public class RecordingListener implements IStreamListener {
 	 * Scheduler
 	 */
 	private QuartzSchedulingService scheduler;
-	
+
 	/**
 	 * Event queue worker job name
 	 */
 	private String eventQueueJobName;
-	
+
 	/**
 	 * Whether we are recording or not
 	 */
@@ -92,15 +91,40 @@ public class RecordingListener implements IStreamListener {
 	 * Queue to hold incoming stream event packets.
 	 */
 	private final BlockingQueue<CachedEvent> queue = new LinkedBlockingQueue<CachedEvent>();
-	
+
 	/**
-	 * Initialize the listener.
+	 * Get the file we'd be recording to based on scope and given name.
 	 * 
-	 * @param conn Stream source connection
-	 * @param name Stream name
-	 * @param isAppend Append mode
-	 * @return true if initialization completes and false otherwise
+	 * @param scope
+	 * @param name
+	 * @return file
 	 */
+	public static File getRecordFile(IScope scope, String name) {
+		// get stream filename generator
+		IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.class, DefaultStreamFilenameGenerator.class);
+		// generate filename
+		String fileName = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
+		File file = null;
+		if (generator.resolvesToAbsolutePath()) {
+			file = new File(fileName);
+		} else {
+			Resource resource = scope.getContext().getResource(fileName);
+			if (resource.exists()) {
+				try {
+					file = resource.getFile();
+					log.debug("File exists: {} writable: {}", file.exists(), file.canWrite());
+				} catch (IOException ioe) {
+					log.error("File error: {}", ioe);
+				}
+			} else {
+				String appScopeName = ScopeUtils.findApplication(scope).getName();
+				file = new File(String.format("%s/webapps/%s/%s", System.getProperty("red5.root"), appScopeName, fileName));
+			}
+		}
+		return file;
+	}
+
+	/** {@inheritDoc} */
 	public boolean init(IConnection conn, String name, boolean isAppend) {
 		// get connections scope
 		IScope scope = conn.getScope();
@@ -173,9 +197,9 @@ public class RecordingListener implements IStreamListener {
 				recordingConsumer.setMode("record");
 			}
 			// set the filename
-			setFileName(file.getName());			
+			setFileName(file.getName());
 			// get the scheduler
-			scheduler = (QuartzSchedulingService) scope.getParent().getContext().getBean(QuartzSchedulingService.BEAN_NAME);			
+			scheduler = (QuartzSchedulingService) scope.getParent().getContext().getBean(QuartzSchedulingService.BEAN_NAME);
 			// set recording true
 			recording = true;
 			// since init finished, return true as well
@@ -185,56 +209,13 @@ public class RecordingListener implements IStreamListener {
 		return false;
 	}
 
+	/** {@inheritDoc} */
 	public void start() {
 		// start the worker
 		eventQueueJobName = scheduler.addScheduledJob(1000, new EventQueueJob());
 	}
 
-	public void packetReceived(IBroadcastStream stream, IStreamPacket packet) {
-		// store everything we would need to perform a write of the stream data
-		CachedEvent event = new CachedEvent();
-		event.setData(packet.getData().duplicate());
-		event.setDataType(packet.getDataType());
-		event.setReceivedTime(System.currentTimeMillis());
-		event.setTimestamp(packet.getTimestamp());
-		// queue the event
-		if (!queue.add(event)) {
-			log.debug("Event packet not added to recording queue");
-		}
-	}
-
-	/**
-	 * Get the file we'd be recording to based on scope and given name.
-	 * 
-	 * @param scope
-	 * @param name
-	 * @return file
-	 */
-	public static File getRecordFile(IScope scope, String name) {
-		// get stream filename generator
-		IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.class, DefaultStreamFilenameGenerator.class);
-		// generate filename
-		String fileName = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
-		File file = null;
-		if (generator.resolvesToAbsolutePath()) {
-			file = new File(fileName);
-		} else {
-			Resource resource = scope.getContext().getResource(fileName);
-			if (resource.exists()) {
-				try {
-					file = resource.getFile();
-					log.debug("File exists: {} writable: {}", file.exists(), file.canWrite());
-				} catch (IOException ioe) {
-					log.error("File error: {}", ioe);
-				}
-			} else {
-				String appScopeName = ScopeUtils.findApplication(scope).getName();
-				file = new File(String.format("%s/webapps/%s/%s", System.getProperty("red5.root"), appScopeName, fileName));
-			}
-		}
-		return file;
-	}
-
+	/** {@inheritDoc} */
 	public void stop() {
 		// remove the scheduled job
 		scheduler.removeScheduledJob(eventQueueJobName);
@@ -248,7 +229,24 @@ public class RecordingListener implements IStreamListener {
 		}
 		recordingConsumer.uninit();
 	}
+
+	/** {@inheritDoc} */
+	public void packetReceived(IBroadcastStream stream, IStreamPacket packet) {
+		// store everything we would need to perform a write of the stream data
+		CachedEvent event = new CachedEvent();
+		event.setData(packet.getData().duplicate());
+		event.setDataType(packet.getDataType());
+		event.setReceivedTime(System.currentTimeMillis());
+		event.setTimestamp(packet.getTimestamp());
+		// queue the event
+		if (!queue.add(event)) {
+			log.debug("Event packet not added to recording queue");
+		}
+	}	
 	
+	/**
+	 * Process the queued items.
+	 */
 	private void processQueue() {
 		CachedEvent cachedEvent;
 		try {
@@ -303,47 +301,35 @@ public class RecordingListener implements IStreamListener {
 			log.warn("Taking from queue interrupted", e);
 		} catch (IOException e) {
 			log.warn("Exception while pushing to consumer", e);
-		}				
+		}
 	}
 
-	/**
-	 * @return the recording
-	 */
+	/** {@inheritDoc} */
 	public boolean isRecording() {
 		return recording;
 	}
 
-	/**
-	 * @return the appending
-	 */
+	/** {@inheritDoc} */
 	public boolean isAppending() {
 		return appending;
 	}
 
-	/**
-	 * @return the recordingConsumer
-	 */
+	/** {@inheritDoc} */
 	public FileConsumer getFileConsumer() {
 		return recordingConsumer;
 	}
 
-	/**
-	 * @param recordingConsumer the recordingConsumer to set
-	 */
+	/** {@inheritDoc} */
 	public void setFileConsumer(FileConsumer recordingConsumer) {
 		this.recordingConsumer = recordingConsumer;
 	}
 
-	/**
-	 * @return the fileName
-	 */
+	/** {@inheritDoc} */
 	public String getFileName() {
 		return fileName;
 	}
 
-	/**
-	 * @param fileName the fileName to set
-	 */
+	/** {@inheritDoc} */
 	public void setFileName(String fileName) {
 		log.debug("File name: {}", fileName);
 		this.fileName = fileName;

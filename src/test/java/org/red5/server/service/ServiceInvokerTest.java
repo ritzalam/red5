@@ -18,7 +18,8 @@
 
 package org.red5.server.service;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +34,6 @@ import net.sourceforge.groboutils.junit.v1.TestRunnable;
 import org.junit.Test;
 import org.red5.server.Context;
 import org.red5.server.DummyClient;
-import org.red5.server.adapter.ApplicationAdapter;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IClientRegistry;
 import org.red5.server.api.IConnection;

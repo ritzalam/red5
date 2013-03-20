@@ -73,6 +73,7 @@ import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.stream.codec.StreamCodecInfo;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.StatusMessage;
+import org.red5.server.util.ScopeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -170,7 +171,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	/**
 	 * Recording listener
 	 */
-	private WeakReference<RecordingListener> recordingListener;
+	private WeakReference<IRecordingListener> recordingListener;
 
 	protected long latestTimeStamp = -1;
 
@@ -612,7 +613,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		// one recording listener at a time via this entry point
 		if (recordingListener == null) {
 			// create a recording listener
-			RecordingListener listener = new RecordingListener();
+			IRecordingListener listener = (IRecordingListener) ScopeUtils.getScopeService(conn.getScope(), IRecordingListener.class, RecordingListener.class);
 			// initialize the listener
 			if (listener.init(conn, name, isAppend)) {
 				// get decoder info if it exists for the stream
@@ -658,7 +659,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 					}
 				}
 				// set as primary listener
-				recordingListener = new WeakReference<RecordingListener>(listener);
+				recordingListener = new WeakReference<IRecordingListener>(listener);
 				// add as a listener
 				addStreamListener(listener);
 				// start the listener thread
@@ -843,7 +844,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 * Stops any currently active recording.
 	 */
 	public void stopRecording() {
-		RecordingListener listener = null;
+		IRecordingListener listener = null;
 		if (recordingListener != null && (listener = recordingListener.get()).isRecording()) {
 			sendRecordStopNotify();
 			notifyRecordingStop();

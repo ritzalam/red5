@@ -659,6 +659,15 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	}
 
 	/**
+	 * Returns the file.
+	 * 
+	 * @return file
+	 */
+	public File getFile() {
+		return file;
+	}	
+	
+	/**
 	 * Sets the threshold for the queue. When the threshold is met a worker is spawned
 	 * to empty the sorted queue to the writer.
 	 * 
