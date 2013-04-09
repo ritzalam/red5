@@ -37,7 +37,7 @@ import java.util.Map;
  * <p>To add cue point trigger event listener at client-side in Flex/Flash application, use NetStream.onCuePoint event
  * handler.</p>
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Dominick Accattato (daccattato@gmail.com)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  * @param <K> key type

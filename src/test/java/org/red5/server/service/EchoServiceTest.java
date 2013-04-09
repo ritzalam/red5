@@ -43,7 +43,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 /**
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Chris Allen (mrchrisallen@gmail.com)
  */
 public class EchoServiceTest extends TestCase {

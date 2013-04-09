@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
 /**
  * Annotation for classes that should be serialized with a different classname.
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Harald Radi (harald.radi@catalysts.cc)
  */
 @Documented

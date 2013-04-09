@@ -23,7 +23,7 @@ import org.apache.mina.core.buffer.IoBuffer;
 /**
  * A Tag represents the contents or payload of a streamable file.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Dominick Accattato (daccattato@gmail.com)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */

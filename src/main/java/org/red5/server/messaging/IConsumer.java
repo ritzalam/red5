@@ -21,7 +21,7 @@ package org.red5.server.messaging;
 /**
  * Signature for the message consumer.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public interface IConsumer extends IMessageComponent {

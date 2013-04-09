@@ -23,11 +23,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Result of pageable request, one page of data.
+ * Result of paged data request, one page of data.
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
- * @see <a href="http://www.osflash.org/amf/recordset">osflash.org documentation</a>
  */
 public class RecordSetPage {
 	/**

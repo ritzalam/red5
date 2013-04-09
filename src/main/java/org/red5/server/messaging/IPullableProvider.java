@@ -23,7 +23,7 @@ import java.io.IOException;
 /**
  * A provider that supports passive pulling of messages.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public interface IPullableProvider extends IProvider {

@@ -46,7 +46,7 @@ import org.xml.sax.SAXException;
 /**
  * File-based keyframe metadata cache.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 @SuppressWarnings("deprecation")

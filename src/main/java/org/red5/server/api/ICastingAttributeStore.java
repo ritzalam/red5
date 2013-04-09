@@ -25,7 +25,7 @@ import java.util.Set;
 /**
  * Attribute storage with automatic object casting support.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public interface ICastingAttributeStore extends IAttributeStore {

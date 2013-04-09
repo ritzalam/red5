@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Factory for audio codecs. Creates and returns audio codecs
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Vladimir Hmelyoff (vlhm@splitmedialabs.com)
  */
 public class AudioCodecFactory {

@@ -23,7 +23,7 @@ import org.red5.server.api.service.IServiceHandlerProvider;
 /**
  * Supports registration and lookup of shared object handlers.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  *
  */

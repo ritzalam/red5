@@ -34,7 +34,7 @@ import org.red5.io.utils.HexDump;
 import org.red5.server.net.rtmp.message.StreamAction;
 
 /*
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  * @author Art Clarke, Vlideshow Inc (aclarke@vlideshow.com)
 */

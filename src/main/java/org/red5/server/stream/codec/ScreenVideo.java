@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Red5 video codec for the screen capture format. 
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  * @author Paul Gregoire (mondain@gmail.com)
  */

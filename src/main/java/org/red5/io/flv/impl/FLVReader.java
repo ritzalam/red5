@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
  * NOTE: This class is not implemented as threading-safe. The caller
  * should make sure the threading-safety.
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Dominick Accattato (daccattato@gmail.com)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  * @author Paul Gregoire, (mondain@gmail.com)

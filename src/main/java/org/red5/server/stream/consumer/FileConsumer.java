@@ -62,7 +62,7 @@ import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 /**
  * Consumer that pushes messages to file. Used when recording live streams.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire (mondain@gmail.com)
  * @author Vladimir Hmelyoff (vlhm@splitmedialabs.com)
  */

@@ -30,7 +30,7 @@ import org.red5.server.net.rtmp.event.Notify;
  * method. Broadcast stream can be saved at server-side.
  *  
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard (luke@codegent.com)
  * @author Steven Gong (steven.gong@gmail.com)
  */

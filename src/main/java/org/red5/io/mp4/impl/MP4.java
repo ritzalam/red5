@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 /**
  * A MP4Impl implements the MP4 api
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire, (mondain@gmail.com)
  */
 public class MP4 implements IMP4 {

@@ -24,12 +24,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation for classes that should be serialized without their classname.
+ * Annotation for classes that should be serialized without their class name.
  * 
  * This should only be used if you know what you're doing and currently is
  * only added to Red5 internal classes.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 @Target(ElementType.TYPE)

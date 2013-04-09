@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 /**
  * The Deserializer class reads data input and handles the data according to the core data types
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class Deserializer {

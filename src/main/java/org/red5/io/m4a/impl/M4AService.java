@@ -31,7 +31,7 @@ import org.red5.io.object.Serializer;
  * A M4AServiceImpl sets up the service and hands out M4A objects to 
  * its callers.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire, (mondain@gmail.com)
  */
 public class M4AService extends BaseStreamableFileService implements IM4AService {

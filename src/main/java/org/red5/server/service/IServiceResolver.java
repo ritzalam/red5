@@ -26,7 +26,7 @@ import org.red5.server.api.scope.IScope;
  * This is used by the ServiceInvoker to lookup the service to invoke
  * a method on.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public interface IServiceResolver {

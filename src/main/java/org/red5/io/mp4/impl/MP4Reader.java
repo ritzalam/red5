@@ -117,7 +117,7 @@ import com.googlecode.mp4parser.util.Path;
  * </ul>
  * </p>
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer {

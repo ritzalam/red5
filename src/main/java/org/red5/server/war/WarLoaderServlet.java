@@ -57,7 +57,7 @@ import ch.qos.logback.classic.LoggerContext;
  * This listener should be registered after Log4jConfigListener in web.xml, if
  * the latter is used.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public class WarLoaderServlet extends ContextLoaderListener {

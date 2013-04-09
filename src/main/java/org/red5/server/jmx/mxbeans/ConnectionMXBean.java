@@ -35,7 +35,7 @@ import javax.management.openmbean.CompositeData;
  * Future subclasses: RTMPConnection, RemotingConnection, AJAXConnection,
  * HttpConnection, etc
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire (mondain@gmail.com)
  */
 @MXBean

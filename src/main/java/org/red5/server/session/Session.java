@@ -25,7 +25,7 @@ import org.red5.server.api.session.ISession;
  * in J2EE applications.
  *
  *
- * @author The Red5 Project (red5@osflash.org) 
+ * @author The Red5 Project 
  * @author Paul Gregoire (mondain@gmail.com)   
  */ 
 public class Session implements ISession {

@@ -21,7 +21,7 @@ package org.red5.io;
 import java.util.Date;
 
 /**
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class TestJavaBean {

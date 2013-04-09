@@ -21,7 +21,7 @@ package org.red5.io.flv.meta;
 /**
  * FLV MetaData interface
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Dominick Accattato (daccattato@gmail.com)
  * 
  *  Sample Data:

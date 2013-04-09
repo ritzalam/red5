@@ -23,7 +23,7 @@ import org.springframework.context.ApplicationContext;
 /**
  * Interface for servers that can load new applications.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public interface IApplicationLoader {

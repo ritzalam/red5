@@ -23,7 +23,7 @@ import javax.management.MXBean;
 /**
  * JMX interface for accessing Red5 API objects
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire (mondain@gmail.com)
  */
 @MXBean

@@ -25,7 +25,7 @@ import org.springframework.core.io.support.ResourcePatternResolver;
 /**
  * Helper class for persistence.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class PersistenceUtils {

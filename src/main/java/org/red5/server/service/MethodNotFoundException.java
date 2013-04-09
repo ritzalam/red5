@@ -23,7 +23,7 @@ import java.util.Arrays;
 /**
  * Thrown if service method is not found so call throws exception
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class MethodNotFoundException extends RuntimeException {

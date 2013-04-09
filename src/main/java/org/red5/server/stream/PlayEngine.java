@@ -76,7 +76,7 @@ import org.slf4j.Logger;
 /**
  * A play engine for playing an IPlayItem.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Steven Gong
  * @author Paul Gregoire (mondain@gmail.com)
  * @author Dan Rossi

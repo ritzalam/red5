@@ -27,10 +27,10 @@ import org.slf4j.LoggerFactory;
 /**
  * Command message as sent by the <code>mx:RemoteObject</code> tag.
  * 
- * @see <a href="http://osflash.org/documentation/amf3">osflash documentation (external)</a>
- * @see <a href="http://livedocs.adobe.com/flex/2/langref/mx/rpc/remoting/mxml/RemoteObject.html">Adobe Livedocs (external)</a>
+ * @see <a href="http://en.wikipedia.org/wiki/Action_Message_Format">Action Message Format</a>
+ * @see <a href="http://flex.apache.org/asdoc/mx/messaging/messages/CommandMessage.html">Apache Flex</a>
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  * @author Paul Gregoire (mondain@gmail.com) 
  */

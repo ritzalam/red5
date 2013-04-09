@@ -24,7 +24,7 @@ import org.red5.server.api.statistics.IClientBroadcastStreamStatistics;
 /**
  * A broadcast stream that comes from client.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Steven Gong (steven.gong@gmail.com)
  * @author Paul Gregoire (mondain@gmail.com)
  */

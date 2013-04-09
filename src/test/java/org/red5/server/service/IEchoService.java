@@ -27,7 +27,7 @@ import org.w3c.dom.Document;
  * The Echo service is used to test all of the different datatypes 
  * and to make sure that they are being returned properly.
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Chris Allen (mrchrisallen@gmail.com)
  */
 public interface IEchoService {

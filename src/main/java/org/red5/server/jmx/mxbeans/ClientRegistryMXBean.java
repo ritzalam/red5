@@ -28,7 +28,7 @@ import org.red5.server.exception.ClientNotFoundException;
 /**
  * An MBean interface for the client registry.
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire (mondain@gmail.com)
  */
 @MXBean

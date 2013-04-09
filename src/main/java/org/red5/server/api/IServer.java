@@ -28,7 +28,7 @@ import org.red5.server.api.scope.IGlobalScope;
 /**
  * The interface that represents the Red5 server.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard (luke@codegent.com)
  * 
  */

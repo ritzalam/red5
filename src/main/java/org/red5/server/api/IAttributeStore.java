@@ -26,7 +26,7 @@ import org.red5.server.jmx.mxbeans.AttributeStoreMXBean;
 /**
  * Base interface for all API objects with attributes
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard (luke@codegent.com)
  */
 public interface IAttributeStore extends AttributeStoreMXBean {

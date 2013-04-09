@@ -24,9 +24,9 @@ import org.red5.io.ITag;
 /**
  * A Tag represents the contents or payload of a FLV file.
  * 
- * @see <a href="http://osflash.org/flv#flv_tag">OSFlash (external)</a>
+ * @see <a href="https://code.google.com/p/red5/wiki/FLV#FLV_Tag">FLV Tag</a>
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Dominick Accattato (daccattato@gmail.com)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */

@@ -29,7 +29,7 @@ package org.red5.server.messaging;
  *
  * <p>Message has type and number of properties.</p>
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public interface IMessage {

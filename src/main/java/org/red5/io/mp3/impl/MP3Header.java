@@ -21,7 +21,7 @@ package org.red5.io.mp3.impl;
 /**
  * Header of a MP3 frame.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  * @see <a href="http://mpgedit.org/mpgedit/mpeg_format/mpeghdr.htm">File format</a>
  */

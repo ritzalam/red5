@@ -31,7 +31,7 @@ import org.w3c.dom.Document;
  * to be implemented. Input object provides
  * ways to read primitives, complex object and object references from byte buffer.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public interface Input {

@@ -42,7 +42,7 @@ import org.red5.server.api.scope.IScope;
  * IClient client = r5.getClient();
  * </pre>
  *   
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard (luke@codegent.com)
  * @author Paul Gregoire (mondain@gmail.com) 
  */

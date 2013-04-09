@@ -31,7 +31,7 @@ import java.util.Map;
  * interested for receiving. It's a string of any form.
  * XXX shall we design a standard form for Target, like "class.instance"?
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public class OOBControlMessage implements Serializable {

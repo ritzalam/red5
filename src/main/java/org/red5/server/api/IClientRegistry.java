@@ -27,7 +27,7 @@ import org.red5.server.exception.ClientRejectedException;
  * This interface implementations also create new client objects from given params, usually
  * passed from client-side Flex/Flash application upon initial connection.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard (luke@codegent.com)
  */
 public interface IClientRegistry {

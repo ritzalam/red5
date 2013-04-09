@@ -23,7 +23,7 @@ import org.red5.io.IStreamableFileService;
 /**
  * Provide access to MP3 objects. Marker interface.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public interface IMP3Service extends IStreamableFileService {

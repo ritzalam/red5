@@ -22,7 +22,7 @@ package org.red5.server.api.stream;
 /**
  * Extends stream to add methods for on demand access.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard (luke@codegent.com)
  */
 public interface IOnDemandStream extends IStream {

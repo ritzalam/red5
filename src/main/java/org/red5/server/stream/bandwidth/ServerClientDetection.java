@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @see <a href='http://help.adobe.com/en_US/FlashMediaServer/3.5_Deving/WS5b3ccc516d4fbf351e63e3d11a0773d56e-7ffa.html'>FMS 3.5 Bandwidth Doc</a>
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Dan Rossi
  * @author Paul Gregoire
  */

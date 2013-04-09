@@ -24,7 +24,7 @@ import java.io.Serializable;
  * IMeta is a Marker Interface
  * CuePoint and MetaData both implement this interface
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author daccattato(daccattato@gmail.com)
  */
 public interface IMeta extends Serializable {

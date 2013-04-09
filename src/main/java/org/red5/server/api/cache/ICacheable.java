@@ -25,7 +25,7 @@ import org.apache.mina.core.buffer.IoBuffer;
  * 
  * @see ICacheStore
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public interface ICacheable {

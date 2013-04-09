@@ -22,7 +22,7 @@ import org.red5.server.api.IConnection;
 
 /**
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Dan Rossi
  */
 public interface IBandwidthDetection {

@@ -83,7 +83,7 @@ import com.googlecode.mp4parser.boxes.mp4.objectdescriptors.ESDescriptor;
  * NOTE: This class is not implemented as threading-safe. The caller
  * should make sure the threading-safety.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire, (mondain@gmail.com)
  */
 public class M4AReader implements IoConstants, ITagReader {

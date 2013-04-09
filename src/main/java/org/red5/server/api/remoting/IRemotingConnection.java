@@ -25,7 +25,7 @@ import org.red5.server.api.IConnection;
 /**
  * Connection coming from Remoting clients.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public interface IRemotingConnection extends IConnection {

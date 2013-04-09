@@ -24,7 +24,7 @@ package org.red5.io.object;
  * NOTE: This is only used for AMF0 encoding and you should not need to
  * implement this in your own objects.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public interface ICustomSerializable {

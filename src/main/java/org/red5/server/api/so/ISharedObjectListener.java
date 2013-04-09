@@ -26,7 +26,7 @@ import org.red5.server.api.IAttributeStore;
 /**
  * Notifications about shared object updates.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard (luke@codegent.com)
  * @author Joachim Bauch (jojo@struktur.de)
  */

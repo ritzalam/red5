@@ -25,7 +25,7 @@ import java.util.Map;
  * BaseOutput represents a way to map input to a HashMap.  This class
  * is meant to be extended.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class BaseOutput {

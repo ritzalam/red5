@@ -52,7 +52,7 @@ import org.w3c.dom.Document;
 /**
  * Input for Red5 data types
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 @SuppressWarnings("serial")

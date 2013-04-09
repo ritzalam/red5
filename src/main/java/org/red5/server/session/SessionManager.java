@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Manages sessions.
  *
- * @author The Red5 Project (red5@osflash.org) 
+ * @author The Red5 Project 
  * @author Paul Gregoire (mondain@gmail.com)   
  */
 public class SessionManager {

@@ -24,7 +24,7 @@ import org.red5.server.service.PendingCall;
 /**
  * Remoting method call, specific pending call. 
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class RemotingCall extends PendingCall {

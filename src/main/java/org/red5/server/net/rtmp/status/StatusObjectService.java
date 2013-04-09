@@ -34,7 +34,7 @@ import org.springframework.beans.factory.InitializingBean;
  * Service that works with status objects.
  * Note all status object should aim to be under 128 bytes.
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class StatusObjectService implements StatusCodes, InitializingBean {

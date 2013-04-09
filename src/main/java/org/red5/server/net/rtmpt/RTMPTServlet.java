@@ -43,7 +43,7 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 /**
  * Servlet that handles all RTMPT requests.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  * @author Paul Gregoire (mondain@gmail.com)
  */

@@ -43,7 +43,7 @@ import org.red5.server.api.event.IEventListener;
  * All changes between "beginUpdate" and "endUpdate" will be sent to the clients
  * using one notification event.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 

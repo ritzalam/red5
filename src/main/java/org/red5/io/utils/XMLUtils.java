@@ -41,7 +41,7 @@ import org.xml.sax.InputSource;
 /**
  * Misc XML utils
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  * @author Paul Gregoire (mondain@gmail.com)
  */

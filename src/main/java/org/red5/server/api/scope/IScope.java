@@ -41,7 +41,7 @@ import org.springframework.core.io.support.ResourcePatternResolver;
  * 
  * The following are all names for scopes: application, room, place, lobby.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard (luke@codegent.com)
  */
 public interface IScope extends IBasicScope, ResourcePatternResolver, IServiceHandlerProvider {

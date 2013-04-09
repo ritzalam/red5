@@ -36,7 +36,7 @@ import org.red5.io.object.Output;
  * @see org.red5.io.object.Input
  * @see IPersistenceStore#load(String)
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard (luke@codegent.com)
  * @author Joachim Bauch (jojo@struktur.de)
  */

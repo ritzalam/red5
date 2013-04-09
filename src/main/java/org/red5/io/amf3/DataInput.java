@@ -30,7 +30,7 @@ import org.red5.io.object.Deserializer;
  * Implementation of the IDataInput interface. Can be used to load an
  * IExternalizable object.
  *  
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  * 
  */

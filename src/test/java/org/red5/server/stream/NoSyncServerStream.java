@@ -67,7 +67,7 @@ import org.springframework.core.io.Resource;
 /**
  * An implementation for server side stream.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  */
 public class NoSyncServerStream extends AbstractStream implements IServerStream, IFilter, IPushableConsumer, IPipeConnectionListener {
 	/**

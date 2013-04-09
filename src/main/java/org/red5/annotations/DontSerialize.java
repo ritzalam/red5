@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  * Annotation for fields that should not be serialized when sending
  * objects to a client.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 @Target({ElementType.FIELD, ElementType.METHOD})

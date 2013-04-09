@@ -42,7 +42,7 @@ import org.w3c.dom.Document;
  * The Serializer class writes data output and handles the data according to the
  * core data types
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  * @author Harald Radi (harald.radi@nme.at)
  */

@@ -46,7 +46,7 @@ import org.springframework.beans.factory.InitializingBean;
 /**
  * Client interface for remoting calls.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  * @author Paul Gregoire (mondain@gmail.com)
  */

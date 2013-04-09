@@ -31,7 +31,7 @@ import org.junit.Test;
 import org.red5.server.util.ConversionUtils;
 
 /**
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class ConversionUtilsTest {

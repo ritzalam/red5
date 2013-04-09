@@ -27,7 +27,7 @@ import org.red5.server.api.scope.ScopeType;
 /**
  * An MBean interface for the scope object.
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire (mondain@gmail.com)
  */
 @MXBean

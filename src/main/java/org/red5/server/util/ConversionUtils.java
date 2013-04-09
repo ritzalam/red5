@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Misc utils for conversions
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  * @author Paul Gregoire (mondain@gmail.com)
  */

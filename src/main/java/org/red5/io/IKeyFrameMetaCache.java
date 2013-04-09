@@ -25,7 +25,7 @@ import org.red5.io.flv.IKeyFrameDataAnalyzer.KeyFrameMeta;
 /**
  * Interface defining a cache for keyframe metadata informations.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public interface IKeyFrameMetaCache {

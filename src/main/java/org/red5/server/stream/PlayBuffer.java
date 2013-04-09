@@ -28,7 +28,7 @@ import org.red5.server.stream.message.RTMPMessage;
  * A Play buffer for sending VOD.
  * The implementation is not synchronized.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public class PlayBuffer {

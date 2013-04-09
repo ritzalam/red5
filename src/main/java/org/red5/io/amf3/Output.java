@@ -50,7 +50,7 @@ import org.w3c.dom.Document;
  *
  * @see  org.red5.io.amf3.AMF3
  * @see  org.red5.io.amf3.Input
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  * @author Harald Radi (harald.radi@nme.at)
  */

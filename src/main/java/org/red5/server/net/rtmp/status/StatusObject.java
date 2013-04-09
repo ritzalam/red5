@@ -33,7 +33,7 @@ import org.red5.io.object.Serializer;
 
 /**
  * Status object that is sent to client with every status event
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 @Anonymous

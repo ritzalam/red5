@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Scheduled job that is registered in the Quartz scheduler. 
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class QuartzSchedulingServiceJob implements Job {

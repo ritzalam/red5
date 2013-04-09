@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
 /**
  * A Writer is used to write the contents of a FLV file
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Dominick Accattato (daccattato@gmail.com)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  * @author Tiago Jacobs (tiago@imdt.com.br)

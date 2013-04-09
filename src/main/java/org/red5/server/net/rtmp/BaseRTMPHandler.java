@@ -55,7 +55,7 @@ import org.springframework.context.ApplicationContextAware;
 /**
  * Base class for all RTMP handlers.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  */
 public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, StatusCodes, ApplicationContextAware {
 	/**

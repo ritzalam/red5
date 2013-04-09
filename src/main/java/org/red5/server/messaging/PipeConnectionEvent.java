@@ -27,7 +27,7 @@ import java.util.Map;
  * Event object corresponds to the connect/disconnect events
  * among providers/consumers and pipes.
  *  
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public class PipeConnectionEvent extends EventObject {

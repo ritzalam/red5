@@ -22,11 +22,10 @@ package org.red5.io.amf3;
  * AMF3 data type definitions.
  *
  * For detailed specification please see the link below.
- *
- * @see <a href="http://osflash.org/amf3/index">AMF3 specification (external)</a>
+ * @see <a href="http://en.wikipedia.org/wiki/Action_Message_Format">Action Message Format</a>
  * @see <a href="http://download.macromedia.com/pub/labs/amf/amf3_spec_121207.pdf">Official Adobe AMF3 Specification</a>
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  * @author Joachim Bauch (jojo@struktur.de)
  * @author Paul Gregoire (mondain@gmail.com)

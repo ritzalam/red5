@@ -21,7 +21,7 @@ package org.red5.server.api.statistics;
 /**
  * Base class for all statistics informations.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public interface IStatisticsBase {

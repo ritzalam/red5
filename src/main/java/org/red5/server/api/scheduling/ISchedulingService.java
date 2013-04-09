@@ -27,7 +27,7 @@ import org.red5.server.api.scope.IScopeService;
  * Service that supports periodic execution of jobs, adding, removing and
  * getting their name as list.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  * @author Paul Gregoire (mondain@gmail.com)
  */

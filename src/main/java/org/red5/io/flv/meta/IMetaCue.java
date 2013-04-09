@@ -22,7 +22,7 @@ package org.red5.io.flv.meta;
  * ICuePoint defines contract methods for use with 
  * cuepoints
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Dominick Accattato (daccattato@gmail.com)
  */
 public interface IMetaCue extends IMeta, Comparable<Object> {

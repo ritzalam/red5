@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Utility functions to invoke methods on connections.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  * @author Paul Gregoire (mondain@gmail.com)
  */

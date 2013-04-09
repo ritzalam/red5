@@ -24,7 +24,7 @@ import org.red5.server.api.scope.IScopeService;
 /**
  * A class that can generate filenames for streams.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (bauch@struktur.de)
  */
 public interface IStreamFilenameGenerator extends IScopeService {

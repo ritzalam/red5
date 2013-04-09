@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
  * It is triggered by an active consumer that pulls messages
  * through it from a pullable provider.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public class InMemoryPullPullPipe extends AbstractPipe {

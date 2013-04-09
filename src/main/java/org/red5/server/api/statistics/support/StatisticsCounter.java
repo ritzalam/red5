@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Counts numbers used by the statistics. Keeps track of current,
  * maximum and total numbers.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class StatisticsCounter {

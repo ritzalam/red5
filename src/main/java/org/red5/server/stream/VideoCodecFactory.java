@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Factory for video codecs. Creates and returns video codecs
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public class VideoCodecFactory {

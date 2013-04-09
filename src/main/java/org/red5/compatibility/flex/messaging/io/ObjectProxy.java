@@ -32,7 +32,7 @@ import org.red5.io.amf3.IExternalizable;
  * Flex <code>ObjectProxy</code> compatibility class.
  * 
  * @see <a href="http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/utils/ObjectProxy.html">ObjectProxy</a>
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  * @param <T> type
  * @param <V> value

@@ -21,7 +21,7 @@ package org.red5.compatibility.flex.messaging.messages;
 /**
  * Constants for the flex compatibility messages.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class Constants {

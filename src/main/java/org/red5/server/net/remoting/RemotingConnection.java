@@ -51,7 +51,7 @@ import org.red5.server.net.servlet.ServletUtils;
  * remoting. Attributes are stored in the session of the implementing
  * servlet container.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  * @author Paul Gregoire (mondain@gmail.com)
  */

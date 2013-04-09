@@ -34,7 +34,7 @@ import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
  * Aim to ease the implementation of concrete pipes. For more
  * information on what pipe is, see IPipe interface documentation.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Steven Gong (steven.gong@gmail.com)
  *
  * @see     org.red5.server.messaging.IPipe

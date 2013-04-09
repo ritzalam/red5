@@ -21,7 +21,7 @@ package org.red5.server.exception;
 /**
  * Exception class than contains additional parameters to return to the client.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class ClientDetailsException extends RuntimeException {

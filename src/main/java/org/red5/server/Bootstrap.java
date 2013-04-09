@@ -28,7 +28,7 @@ import org.red5.classloading.ClassLoaderBuilder;
 /**
  * Boot-straps Red5 using the latest available jars found in <i>red5.home/lib</i> directory.
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire (mondain@gmail.com)
  * @author Dominick Accattato (daccattato@gmail.com)
  */

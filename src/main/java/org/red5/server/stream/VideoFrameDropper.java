@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
  * <li>all frames</li>
  * </ul>
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class VideoFrameDropper implements IFrameDropper {

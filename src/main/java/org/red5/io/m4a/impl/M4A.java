@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 /**
  * A M4AImpl implements the M4A api
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire, (mondain@gmail.com)
  */
 public class M4A implements IM4A {

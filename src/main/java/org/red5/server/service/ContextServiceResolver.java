@@ -23,7 +23,7 @@ import org.red5.server.api.scope.IScope;
 /**
  * Resolve services that have been configured in the context of a scope.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class ContextServiceResolver implements IServiceResolver {

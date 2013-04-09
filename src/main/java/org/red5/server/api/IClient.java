@@ -35,7 +35,7 @@ import org.red5.server.api.scope.IScope;
  * NOTE: I removed session, since client serves the same purpose as a client
  * with attributes
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard (luke@codegent.com)
  */
 public interface IClient extends IAttributeStore {

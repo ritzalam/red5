@@ -27,7 +27,7 @@ import org.red5.server.util.ScopeUtils;
  * directory "streams" in the application folder. Option for changing directory
  * streams are saved to is investigated as of 0.6RC1.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (bauch@struktur.de)
  */
 public class DefaultStreamFilenameGenerator implements IStreamFilenameGenerator {

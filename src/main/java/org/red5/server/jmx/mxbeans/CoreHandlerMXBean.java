@@ -30,7 +30,7 @@ import org.red5.server.api.service.IServiceCall;
 /**
  * Base IScopeHandler implementation
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  */
 @MXBean
 public interface CoreHandlerMXBean {

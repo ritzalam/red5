@@ -25,7 +25,7 @@ import java.util.Map;
 /**
  * Input Endpoint for a consumer to connect.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public interface IMessageInput {

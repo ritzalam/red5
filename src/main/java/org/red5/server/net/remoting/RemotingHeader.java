@@ -23,12 +23,8 @@ import org.red5.server.api.remoting.IRemotingHeader;
 /**
  * Remoting header to be sent to a server.
  * 
- * Informations about predefined headers can be found at
- * http://www.osflash.org/amf/envelopes/remoting/headers
- * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
- *
  */
 public class RemotingHeader implements IRemotingHeader {
 

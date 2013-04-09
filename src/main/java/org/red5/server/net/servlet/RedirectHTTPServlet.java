@@ -28,7 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Servlet to redirect to HTTP port of Red5.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class RedirectHTTPServlet extends HttpServlet {

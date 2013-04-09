@@ -87,7 +87,7 @@ import org.springframework.jmx.export.annotation.ManagedResource;
  *
  * This type of stream uses two different pipes for live streaming and recording.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Steven Gong
  * @author Paul Gregoire (mondain@gmail.com)
  * @author Vladimir Hmelyoff (vlhm@splitmedialabs.com)

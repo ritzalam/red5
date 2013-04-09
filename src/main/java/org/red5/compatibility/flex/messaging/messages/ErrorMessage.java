@@ -21,7 +21,7 @@ package org.red5.compatibility.flex.messaging.messages;
 /**
  * Compatibility flex error message to be returned to the client.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class ErrorMessage extends AsyncMessage {

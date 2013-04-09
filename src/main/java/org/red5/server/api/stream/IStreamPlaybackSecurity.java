@@ -23,7 +23,7 @@ import org.red5.server.api.scope.IScope;
 /**
  * Interface for handlers that control access to stream playback.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public interface IStreamPlaybackSecurity {

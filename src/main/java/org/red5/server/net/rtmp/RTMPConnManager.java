@@ -40,7 +40,7 @@ import org.springframework.context.ApplicationContextAware;
 /**
  * Responsible for management and creation of RTMP based connections.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  */
 public class RTMPConnManager implements IConnectionManager<RTMPConnection>, ApplicationContextAware {
 

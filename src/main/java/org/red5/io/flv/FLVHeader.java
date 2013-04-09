@@ -25,9 +25,9 @@ import org.apache.mina.core.buffer.IoBuffer;
  * FLVHeader parses out the contents of a FLV video file and returns
  * the Header data 
  *
- * @see <a href="http://osflash.org/flv#flv_header">OSFlash (external)</a>
+ * @see <a href="https://code.google.com/p/red5/wiki/FLV#FLV_Header">FLV Header</a>
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Dominick Accattato (daccattato@gmail.com)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  * @author Tiago Jacobs (tiago@imdt.com.br)

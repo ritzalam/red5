@@ -23,7 +23,7 @@ import org.red5.server.stream.message.RTMPMessage;
 /**
  * Interface for classes that implement logic to drop frames.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public interface IFrameDropper {

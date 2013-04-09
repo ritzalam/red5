@@ -21,7 +21,7 @@ package org.red5.server.api.statistics;
 /**
  * Statistical informations about a stream that is subscribed by a client.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public interface IPlaylistSubscriberStreamStatistics extends IStreamStatistics {

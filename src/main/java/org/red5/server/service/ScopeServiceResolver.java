@@ -23,7 +23,7 @@ import org.red5.server.api.scope.IScope;
 /**
  * Resolves service names in custom configured services of a scope.
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  * @see org.red5.server.api.service.IServiceHandlerProvider#registerServiceHandler(String, Object)
  */

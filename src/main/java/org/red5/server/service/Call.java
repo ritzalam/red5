@@ -28,7 +28,7 @@ import org.red5.server.api.service.IServiceCall;
 /**
  * Basic service call (remote call) implementation
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class Call implements IServiceCall, Externalizable {

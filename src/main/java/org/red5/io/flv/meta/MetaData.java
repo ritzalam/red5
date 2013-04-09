@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  * MetaData Implementation
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Dominick Accattato (daccattato@gmail.com)
  *
  *          Example:

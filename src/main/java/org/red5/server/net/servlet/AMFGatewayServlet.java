@@ -47,7 +47,7 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 /**
  * Servlet that handles remoting requests.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard (luke@codegent.com)
  * @author Paul Gregoire (mondain@gmail.com)
  */

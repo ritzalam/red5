@@ -26,7 +26,7 @@ package org.red5.server.messaging;
  * Pipes fire events as they go, these events are common way to work with pipes for
  * higher level parts of server.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public interface IPipe extends IMessageInput, IMessageOutput {

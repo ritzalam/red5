@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Handler for RTMPT messages.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  * @author Paul Gregoire (mondain@gmail.com)
  */

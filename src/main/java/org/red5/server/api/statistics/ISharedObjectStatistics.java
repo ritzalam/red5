@@ -21,7 +21,7 @@ package org.red5.server.api.statistics;
 /**
  * Statistics informations about a shared object.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public interface ISharedObjectStatistics extends IStatisticsBase {

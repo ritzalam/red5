@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Utility for using HTTP connections.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire (mondain@gmail.com)
  */
 @SuppressWarnings("deprecation")

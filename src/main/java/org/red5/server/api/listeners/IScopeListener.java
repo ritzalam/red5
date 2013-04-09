@@ -23,7 +23,7 @@ import org.red5.server.api.scope.IScope;
 /**
  * Interface for listeners to scope events.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (bauch@struktur.de)
  */
 public interface IScopeListener {

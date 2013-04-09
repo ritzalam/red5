@@ -25,7 +25,7 @@ import org.red5.server.api.event.IEventListener;
 /**
  * Base marker interface for all core objects.
  *  
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard (luke@codegent.com)
  *
  */

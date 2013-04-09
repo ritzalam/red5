@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Can be returned to delay returning the result of invoked methods.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class DeferredResult {

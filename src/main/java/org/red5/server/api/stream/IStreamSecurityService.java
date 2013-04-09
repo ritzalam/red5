@@ -25,7 +25,7 @@ import org.red5.server.api.scope.IScopeService;
 /**
  * Service that supports protecting access to streams.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public interface IStreamSecurityService extends IScopeService {

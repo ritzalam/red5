@@ -21,7 +21,7 @@ package org.red5.server.service;
 /**
  * Thrown when a client is not allowed to execute a method.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class NotAllowedException extends RuntimeException {

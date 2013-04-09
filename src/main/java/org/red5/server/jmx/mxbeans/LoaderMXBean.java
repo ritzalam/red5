@@ -24,7 +24,7 @@ import javax.management.MXBean;
  * Simple mbean interface for J2EE container loaders. Allows for
  * init and shutdown.
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire (mondain@gmail.com)
  */
 @MXBean

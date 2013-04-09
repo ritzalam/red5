@@ -24,7 +24,7 @@ package org.red5.io.object;
  * If a codec returns one of these datatypes its handled by the base
  * serializer.
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class DataTypes {

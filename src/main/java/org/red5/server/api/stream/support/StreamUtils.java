@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Stream helper methods.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Steven Gong (steven.gong@gmail.com)
  * @author Paul Gregoire (mondain@gmail.com)
  */

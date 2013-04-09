@@ -23,7 +23,7 @@ import java.util.HashMap;
 /**
  * Map that should be transmitted as object through RTMP.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  * @param <K> key type
  * @param <V> value type

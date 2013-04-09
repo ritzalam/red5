@@ -27,7 +27,7 @@ import org.springframework.context.ApplicationContext;
 /**
  * Provides an implementation of a cacheable object.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public class CacheableImpl implements ICacheable {

@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Makes remote calls, invoking services, resolves service handlers
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class ServiceInvoker implements IServiceInvoker {

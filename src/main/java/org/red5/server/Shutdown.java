@@ -33,7 +33,7 @@ import org.red5.server.jmx.mxbeans.ShutdownMXBean;
 /**
  * Provides a means to cleanly shutdown an instance from the command line.
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public class Shutdown {

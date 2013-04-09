@@ -23,7 +23,7 @@ import org.apache.mina.core.buffer.IoBuffer;
 /**
  * Packet containing stream data.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public interface IStreamPacket {

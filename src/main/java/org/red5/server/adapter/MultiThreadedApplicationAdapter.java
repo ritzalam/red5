@@ -120,7 +120,7 @@ import org.slf4j.Logger;
  * </p>
  * </p>
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  * @author Paul Gregoire (mondain@gmail.com)
  * @author Michael Klishin

@@ -25,7 +25,7 @@ import javax.management.MXBean;
 /**
  * Base interface for all API objects with attributes
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire (mondain@gmail.com)
  */
 @MXBean

@@ -34,7 +34,7 @@ import org.red5.server.cache.NoCacheImpl;
 /**
  * A FLVServiceImpl TestCase
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Dominick Accattato (daccattato@gmail.com)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */

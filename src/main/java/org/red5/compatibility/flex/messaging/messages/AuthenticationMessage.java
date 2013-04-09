@@ -22,7 +22,7 @@ package org.red5.compatibility.flex.messaging.messages;
  * Added to support flex.messaging.messages.AuthenticationMessage as noted in 
  * http://jira.red5.org/browse/APPSERVER-176
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public class AuthenticationMessage extends CommandMessage {

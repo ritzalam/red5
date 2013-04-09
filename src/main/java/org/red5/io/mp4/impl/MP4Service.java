@@ -31,7 +31,7 @@ import org.red5.io.object.Serializer;
  * A MP4ServiceImpl sets up the service and hands out MP4 objects to 
  * its callers.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire, (mondain@gmail.com)
  */
 public class MP4Service extends BaseStreamableFileService implements IMP4Service {

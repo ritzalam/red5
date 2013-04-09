@@ -39,7 +39,7 @@ import org.slf4j.Logger;
 /**
  * A RTMPT client / session.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  * @author Paul Gregoire (mondain@gmail.com)
  */

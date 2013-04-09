@@ -25,7 +25,7 @@ import org.red5.server.api.persistence.IPersistenceStore;
 /**
  * Base interface for all scope objects, including SharedObjects.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard (luke@codegent.com)
  */
 public interface IBasicScope extends ICoreObject, IEventObservable {

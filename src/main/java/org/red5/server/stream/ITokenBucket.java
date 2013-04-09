@@ -27,7 +27,7 @@ package org.red5.server.stream;
  * the bucket are acquired before the packet can be sent out. So if the speed(or bandwidth) in
  * configuration is low, the stream can't send out packets fast. 
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public interface ITokenBucket {

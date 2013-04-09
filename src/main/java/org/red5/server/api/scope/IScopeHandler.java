@@ -35,7 +35,7 @@ import org.red5.server.api.service.IServiceCall;
  * The thread local connection is always available via the Red5 object within
  * these methods
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard (luke@codegent.com)
  */
 public interface IScopeHandler extends IEventHandler {

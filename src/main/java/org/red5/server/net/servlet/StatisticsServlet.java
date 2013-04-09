@@ -35,7 +35,7 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 /**
  * Servlet that processes the statistics XML-RPC requests.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class StatisticsServlet extends HttpServlet {

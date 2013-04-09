@@ -24,7 +24,7 @@ import org.red5.server.net.rtmp.message.Constants;
 /**
  * RTMP utilities class.
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  * @author Art Clarke (aclarke@xuggle.com)
  */

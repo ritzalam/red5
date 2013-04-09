@@ -29,7 +29,7 @@ import org.red5.io.flv.IFLVService;
  * A FLVServiceImpl sets up the service and hands out FLV objects to 
  * its callers.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Dominick Accattato (daccattato@gmail.com)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  * @author Paul Gregoire (mondain@gmail.com)

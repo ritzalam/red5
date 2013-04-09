@@ -47,7 +47,7 @@ import org.springframework.web.context.support.ServletContextResource;
 /**
  * Simple file-based persistence for objects. Lowers memory usage if used instead of RAM memory storage.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class FilePersistence extends RamPersistence {

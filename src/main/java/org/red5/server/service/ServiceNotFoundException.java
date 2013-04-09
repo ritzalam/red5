@@ -21,7 +21,7 @@ package org.red5.server.service;
 /**
  * Thrown when service can't be found thus remote call throws an exception
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class ServiceNotFoundException extends RuntimeException {

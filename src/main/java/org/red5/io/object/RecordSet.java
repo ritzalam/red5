@@ -37,9 +37,8 @@ import org.red5.server.net.remoting.RemotingClient;
  *
  * <p>For last mode, use <tt>page size</tt> property to specify maximum number of rows on one page</p>
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
- * @see <a href="http://www.osflash.org/amf/recordset">osflash.org documentation</a>
  */
 public class RecordSet {
 	/**

@@ -39,7 +39,7 @@ import org.red5.server.exception.SharedObjectException;
  * Sometime in the future, the updates on the shared objects will be done
  * automatically so a client doesn't need to poll for them.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public interface IStatisticsService {

@@ -23,7 +23,7 @@ import org.apache.mina.core.buffer.IoBuffer;
 /**
  * Buffer Utility class which reads/writes intergers to the input/output buffer  
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  * @author Andy Shaules (bowljoman@hotmail.com)
  */

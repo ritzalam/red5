@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 /**
  * MetaService represents a MetaData service in Spring
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Dominick Accattato (daccattato@gmail.com)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */

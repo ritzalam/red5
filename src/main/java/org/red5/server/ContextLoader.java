@@ -54,7 +54,7 @@ import org.springframework.web.context.support.XmlWebApplicationContext;
 /**
  * Red5 applications loader
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Tiago Jacobs (tiago@imdt.com.br)
  * @author Paul Gregoire (mondain@gmail.com)
  */

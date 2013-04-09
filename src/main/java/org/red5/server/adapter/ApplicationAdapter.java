@@ -31,7 +31,7 @@ import org.red5.server.api.scope.IScope;
  * or <code>*Join</code> methods takes too long, so using the multi-threaded version is
  * preferred.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class ApplicationAdapter extends MultiThreadedApplicationAdapter {

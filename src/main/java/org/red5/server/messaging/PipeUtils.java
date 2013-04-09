@@ -21,7 +21,7 @@ package org.red5.server.messaging;
 /**
  * Helper class for pipe structure.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public class PipeUtils {

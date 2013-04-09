@@ -23,7 +23,7 @@ package org.red5.server.messaging;
  * provider/consumer connects to or disconnects from
  * a specific pipe.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public interface IPipeConnectionListener {

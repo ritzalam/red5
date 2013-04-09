@@ -21,7 +21,7 @@ package org.red5.server.api.stream;
 /**
  * A stream that is bound to a client.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public interface IClientStream extends IStream {

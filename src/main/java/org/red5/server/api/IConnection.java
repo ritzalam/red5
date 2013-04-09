@@ -36,7 +36,7 @@ import org.red5.server.api.scope.IScope;
  * Future subclasses: RTMPConnection, RemotingConnection, AJAXConnection,
  * HttpConnection, etc
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard (luke@codegent.com)
  */
 public interface IConnection extends ICoreObject, ICastingAttributeStore {

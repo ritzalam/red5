@@ -23,7 +23,7 @@ import java.io.IOException;
 /**
  * A consumer that supports event-driven message handling and message pushing through pipes.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public interface IPushableConsumer extends IConsumer {

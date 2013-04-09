@@ -23,7 +23,7 @@ import org.red5.server.api.scope.IScopeHandler;
 /**
  * A scope handler that is stream aware.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public interface IStreamAwareScopeHandler extends IScopeHandler {

@@ -24,7 +24,7 @@ import java.util.Set;
 /**
  * Storage for persistent objects. 
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard (luke@codegent.com)
  * @author Joachim Bauch (jojo@struktur.de)
  */

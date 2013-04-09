@@ -24,7 +24,7 @@ import org.red5.io.amf.Output;
 import org.red5.io.utils.HexDump;
 
 /*
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
 */
 public class AMFIOTest extends AbstractIOTest {

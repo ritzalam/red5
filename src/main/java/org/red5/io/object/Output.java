@@ -29,7 +29,7 @@ import org.w3c.dom.Document;
 /**
  * Output interface which defines contract methods to be implemented
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public interface Output {

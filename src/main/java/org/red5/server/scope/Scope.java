@@ -80,7 +80,7 @@ import org.springframework.jmx.export.annotation.ManagedResource;
  *              /Broadcast stream scope - Contains a broadcast stream
  * </pre>
  * </p>
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire (mondain@gmail.com)
  * @author Nathan Smith (nathgs@gmail.com)
  */

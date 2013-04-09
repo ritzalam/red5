@@ -35,7 +35,7 @@ import org.red5.server.util.ScopeUtils;
 /**
  * Public methods for XML-RPC scope statistics service.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class XmlRpcScopeStatistics {

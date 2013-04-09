@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Base class for all Flex compatibility messages.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  */
 @SuppressWarnings("unchecked")

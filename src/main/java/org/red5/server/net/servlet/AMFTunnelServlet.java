@@ -42,7 +42,7 @@ import org.slf4j.Logger;
 /**
  * Servlet to tunnel to the AMF gateway servlet.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public class AMFTunnelServlet extends HttpServlet {

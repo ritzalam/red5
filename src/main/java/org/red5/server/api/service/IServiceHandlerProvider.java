@@ -23,7 +23,7 @@ import java.util.Set;
 /**
  * Supports registration and lookup of service handlers.
  * 
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  * @author Joachim Bauch (jojo@struktur.de)
  *
  */

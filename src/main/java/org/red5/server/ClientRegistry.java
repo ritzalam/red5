@@ -40,7 +40,7 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 /**
  * Registry for clients, wherein clients are mapped by their id.
  *
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project
  */
 @ManagedResource(objectName="org.red5.server:type=ClientRegistry,name=default", description="ClientRegistry")
 public class ClientRegistry implements IClientRegistry, ClientRegistryMXBean {
