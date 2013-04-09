@@ -1,7 +1,7 @@
 /*
  * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright 2006-2012 by respective authors (see below). All rights reserved.
+ * Copyright 2006-2013 by respective authors (see below). All rights reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@
 
 package org.red5.compatibility.flex.messaging.messages;
 
+import java.util.UUID;
+
 import org.red5.io.amf3.IDataInput;
 import org.red5.io.amf3.IDataOutput;
-import org.red5.io.utils.RandomGUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +39,7 @@ public class AcknowledgeMessage extends AsyncMessage {
 	static Logger log = LoggerFactory.getLogger(AcknowledgeMessage.class);
 
 	public AcknowledgeMessage() {
-		this.messageId = new RandomGUID().toString();
+		this.messageId = UUID.randomUUID().toString();
 		this.timestamp = System.currentTimeMillis();
 	}
 

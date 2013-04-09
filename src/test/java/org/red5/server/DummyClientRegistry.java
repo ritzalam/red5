@@ -1,7 +1,7 @@
 /*
  * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright 2006-2012 by respective authors (see below). All rights reserved.
+ * Copyright 2006-2013 by respective authors (see below). All rights reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@
 
 package org.red5.server;
 
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.red5.io.utils.RandomGUID;
 import org.red5.server.api.IClient;
 import org.red5.server.exception.ClientNotFoundException;
 import org.red5.server.exception.ClientRejectedException;
@@ -55,8 +55,7 @@ public final class DummyClientRegistry extends ClientRegistry {
 		if (params != null) {
 			id = params[0].toString();
 		} else {
-			RandomGUID idGen = new RandomGUID();
-			id = idGen.toString();
+			id = UUID.randomUUID().toString();
 		}
 		IClient client = new DummyClient(id, this);
 		log.debug("New client: {}", client);		

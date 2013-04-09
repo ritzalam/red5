@@ -1,7 +1,7 @@
 /*
  * RED5 Open Source Flash Server - http://code.google.com/p/red5/
  * 
- * Copyright 2006-2012 by respective authors (see below). All rights reserved.
+ * Copyright 2006-2013 by respective authors (see below). All rights reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package org.red5.compatibility.flex.messaging.messages;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.UUID;
 
 import org.red5.io.amf3.ByteArray;
 import org.red5.io.amf3.IDataInput;
@@ -63,7 +64,7 @@ public class AbstractMessage implements Message, Serializable {
 	 */
 	public AbstractMessage() {
 		timestamp = System.currentTimeMillis();
-		messageId = new RandomGUID().toString();
+		messageId = UUID.randomUUID().toString();
 	}
 
 	/**
