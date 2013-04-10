@@ -50,6 +50,7 @@ import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
 import org.red5.server.net.rtmp.event.SetBuffer;
+import org.red5.server.net.rtmp.event.StreamActionEvent;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.message.StreamAction;
 import org.red5.server.net.rtmp.status.Status;
@@ -84,7 +85,12 @@ public class RTMPHandler extends BaseRTMPHandler {
 	/**
 	 * Whether or not global scope connections are allowed.
 	 */
-	private boolean globalScopeConnectionAllowed = false;
+	private boolean globalScopeConnectionAllowed;
+	
+	/**
+	 * Whether or not to dispatch stream actions to the current scope.
+	 */
+	private boolean dispatchStreamActions;
 
 	/**
 	 * Setter for server object.
@@ -110,6 +116,20 @@ public class RTMPHandler extends BaseRTMPHandler {
 
 	public void setGlobalScopeConnectionAllowed(boolean globalScopeConnectionAllowed) {
 		this.globalScopeConnectionAllowed = globalScopeConnectionAllowed;
+	}
+
+	/**
+	 * @return the dispatchStreamActions
+	 */
+	public boolean isDispatchStreamActions() {
+		return dispatchStreamActions;
+	}
+
+	/**
+	 * @param dispatchStreamActions the dispatchStreamActions to set
+	 */
+	public void setDispatchStreamActions(boolean dispatchStreamActions) {
+		this.dispatchStreamActions = dispatchStreamActions;
 	}
 
 	/** {@inheritDoc} */
@@ -191,7 +211,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 		log.debug("{}", invoke);
 		// Get call
 		final IServiceCall call = invoke.getCall();
-		//log.debug("Call: {}", call);
+		log.debug("call: {}", call);
 		// method name
 		final String action = call.getServiceMethodName();
 		// If it's a callback for server remote call then pass it over to callbacks handler and return
@@ -202,7 +222,6 @@ public class RTMPHandler extends BaseRTMPHandler {
 		boolean disconnectOnReturn = false;
 		// If this is not a service call then handle connection...
 		if (call.getServiceName() == null) {
-			log.debug("call: {}", call);
 			if (!conn.isConnected() && StreamAction.CONNECT.equals(action)) {
 				// Handle connection
 				log.debug("connect");
@@ -361,8 +380,18 @@ public class RTMPHandler extends BaseRTMPHandler {
 					rtmp.setEncoding(Encoding.AMF3);
 				}
 			} else {
-				//log.debug("Enum value of: {}", StreamAction.getEnum(action));
 				StreamAction streamAction = StreamAction.getEnum(action);
+				if (log.isDebugEnabled()) {
+					log.debug("Stream action: {}", streamAction.toString());
+				}
+				if (dispatchStreamActions) {
+					// pass the stream action event to the handler
+					try {
+						conn.getScope().getHandler().handleEvent(new StreamActionEvent(streamAction));
+					} catch (Exception ex) {
+						log.warn("Exception passing stream action: {} to the scope handler", streamAction, ex);
+					}
+				}
 				//if the "stream" action is not predefined a custom type will be returned
 				switch (streamAction) {
 					case DISCONNECT:

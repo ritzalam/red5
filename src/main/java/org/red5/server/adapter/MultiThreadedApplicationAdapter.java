@@ -38,6 +38,7 @@ import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
+import org.red5.server.api.event.IEvent;
 import org.red5.server.api.plugin.IRed5Plugin;
 import org.red5.server.api.plugin.IRed5PluginHandler;
 import org.red5.server.api.scheduling.IScheduledJob;
@@ -1345,6 +1346,12 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	public void streamSubscriberStart(ISubscriberStream stream) {
 		// log w3c connect event
 		log.info("W3C x-category:stream x-event:play c-ip:{} x-sname:{}", Red5.getConnectionLocal().getRemoteAddress(), stream.getName());
+	}
+
+	@Override
+	public boolean handleEvent(IEvent event) {
+		log.debug("handleEvent: {}", event);
+		return super.handleEvent(event);
 	}
 
 }

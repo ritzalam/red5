@@ -605,7 +605,9 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 
 	/** {@inheritDoc} */
 	public ChunkSize decodeChunkSize(IoBuffer in) {
-		return new ChunkSize(in.getInt());
+		int chunkSize = in.getInt();
+		log.debug("Decoded chunk size: {}", chunkSize);
+		return new ChunkSize(chunkSize);
 	}
 
 	/** {@inheritDoc} */
@@ -712,7 +714,6 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				key = Deserializer.deserialize(input, String.class);
 				// read parameters
 				final List<Object> list = new LinkedList<Object>();
-				// while loop changed for JIRA CODECS-9
 				while (in.position() - start < length) {
 					byte objType = in.get();
 					in.position(in.position() - 1);
@@ -941,9 +942,8 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 */
 	@SuppressWarnings("unchecked")
 	public Notify decodeStreamMetadata(IoBuffer in, RTMP rtmp) {
-		Input input;
-		//we will make a pre-emptive copy of the incoming buffer here to
-		//prevent issues that seem to occur fairly often
+		Input input = null;
+		//make a pre-emptive copy of the incoming buffer here to prevent issues that occur fairly often
 		IoBuffer copy = in.duplicate();
 		if (rtmp.getEncoding() == Encoding.AMF0) {
 			input = new org.red5.io.amf.Input(copy);
@@ -965,8 +965,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				log.debug("Dataframe params type: {}", object);
 				Map<Object, Object> params;
 				if (object == DataTypes.CORE_MAP) {
-					// The params are sent as a Mixed-Array.  This is needed
-					// to support the RTMP publish provided by ffmpeg/xuggler
+					// The params are sent as a Mixed-Array. Required to support the RTMP publish provided by ffmpeg/xuggler
 					params = (Map<Object, Object>) input.readMap(null);
 				} else {
 					// Read the params as a standard object
