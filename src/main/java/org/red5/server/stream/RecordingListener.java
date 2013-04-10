@@ -217,6 +217,8 @@ public class RecordingListener implements IRecordingListener {
 
 	/** {@inheritDoc} */
 	public void stop() {
+		// set the record flag to false
+		recording = false;
 		// remove the scheduled job
 		scheduler.removeScheduledJob(eventQueueJobName);
 		if (queue.isEmpty()) {
