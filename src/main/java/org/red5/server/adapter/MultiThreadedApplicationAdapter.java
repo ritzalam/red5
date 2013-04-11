@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.red5.io.IStreamableFile;
 import org.red5.io.IStreamableFileFactory;
@@ -137,7 +138,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	/**
 	 * List of application listeners.
 	 */
-	private Set<IApplication> listeners = new HashSet<IApplication>();
+	private CopyOnWriteArraySet<IApplication> listeners = new CopyOnWriteArraySet<IApplication>();
 
 	/**
 	 * Scheduling service. Uses Quartz. Adds and removes scheduled jobs.
@@ -176,12 +177,9 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	private Set<ISharedObjectSecurity> sharedObjectSecurity = new HashSet<ISharedObjectSecurity>();
 
 	/**
-	 * Register listener that will get notified about application events. Please
-	 * note that return values (e.g. from {@link IApplication#appStart(IScope)})
-	 * will be ignored for listeners.
+	 * Register a listener that will get notified about application events.
 	 * 
-	 * @param listener
-	 *            object to register
+	 * @param listener object to register
 	 */
 	public void addListener(IApplication listener) {
 		listeners.add(listener);
@@ -191,8 +189,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * Unregister handler that will not get notified about application events
 	 * any longer.
 	 * 
-	 * @param listener
-	 *            object to unregister
+	 * @param listener object to unregister
 	 */
 	public void removeListener(IApplication listener) {
 		listeners.remove(listener);
