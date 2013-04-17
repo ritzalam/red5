@@ -1,6 +1,7 @@
 package org.red5.server.stream;
 
 import org.red5.server.api.IConnection;
+import org.red5.server.api.scope.IScope;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IStreamListener;
 import org.red5.server.api.stream.IStreamPacket;
@@ -23,6 +24,16 @@ public interface IRecordingListener extends IStreamListener {
 	 */
 	public boolean init(IConnection conn, String name, boolean isAppend);
 
+	/**
+	 * Initialize the listener.
+	 * 
+	 * @param scope Stream source scope
+	 * @param name Stream name
+	 * @param isAppend Append mode
+	 * @return true if initialization completes and false otherwise
+	 */
+	public boolean init(IScope scope, String name, boolean isAppend);	
+	
 	/**
 	 * Start the recording.
 	 */

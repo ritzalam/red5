@@ -98,17 +98,17 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 * Maximum incoming messages to process at a time per client
 	 */
 	protected int maxInMessagesPerProcess = 16;
-	
+
 	/**
 	 * Maximum amount of time in milliseconds to wait before allowing an offer to fail
 	 */
 	protected long maxQueueOfferTime = 500L;
-	
+
 	/**
 	 * Maximum offer attempts before failing on incoming or outgoing queues
 	 */
 	protected int maxQueueOfferAttempts = 4;
-	
+
 	public BaseRTMPTConnection(String type) {
 		super(type);
 		this.buffer = IoBuffer.allocate(0).setAutoExpand(true);
@@ -215,7 +215,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 			}
 		}
 	}
-	
+
 	/**
 	 * Receive RTMP IoBuffer from the connection.
 	 *
@@ -243,7 +243,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 			}
 		}
 	}
-	
+
 	/**
 	 * Receive RTMP packet from the connection.
 	 *
@@ -299,11 +299,11 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 							attempt++;
 							if (attempt >= maxQueueOfferAttempts) {
 								break;
-							}							
+							}
 						}
 					} catch (InterruptedException ex) {
 						log.warn("Offering packet to out queue failed", ex);
-					}					
+					}
 				} else {
 					log.warn("Response buffer was null after encoding");
 				}
@@ -334,8 +334,8 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 		} catch (InterruptedException ex) {
 			log.warn("Offering io buffer to out queue failed", ex);
 		}
-	}	
-	
+	}
+
 	protected IoBuffer foldPendingMessages(int targetSize) {
 		log.debug("foldPendingMessages - target size: {}", targetSize);
 		IoBuffer result = null;
@@ -358,7 +358,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 					}
 				} else {
 					log.trace("Pending message did not have a packet");
-				}				
+				}
 			}
 			sendList.clear();
 			result.flip();
@@ -420,7 +420,9 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 			this.byteBuffer = new byte[size];
 			buffer.get(byteBuffer);
 			this.packet = packet;
-			log.trace("Buffer: {}", Arrays.toString(ArrayUtils.subarray(byteBuffer, 0, 32)));
+			if (log.isTraceEnabled()) {
+				log.trace("Buffer: {}", Arrays.toString(ArrayUtils.subarray(byteBuffer, 0, 32)));
+			}
 		}
 
 		private PendingData(IoBuffer buffer) {
@@ -428,11 +430,15 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 			this.byteBuffer = new byte[size];
 			buffer.get(byteBuffer);
 			this.packet = null;
-			log.trace("Buffer: {}", Arrays.toString(ArrayUtils.subarray(byteBuffer, 0, 32)));
+			if (log.isTraceEnabled()) {
+				log.trace("Buffer: {}", Arrays.toString(ArrayUtils.subarray(byteBuffer, 0, 32)));
+			}
 		}
 
 		public byte[] getBuffer() {
-			log.trace("Get buffer: {}", Arrays.toString(ArrayUtils.subarray(byteBuffer, 0, 32)));
+			if (log.isTraceEnabled()) {
+				log.trace("Get buffer: {}", Arrays.toString(ArrayUtils.subarray(byteBuffer, 0, 32)));
+			}
 			return byteBuffer;
 		}
 
@@ -449,5 +455,5 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 		}
 
 	}
-		
+
 }

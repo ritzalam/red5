@@ -269,11 +269,14 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 					if (rtmpEvent instanceof AudioData) {
 						IAudioStreamCodec audioStreamCodec = null;
 						if (checkAudioCodec) {
-							audioStreamCodec = AudioCodecFactory.getAudioCodec(buf);
-							if (info != null) {
-								info.setAudioCodec(audioStreamCodec);
+							// dont try to read codec info from 0 length audio packets
+							if (buf.limit() > 0) {
+    							audioStreamCodec = AudioCodecFactory.getAudioCodec(buf);
+    							if (info != null) {
+    								info.setAudioCodec(audioStreamCodec);
+    							}
+    							checkAudioCodec = false;
 							}
-							checkAudioCodec = false;
 						} else if (codecInfo != null) {
 							audioStreamCodec = codecInfo.getAudioCodec();
 						}
@@ -668,7 +671,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 				log.warn("Recording listener failed to initialize for stream: {}", name);
 			}
 		} else {
-			log.info("Recording listener already exists for stream: {}", name);
+			log.info("Recording listener already exists for stream: {} auto record enabled: {}", name, automaticRecording);
 		}
 	}
 
@@ -824,7 +827,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		sendStartNotifications(Red5.getConnectionLocal());
 		// force recording if set
 		if (automaticRecording) {
-			log.debug("Starting automatic recording of {}", publishedName);
+			log.info("Starting automatic recording of {}", publishedName);
 			try {
 				saveAs(publishedName, false);
 			} catch (Exception e) {

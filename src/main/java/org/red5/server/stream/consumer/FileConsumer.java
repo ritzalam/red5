@@ -223,7 +223,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 					}
 				}
 			}
-			//initialize a writer
+			// initialize a writer
 			if (writer == null) {
 				init();
 			}

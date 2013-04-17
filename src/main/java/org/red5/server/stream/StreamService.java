@@ -628,7 +628,6 @@ public class StreamService implements IStreamService {
 				if (created) {
 					streamConn.deleteStreamById(streamId);
 				}
-				return;
 			} catch (Exception e) {
 				log.warn("Exception on publish", e);
 			}

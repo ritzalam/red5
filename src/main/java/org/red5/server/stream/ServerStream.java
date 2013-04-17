@@ -18,29 +18,28 @@
 
 package org.red5.server.stream;
 
-import java.io.File;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import org.red5.io.IKeyFrameMetaCache;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.IContext;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.scope.IScope;
+import org.red5.server.api.stream.IAudioStreamCodec;
 import org.red5.server.api.stream.IPlayItem;
 import org.red5.server.api.stream.IPlaylistController;
 import org.red5.server.api.stream.IServerStream;
 import org.red5.server.api.stream.IStreamAwareScopeHandler;
-import org.red5.server.api.stream.IStreamFilenameGenerator;
-import org.red5.server.api.stream.IStreamFilenameGenerator.GenerationType;
+import org.red5.server.api.stream.IStreamCodecInfo;
 import org.red5.server.api.stream.IStreamListener;
 import org.red5.server.api.stream.IStreamPacket;
-import org.red5.server.api.stream.ResourceExistException;
-import org.red5.server.api.stream.ResourceNotFoundException;
+import org.red5.server.api.stream.IVideoStreamCodec;
 import org.red5.server.api.stream.StreamState;
 import org.red5.server.api.stream.support.SimplePlayItem;
 import org.red5.server.messaging.IFilter;
@@ -53,13 +52,12 @@ import org.red5.server.messaging.IPipe;
 import org.red5.server.messaging.IPipeConnectionListener;
 import org.red5.server.messaging.IProvider;
 import org.red5.server.messaging.IPushableConsumer;
-import org.red5.server.messaging.InMemoryPushPushPipe;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.VideoData;
-import org.red5.server.stream.consumer.FileConsumer;
+import org.red5.server.stream.codec.StreamCodecInfo;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.ResetMessage;
 import org.red5.server.util.ScopeUtils;
@@ -74,9 +72,7 @@ import org.slf4j.LoggerFactory;
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public class ServerStream extends AbstractStream implements IServerStream, IFilter, IPushableConsumer, IPipeConnectionListener {
-	/**
-	 * Logger
-	 */
+ 
 	private static final Logger log = LoggerFactory.getLogger(ServerStream.class);
 
 	private static final long WAIT_THRESHOLD = 0;
@@ -137,16 +133,6 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	private IMessageOutput msgOut;
 
 	/**
-	 * Pipe for recording
-	 */
-	private IPipe recordPipe;
-
-	/**
-	 * The filename we are recording to.
-	 */
-	protected String recordingFilename;
-
-	/**
 	 * Provider service
 	 */
 	private IProviderService providerService;
@@ -189,6 +175,11 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	/** Listeners to get notified about received packets. */
 	private CopyOnWriteArraySet<IStreamListener> listeners = new CopyOnWriteArraySet<IStreamListener>();
 
+	/**
+	 * Recording listener
+	 */
+	private WeakReference<IRecordingListener> recordingListener;	
+	
 	/** Constructs a new ServerStream. */
 	public ServerStream() {
 		defaultController = new SimplePlaylistController();
@@ -342,84 +333,76 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	}
 
 	/** {@inheritDoc} */
-	public void saveAs(String name, boolean isAppend) throws IOException, ResourceNotFoundException, ResourceExistException {
-		try {
+	public void saveAs(String name, boolean isAppend) throws IOException {
+		// one recording listener at a time via this entry point
+		if (recordingListener == null) {
 			IScope scope = getScope();
-			IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.class, DefaultStreamFilenameGenerator.class);
-			String filename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
-			// Get file for that filename
-			File file;
-			if (generator.resolvesToAbsolutePath()) {
-				file = new File(filename);
-			} else {
-				file = scope.getContext().getResource(filename).getFile();
-			}
-			if (!isAppend) {
-				if (file.exists()) {
-					// Per livedoc of FCS/FMS: When "live" or "record" is used, any previously recorded stream with the same stream URI is deleted.
-					if (!file.delete()) {
-						throw new IOException("File could not be deleted");
+			// create a recording listener
+			IRecordingListener listener = (IRecordingListener) ScopeUtils.getScopeService(scope, IRecordingListener.class, RecordingListener.class);
+			// initialize the listener
+			if (listener.init(scope, name, isAppend)) {
+				// get decoder info if it exists for the stream
+				IStreamCodecInfo codecInfo = getCodecInfo();
+				log.debug("Codec info: {}", codecInfo);
+				if (codecInfo instanceof StreamCodecInfo) {
+					StreamCodecInfo info = (StreamCodecInfo) codecInfo;
+					IVideoStreamCodec videoCodec = info.getVideoCodec();
+					log.debug("Video codec: {}", videoCodec);
+					if (videoCodec != null) {
+						//check for decoder configuration to send
+						IoBuffer config = videoCodec.getDecoderConfiguration();
+						if (config != null) {
+							log.debug("Decoder configuration is available for {}", videoCodec.getName());
+							VideoData videoConf = new VideoData(config.asReadOnlyBuffer());
+							try {
+								log.debug("Setting decoder configuration for recording");
+								listener.getFileConsumer().setVideoDecoderConfiguration(videoConf);
+							} finally {
+								videoConf.release();
+							}
+						}
+					} else {
+						log.debug("Could not initialize stream output, videoCodec is null.");
+					}
+					IAudioStreamCodec audioCodec = info.getAudioCodec();
+					log.debug("Audio codec: {}", audioCodec);
+					if (audioCodec != null) {
+						//check for decoder configuration to send
+						IoBuffer config = audioCodec.getDecoderConfiguration();
+						if (config != null) {
+							log.debug("Decoder configuration is available for {}", audioCodec.getName());
+							AudioData audioConf = new AudioData(config.asReadOnlyBuffer());
+							try {
+								log.debug("Setting decoder configuration for recording");
+								listener.getFileConsumer().setAudioDecoderConfiguration(audioConf);
+							} finally {
+								audioConf.release();
+							}
+						}
+					} else {
+						log.debug("No decoder configuration available, audioCodec is null.");
 					}
 				}
+				// set as primary listener
+				recordingListener = new WeakReference<IRecordingListener>(listener);
+				// add as a listener
+				addStreamListener(listener);
+				// start the listener thread
+				listener.start();
 			} else {
-				if (!file.exists()) {
-					// Per livedoc of FCS/FMS: If a recorded stream at the same URI does not already exist, "append" creates the stream as though "record" was passed.
-					isAppend = false;
-				}
+				log.warn("Recording listener failed to initialize for stream: {}", name);
 			}
-			if (!file.exists()) {
-				// Make sure the destination directory exists
-				String path = file.getAbsolutePath();
-				int slashPos = path.lastIndexOf(File.separator);
-				if (slashPos != -1) {
-					path = path.substring(0, slashPos);
-				}
-				File tmp = new File(path);
-				if (!tmp.isDirectory()) {
-					tmp.mkdirs();
-				}
-
-				if (!file.canWrite()) {
-					log.warn("File cannot be written to {}", file.getCanonicalPath());
-				}
-				file.createNewFile();
-			} else {
-				//remove existing meta info
-				if (scope.getContext().hasBean("keyframe.cache")) {
-					IKeyFrameMetaCache keyFrameCache = (IKeyFrameMetaCache) scope.getContext().getBean("keyframe.cache");
-					keyFrameCache.removeKeyFrameMeta(file);
-				}
-			}
-			FileConsumer recordingFile = null;
-			log.debug("Recording file: {}", file.getCanonicalPath());
-			// get instance via spring
-			if (scope.getContext().hasBean("fileConsumer")) {
-				recordingFile = (FileConsumer) scope.getContext().getBean("fileConsumer");
-				recordingFile.setScope(scope);
-				recordingFile.setFile(file);
-			} else {
-				// get a new instance
-				recordingFile = new FileConsumer(scope, file);
-			}
-			Map<String, Object> paramMap = new HashMap<String, Object>();
-			if (isAppend) {
-				paramMap.put("mode", "append");
-			} else {
-				paramMap.put("mode", "record");
-			}
-			if (null == recordPipe) {
-				recordPipe = new InMemoryPushPushPipe();
-			}
-			recordPipe.subscribe(recordingFile, paramMap);
-			recordingFilename = filename;
-		} catch (IOException e) {
-			log.warn("Save as exception", e);
+		} else {
+			log.info("Recording listener already exists for stream: {}", name);
 		}
 	}
 
 	/** {@inheritDoc} */
 	public String getSaveFilename() {
-		return recordingFilename;
+		if (recordingListener != null) {
+			return recordingListener.get().getFileName();
+		}
+		return null;
 	}
 
 	/** {@inheritDoc} */
@@ -460,11 +443,6 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 		} catch (NullPointerException npe) {
 			log.warn("Context beans were not available; this is ok during unit testing", npe);
 		}
-		Map<String, Object> recordParamMap = new HashMap<String, Object>();
-		recordPipe = new InMemoryPushPushPipe();
-		recordParamMap.put("record", null);
-		recordPipe.subscribe((IProvider) this, recordParamMap);
-		recordingFilename = null;
 		setState(StreamState.STOPPED);
 		currentItemIndex = -1;
 		nextItem();
@@ -490,10 +468,28 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 			if (nextRTMPMessage != null) {
 				nextRTMPMessage.getBody().release();
 			}
+			stopRecording();
 			setState(StreamState.STOPPED);
 		}
 	}
 
+	/**
+	 * Stops any currently active recording.
+	 */
+	public void stopRecording() {
+		IRecordingListener listener = null;
+		if (recordingListener != null && (listener = recordingListener.get()).isRecording()) {
+			notifyRecordingStop();
+			// remove the listener
+			removeStreamListener(listener);
+			// stop the recording listener
+			listener.stop();
+			// clear and null-out the thread local
+            recordingListener.clear();
+            recordingListener = null;
+		}
+	}	
+	
 	/** {@inheritDoc} */
 	public void pause() {
 		switch (state) {
@@ -524,7 +520,6 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 		if (msgOut != null) {
 			msgOut.unsubscribe(this);
 		}
-		recordPipe.unsubscribe((IProvider) this);
 		notifyBroadcastClose();
 		setState(StreamState.CLOSED);
 	}
@@ -629,9 +624,6 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 		if (msgOut != null) {
 			msgOut.pushMessage(message);
 		}
-		if (recordPipe != null) {
-			recordPipe.pushMessage(message);
-		}
 		// Notify listeners about received packet
 		if (message instanceof RTMPMessage) {
 			final IRTMPEvent rtmpEvent = ((RTMPMessage) message).getBody();
@@ -668,9 +660,11 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 		serverStartTS = System.currentTimeMillis();
 		IStreamAwareScopeHandler handler = getStreamAwareHandler();
 		if (handler != null) {
-			if (recordingFilename != null) {
+			if (recordingListener != null && recordingListener.get().isRecording()) {
+				// callback for record start
 				handler.streamRecordStart(this);
 			} else {
+				// callback for publish start
 				handler.streamPublishStart(this);
 			}
 		}
@@ -692,6 +686,20 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 		}
 	}
 
+	/**
+	 *  Notifies handler on stream recording stop
+	 */
+	private void notifyRecordingStop() {
+		IStreamAwareScopeHandler handler = getStreamAwareHandler();
+		if (handler != null) {
+			try {
+				handler.streamRecordStop(this);
+			} catch (Throwable t) {
+				log.error("Error in notifyBroadcastClose", t);
+			}
+		}
+	}	
+	
 	/**
 	 *  Notifies handler on stream broadcast start
 	 */
@@ -909,7 +917,7 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	public String toString() {
 		return "ServerStream [publishedName=" + publishedName + ", controller=" + controller + ", defaultController=" + defaultController + ", isRewind=" + isRewind
 				+ ", isRandom=" + isRandom + ", isRepeat=" + isRepeat + ", items=" + items + ", currentItemIndex=" + currentItemIndex + ", currentItem=" + currentItem
-				+ ", recordingFilename=" + recordingFilename + ", providerService=" + providerService + ", scheduler=" + scheduler + ", liveJobName=" + liveJobName
+				+ ", providerService=" + providerService + ", scheduler=" + scheduler + ", liveJobName=" + liveJobName
 				+ ", vodJobName=" + vodJobName + ", vodStartTS=" + vodStartTS + ", serverStartTS=" + serverStartTS + ", nextTS=" + nextTS + "]";
 	}
 

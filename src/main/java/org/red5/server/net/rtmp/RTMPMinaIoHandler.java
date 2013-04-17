@@ -21,6 +21,7 @@ package org.red5.server.net.rtmp;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IoSession;
+import org.apache.mina.core.write.WriteToClosedSessionException;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.logging.LoggingFilter;
@@ -46,7 +47,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 	protected IRTMPHandler handler;
 
 	protected ProtocolCodecFactory codecFactory;
-	
+
 	protected IConnectionManager<RTMPConnection> rtmpConnManager;
 
 	/** {@inheritDoc} */
@@ -76,7 +77,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 	/** {@inheritDoc} */
 	@Override
 	public void sessionOpened(IoSession session) throws Exception {
-		log.debug("Session opened");
+		log.info("Session opened: {}", session.getId());
 		super.sessionOpened(session);
 		// get protocol state
 		RTMP rtmp = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
@@ -86,8 +87,10 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 	/** {@inheritDoc} */
 	@Override
 	public void sessionClosed(IoSession session) throws Exception {
-		log.debug("Session closed");
-		log.trace("Session attributes: {}", session.getAttributeKeys());
+		log.info("Session closed: {}", session.getId());
+		if (log.isTraceEnabled()) {
+			log.trace("Session attributes: {}", session.getAttributeKeys());
+		}
 		RTMP rtmp = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
 		log.trace("RTMP state: {}", rtmp);
 		RTMPMinaConnection conn = (RTMPMinaConnection) session.removeAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
@@ -111,7 +114,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 			int id = conn.getId();
 			// handle the times when a connection does not have a client yet
 			if (id == -1) {
-				rtmpConnManager.removeConnection(conn.getSessionId().hashCode());				
+				rtmpConnManager.removeConnection(conn.getSessionId().hashCode());
 			} else {
 				rtmpConnManager.removeConnection(conn.getId());
 			}
@@ -184,7 +187,12 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 	/** {@inheritDoc} */
 	@Override
 	public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
-		log.warn("Exception caught", cause);
+		log.warn("Exception caught on session: {}", session.getId(), cause);
+		if (cause instanceof WriteToClosedSessionException) {
+			if (session.containsAttribute(RTMPConnection.RTMP_CONNECTION_KEY)) {
+				sessionClosed(session);
+			}
+		}
 	}
 
 	/**

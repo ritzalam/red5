@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.IKeyFrameMetaCache;
@@ -70,7 +71,7 @@ public class RecordingListener implements IRecordingListener {
 	/**
 	 * Whether we are recording or not
 	 */
-	private boolean recording;
+	private AtomicBoolean recording = new AtomicBoolean(false);
 
 	/**
 	 * Whether we are appending or not
@@ -127,7 +128,11 @@ public class RecordingListener implements IRecordingListener {
 	/** {@inheritDoc} */
 	public boolean init(IConnection conn, String name, boolean isAppend) {
 		// get connections scope
-		IScope scope = conn.getScope();
+		return init(conn.getScope(), name, isAppend);
+	}	
+	
+	/** {@inheritDoc} */
+	public boolean init(IScope scope, String name, boolean isAppend) {
 		// get the file for our filename
 		File file = getRecordFile(scope, name);
 		if (file != null) {
@@ -201,7 +206,7 @@ public class RecordingListener implements IRecordingListener {
 			// get the scheduler
 			scheduler = (QuartzSchedulingService) scope.getParent().getContext().getBean(QuartzSchedulingService.BEAN_NAME);
 			// set recording true
-			recording = true;
+			recording.set(true);
 			// since init finished, return true as well
 			return true;
 		}
@@ -218,18 +223,21 @@ public class RecordingListener implements IRecordingListener {
 	/** {@inheritDoc} */
 	public void stop() {
 		// set the record flag to false
-		recording = false;
-		// remove the scheduled job
-		scheduler.removeScheduledJob(eventQueueJobName);
-		if (queue.isEmpty()) {
-			log.debug("Event queue was empty on stop");
+		if (recording.compareAndSet(true, false)) {
+			// remove the scheduled job
+			scheduler.removeScheduledJob(eventQueueJobName);
+			if (queue.isEmpty()) {
+				log.debug("Event queue was empty on stop");
+			} else {
+				log.debug("Event queue was not empty on stop, processing...");
+				do {
+					processQueue();
+				} while (!queue.isEmpty());
+			}
+			recordingConsumer.uninit();			
 		} else {
-			log.debug("Event queue was not empty on stop, processing...");
-			do {
-				processQueue();
-			} while (!queue.isEmpty());
+			log.debug("Recording listener was already stopped");
 		}
-		recordingConsumer.uninit();
 	}
 
 	/** {@inheritDoc} */
@@ -308,7 +316,7 @@ public class RecordingListener implements IRecordingListener {
 
 	/** {@inheritDoc} */
 	public boolean isRecording() {
-		return recording;
+		return recording.get();
 	}
 
 	/** {@inheritDoc} */
@@ -339,10 +347,15 @@ public class RecordingListener implements IRecordingListener {
 
 	private class EventQueueJob implements IScheduledJob {
 
+		private AtomicBoolean processing = new AtomicBoolean(false);
+		
 		public void execute(ISchedulingService service) {
-			if (!queue.isEmpty()) {
-				log.debug("Event queue size: {}", queue.size());
-				processQueue();
+			if (processing.compareAndSet(false, true)) {
+				if (!queue.isEmpty()) {
+					log.debug("Event queue size: {}", queue.size());
+					processQueue();
+				}
+				processing.set(false);
 			}
 		}
 
