@@ -139,8 +139,9 @@ public class RTMPHandler extends BaseRTMPHandler {
 		log.debug("Chunk size: {}", requestedChunkSize);
 		// set chunk size on the connection
 		RTMP state = conn.getState();
+		// set only the read chunk size since it came from the client
 	    state.setReadChunkSize(requestedChunkSize);
-	    state.setWriteChunkSize(requestedChunkSize);
+	    //state.setWriteChunkSize(requestedChunkSize);
 	    // set on each of the streams
 		for (IClientStream stream : conn.getStreams()) {
 			if (stream instanceof IClientBroadcastStream) {

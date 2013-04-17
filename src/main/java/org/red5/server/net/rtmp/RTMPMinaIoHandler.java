@@ -190,6 +190,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		log.warn("Exception caught on session: {}", session.getId(), cause);
 		if (cause instanceof WriteToClosedSessionException) {
 			if (session.containsAttribute(RTMPConnection.RTMP_CONNECTION_KEY)) {
+				log.debug("Forcing call to sessionClosed");
 				sessionClosed(session);
 			}
 		}
