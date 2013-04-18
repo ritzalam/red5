@@ -760,10 +760,6 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 			Serializer.serialize(output, call.isSuccess() ? "_result" : "_error");
 		} else {
 			log.debug("This is a pending call, send request");
-			// for request we need to use AMF3 for client mode if the connection is AMF3
-			//if (rtmp.getEncoding() == Encoding.AMF3 && rtmp.getMode() == RTMP.MODE_CLIENT) {
-			//	output = new org.red5.io.amf3.Output(out);
-			//}
 			final String action = (call.getServiceName() == null) ? call.getServiceMethodName() : call.getServiceName() + '.' + call.getServiceMethodName();
 			Serializer.serialize(output, action); // seems right
 		}
@@ -808,7 +804,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 							buf.reset();
 						}
 					} else {
-						// standare serialize
+						// standard serialize
 						Serializer.serialize(output, element);
 					}
 				}
