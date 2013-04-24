@@ -40,7 +40,6 @@ import org.apache.mina.core.service.AbstractIoService;
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.service.IoServiceStatistics;
 import org.apache.mina.core.service.SimpleIoProcessorPool;
-import org.apache.mina.filter.logging.LogLevel;
 import org.apache.mina.filter.logging.LoggingFilter;
 import org.apache.mina.transport.socket.SocketAcceptor;
 import org.apache.mina.transport.socket.SocketSessionConfig;

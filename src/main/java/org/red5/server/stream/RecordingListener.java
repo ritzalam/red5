@@ -309,7 +309,7 @@ public class RecordingListener implements IRecordingListener {
 			}
 		} catch (InterruptedException e) {
 			log.warn("Taking from queue interrupted", e);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			log.warn("Exception while pushing to consumer", e);
 		}
 	}
@@ -353,7 +353,9 @@ public class RecordingListener implements IRecordingListener {
 			if (processing.compareAndSet(false, true)) {
 				if (!queue.isEmpty()) {
 					log.debug("Event queue size: {}", queue.size());
-					processQueue();
+					do {
+						processQueue();
+					} while (!queue.isEmpty());
 				}
 				processing.set(false);
 			}

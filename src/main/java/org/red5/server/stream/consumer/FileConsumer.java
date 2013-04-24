@@ -391,44 +391,49 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	 */
 	private void init() throws IOException {
 		log.debug("Init");
-		// if we plan to use a queue, create one
-		if (delayWrite) {
-			queue = new PriorityQueue<QueuedData>(queueThreshold <= 0 ? 11 : queueThreshold);
-			// add associated locks
-			reentrantLock = new ReentrantReadWriteLock();
-			writeLock = reentrantLock.writeLock();
-			readLock = reentrantLock.readLock();
-		}
-		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils.getScopeService(scope, IStreamableFileFactory.class, StreamableFileFactory.class);
-		File folder = file.getParentFile();
-		if (!folder.exists()) {
-			if (!folder.mkdirs()) {
-				throw new IOException("Could not create parent folder");
+		// if the "file" is null, the consumer has been uninitialized
+		if (file != null) {
+			// if we plan to use a queue, create one
+			if (delayWrite) {
+				queue = new PriorityQueue<QueuedData>(queueThreshold <= 0 ? 11 : queueThreshold);
+				// add associated locks
+				reentrantLock = new ReentrantReadWriteLock();
+				writeLock = reentrantLock.writeLock();
+				readLock = reentrantLock.readLock();
 			}
-		}
-		if (!file.isFile()) {
-			// Maybe the (previously existing) file has been deleted
-			file.createNewFile();
-		} else if (!file.canWrite()) {
-			throw new IOException("The file is read-only");
-		}
-		IStreamableFileService service = factory.getService(file);
-		IStreamableFile flv = service.getStreamableFile(file);
-		if (mode == null || mode.equals(IClientStream.MODE_RECORD)) {
-			writer = flv.getWriter();
-			//write the decoder config tag if it exists
-			if (videoConfigurationTag != null) {
-				writer.writeTag(videoConfigurationTag);
-				videoConfigurationTag = null;
+			IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils.getScopeService(scope, IStreamableFileFactory.class, StreamableFileFactory.class);
+			File folder = file.getParentFile();
+			if (!folder.exists()) {
+				if (!folder.mkdirs()) {
+					throw new IOException("Could not create parent folder");
+				}
 			}
-			if (audioConfigurationTag != null) {
-				writer.writeTag(audioConfigurationTag);
-				audioConfigurationTag = null;
+			if (!file.isFile()) {
+				// Maybe the (previously existing) file has been deleted
+				file.createNewFile();
+			} else if (!file.canWrite()) {
+				throw new IOException("The file is read-only");
 			}
-		} else if (mode.equals(IClientStream.MODE_APPEND)) {
-			writer = flv.getAppendWriter();
+			IStreamableFileService service = factory.getService(file);
+			IStreamableFile flv = service.getStreamableFile(file);
+			if (mode == null || mode.equals(IClientStream.MODE_RECORD)) {
+				writer = flv.getWriter();
+				//write the decoder config tag if it exists
+				if (videoConfigurationTag != null) {
+					writer.writeTag(videoConfigurationTag);
+					videoConfigurationTag = null;
+				}
+				if (audioConfigurationTag != null) {
+					writer.writeTag(audioConfigurationTag);
+					audioConfigurationTag = null;
+				}
+			} else if (mode.equals(IClientStream.MODE_APPEND)) {
+				writer = flv.getAppendWriter();
+			} else {
+				throw new IllegalStateException(String.format("Illegal mode type: %s", mode));
+			}
 		} else {
-			throw new IllegalStateException("Illegal mode type: " + mode);
+			log.warn("Consumer is uninitialized");
 		}
 	}
 
@@ -665,8 +670,8 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	 */
 	public File getFile() {
 		return file;
-	}	
-	
+	}
+
 	/**
 	 * Sets the threshold for the queue. When the threshold is met a worker is spawned
 	 * to empty the sorted queue to the writer.
