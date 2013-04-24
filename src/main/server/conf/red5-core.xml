@@ -75,6 +75,7 @@
 		<!-- This is the interval at which the sessions are polled for stats. If mina monitoring is not enabled, polling will not occur. -->
 		<property name="minaPollInterval" value="${jmx.mina.poll.interval}" />
 		<property name="enableMinaMonitor" value="${jmx.mina.monitor.enable}" />
+        <property name="enableMinaLogFilter" value="${mina.logfilter.enable}" />
 	</bean>
 	
 	<!-- RTMP Mina Connection -->

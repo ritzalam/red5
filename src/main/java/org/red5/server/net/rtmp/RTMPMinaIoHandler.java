@@ -24,7 +24,6 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.core.write.WriteToClosedSessionException;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
-import org.apache.mina.filter.logging.LoggingFilter;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
 import org.red5.server.net.IConnectionManager;
@@ -61,9 +60,6 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		session.getFilterChain().addFirst("rtmpeFilter", new RTMPEIoFilter());
 		//add protocol filter next
 		session.getFilterChain().addLast("protocolFilter", new ProtocolCodecFilter(codecFactory));
-		if (log.isTraceEnabled()) {
-			session.getFilterChain().addLast("logger", new LoggingFilter());
-		}
 		//create a connection
 		RTMPMinaConnection conn = createRTMPMinaConnection();
 		conn.setIoSession(session);
