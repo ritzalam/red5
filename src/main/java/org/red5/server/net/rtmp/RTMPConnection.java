@@ -1205,49 +1205,54 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		public void execute(ISchedulingService service) {
 			// ensure the job is not already running
 			if (running.compareAndSet(false, true)) {
-				// get now
-				long now = System.currentTimeMillis();
-				// get the current bytes read count on the connection
-				long currentReadBytes = getReadBytes();
-				// get our last bytes read count
-				long previousReadBytes = lastBytesRead.get();
-				log.debug("Time now: {} current read count: {} last read count: {}", new Object[] { now, currentReadBytes, previousReadBytes });
-				if (currentReadBytes > previousReadBytes) {
-					log.debug("Client is still alive, no ping needed");
-					// client has sent data since last check and thus is not dead. No need to ping
-					if (lastBytesRead.compareAndSet(previousReadBytes, currentReadBytes)) {
-						// update the timestamp to match our update
-						lastBytesReadTime = now;
-					}
-				} else if (getPendingMessages() > 0) {
-					// client may not have updated bytes yet, but may have received messages waiting, no need to drop them if processing hasn't
-					// caught up yet
-					log.debug("Reader is not idle, possible flood. Pending write messages: {}", getPendingMessages());
-				} else {
-					// client didn't send response to ping command and didn't sent data for too long, disconnect
-					long lastPingTime = lastPingSent.get();
-					long lastPongTime = lastPongReceived.get();
-					if (lastPongTime > 0 && (lastPingTime - lastPongTime > maxInactivity) && !(now - lastBytesReadTime < maxInactivity)) {
-						log.debug("Keep alive job name {}", keepAliveJobName);
-						if (log.isTraceEnabled()) {
-							log.trace("Scheduled job list");
-							for (String jobName : service.getScheduledJobNames()) {
-								log.trace("Job: {}", jobName);
-							}
-						}
-						service.removeScheduledJob(keepAliveJobName);
-						keepAliveJobName = null;
-						log.warn("Closing {}, with id {}, due to too much inactivity ({} ms), last ping sent {} ms ago", new Object[] { RTMPConnection.this, getId(),
-								(lastPingTime - lastPongTime), (now - lastPingTime) });
-						// the following line deals with a very common support request
-						log.warn("This often happens if YOUR Red5 application generated an exception on start-up. Check earlier in the log for that exception first!");
-						onInactive();
-					}
-					// send ping command to client to trigger sending of data
-					ping();
-				}				
-				// reset running flag
-				running.compareAndSet(true, false);
+				try {
+    				// get now
+    				long now = System.currentTimeMillis();
+    				// get the current bytes read count on the connection
+    				long currentReadBytes = getReadBytes();
+    				// get our last bytes read count
+    				long previousReadBytes = lastBytesRead.get();
+    				log.debug("Time now: {} current read count: {} last read count: {}", new Object[] { now, currentReadBytes, previousReadBytes });
+    				if (currentReadBytes > previousReadBytes) {
+    					log.debug("Client is still alive, no ping needed");
+    					// client has sent data since last check and thus is not dead. No need to ping
+    					if (lastBytesRead.compareAndSet(previousReadBytes, currentReadBytes)) {
+    						// update the timestamp to match our update
+    						lastBytesReadTime = now;
+    					}
+    				} else if (getPendingMessages() > 0) {
+    					// client may not have updated bytes yet, but may have received messages waiting, no need to drop them if processing hasn't
+    					// caught up yet
+    					log.debug("Reader is not idle, possible flood. Pending write messages: {}", getPendingMessages());
+    				} else {
+    					// client didn't send response to ping command and didn't sent data for too long, disconnect
+    					long lastPingTime = lastPingSent.get();
+    					long lastPongTime = lastPongReceived.get();
+    					if (lastPongTime > 0 && (lastPingTime - lastPongTime > maxInactivity) && !(now - lastBytesReadTime < maxInactivity)) {
+    						log.debug("Keep alive job name {}", keepAliveJobName);
+    						if (log.isTraceEnabled()) {
+    							log.trace("Scheduled job list");
+    							for (String jobName : service.getScheduledJobNames()) {
+    								log.trace("Job: {}", jobName);
+    							}
+    						}
+    						service.removeScheduledJob(keepAliveJobName);
+    						keepAliveJobName = null;
+    						log.warn("Closing {}, with id {}, due to too much inactivity ({} ms), last ping sent {} ms ago", new Object[] { RTMPConnection.this, getId(),
+    								(lastPingTime - lastPongTime), (now - lastPingTime) });
+    						// the following line deals with a very common support request
+    						log.warn("This often happens if YOUR Red5 application generated an exception on start-up. Check earlier in the log for that exception first!");
+    						onInactive();
+    					}
+    					// send ping command to client to trigger sending of data
+    					ping();
+    				}
+				} catch(Exception e) {
+					log.error("Error executing keepalive code: " + e.getMessage(), e);
+				} finally {
+    				// reset running flag
+    				running.compareAndSet(true, false);
+				}
 			}
 		}
 	}
