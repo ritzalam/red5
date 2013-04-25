@@ -237,32 +237,37 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 			if (!pendingInMessages.isEmpty()) {
 				// ensure the job is not already running
 				if (running.compareAndSet(false, true)) {
-					int available = pendingInMessages.size();
-					log.debug("process - available: {}", available);
-					// set connection local
-					Red5.setConnectionLocal(conn);
-					// get the session
-					IoSession session = getSession();
-					// grab some of the incoming data
-					LinkedList<Object> sliceList = new LinkedList<Object>();
-					int sliceSize = pendingInMessages.drainTo(sliceList, Math.min(maxInMessagesPerProcess, available));
-					log.debug("processing: {}", sliceSize);
-					// handle the messages
-					for (Object message : sliceList) {
-						try {
-							handler.messageReceived(message, session);
-						} catch (Exception e) {
-							log.error("Could not process received message", e);
-						}
-						// exit execution of the parent connection is closing
-						if (isClosing()) {
-							break;
-						}
+					try {
+    					int available = pendingInMessages.size();
+    					log.debug("process - available: {}", available);
+    					// set connection local
+    					Red5.setConnectionLocal(conn);
+    					// get the session
+    					IoSession session = getSession();
+    					// grab some of the incoming data
+    					LinkedList<Object> sliceList = new LinkedList<Object>();
+    					int sliceSize = pendingInMessages.drainTo(sliceList, Math.min(maxInMessagesPerProcess, available));
+    					log.debug("processing: {}", sliceSize);
+    					// handle the messages
+    					for (Object message : sliceList) {
+    						try {
+    							handler.messageReceived(message, session);
+    						} catch (Exception e) {
+    							log.error("Could not process received message", e);
+    						}
+    						// exit execution of the parent connection is closing
+    						if (isClosing()) {
+    							break;
+    						}
+    					}
+    					// unset connection local
+    					Red5.setConnectionLocal(null);
+					} catch (Exception e) {
+						log.error("Error processing message: " + e.getMessage(), e);
+					} finally {
+						// reset run state
+    					running.set(false);
 					}
-					// unset connection local
-					Red5.setConnectionLocal(null);
-					// reset run state
-					running.compareAndSet(true, false);
 				} else {
 					log.trace("Process already running");
 				}
