@@ -351,13 +351,26 @@ public class RecordingListener implements IRecordingListener {
 		
 		public void execute(ISchedulingService service) {
 			if (processing.compareAndSet(false, true)) {
-				if (!queue.isEmpty()) {
-					log.debug("Event queue size: {}", queue.size());
-					do {
-						processQueue();
-					} while (!queue.isEmpty());
+				try {
+    				if (!queue.isEmpty()) {
+    					if(log.isDebugEnabled()) {
+    						log.debug("Event queue size: {}", queue.size());
+    					}
+    					
+    					while (!queue.isEmpty()) {
+    						if(log.isTraceEnabled()) {
+    							log.trace("Taking one more item from queue, size: {}", queue.size());
+    						}
+    						processQueue();
+    					}
+    				} else {
+    					log.trace("Nothing to record.");
+    				}
+				} catch (Exception e) {
+					log.error("Error processing queue: " + e.getMessage(), e);
+				} finally {
+					processing.set(false);
 				}
-				processing.set(false);
 			}
 		}
 
