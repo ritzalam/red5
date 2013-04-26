@@ -3,7 +3,7 @@
 #RED5_SRC=/home/firstuser/dev/red5/red5
 RED5_SRC=$(pwd)
 RED5_DIR=/usr/share/red5
-NEW_RED5=/usr/share/red5-r4625
+NEW_RED5=/usr/share/red5-r4627
 
 echo "Preparing build"
 mvn clean
