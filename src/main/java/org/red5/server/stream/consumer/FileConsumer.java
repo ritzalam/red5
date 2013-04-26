@@ -308,12 +308,16 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		try {
 			// sort the queue
 			log.trace("Queue length: {}", queue.size());
-			QueuedData data;
-			do {
-				data = queue.remove();
-				slice.add(data);
-			} while (!queue.isEmpty() && data.getTimestamp() <= timestamp);
-			log.trace("Queue length (after removal): {}", queue.size());
+			
+			if(!queue.isEmpty()) {
+    			QueuedData data;
+    			
+    			do {
+    				data = queue.remove();
+    				slice.add(data);
+    			} while (!queue.isEmpty() && data.getTimestamp() <= timestamp);
+    			log.trace("Queue length (after removal): {}", queue.size());
+			}
 		} finally {
 			writeLock.unlock();
 		}

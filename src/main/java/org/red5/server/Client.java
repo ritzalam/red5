@@ -301,7 +301,10 @@ public class Client extends AttributeStore implements IClient {
 
 	/** {@inheritDoc} */
 	public Map<String, Object> checkBandwidthUp(Object[] params) {
-		log.debug("Check bandwidth: {}", Arrays.toString(params));
+		if(log.isDebugEnabled()){
+			log.debug("Check bandwidth: {}", Arrays.toString(params));
+		}
+		
 		bandwidthChecked = true;
 		//do something to check the bandwidth, Dan what do you think?
 		ClientServerDetection detection = new ClientServerDetection();
