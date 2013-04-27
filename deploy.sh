@@ -3,7 +3,7 @@
 #RED5_SRC=/home/firstuser/dev/red5/red5
 RED5_SRC=$(pwd)
 RED5_DIR=/usr/share/red5
-NEW_RED5=/usr/share/red5-r4627
+NEW_RED5=/usr/share/red5-r4628
 
 echo "Preparing build"
 mvn clean
@@ -42,7 +42,7 @@ DESKSHARE=/home/firstuser/dev/source/bigbluebutton/deskshare
 VOICE=/home/firstuser/dev/source/bigbluebutton/bbb-voice
 VIDEO=/home/firstuser/dev/source/bigbluebutton/bbb-video
 APPS=/home/firstuser/dev/source/bigbluebutton/bigbluebutton-apps
-RED5_JAR=red5-1.0r4599.jar
+RED5_JAR=red5-1.0r4627.jar
 
 echo "Copying red5 jar"
 cp target/red5-server-1.0.2-SNAPSHOT.jar $DESKSHARE/lib/$RED5_JAR
