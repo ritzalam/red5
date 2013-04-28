@@ -193,7 +193,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 * Closes stream, unsubscribes provides, sends stoppage notifications and broadcast close notification.
 	 */
 	public void close() {
-		log.info("Stream close");
+		log.info("Received stream close for stream {}", publishedName);
 		if (closed) {
 			// already closed
 			return;
@@ -615,8 +615,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		}
 		// one recording listener at a time via this entry point
 		if (recordingListener == null) {
-			// create a recording listener
-			IRecordingListener listener = (IRecordingListener) ScopeUtils.getScopeService(conn.getScope(), IRecordingListener.class, RecordingListener.class);
+			// create a recording listener (per connection)
+			IRecordingListener listener = new RecordingListener();
+			
 			// initialize the listener
 			if (listener.init(conn, name, isAppend)) {
 				// get decoder info if it exists for the stream
