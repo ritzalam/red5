@@ -246,7 +246,6 @@ public class RecordingListener implements IRecordingListener {
 			log.info("A packet was received by recording listener, but it's not recording anymore. {}", stream.getPublishedName());
 			return;
 		}
-		//DEBUG ONLY
 		// store everything we would need to perform a write of the stream data
 		CachedEvent event = new CachedEvent();
 		event.setData(packet.getData().duplicate());
