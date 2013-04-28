@@ -19,6 +19,7 @@
 package org.red5.server.stream;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Set;
 
@@ -189,7 +190,12 @@ public class ProviderService implements IProviderService {
 		try {
 			// most likely case first
 			if (!filenameGenerator.resolvesToAbsolutePath()) {
-				file = scope.getContext().getResource(filename).getFile();
+				try {
+					file = scope.getContext().getResource(filename).getFile();
+				} catch (FileNotFoundException e) {
+					log.debug("File "  + filename + " not found, nulling it.");
+					file = null;
+				}
 			} else {
 				file = new File(filename);
 			}
