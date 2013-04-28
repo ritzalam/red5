@@ -242,6 +242,10 @@ public class RecordingListener implements IRecordingListener {
 
 	/** {@inheritDoc} */
 	public void packetReceived(IBroadcastStream stream, IStreamPacket packet) {
+		if(recording.get()!=true) {
+			log.info("A packet was received by recording listener, but it's not recording anymore. {}", stream.getPublishedName());
+			return;
+		}
 		// store everything we would need to perform a write of the stream data
 		CachedEvent event = new CachedEvent();
 		event.setData(packet.getData().duplicate());

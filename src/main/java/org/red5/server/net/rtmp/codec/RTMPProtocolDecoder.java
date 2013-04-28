@@ -809,12 +809,16 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		}
 		String action = Deserializer.deserialize(input, String.class);
 		log.info("Action {}", action);
+		
 		//throw a runtime exception if there is no action
 		if (action == null) {
 			//TODO replace this with something better as time permits
 			throw new RuntimeException("Action was null");
 		}
 
+		if(log.isTraceEnabled())
+			log.trace("Action " + action + ", class = " + action.getClass().getCanonicalName());
+		
 		//TODO Handle NetStream.send? Where and how?
 		if (!(notify instanceof Invoke) && rtmp != null && header != null && header.getStreamId() != 0 && !isStreamCommand(action)) {
 			// don't decode "NetStream.send" requests
