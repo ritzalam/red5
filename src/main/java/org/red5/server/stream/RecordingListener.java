@@ -129,8 +129,8 @@ public class RecordingListener implements IRecordingListener {
 	public boolean init(IConnection conn, String name, boolean isAppend) {
 		// get connections scope
 		return init(conn.getScope(), name, isAppend);
-	}	
-	
+	}
+
 	/** {@inheritDoc} */
 	public boolean init(IScope scope, String name, boolean isAppend) {
 		// get the file for our filename
@@ -234,7 +234,7 @@ public class RecordingListener implements IRecordingListener {
 					processQueue();
 				} while (!queue.isEmpty());
 			}
-			recordingConsumer.uninit();			
+			recordingConsumer.uninit();
 		} else {
 			log.debug("Recording listener was already stopped");
 		}
@@ -242,22 +242,22 @@ public class RecordingListener implements IRecordingListener {
 
 	/** {@inheritDoc} */
 	public void packetReceived(IBroadcastStream stream, IStreamPacket packet) {
-		if(recording.get()!=true) {
+		if (recording.get()) {
+			// store everything we would need to perform a write of the stream data
+			CachedEvent event = new CachedEvent();
+			event.setData(packet.getData().duplicate());
+			event.setDataType(packet.getDataType());
+			event.setReceivedTime(System.currentTimeMillis());
+			event.setTimestamp(packet.getTimestamp());
+			// queue the event
+			if (!queue.add(event)) {
+				log.debug("Event packet not added to recording queue");
+			}
+		} else {
 			log.info("A packet was received by recording listener, but it's not recording anymore. {}", stream.getPublishedName());
-			return;
 		}
-		// store everything we would need to perform a write of the stream data
-		CachedEvent event = new CachedEvent();
-		event.setData(packet.getData().duplicate());
-		event.setDataType(packet.getDataType());
-		event.setReceivedTime(System.currentTimeMillis());
-		event.setTimestamp(packet.getTimestamp());
-		// queue the event
-		if (!queue.add(event)) {
-			log.debug("Event packet not added to recording queue");
-		}
-	}	
-	
+	}
+
 	/**
 	 * Process the queued items.
 	 */
@@ -352,24 +352,24 @@ public class RecordingListener implements IRecordingListener {
 	private class EventQueueJob implements IScheduledJob {
 
 		private AtomicBoolean processing = new AtomicBoolean(false);
-		
+
 		public void execute(ISchedulingService service) {
 			if (processing.compareAndSet(false, true)) {
 				try {
-    				if (!queue.isEmpty()) {
-    					if(log.isDebugEnabled()) {
-    						log.debug("Event queue size: {}", queue.size());
-    					}
-    					
-    					while (!queue.isEmpty()) {
-    						if(log.isTraceEnabled()) {
-    							log.trace("Taking one more item from queue, size: {}", queue.size());
-    						}
-    						processQueue();
-    					}
-    				} else {
-    					log.trace("Nothing to record.");
-    				}
+					if (!queue.isEmpty()) {
+						if (log.isDebugEnabled()) {
+							log.debug("Event queue size: {}", queue.size());
+						}
+
+						while (!queue.isEmpty()) {
+							if (log.isTraceEnabled()) {
+								log.trace("Taking one more item from queue, size: {}", queue.size());
+							}
+							processQueue();
+						}
+					} else {
+						log.trace("Nothing to record.");
+					}
 				} catch (Exception e) {
 					log.error("Error processing queue: " + e.getMessage(), e);
 				} finally {

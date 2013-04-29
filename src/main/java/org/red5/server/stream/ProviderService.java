@@ -193,7 +193,7 @@ public class ProviderService implements IProviderService {
 				try {
 					file = scope.getContext().getResource(filename).getFile();
 				} catch (FileNotFoundException e) {
-					log.debug("File "  + filename + " not found, nulling it.");
+					log.debug("File {} not found, nulling it", filename);
 					file = null;
 				}
 			} else {

@@ -615,9 +615,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		}
 		// one recording listener at a time via this entry point
 		if (recordingListener == null) {
-			// create a recording listener (per connection)
-			IRecordingListener listener = new RecordingListener();
-			
+			// create a recording listener (allow for implementation of custom IRecordingListener)
+			IRecordingListener listener = (IRecordingListener) ScopeUtils.getScopeService(conn.getScope(), IRecordingListener.class, RecordingListener.class);
 			// initialize the listener
 			if (listener.init(conn, name, isAppend)) {
 				// get decoder info if it exists for the stream

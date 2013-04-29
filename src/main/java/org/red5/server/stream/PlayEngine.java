@@ -1295,8 +1295,9 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
 				if (event.getProvider() != this) {
 					if (waiting) {
-						if(waitLiveJob != null)
+						if (waitLiveJob != null) {
 							schedulingService.removeScheduledJob(waitLiveJob);
+						}
 						waitLiveJob = null;
 						waiting = false;
 					}
@@ -1777,7 +1778,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 											break;
 										}
 									}
-								} else {								
+								} else {
 									// No more packets to send
 									log.debug("Ran out of packets");
 									runDeferredStop();
