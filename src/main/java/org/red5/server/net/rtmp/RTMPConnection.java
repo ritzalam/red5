@@ -163,7 +163,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	/**
 	 * Name of quartz job that keeps connection alive.
 	 */
-	private String keepAliveJobName;
+	protected String keepAliveJobName;
 
 	/**
 	 * Ping interval in ms to detect dead clients.
@@ -173,7 +173,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	/**
 	 * Maximum time in ms after which a client is disconnected because of inactivity.
 	 */
-	private volatile int maxInactivity = 60000;
+	protected volatile int maxInactivity = 60000;
 
 	/**
 	 * Data read interval
@@ -244,7 +244,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * Timestamp generator
 	 */
 	private final AtomicInteger timer = new AtomicInteger(0);
-
+	
 	/**
 	 * Creates anonymous RTMP connection without scope.
 	 * 
@@ -255,6 +255,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		// We start with an anonymous connection without a scope.
 		// These parameters will be set during the call of "connect" later.
 		super(type);
+		
 		running = new AtomicBoolean(false);
 	}
 
@@ -1082,8 +1083,13 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	public void startRoundTripMeasurement() {
 		if (pingInterval > 0 && keepAliveJobName == null) {
 			log.debug("startRoundTripMeasurement - {}", sessionId);
-			keepAliveJobName = schedulingService.addScheduledJob(pingInterval, new KeepAliveJob());
-			log.debug("Keep alive job name {} for client id {}", keepAliveJobName, getId());
+			try {
+				keepAliveJobName = schedulingService.addScheduledJob(pingInterval, new KeepAliveJob());
+				
+				log.debug("Keep alive job name {} for client id {}", keepAliveJobName, getId());
+			} catch (Exception e) {
+				log.error("Error creating keep alive job.");
+			} 
 		}
 	}
 

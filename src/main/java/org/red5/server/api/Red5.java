@@ -45,7 +45,7 @@ import org.red5.server.api.scope.IScope;
  * @author The Red5 Project
  * @author Luke Hubbard (luke@codegent.com)
  * @author Paul Gregoire (mondain@gmail.com) 
- * @author Tiago Daniel Jacobs (os@tdj.cc)
+ * @author Tiago Daniel Jacobs (os@tdj.cc)  
  */
 public final class Red5 {
 

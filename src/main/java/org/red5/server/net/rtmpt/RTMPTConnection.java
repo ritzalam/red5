@@ -18,6 +18,7 @@
 
 package org.red5.server.net.rtmpt;
 
+import java.lang.ref.WeakReference;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -84,9 +85,19 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	private String processJobName;
 
 	/**
+	 * Interval to check if user is still connected (miliseconds)
+	 * */
+	private final Integer connectionCheckInterval = 5000;
+	
+	/**
 	 * Process job run flag
 	 */
 	private final AtomicBoolean running;
+	
+	/**
+	 * Timestamp of last data received on the connection
+	 * */
+	private long tsLastDataReceived = 0;
 
 	/** Constructs a new RTMPTConnection. */
 	RTMPTConnection() {
@@ -129,6 +140,14 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	@Override
 	protected void onInactive() {
 		log.debug("Inactive connection id: {}, closing", getId());
+		if(servlet != null) {
+			servlet.notifyClosed(this);
+		}
+		
+		if(handler != null) {
+			handler.connectionClosed(this, this.getState());
+		}
+		
 		close();
 		realClose();
 	}
@@ -158,6 +177,7 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	public void setSchedulingService(ISchedulingService schedulingService) {
 		this.schedulingService = schedulingService;
 		processJobName = schedulingService.addScheduledJob(250, new ProcessJob(this));
+		keepAliveJobName = schedulingService.addScheduledJob(connectionCheckInterval, new CheckInactivityJob(new WeakReference(this)));
 	}
 
 	/**
@@ -220,7 +240,60 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 		}
 		return foldPendingMessages(targetSize);
 	}
-
+	
+	/**
+	 * Register timestamp that data was received
+	 * */
+	public void dataReceived() {
+		tsLastDataReceived = System.currentTimeMillis(); 
+	}
+	
+	/**
+	 * Get the timestamp of last data received
+	 * */
+	public Long getLastDataReceived() {
+		return tsLastDataReceived; 
+	}
+	
+	/**
+	 * Quartz job that keeps connection alive and disconnects if client is dead (RTMPT)
+	 */
+	private class CheckInactivityJob implements IScheduledJob {
+		private final WeakReference<RTMPTConnection> conn;
+		
+		public CheckInactivityJob(WeakReference<RTMPTConnection> conn) {
+			this.conn = conn;
+		}
+		
+		/** {@inheritDoc} */
+		public void execute(ISchedulingService service) {
+			// ensure the job is not already running
+			if (running.compareAndSet(false, true)) {
+				try {
+					log.debug("RTMPT check inactivity running.");
+					
+					RTMPTConnection connection = conn.get();
+					
+					if(connection != null) {
+						long lastTS = connection.getLastDataReceived();
+						long now = System.currentTimeMillis();
+						long tsDelta = now - lastTS;
+						
+						if(lastTS > 0 && tsDelta > maxInactivity) {
+							log.info("RTMPT client diconnected due to inactivity of {} ms", tsDelta);
+							onInactive();
+						}
+					}
+				} catch(Exception e) {
+					log.error("Error executing keepalive code: " + e.getMessage(), e);
+				} finally {
+    				// reset running flag
+    				running.compareAndSet(true, false);
+				}
+			}
+		}
+	}
+	
 	/**
 	 * Processes queued incoming messages.
 	 */

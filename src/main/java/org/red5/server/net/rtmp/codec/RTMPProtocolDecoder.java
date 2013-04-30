@@ -815,8 +815,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 			throw new RuntimeException("Action was null");
 		}
 		if (log.isTraceEnabled()) {
-			// XXX Tiago, did you get something other than java.lang.String here?
-			log.trace("Action " + action + ", class = " + action.getClass().getCanonicalName());
+			log.trace("Action " + action);
 		}
 		//TODO Handle NetStream.send? Where and how?
 		if (!(notify instanceof Invoke) && rtmp != null && header != null && header.getStreamId() != 0 && !isStreamCommand(action)) {
