@@ -268,6 +268,7 @@ public class RTMPTServlet extends HttpServlet {
 			conn.setDecoder(handler.getCodecFactory().getRTMPDecoder());
 			conn.setEncoder(handler.getCodecFactory().getRTMPEncoder());
 			handler.connectionOpened(conn, conn.getState());
+			conn.dataReceived();
 			// set thread local reference
 			Red5.setConnectionLocal(conn);			
 			if (conn.getId() != 0) {
@@ -333,6 +334,8 @@ public class RTMPTServlet extends HttpServlet {
 			// messages are either of IoBuffer or Packet type
 			// handshaking uses IoBuffer and everything else should be Packet
 			connection.read(messages);
+			
+			connection.dataReceived();
 			// return pending messages
 			returnPendingMessages(connection, resp);
 		} else {
@@ -354,6 +357,8 @@ public class RTMPTServlet extends HttpServlet {
 		// get associated connection
 		RTMPTConnection connection = getConnection();
 		if (connection != null) {
+			connection.dataReceived();
+			
 			// return pending
 			returnPendingMessages(connection, resp);
 		} else {

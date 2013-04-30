@@ -190,9 +190,9 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		// number of byte remaining in the buffer
 		int remaining = in.remaining();
 		switch (rtmp.getState()) {
-			// first step: client has connected and handshaking is not complete
+		// first step: client has connected and handshaking is not complete
 			case RTMP.STATE_CONNECT:
-				log.debug("Connecting");	
+				log.debug("Connecting");
 				if (remaining < HANDSHAKE_SIZE + 1) {
 					log.debug("Handshake init too small, buffering. remaining: {}", remaining);
 					rtmp.bufferDecoding(HANDSHAKE_SIZE + 1);
@@ -203,13 +203,13 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 					hs.flip();
 					rtmp.setState(RTMP.STATE_HANDSHAKE);
 					return hs;
-				}				
+				}
 				break;
 			// second step: all handshake data received, collecting handshake reply data
 			case RTMP.STATE_HANDSHAKE:
 				// TODO Paul: re-examine how remaining data is buffered between handshake reply and next message when using rtmpe
 				// connections sending partial tcp are getting dropped
-				log.debug("Handshake reply");		
+				log.debug("Handshake reply");
 				// how many bytes left to get
 				int required = rtmp.getDecoderBufferAmount();
 				log.trace("Handshake reply - required: {} remaining: {}", required, remaining);
@@ -221,7 +221,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 					rtmp.setState(RTMP.STATE_CONNECTED);
 					rtmp.continueDecoding();
 				}
-				break;				
+				break;
 		}
 		return null;
 	}
@@ -809,16 +809,14 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		}
 		String action = Deserializer.deserialize(input, String.class);
 		log.info("Action {}", action);
-		
 		//throw a runtime exception if there is no action
 		if (action == null) {
 			//TODO replace this with something better as time permits
 			throw new RuntimeException("Action was null");
 		}
-
-		if(log.isTraceEnabled())
-			log.trace("Action " + action + ", class = " + action.getClass().getCanonicalName());
-		
+		if (log.isTraceEnabled()) {
+			log.trace("Action " + action);
+		}
 		//TODO Handle NetStream.send? Where and how?
 		if (!(notify instanceof Invoke) && rtmp != null && header != null && header.getStreamId() != 0 && !isStreamCommand(action)) {
 			// don't decode "NetStream.send" requests

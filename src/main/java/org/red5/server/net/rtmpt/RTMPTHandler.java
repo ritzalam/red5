@@ -124,5 +124,4 @@ public class RTMPTHandler extends RTMPHandler {
 			super.messageReceived(in, session);
 		}
 	}
-	
 }

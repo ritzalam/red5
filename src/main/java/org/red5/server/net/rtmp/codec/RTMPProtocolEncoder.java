@@ -30,10 +30,8 @@ import org.red5.io.utils.BufferUtils;
 import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
-import org.red5.server.api.stream.IClientStream;
 import org.red5.server.exception.ClientDetailsException;
 import org.red5.server.net.protocol.ProtocolState;
-import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPUtils;
 import org.red5.server.net.rtmp.codec.RTMP.LiveTimestampMapping;
 import org.red5.server.net.rtmp.event.Aggregate;
@@ -96,7 +94,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	 */
 	private boolean dropLiveFuture;
 
-	private RTMPConnection conn;
+	//private RTMPConnection conn;
 
 	/**
 	 * Encodes object with given protocol state to byte buffer
@@ -249,31 +247,36 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 			if (isLive && dropLiveFuture) {
 				tardiness = Math.abs(tardiness);
 			}
+			
+			//TDJ: Removed this code, as ProtocolEncoder are not per-connection, it make no sense
+			//using only one connection in this place. 
+			
 			//subtract the ping time / latency from the tardiness value
-			log.trace("Connection: {}", conn);
-			if (conn != null) {
-				int lastPingTime = conn.getLastPingTime();
-				log.debug("Last ping time for connection: {}", lastPingTime);
-				if (lastPingTime > 0) {
-					tardiness -= lastPingTime;
-				}
-
-				//subtract the buffer time
-				int streamId = conn.getStreamIdForChannel(channelId);
-				IClientStream stream = conn.getStreamById(streamId);
-				if (stream != null) {
-					int clientBufferDuration = stream.getClientBufferDuration();
-					if (clientBufferDuration > 0) {
-						//two times the buffer duration seems to work best with vod
-						if (!isLive) {
-							tardiness -= clientBufferDuration * 2;
-						} else {
-							tardiness -= clientBufferDuration;
-						}
-					}
-					log.trace("Client buffer duration: {}", clientBufferDuration);
-				}
-			}
+			
+//			log.trace("Connection: {}", conn);
+//			if (conn != null) {
+//				int lastPingTime = conn.getLastPingTime();
+//				log.debug("Last ping time for connection: {}", lastPingTime);
+//				if (lastPingTime > 0) {
+//					tardiness -= lastPingTime;
+//				}
+//
+//				//subtract the buffer time
+//				int streamId = conn.getStreamIdForChannel(channelId);
+//				IClientStream stream = conn.getStreamById(streamId);
+//				if (stream != null) {
+//					int clientBufferDuration = stream.getClientBufferDuration();
+//					if (clientBufferDuration > 0) {
+//						//two times the buffer duration seems to work best with vod
+//						if (!isLive) {
+//							tardiness -= clientBufferDuration * 2;
+//						} else {
+//							tardiness -= clientBufferDuration;
+//						}
+//					}
+//					log.trace("Client buffer duration: {}", clientBufferDuration);
+//				}
+//			}
 
 			//TODO: how should we differ handling based on live or vod?
 
@@ -983,8 +986,8 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	 * 
 	 * @param conn active connection
 	 */
-	public void setConnection(RTMPConnection conn) {
-		this.conn = conn;
-	}
+//	public void setConnection(RTMPConnection conn) {
+//		this.conn = conn;
+//	}
 
 }
