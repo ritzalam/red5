@@ -65,7 +65,9 @@ public class ScopeUtils {
 		}
 		log.trace("Current: {}", current);
 		String[] parts = path.split(SLASH);
-		log.trace("Parts: {}", Arrays.toString(parts));
+		if (log.isTraceEnabled()) {
+			log.trace("Parts: {}", Arrays.toString(parts));
+		}
 		for (String part : parts) {
 			log.trace("Part: {}", part);
 			if (part.equals(".")) {
