@@ -26,6 +26,7 @@ import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolEncoderAdapter;
 import org.apache.mina.filter.codec.ProtocolEncoderOutput;
 import org.red5.server.net.protocol.ProtocolState;
+import org.red5.server.net.rtmp.RTMPConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,9 +44,8 @@ public class RTMPMinaProtocolEncoder extends ProtocolEncoderAdapter {
 	/** {@inheritDoc} */
 	public void encode(IoSession session, Object message, ProtocolEncoderOutput out) throws ProtocolCodecException {
 		final RTMP state = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
-		//TDJ: removed, see comment on encoder.
-		// pass the connection to the encoder for its use
-		//encoder.setConnection((RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY));
+		// pass the connection to the encoder for its use; encoders are PER connection, they are not shared
+		encoder.setConnection((RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY));
 		try {
 			final IoBuffer buf = encoder.encode(state, message);
 			if (buf != null) {
@@ -65,16 +65,16 @@ public class RTMPMinaProtocolEncoder extends ProtocolEncoderAdapter {
 			} else {
 				log.trace("Response buffer was null after encoding");
 			}
-//			WriteFuture future = out.flush();
-//			if (future != null) {
-//				future.addListener(new IoFutureListener<WriteFuture>() {
-//					@Override
-//					public void operationComplete(WriteFuture future) {
-//						//log.debug("Buffer freed");
-//						buf.free();
-//					}
-//				});
-//			}
+			//			WriteFuture future = out.flush();
+			//			if (future != null) {
+			//				future.addListener(new IoFutureListener<WriteFuture>() {
+			//					@Override
+			//					public void operationComplete(WriteFuture future) {
+			//						//log.debug("Buffer freed");
+			//						buf.free();
+			//					}
+			//				});
+			//			}
 		} catch (Exception ex) {
 			log.error("Exception during encode", ex);
 		}

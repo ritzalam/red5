@@ -749,9 +749,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 					IPlaylistSubscriberStream pss = (IPlaylistSubscriberStream) subscriberStream;
 					if (!pss.hasMoreItems()) {
 						releasePendingMessage();
-						if (pss.getItemSize() > 0) {
-							sendCompleteStatus();
-						}
+						sendCompleteStatus();
 						bytesSent.set(0);
 						sendClearPing();
 						sendStopStatus(currentItem);
@@ -767,7 +765,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			default:
 				throw new IllegalStateException(String.format("Cannot stop in current state: %s", subscriberStream.getState()));
 		}
-		// once we've stopped theres no need for the deffered job
+		// once we've stopped there's no need for the deferred job
 		if (deferredStop != null) {
 			subscriberStream.cancelJob(deferredStop);
 		}
