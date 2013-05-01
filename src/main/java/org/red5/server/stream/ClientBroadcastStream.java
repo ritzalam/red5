@@ -73,7 +73,6 @@ import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.stream.codec.StreamCodecInfo;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.StatusMessage;
-import org.red5.server.util.ScopeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -615,8 +614,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		}
 		// one recording listener at a time via this entry point
 		if (recordingListener == null) {
-			// create a recording listener (allow for implementation of custom IRecordingListener)
-			IRecordingListener listener = (IRecordingListener) ScopeUtils.getScopeService(conn.getScope(), IRecordingListener.class, RecordingListener.class);
+			// XXX Paul: Revisit this section to allow for implementation of custom IRecordingListener
+			//IRecordingListener listener = (IRecordingListener) ScopeUtils.getScopeService(conn.getScope(), IRecordingListener.class, RecordingListener.class, false);
+			// create a recording listener
+			IRecordingListener listener = new RecordingListener();
+			log.info("Created: {}", listener);
 			// initialize the listener
 			if (listener.init(conn, name, isAppend)) {
 				// get decoder info if it exists for the stream
