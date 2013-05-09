@@ -166,9 +166,13 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				case RTMP.STATE_HANDSHAKE:
 					return decodeHandshake(rtmp, in);
 				case RTMP.STATE_ERROR:
-					// attempt to correct error
+				case RTMP.STATE_DISCONNECTING:
+				case RTMP.STATE_DISCONNECTED:
+					// throw away any remaining input data:
+					in.position(in.limit());
+					return null;
 				default:
-					throw new IllegalStateException("Invalid RTMP state: " + rtmpState + ", nothing to decode");
+					throw new IllegalStateException("Invalid RTMP state: " + rtmpState);
 			}
 		} catch (ProtocolException pe) {
 			// raise to caller unmodified

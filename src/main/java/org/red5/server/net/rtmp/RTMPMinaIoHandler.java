@@ -90,30 +90,30 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		RTMP rtmp = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
 		log.trace("RTMP state: {}", rtmp);
 		RTMPMinaConnection conn = (RTMPMinaConnection) session.removeAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
-		try {
-			// fire-off closed event
-			handler.connectionClosed(conn, rtmp);
-			// clear any session attributes we may have previously set
-			// TODO: verify this cleanup code is necessary. The session is over and will be garbage collected surely?
-			if (session.containsAttribute(RTMPConnection.RTMP_HANDSHAKE)) {
-				session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
-			}
-			if (session.containsAttribute(RTMPConnection.RTMPE_CIPHER_IN)) {
-				session.removeAttribute(RTMPConnection.RTMPE_CIPHER_IN);
-				session.removeAttribute(RTMPConnection.RTMPE_CIPHER_OUT);
-			}
-		} finally {
-			// remove RTMP state now
-			session.removeAttribute(ProtocolState.SESSION_KEY);
-			// always remove the connection from the RTMP manager even if unexpected exception gets thrown e.g. by handler.connectionClosed
-			// otherwise connection stays around forever, and everything it references e.g. Client, ...
-			int id = conn.getId();
-			// handle the times when a connection does not have a client yet
-			if (id == -1) {
-				rtmpConnManager.removeConnection(conn.getSessionId().hashCode());
-			} else {
-				rtmpConnManager.removeConnection(conn.getId());
-			}
+		if (conn != null) {
+			try {
+				// fire-off closed event
+				handler.connectionClosed(conn, rtmp);
+				// clear any session attributes we may have previously set
+				// TODO: verify this cleanup code is necessary. The session is over and will be garbage collected surely?
+				if (session.containsAttribute(RTMPConnection.RTMP_HANDSHAKE)) {
+					session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
+				}
+				if (session.containsAttribute(RTMPConnection.RTMPE_CIPHER_IN)) {
+					session.removeAttribute(RTMPConnection.RTMPE_CIPHER_IN);
+					session.removeAttribute(RTMPConnection.RTMPE_CIPHER_OUT);
+				}
+			} finally {
+				// remove RTMP state now
+				session.removeAttribute(ProtocolState.SESSION_KEY);
+				// always remove the connection from the RTMP manager even if unexpected exception gets thrown e.g. by handler.connectionClosed
+				// otherwise connection stays around forever, and everything it references e.g. Client, ...
+				int id = conn.getId();
+				// handle the times when a connection does not have a client yet (session id)
+				rtmpConnManager.removeConnection(id != -1 ? id : conn.getSessionId().hashCode());
+			}		
+		} else {
+			log.warn("Connection was null in session");
 		}
 	}
 
