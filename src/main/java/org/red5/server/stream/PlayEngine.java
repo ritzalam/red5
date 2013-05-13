@@ -762,6 +762,12 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 					}
 				}
 				break;
+			case CLOSED:
+				clearWaitJobs();
+				if (deferredStop != null) {
+					subscriberStream.cancelJob(deferredStop);
+					deferredStop = null;
+				}				
 			default:
 				throw new IllegalStateException(String.format("Cannot stop in current state: %s", subscriberStream.getState()));
 		}

@@ -816,17 +816,37 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		int previousTagSize = in.getInt();
 		// start of the flv tag
 		byte dataType = in.get();
-		// loop counter
-		int i = 0;
-		while (dataType != 8 && dataType != 9 && dataType != 18) {
-			log.debug("Invalid data type detected, reading ahead");
-			log.debug("Current position: {} limit: {}", in.position(), in.limit());
-			// only allow 10 loops
-			if (i++ > 10) {
-				return null;
-			}
-			// move ahead and see if we get a valid datatype		
-			dataType = in.get();
+		if (log.isTraceEnabled()) {
+			log.trace("Bits: {}", Integer.toBinaryString(dataType));
+		}
+		dataType = (byte) (dataType & 31);
+		byte filter = (byte) ((dataType & 63) >> 5);
+		byte reserved = (byte) ((dataType & 127) >> 6);
+		log.debug("Reserved: {}, Filter: {}, Datatype: {}", reserved, filter, dataType);
+		switch (dataType) {
+			case 8: // audio
+				log.debug("Found audio");
+				break;
+			case 9: // video
+				log.debug("Found video");
+				break;
+			case 15: // special fms undocumented type?
+			case 18: // meta / script data
+				log.debug("Found meta/script data");			
+				break;
+			default:
+				log.debug("Invalid data type detected ({}), reading ahead", dataType);
+				log.debug("Current position: {} limit: {}", in.position(), in.limit());
+				// loop a few times to see if we find a usable data type
+				int i = 0;
+				while (dataType != 8 && dataType != 9 && dataType != 18) {
+					// only allow 10 loops
+					if (i++ > 10) {
+						return null;
+					}
+					// move ahead and see if we get a valid datatype		
+					dataType = in.get();
+				}
 		}
 		//		byte aacType = 0;
 		//		if (dataType == 8 && keyframeMeta.audioCodecId == AudioCodec.AAC.getId()) {

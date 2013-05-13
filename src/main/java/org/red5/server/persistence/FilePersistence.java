@@ -564,7 +564,7 @@ public class FilePersistence extends RamPersistence {
 	@Override
 	public boolean save(IPersistable object) {
 		if (super.save(object)) {
-			queue.add(object);
+			return queue.add(object);
 		}
 		return false;
 	}

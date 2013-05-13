@@ -24,10 +24,29 @@ public class FLVReaderTest {
 	}
 
 	@Test
+	public void testFLVReaderFileWithPreProcessInfo() {
+		File file = new File("target/test-classes/fixtures/131647.flv");
+		//File file = new File("target/test-classes/fixtures/test.flv");
+		try {
+			FLVReader reader = new FLVReader(file, true);
+			KeyFrameMeta meta = reader.analyzeKeyFrames();
+			log.debug("Meta: {}", meta);
+			ITag tag = null;
+			for (int t = 0; t < 6; t++) {
+				tag = reader.readTag();
+				log.debug("Tag: {}", tag);
+			}
+			reader.close();
+			log.info("----------------------------------------------------------------------------------");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
 	public void testFLVReaderFile() {
-		File[] files = new File[] { new File("test/resources/fixtures/h264_aac.flv"), new File("test/resources/fixtures/h264_mp3.flv"),
-				new File("test/resources/fixtures/h264_speex.flv") };
-
+		File[] files = new File[] { new File("target/test-classes/fixtures/h264_aac.flv"), new File("target/test-classes/fixtures/h264_mp3.flv"),
+				new File("target/test-classes/fixtures/h264_speex.flv") };
 		try {
 			for (File file : files) {
 				FLVReader reader = new FLVReader(file, true);
@@ -36,17 +55,16 @@ public class FLVReaderTest {
 				log.debug("Meta: {}", meta);
 
 				ITag tag = null;
-				for (int t = 0; t < 32; t++) {
+				for (int t = 0; t < 6; t++) {
 					tag = reader.readTag();
 					log.debug("Tag: {}", tag);
 				}
-
 				reader.close();
 				log.info("----------------------------------------------------------------------------------");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 	}
+	
 }
