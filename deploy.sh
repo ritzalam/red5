@@ -1,9 +1,12 @@
 #!/bin/bash
 
+set -x
+
+
 #RED5_SRC=/home/firstuser/dev/red5/red5
 RED5_SRC=$(pwd)
 RED5_DIR=/usr/share/red5
-NEW_RED5=/usr/share/red5-r4628
+NEW_RED5=/usr/share/red5-r4639
 
 echo "Preparing build"
 mvn clean
@@ -42,13 +45,14 @@ DESKSHARE=/home/firstuser/dev/source/bigbluebutton/deskshare
 VOICE=/home/firstuser/dev/source/bigbluebutton/bbb-voice
 VIDEO=/home/firstuser/dev/source/bigbluebutton/bbb-video
 APPS=/home/firstuser/dev/source/bigbluebutton/bigbluebutton-apps
-RED5_JAR=red5-1.0r4627.jar
+RED5_JAR=red5-1.0r4639.jar
+NEW_RED5_JAR=target/red5-server-1.0.2-SNAPSHOT/red5-server.jar
 
 echo "Copying red5 jar"
-cp target/red5-server-1.0.2-SNAPSHOT.jar $DESKSHARE/lib/$RED5_JAR
-cp target/red5-server-1.0.2-SNAPSHOT.jar $VOICE/lib/$RED5_JAR
-cp target/red5-server-1.0.2-SNAPSHOT.jar $VIDEO/lib/$RED5_JAR
-cp target/red5-server-1.0.2-SNAPSHOT.jar $APPS/lib/$RED5_JAR
+cp $NEW_RED5_JAR $DESKSHARE/lib/$RED5_JAR
+cp $NEW_RED5_JAR $VOICE/lib/$RED5_JAR
+cp $NEW_RED5_JAR $VIDEO/lib/$RED5_JAR
+cp $NEW_RED5_JAR $APPS/lib/$RED5_JAR
 
 echo "Building apps"
 cd $APPS

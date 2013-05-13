@@ -29,7 +29,7 @@ YOURKIT="-agentpath:/home/firstuser/yourkit/yjp-12.0.3/bin/linux-x86-32/libyjpag
 
 # JAVA options
 # You can set JAVA_OPTS to add additional options if you want
-JVM_OPTS="-Xverify:none -XX:+TieredCompilation -XX:+UseBiasedLocking -XX:+UseStringCache -XX:+OptimizeStringConcat -XX:+UseParNewGC -XX:InitialCodeCacheSize=8m -XX:ReservedCodeCacheSize=32m -Dorg.terracotta.quartz.skipUpdateCheck=true"
+JVM_OPTS="-Xverify:none -XX:+TieredCompilation -XX:+UseBiasedLocking -XX:+UseStringCache -XX:+OptimizeStringConcat -XX:+UseParallelOldGC -XX:+UseParallelGC -XX:+UseParNewGC -XX:InitialCodeCacheSize=8m -XX:ReservedCodeCacheSize=32m -Dorg.terracotta.quartz.skipUpdateCheck=true"
 # Set up logging options
 LOGGING_OPTS="-Dlogback.ContextSelector=org.red5.logging.LoggingContextSelector -Dcatalina.useNaming=true"
 # Set up security options
