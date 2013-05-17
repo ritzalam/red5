@@ -24,8 +24,6 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.core.write.WriteToClosedSessionException;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
-import org.red5.server.api.IConnection;
-import org.red5.server.api.Red5;
 import org.red5.server.net.IConnectionManager;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
@@ -56,17 +54,19 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		// moved protocol state from connection object to RTMP object
 		RTMP rtmp = new RTMP();
 		session.setAttribute(ProtocolState.SESSION_KEY, rtmp);
-		//add rtmpe filter
+		// add rtmpe filter
 		session.getFilterChain().addFirst("rtmpeFilter", new RTMPEIoFilter());
-		//add protocol filter next
+		// add protocol filter next
 		session.getFilterChain().addLast("protocolFilter", new ProtocolCodecFilter(codecFactory));
-		//create a connection
+		// create a connection
 		RTMPMinaConnection conn = createRTMPMinaConnection();
 		conn.setIoSession(session);
 		conn.setState(rtmp);
-		//add the connection
+		// add the handler
+		conn.setHandler(handler);
+		// add the connection
 		session.setAttribute(RTMPConnection.RTMP_CONNECTION_KEY, conn);
-		//add the inbound handshake
+		// add the in-bound handshake
 		session.setAttribute(RTMPConnection.RTMP_HANDSHAKE, new InboundHandshake());
 	}
 
@@ -164,11 +164,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		if (message instanceof IoBuffer) {
 			rawBufferRecieved((IoBuffer) message, session);
 		} else {
-			log.trace("Setting connection local");
-			Red5.setConnectionLocal((IConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY));
-			handler.messageReceived(message, session);
-			log.trace("Removing connection local");
-			Red5.setConnectionLocal(null);
+			((RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY)).handleMessageReceived(message, session);
 		}
 	}
 

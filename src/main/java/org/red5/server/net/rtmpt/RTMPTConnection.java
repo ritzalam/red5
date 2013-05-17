@@ -96,10 +96,10 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 
 	/**
 	 * Timestamp of last data received on the connection
-	 * */
+	 */
 	private long tsLastDataReceived = 0;
 
-	/** Constructs a new RTMPTConnection. */
+	/** Constructs a new RTMPTConnection */
 	RTMPTConnection() {
 		super(POLLING);
 		state = new RTMP();
@@ -272,14 +272,11 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 			if (running.compareAndSet(false, true)) {
 				try {
 					log.debug("RTMPT check inactivity running.");
-
 					RTMPTConnection connection = conn.get();
-
 					if (connection != null) {
 						long lastTS = connection.getLastDataReceived();
 						long now = System.currentTimeMillis();
 						long tsDelta = now - lastTS;
-
 						if (lastTS > 0 && tsDelta > maxInactivity) {
 							log.info("RTMPT client diconnected due to inactivity of {} ms", tsDelta);
 							onInactive();
