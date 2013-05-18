@@ -28,7 +28,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.mina.core.buffer.IoBuffer;
-import org.red5.server.net.rtmp.IRTMPHandler;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.codec.RTMPProtocolDecoder;
@@ -78,11 +77,6 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 * Byte buffer
 	 */
 	private volatile IoBuffer buffer;
-
-	/**
-	 * RTMP events handler
-	 */
-	protected IRTMPHandler handler;
 
 	/**
 	 * List of pending incoming messages
@@ -368,10 +362,6 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 			writtenBytes.addAndGet(sendSize);
 		}
 		return result;
-	}
-
-	public void setHandler(IRTMPHandler handler) {
-		this.handler = handler;
 	}
 
 	public void setDecoder(RTMPProtocolDecoder decoder) {

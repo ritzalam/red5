@@ -20,6 +20,14 @@
 	</bean>
 	
 	<!-- RTMP -->
+    <bean id="messageExecutor" scope="prototype" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">  
+        <property name="corePoolSize" value="1" />  
+        <property name="maxPoolSize" value="3" />  
+        <property name="queueCapacity" value="32" /> 
+        <property name="waitForTasksToCompleteOnShutdown" value="true"/>
+        <property name="daemon" value="true"/>
+        <property name="threadNamePrefix" value="RTMPMessageExecutor-"/>
+    </bean>	
         
     <!-- RTMP connection manager --> 
     <bean id="rtmpConnManager" class="org.red5.server.net.rtmp.RTMPConnManager" />  	
@@ -94,6 +102,8 @@
         <property name="limitType" value="${rtmp.client_bandwidth_limit_type}" />
         <!-- Bandwidth detection. If "false" the server will NOT initiate a check -->
         <property name="bandwidthDetection" value="${rtmp.bandwidth_detection}" />
+        <!-- Allows handling of received messages in separate threads -->
+        <property name="executor" ref="messageExecutor" />
 	</bean>
 	
 	<!-- RTMPT -->

@@ -1169,6 +1169,27 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	}
 
 	/**
+	 * Start transmission notification from Flash Player 11.1+. This command asks the server to transmit more data because the buffer is running low.
+	 * 
+	 * http://help.adobe.com/en_US/flashmediaserver/devguide/WSd391de4d9c7bd609-569139412a3743e78e-8000.html
+	 * 
+	 * @param bool
+	 * @param num
+	 */
+	public void startTransmit(Boolean bool, int num) {		
+	}
+
+	/**
+	 * Stop transmission notification from Flash Player 11.1+. This command asks the server to suspend transmission until the client sends a 
+	 * startTransmit event because there is enough data in the buffer.
+	 * 
+	 * @param bool
+	 * @param num
+	 */
+	public void stopTransmit() {		
+	}
+	
+	/**
 	 * Notification method that is sent by FME just before publishing starts.
 	 * 
 	 * @param streamName
