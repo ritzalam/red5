@@ -208,7 +208,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 	/** {@inheritDoc} */
 	@SuppressWarnings({ "unchecked" })
 	@Override
-	protected void onInvoke(RTMPConnection conn, Channel channel, Header source, Notify invoke, RTMP rtmp) {
+	protected void onInvoke(RTMPConnection conn, Channel channel, Header source, Notify invoke) {
 		log.debug("{}", invoke);
 		// Get call
 		final IServiceCall call = invoke.getCall();
@@ -378,7 +378,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 							((IPendingServiceCall) call).setResult(result);
 						}
 					}
-					rtmp.setEncoding(Encoding.AMF3);
+					conn.getState().setEncoding(Encoding.AMF3);
 				}
 			} else {
 				StreamAction streamAction = StreamAction.getEnum(action);

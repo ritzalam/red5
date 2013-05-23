@@ -19,7 +19,6 @@
 package org.red5.server.net.rtmp;
 
 import org.apache.mina.core.session.IoSession;
-import org.red5.server.net.rtmp.codec.RTMP;
 
 /**
  * RTMP events handler
@@ -29,9 +28,8 @@ public interface IRTMPHandler {
      * Connection open event
      * 
      * @param conn          Connection
-     * @param state         RTMP state
      */
-	public void connectionOpened(RTMPConnection conn, RTMP state);
+	public void connectionOpened(RTMPConnection conn);
 
     /**
      * Message received
@@ -52,8 +50,7 @@ public interface IRTMPHandler {
     /**
      * Connection closed
      * @param conn          Connection
-     * @param state         RTMP state
      */
-	public void connectionClosed(RTMPConnection conn, RTMP state);
+	public void connectionClosed(RTMPConnection conn);
 	
 }

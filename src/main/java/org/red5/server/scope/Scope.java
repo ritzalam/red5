@@ -270,12 +270,15 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	public boolean connect(IConnection conn, Object[] params) {
 		log.debug("Connect - scope: {} connection: {}", this, conn);
 		if (hasParent() && !parent.connect(conn, params)) {
+			log.debug("Connection to parent failed");
 			return false;
 		}
 		if (hasHandler() && !getHandler().connect(conn, this, params)) {
+			log.debug("Connection to handler failed");
 			return false;
 		}
 		if (!conn.isConnected()) {
+			log.debug("Connection is not connected");
 			// timeout while connecting client
 			return false;
 		}

@@ -43,8 +43,6 @@ public class RTMPMinaProtocolDecoder extends ProtocolDecoderAdapter {
 
 	/** {@inheritDoc} */
 	public void decode(IoSession session, IoBuffer in, ProtocolDecoderOutput out) throws ProtocolCodecException {
-		// get our state
-		final ProtocolState state = (ProtocolState) session.getAttribute(ProtocolState.SESSION_KEY);
 		// create a buffer and store it on the session
 		IoBuffer buf = (IoBuffer) session.getAttribute("buffer");
 		if (buf == null) {
@@ -56,11 +54,14 @@ public class RTMPMinaProtocolDecoder extends ProtocolDecoderAdapter {
 		buf.flip();
 		// look for the connection local, if not set then get from the session and set it to prevent any
 		// decode failures
-		if (Red5.getConnectionLocal() == null) {
+		RTMPConnection conn = (RTMPConnection) Red5.getConnectionLocal();
+		if (conn == null) {
 			// get the connection from the session
-			RTMPConnection conn = (RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
+			conn = (RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 			Red5.setConnectionLocal(conn);
 		}
+		// get our state
+		ProtocolState state = (ProtocolState) conn.getState();
 		// construct any objects from the decoded bugger
 		List<?> objects = decoder.decodeBuffer(state, buf);
 		if (objects != null) {

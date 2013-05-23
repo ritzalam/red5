@@ -32,8 +32,6 @@ import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.transport.socket.SocketSessionConfig;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
-import org.red5.server.net.protocol.ProtocolState;
-import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.message.Packet;
 import org.slf4j.Logger;
@@ -108,7 +106,6 @@ public class DebugProxyHandler extends IoHandlerAdapter implements ResourceLoade
 
 		if (log.isDebugEnabled()) {
 			log.debug("Is downstream: " + isClient);
-			session.setAttribute(ProtocolState.SESSION_KEY, new RTMP());
 			session.getFilterChain().addFirst("protocol", new ProtocolCodecFilter(codecFactory));
 		}
 

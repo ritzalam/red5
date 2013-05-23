@@ -24,12 +24,10 @@ import java.util.Set;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.IoSession;
 import org.red5.server.api.event.IEventDispatcher;
-import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.stream.IClientStream;
-import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.ChunkSize;
@@ -48,25 +46,15 @@ import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.so.SharedObjectMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 /**
  * Base class for all RTMP handlers.
  * 
  * @author The Red5 Project
  */
-public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, StatusCodes, ApplicationContextAware {
-	/**
-	 * Logger
-	 */
-	private static Logger log = LoggerFactory.getLogger(BaseRTMPHandler.class);
+public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, StatusCodes {
 
-	/**
-	 * Application context
-	 */
-	private ApplicationContext appCtx;
+	private static Logger log = LoggerFactory.getLogger(BaseRTMPHandler.class);
 
 	// XXX: HACK HACK HACK to support stream ids
 	private static ThreadLocal<Integer> streamLocal = new ThreadLocal<Integer>();
@@ -92,17 +80,9 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 	}
 
 	/** {@inheritDoc} */
-	public void setApplicationContext(ApplicationContext appCtx) throws BeansException {
-		this.appCtx = appCtx;
-	}
-
-	/** {@inheritDoc} */
-	public void connectionOpened(RTMPConnection conn, RTMP state) {
-		log.trace("connectionOpened - conn: {} state: {}", conn, state);
-		if (appCtx != null) {
-			ISchedulingService service = (ISchedulingService) appCtx.getBean(ISchedulingService.BEAN_NAME);
-			conn.startWaitForHandshake(service);
-		}
+	public void connectionOpened(RTMPConnection conn) {
+		log.trace("connectionOpened - conn: {} state: {}", conn, conn.getState());
+		conn.open();
 	}
 
 	/** {@inheritDoc} */
@@ -129,7 +109,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 					break;
 				case TYPE_INVOKE:
 				case TYPE_FLEX_MESSAGE:
-					onInvoke(conn, channel, header, (Invoke) message, (RTMP) session.getAttribute(ProtocolState.SESSION_KEY));
+					onInvoke(conn, channel, header, (Invoke) message);
 					IPendingServiceCall call = ((Invoke) message).getCall();
 					if (message.getHeader().getStreamId() != 0 && call.getServiceName() == null && StreamAction.PUBLISH.equals(call.getServiceMethodName())) {
 						if (stream != null) {
@@ -143,7 +123,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 						// Stream metadata
 						((IEventDispatcher) stream).dispatchEvent(message);
 					} else {
-						onInvoke(conn, channel, header, (Notify) message, (RTMP) session.getAttribute(ProtocolState.SESSION_KEY));
+						onInvoke(conn, channel, header, (Notify) message);
 					}
 					break;
 				case TYPE_FLEX_STREAM_SEND:
@@ -209,9 +189,9 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 	}
 
 	/** {@inheritDoc} */
-	public void connectionClosed(RTMPConnection conn, RTMP state) {
+	public void connectionClosed(RTMPConnection conn) {
 		// set as disconnected
-		state.setState(RTMP.STATE_DISCONNECTED);
+		conn.setStateCode(RTMP.STATE_DISCONNECTED);
 		// inform any callbacks for pending calls that the connection is closed
 		conn.sendPendingServiceCallsCloseError();
 		// close the connection
@@ -301,10 +281,8 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 	 *            Header
 	 * @param invoke
 	 *            Invocation event context
-	 * @param rtmp
-	 *            RTMP connection state
 	 */
-	protected abstract void onInvoke(RTMPConnection conn, Channel channel, Header source, Notify invoke, RTMP rtmp);
+	protected abstract void onInvoke(RTMPConnection conn, Channel channel, Header source, Notify invoke);
 
 	/**
 	 * Ping event handler.

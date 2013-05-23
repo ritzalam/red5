@@ -25,7 +25,6 @@ import org.apache.mina.core.write.WriteToClosedSessionException;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.red5.server.net.IConnectionManager;
-import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmpe.RTMPEIoFilter;
 import org.slf4j.Logger;
@@ -51,9 +50,6 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 	@Override
 	public void sessionCreated(IoSession session) throws Exception {
 		log.debug("Session created");
-		// moved protocol state from connection object to RTMP object
-		RTMP rtmp = new RTMP();
-		session.setAttribute(ProtocolState.SESSION_KEY, rtmp);
 		// add rtmpe filter
 		session.getFilterChain().addFirst("rtmpeFilter", new RTMPEIoFilter());
 		// add protocol filter next
@@ -61,7 +57,6 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		// create a connection
 		RTMPMinaConnection conn = createRTMPMinaConnection();
 		conn.setIoSession(session);
-		conn.setState(rtmp);
 		// add the handler
 		conn.setHandler(handler);
 		// add the connection
@@ -75,9 +70,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 	public void sessionOpened(IoSession session) throws Exception {
 		log.info("Session opened: {}", session.getId());
 		super.sessionOpened(session);
-		// get protocol state
-		RTMP rtmp = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
-		handler.connectionOpened((RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY), rtmp);
+		handler.connectionOpened((RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY));
 	}
 
 	/** {@inheritDoc} */
@@ -87,13 +80,11 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		if (log.isTraceEnabled()) {
 			log.trace("Session attributes: {}", session.getAttributeKeys());
 		}
-		RTMP rtmp = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
-		log.trace("RTMP state: {}", rtmp);
 		RTMPMinaConnection conn = (RTMPMinaConnection) session.removeAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		if (conn != null) {
 			try {
 				// fire-off closed event
-				handler.connectionClosed(conn, rtmp);
+				handler.connectionClosed(conn);
 				// clear any session attributes we may have previously set
 				// TODO: verify this cleanup code is necessary. The session is over and will be garbage collected surely?
 				if (session.containsAttribute(RTMPConnection.RTMP_HANDSHAKE)) {
@@ -104,8 +95,6 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 					session.removeAttribute(RTMPConnection.RTMPE_CIPHER_OUT);
 				}
 			} finally {
-				// remove RTMP state now
-				session.removeAttribute(ProtocolState.SESSION_KEY);
 				// always remove the connection from the RTMP manager even if unexpected exception gets thrown e.g. by handler.connectionClosed
 				// otherwise connection stays around forever, and everything it references e.g. Client, ...
 				int id = conn.getId();
@@ -127,10 +116,9 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 	 */
 	protected void rawBufferRecieved(IoBuffer in, IoSession session) {
 		log.trace("rawBufferRecieved: {}", in);
-		final RTMP rtmp = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
-		log.trace("state: {}", rtmp);
 		final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		RTMPHandshake handshake = (RTMPHandshake) session.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
+		RTMP rtmp = conn.getState();
 		if (handshake != null) {
 			if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
 				log.warn("Raw buffer after handshake, something odd going on");
@@ -164,7 +152,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		if (message instanceof IoBuffer) {
 			rawBufferRecieved((IoBuffer) message, session);
 		} else {
-			((RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY)).handleMessageReceived(message, session);
+			((RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY)).handleMessageReceived(message);
 		}
 	}
 

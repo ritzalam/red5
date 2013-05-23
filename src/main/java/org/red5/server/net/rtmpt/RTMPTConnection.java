@@ -20,7 +20,6 @@ package org.red5.server.net.rtmpt;
 
 import java.lang.ref.WeakReference;
 import java.util.LinkedList;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -31,9 +30,7 @@ import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.Red5;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
-import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.RTMPConnection;
-import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.servlet.ServletUtils;
 import org.slf4j.Logger;
 
@@ -90,11 +87,6 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	private final Integer connectionCheckInterval = 5000;
 
 	/**
-	 * Process job run flag
-	 */
-	private final AtomicBoolean running;
-
-	/**
 	 * Timestamp of last data received on the connection
 	 */
 	private long tsLastDataReceived = 0;
@@ -102,8 +94,6 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	/** Constructs a new RTMPTConnection */
 	RTMPTConnection() {
 		super(POLLING);
-		state = new RTMP();
-		running = new AtomicBoolean(false);
 	}
 
 	/**
@@ -114,7 +104,6 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	protected IoSession getSession() {
 		IoSession session = new DummySession();
 		session.setAttribute(RTMPConnection.RTMP_CONNECTION_KEY, this);
-		session.setAttribute(ProtocolState.SESSION_KEY, getState());
 		return session;
 	}
 
@@ -143,11 +132,9 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 		if (servlet != null) {
 			servlet.notifyClosed(this);
 		}
-
 		if (handler != null) {
-			handler.connectionClosed(this, this.getState());
+			handler.connectionClosed(this);
 		}
-
 		close();
 		realClose();
 	}

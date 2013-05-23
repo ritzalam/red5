@@ -20,7 +20,6 @@ package org.red5.server.net.rtmpt;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.IoSession;
-import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.InboundHandshake;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPHandler;
@@ -115,7 +114,7 @@ public class RTMPTHandler extends RTMPHandler {
 		log.debug("messageReceived");
 		if (in instanceof IoBuffer) {
 			RTMPTConnection conn = (RTMPTConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
-			RTMP state = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
+			RTMP state = conn.getState();
 			log.trace("state: {}", state);
 			rawBufferReceived(conn, state, (IoBuffer) in);
 			((IoBuffer) in).free();

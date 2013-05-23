@@ -267,7 +267,7 @@ public class RTMPTServlet extends HttpServlet {
 			conn.setHandler(handler);
 			conn.setDecoder(handler.getCodecFactory().getRTMPDecoder());
 			conn.setEncoder(handler.getCodecFactory().getRTMPEncoder());
-			handler.connectionOpened(conn, conn.getState());
+			handler.connectionOpened(conn);
 			conn.dataReceived();
 			// set thread local reference
 			Red5.setConnectionLocal(conn);
@@ -301,7 +301,7 @@ public class RTMPTServlet extends HttpServlet {
 		RTMPTConnection connection = getConnection();
 		if (connection != null) {
 			log.debug("Pending messges on close: {}", connection.getPendingMessages());
-			handler.connectionClosed(connection, connection.getState());
+			handler.connectionClosed(connection);
 			returnMessage((byte) 0, resp);
 			connection.close();
 			connection.realClose();

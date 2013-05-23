@@ -305,6 +305,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	 * @return       true if connection is bound to scope, false otherwise
 	 */
 	public boolean isConnected() {
+		log.debug("Connected: {}", (scope != null));
 		return scope != null;
 	}
 
@@ -314,7 +315,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	 * @return             true on success, false otherwise
 	 */
 	public boolean connect(IScope newScope) {
-		return connect(newScope, new Object[] {});
+		return connect(newScope, null);
 	}
 
 	/**
@@ -326,8 +327,10 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	public boolean connect(IScope newScope, Object[] params) {
 		if (log.isDebugEnabled()) {
 			log.debug("Connect Params: {}", params);
-			for (Object e : params) {
-				log.debug("Param: {}", e);
+			if (params != null) {
+				for (Object e : params) {
+					log.debug("Param: {}", e);
+				}
 			}
 		}
 		// disconnect from old scope(s), then reconnect to new scopes. 

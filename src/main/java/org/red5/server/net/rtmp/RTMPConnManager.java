@@ -34,6 +34,7 @@ import org.red5.server.net.rtmpt.RTMPTConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
@@ -42,7 +43,7 @@ import org.springframework.context.ApplicationContextAware;
  * 
  * @author The Red5 Project
  */
-public class RTMPConnManager implements IConnectionManager<RTMPConnection>, ApplicationContextAware {
+public class RTMPConnManager implements IConnectionManager<RTMPConnection>, ApplicationContextAware, DisposableBean {
 
 	private static final Logger log = LoggerFactory.getLogger(RTMPConnManager.class);
 
@@ -187,6 +188,9 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection>, Appl
 
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		RTMPConnManager.applicationContext = applicationContext;
+	}
+
+	public void destroy() throws Exception {
 	}
 
 }

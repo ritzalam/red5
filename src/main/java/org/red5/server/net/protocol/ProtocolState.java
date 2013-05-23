@@ -22,10 +22,6 @@ package org.red5.server.net.protocol;
  * Represents current state of protocol.
  */
 public class ProtocolState {
-    /**
-     * Session key constant.
-     */
-	public static final String SESSION_KEY = "protocol_state";
 
     /**
      * Decoding finished successfully state constant.

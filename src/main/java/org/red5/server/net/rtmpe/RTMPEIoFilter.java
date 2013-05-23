@@ -25,7 +25,6 @@ import org.apache.mina.core.filterchain.IoFilterAdapter;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.core.write.WriteRequest;
 import org.apache.mina.core.write.WriteRequestWrapper;
-import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPHandshake;
 import org.red5.server.net.rtmp.RTMPMinaConnection;
@@ -46,7 +45,8 @@ public class RTMPEIoFilter extends IoFilterAdapter {
 
 	@Override
 	public void messageReceived(NextFilter nextFilter, IoSession session, Object obj) throws Exception {
-		RTMP rtmp = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
+		RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
+		RTMP rtmp = conn.getState();
 		//if there is a handshake on the session, ensure the type has been set
 		if (session.containsAttribute(RTMPConnection.RTMP_HANDSHAKE)) {
 			log.trace("Handshake exists on the session");
@@ -77,7 +77,6 @@ public class RTMPEIoFilter extends IoFilterAdapter {
 				}
 			} else if (handshakeType == 6) {
 				// ensure we have received enough bytes to be encrypted
-				RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 				long readBytesCount = conn.getReadBytes();
 				long writeBytesCount = conn.getWrittenBytes();
 				log.trace("Bytes read: {} written: {}", readBytesCount, writeBytesCount);
@@ -112,7 +111,7 @@ public class RTMPEIoFilter extends IoFilterAdapter {
     				// TODO verify reply, for now just set to connected
     				rtmp.setState(RTMP.STATE_CONNECTED);
 				} else {
-					log.warn("There may be a network issue on this RTMPE connection: {}", session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY));
+					log.warn("There may be a network issue on this RTMPE connection: {}", conn);
 					return;
 				}
 			}

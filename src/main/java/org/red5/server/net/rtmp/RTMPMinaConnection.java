@@ -25,19 +25,21 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.StandardMBean;
 
 import org.apache.mina.core.buffer.IoBuffer;
-import org.apache.mina.core.filterchain.IoFilterChain;
 import org.apache.mina.core.future.CloseFuture;
 import org.apache.mina.core.future.IoFutureListener;
 import org.apache.mina.core.session.IoSession;
+import org.red5.server.api.Red5;
+import org.red5.server.api.scheduling.IScheduledJob;
+import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.scope.IScope;
 import org.red5.server.jmx.mxbeans.RTMPMinaConnectionMXBean;
-import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.event.ClientBW;
 import org.red5.server.net.rtmp.event.ServerBW;
@@ -74,10 +76,28 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 
 	protected boolean bandwidthDetection = true;
 
+	/**
+	 * Name of quartz job that processes the received message queue.
+	 */
+	protected String receiveQueueWorkerJobName;
+
+	/**
+	 * Receive queue worker flag
+	 */
+	protected final AtomicBoolean recvWorkerRunning;
+
 	/** Constructs a new RTMPMinaConnection. */
 	@ConstructorProperties(value = { "persistent" })
 	public RTMPMinaConnection() {
 		super(PERSISTENT);
+		// set receive queue worker running flag
+		recvWorkerRunning = new AtomicBoolean(false);
+	}
+
+	@Override
+	public void open() {
+		super.open();
+		startReceiverWorker();
 	}
 
 	@SuppressWarnings("cast")
@@ -100,30 +120,44 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 				log.warn("Client was null");
 			}
 			registerJMX();
+		} else {
+			log.debug("Connect failed");
 		}
 		return success;
+	}
+
+	/**
+	 * Starts receive queue worker
+	 */
+	public void startReceiverWorker() {
+		log.debug("startReceiverWorker - {}", sessionId);
+		// make sure the worker is available
+		if (receiveQueueWorkerJobName == null) {
+			try {
+				// start the receive queue worker
+				receiveQueueWorkerJobName = schedulingService.addScheduledJobAfterDelay(100, new ReceivedMessageWorkerJob(), 1000);
+				log.debug("Receive worker job name {} for client id {}", receiveQueueWorkerJobName, getId());
+			} catch (Exception e) {
+				log.error("Error creating receive worker job", e);
+			}
+		}
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public void close() {
 		super.close();
+		if (receiveQueueWorkerJobName != null) {
+			log.debug("Removing receive queue worker");
+			schedulingService.removeScheduledJob(receiveQueueWorkerJobName);
+			receiveQueueWorkerJobName = null;
+		}
 		if (ioSession != null) {
 			// accept no further incoming data
 			ioSession.suspendRead();
-			// clear the filter chain
-			IoFilterChain filters = ioSession.getFilterChain();
-			//check if it exists and remove
-			if (filters.contains("bandwidthFilter")) {
-				ioSession.getFilterChain().remove("bandwidthFilter");
-			}
 			// update our state
-			if (ioSession.containsAttribute(ProtocolState.SESSION_KEY)) {
-				RTMP rtmp = (RTMP) ioSession.getAttribute(ProtocolState.SESSION_KEY);
-				if (rtmp != null) {
-					log.debug("RTMP state: {}", rtmp);
-					rtmp.setState(RTMP.STATE_DISCONNECTING);
-				}
+			if (state != null) {
+				state.setState(RTMP.STATE_DISCONNECTING);
 			}
 			// close now, no flushing, no waiting
 			final CloseFuture future = ioSession.close(true);
@@ -139,7 +173,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 			};
 			future.addListener(listener);
 			//de-register with JMX
-			unregisterJMX();			
+			unregisterJMX();
 		}
 	}
 
@@ -216,7 +250,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 		}
 		return true;
 	}
-	
+
 	/** {@inheritDoc} */
 	@Override
 	public boolean isWriterIdle() {
@@ -224,8 +258,8 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 			return ioSession.isWriterIdle();
 		}
 		return true;
-	}	
-	
+	}
+
 	/** {@inheritDoc} */
 	@Override
 	public long getPendingMessages() {
@@ -260,6 +294,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	/** {@inheritDoc} */
 	@Override
 	public boolean isConnected() {
+		log.debug("Connected: {}", (ioSession != null && ioSession.isConnected()));
 		// XXX Paul: not sure isClosing is actually working as we expect here
 		return super.isConnected() && (ioSession != null && ioSession.isConnected());
 	}
@@ -375,6 +410,37 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 			}
 			oName = null;
 		}
+	}
+
+	protected final class ReceivedMessageWorkerJob implements IScheduledJob {
+
+		/** {@inheritDoc} */
+		public void execute(ISchedulingService service) {
+			// ensure the job is not already running
+			if (recvWorkerRunning.compareAndSet(false, true)) {
+				log.trace("Receive queue size: {}", receiveQueue.size());
+				try {
+					// get the first message
+					Object recvMsg = receiveQueue.poll();
+					if (recvMsg != null) {
+						Red5.setConnectionLocal((RTMPConnection) ioSession.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY));
+						do {
+							// pass message to the handler
+							handler.messageReceived(recvMsg, ioSession);
+							// get the next message
+							recvMsg = receiveQueue.poll();
+						} while (recvMsg != null);
+					}
+				} catch (Exception e) {
+					log.error("Error processing receive queue", e);
+				} finally {
+					Red5.setConnectionLocal(null);
+					// reset running flag
+					recvWorkerRunning.compareAndSet(true, false);
+				}
+			}
+		}
+
 	}
 
 }

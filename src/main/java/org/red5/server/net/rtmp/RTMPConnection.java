@@ -32,7 +32,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.mina.core.buffer.IoBuffer;
-import org.apache.mina.core.session.IoSession;
 import org.red5.server.BaseConnection;
 import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEvent;
@@ -75,7 +74,6 @@ import org.red5.server.stream.StreamService;
 import org.red5.server.util.ScopeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * RTMP connection. Stores information about client streams, data transfer channels, pending RPC calls, bandwidth configuration, 
@@ -161,6 +159,11 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	private AtomicLong lastPongReceived = new AtomicLong(0);
 
 	/**
+	 * Queue for received message data.
+	 */
+	protected ConcurrentLinkedQueue<Object> receiveQueue = new ConcurrentLinkedQueue<Object>();
+
+	/**
 	 * RTMP events handler
 	 */
 	protected IRTMPHandler handler;
@@ -206,11 +209,6 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	private AtomicInteger usedStreams = new AtomicInteger(0);
 
 	/**
-	 * AMF version, AMF0 by default.
-	 */
-	private volatile Encoding encoding = Encoding.AMF0;
-
-	/**
 	 * Remembered stream buffer durations.
 	 */
 	private ConcurrentMap<Integer, Integer> streamBuffers = new ConcurrentHashMap<Integer, Integer>(1, 0.9f, 1);
@@ -223,7 +221,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	/**
 	 * Maximum time in milliseconds to wait for a valid handshake.
 	 */
-	private volatile int maxHandshakeTimeout = 5000;
+	private int maxHandshakeTimeout = 5000;
 
 	/**
 	 * Bandwidth limit type / enforcement. (0=hard,1=soft,2=dynamic)
@@ -233,7 +231,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	/**
 	 * Protocol state
 	 */
-	protected volatile RTMP state;
+	protected volatile RTMP state = new RTMP();
 
 	/**
 	 * Scheduling service
@@ -243,17 +241,12 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	/**
 	 * Keep-alive worker flag
 	 */
-	private final AtomicBoolean running;
+	protected final AtomicBoolean running;
 
 	/**
 	 * Timestamp generator
 	 */
 	private final AtomicInteger timer = new AtomicInteger(0);
-
-	/**
-	 * Thread pool for message handling.
-	 */
-	protected ThreadPoolTaskExecutor executor;
 
 	/**
 	 * Creates anonymous RTMP connection without scope.
@@ -265,7 +258,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		// We start with an anonymous connection without a scope.
 		// These parameters will be set during the call of "connect" later.
 		super(type);
-
+		// set running flag
 		running = new AtomicBoolean(false);
 	}
 
@@ -277,13 +270,6 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	@Deprecated
 	public void setId(int clientId) {
 		log.warn("Setting of a client id is deprecated, use IClient to manipulate the id", new Exception("RTMPConnection.setId is deprecated"));
-	}
-
-	/**
-	 * @param executor the executor to set
-	 */
-	public void setExecutor(ThreadPoolTaskExecutor executor) {
-		this.executor = executor;
 	}
 
 	public void setHandler(IRTMPHandler handler) {
@@ -302,11 +288,6 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		state.setState(code);
 	}
 
-	public void setState(RTMP state) {
-		log.debug("Set state: {}", state);
-		this.state = state;
-	}
-
 	/** {@inheritDoc} */
 	public void setBandwidth(int mbits) {
 		// tell the flash player how fast we want data and how fast we shall send it
@@ -323,6 +304,13 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	public int getTimer() {
 		return timer.incrementAndGet();
 	}
+	
+	/**
+	 * Opens the connection.
+	 */
+	public void open() {
+		startWaitForHandshake();
+	}
 
 	@Override
 	public boolean connect(IScope newScope, Object[] params) {
@@ -331,6 +319,8 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 			boolean success = super.connect(newScope, params);
 			if (success) {
 				unscheduleWaitForHandshakeJob();
+			} else {
+				log.debug("Connect failed");
 			}
 			return success;
 		} catch (ClientRejectedException e) {
@@ -341,12 +331,38 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		}
 	}
 
+	/**
+	 * Start waiting for a valid handshake.
+	 */
+	protected void startWaitForHandshake() {
+		log.debug("startWaitForHandshake - {}", sessionId);
+		// start the handshake waiter
+		waitForHandshakeJob = schedulingService.addScheduledOnceJob(maxHandshakeTimeout, new WaitForHandshakeJob());
+	}
+
+	/**
+	 * Starts measurement.
+	 */
+	public void startRoundTripMeasurement() {
+		if (pingInterval > 0 && keepAliveJobName == null) {
+			log.debug("startRoundTripMeasurement - {}", sessionId);
+			try {
+				keepAliveJobName = schedulingService.addScheduledJob(pingInterval, new KeepAliveJob());
+				log.debug("Keep alive job name {} for client id {}", keepAliveJobName, getId());
+			} catch (Exception e) {
+				log.error("Error creating keep alive job", e);
+			}
+		}
+	}
+
 	private void unscheduleWaitForHandshakeJob() {
+		log.debug("unscheduleWaitForHandshakeJob - {}", sessionId);
 		if (waitForHandshakeJob != null) {
 			schedulingService.removeScheduledJob(waitForHandshakeJob);
 			waitForHandshakeJob = null;
 			log.debug("Removed waitForHandshakeJob for: {}", getId());
-			// once the handshake has completed, start the ping / pong keep-alive
+			// once the handshake has completed, start needed jobs
+			// start the ping / pong keep-alive
 			startRoundTripMeasurement();
 		}
 	}
@@ -364,7 +380,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		this.params = params;
 		if (Integer.valueOf(3).equals(params.get("objectEncoding"))) {
 			log.debug("Setting object encoding to AMF3");
-			encoding = Encoding.AMF3;
+			state.setEncoding(Encoding.AMF3);
 		}
 	}
 
@@ -374,7 +390,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * @return AMF encoding used by connection
 	 */
 	public Encoding getEncoding() {
-		return encoding;
+		return state.getEncoding();
 	}
 
 	/**
@@ -692,11 +708,11 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		} else {
 			log.trace("StreamBuffers collection was null");
 		}
+		if (receiveQueue != null) {
+			receiveQueue.clear();
+		}
 		// clear thread local reference
 		Red5.setConnectionLocal(null);
-		if (executor != null) {
-			executor.shutdown();
-		}
 	}
 
 	/**
@@ -985,15 +1001,16 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	}
 
 	/**
-	 * Creates an executor task to handle the incomming message.
+	 * Handle the incoming message.
 	 * 
 	 * @param message
-	 * @param session
 	 */
-	public void handleMessageReceived(Object message, IoSession session) {
-		executor.submit(new MessageReceivedTask(session, message));
-	}	
-	
+	public void handleMessageReceived(Object message) {
+		log.debug("handleMessageReceived - {}", sessionId);
+		// add new message to the queue
+		receiveQueue.add(message);
+	}
+
 	/**
 	 * Mark message as sent.
 	 * 
@@ -1045,8 +1062,8 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		Channel channel = getChannel((byte) 3);
 		log.trace("Send to channel: {}", channel);
 		// create a new sync message for every client to avoid concurrent access through multiple threads
-		SharedObjectMessage syncMessage = encoding == Encoding.AMF3 ? new FlexSharedObjectMessage(null, name, currentVersion, persistent) : new SharedObjectMessage(null, name,
-				currentVersion, persistent);
+		SharedObjectMessage syncMessage = state.getEncoding() == Encoding.AMF3 ? new FlexSharedObjectMessage(null, name, currentVersion, persistent) : new SharedObjectMessage(
+				null, name, currentVersion, persistent);
 		syncMessage.addEvents(events);
 		try {
 			channel.write(syncMessage);
@@ -1112,22 +1129,6 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	}
 
 	/**
-	 * Starts measurement.
-	 */
-	public void startRoundTripMeasurement() {
-		if (pingInterval > 0 && keepAliveJobName == null) {
-			log.debug("startRoundTripMeasurement - {}", sessionId);
-			try {
-				keepAliveJobName = schedulingService.addScheduledJob(pingInterval, new KeepAliveJob());
-
-				log.debug("Keep alive job name {} for client id {}", keepAliveJobName, getId());
-			} catch (Exception e) {
-				log.error("Error creating keep alive job.");
-			}
-		}
-	}
-
-	/**
 	 * Inactive state event handler.
 	 */
 	protected abstract void onInactive();
@@ -1171,16 +1172,6 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 */
 	public void setMaxHandshakeTimeout(int maxHandshakeTimeout) {
 		this.maxHandshakeTimeout = maxHandshakeTimeout;
-	}
-
-	/**
-	 * Start waiting for a valid handshake.
-	 * 
-	 * @param service
-	 *            The scheduling service to use
-	 */
-	protected void startWaitForHandshake(ISchedulingService service) {
-		waitForHandshakeJob = service.addScheduledOnceJob(maxHandshakeTimeout, new WaitForHandshakeJob());
 	}
 
 	/* (non-Javadoc)
@@ -1307,33 +1298,11 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		/** {@inheritDoc} */
 		public void execute(ISchedulingService service) {
 			waitForHandshakeJob = null;
-			// Client didn't send a valid handshake, disconnect
-			log.warn("Closing {}, with id {} due to long handshake", RTMPConnection.this, getId());
-			onInactive();
-		}
-
-	}
-
-	protected class MessageReceivedTask implements Runnable {
-		
-		private final IoSession session;
-
-		private Object message;
-
-		MessageReceivedTask(IoSession session, Object message) {
-			this.session = session;
-			this.message = message;
-		}
-
-		@Override
-		public void run() {
-			try {
-				Red5.setConnectionLocal((RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY));
-				handler.messageReceived(message, session);
-			} catch (Exception e) {
-				log.error("Error processing message: {}", e.getMessage(), e);
-			} finally {
-				Red5.setConnectionLocal(null);
+			// check for connected state before disconnecting
+			if (state.getState() != RTMP.STATE_CONNECTED) {
+				// Client didn't send a valid handshake, disconnect
+				log.warn("Closing {}, with id {} due to long handshake", RTMPConnection.this, getId());
+				onInactive();
 			}
 		}
 
