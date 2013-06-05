@@ -306,8 +306,13 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 			}
 			// send update to "owner" of this update request
 			if (source != null) {
-				RTMPConnection con = (RTMPConnection) source;
-				con.sendSharedObjectMessage(name, currentVersion, persistent, events);
+				final RTMPConnection con = (RTMPConnection) source;
+				// create a worker
+				SharedObjectService.submitTask(new Runnable() { 
+					public void run() {
+						con.sendSharedObjectMessage(name, currentVersion, persistent, events);
+					}
+				});
 			}
 		}
 		// tell all the listeners
@@ -331,12 +336,11 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 					if (listener instanceof RTMPConnection) {
 						final RTMPConnection con = (RTMPConnection) listener;
 						// create a worker
-						//IScheduledJob job = new IScheduledJob() {
-						//	public void execute(ISchedulingService service) {
+						SharedObjectService.submitTask(new Runnable() { 
+							public void run() {
 								con.sendSharedObjectMessage(name, currentVersion, persistent, events);
-						//	}
-						//};
-						//SharedObjectService.submitJob(job);
+							}
+						});
 					} else {
 						log.warn("Can't send sync message to unknown connection {}", listener);
 					}

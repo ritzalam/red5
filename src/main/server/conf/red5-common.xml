@@ -67,20 +67,7 @@
 		
 	<!-- Remoting calls codec factory -->
 	<bean id="remotingCodecFactory" class="org.red5.server.net.remoting.codec.RemotingCodecFactory" autowire="byType" init-method="init"/>
-	
-	<!-- Video codec factory -->
-	<!-- This is only needed if you have your own custom codecs
-	<bean id="videoCodecFactory" class="org.red5.server.stream.VideoCodecFactory">
-		<property name="codecs">
-			<list>
-				<bean id="screenVideoCodec" class="org.red5.server.stream.codec.ScreenVideo"/>
-				<bean id="sorensonVideoCodec" class="org.red5.server.stream.codec.SorensonVideo"/>
-				<bean id="avcVideoCodec" class="org.red5.server.stream.codec.AVCVideo"/>
-			</list>
-		</property>
-	</bean>
-	-->
-	
+		
 	<!-- Streamable file factory -->
 	<bean id="streamableFileFactory" class="org.red5.io.StreamableFileFactory">
 		<property name="services">
@@ -101,6 +88,14 @@
 		<property name="persistenceClassName">
 			<value>org.red5.server.persistence.FilePersistence</value>
 		</property>
+		<property name="scheduler">
+		    <bean class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler">
+                <property name="poolSize" value="${so.scheduler.pool_size}" />  
+		        <property name="waitForTasksToCompleteOnShutdown" value="false"/>
+		        <property name="daemon" value="true"/>
+		        <property name="threadNamePrefix" value="SharedObjectScheduler-"/>
+            </bean>
+		</property>
 	</bean>
 	
 	<!-- High level access to streams -->
@@ -113,7 +108,9 @@
 	<bean id="consumerService" class="org.red5.server.stream.ConsumerService"/>
  
 	<!-- Scheduling service -->
-	<bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService"/>
+	<bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService">
+        <property name="configFile" value="${red5.root}/conf/quartz.properties"/>   
+    </bean>
 		 
     <!-- War deployer -->
     <bean id="warDeployService" class="org.red5.server.service.WarDeployer" init-method="init" destroy-method="shutdown">

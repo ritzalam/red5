@@ -207,11 +207,11 @@ public class RecordingListener implements IRecordingListener {
 			scheduler = (QuartzSchedulingService) scope.getParent().getContext().getBean(QuartzSchedulingService.BEAN_NAME);
 			// set recording true
 			recording.set(true);
-			// since init finished, return true as well
-			return true;
+		} else {
+			log.warn("Record file is null");
 		}
-		log.warn("Record file is null");
-		return false;
+		// since init finished, return recording flag
+		return recording.get();
 	}
 
 	/** {@inheritDoc} */

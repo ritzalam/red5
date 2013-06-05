@@ -931,6 +931,11 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 			}
 		} else if (error != null) {
 			status.setApplication(error.getClass().getCanonicalName());
+			List<String> stack = new ArrayList<String>();
+			for (StackTraceElement element : error.getStackTrace()) {
+				stack.add(element.toString());
+			}
+			status.setAdditional("stacktrace", stack);			
 		}
 		return status;
 	}

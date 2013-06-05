@@ -25,7 +25,6 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -36,8 +35,6 @@ import org.apache.mina.core.future.CloseFuture;
 import org.apache.mina.core.future.IoFutureListener;
 import org.apache.mina.core.session.IoSession;
 import org.red5.server.api.Red5;
-import org.red5.server.api.scheduling.IScheduledJob;
-import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.scope.IScope;
 import org.red5.server.jmx.mxbeans.RTMPMinaConnectionMXBean;
 import org.red5.server.net.rtmp.codec.RTMP;
@@ -76,28 +73,15 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 
 	protected boolean bandwidthDetection = true;
 
-	/**
-	 * Name of quartz job that processes the received message queue.
-	 */
-	protected String receiveQueueWorkerJobName;
-
-	/**
-	 * Receive queue worker flag
-	 */
-	protected final AtomicBoolean recvWorkerRunning;
-
 	/** Constructs a new RTMPMinaConnection. */
 	@ConstructorProperties(value = { "persistent" })
 	public RTMPMinaConnection() {
 		super(PERSISTENT);
-		// set receive queue worker running flag
-		recvWorkerRunning = new AtomicBoolean(false);
 	}
 
 	@Override
 	public void open() {
 		super.open();
-		startReceiverWorker();
 	}
 
 	@SuppressWarnings("cast")
@@ -126,32 +110,10 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 		return success;
 	}
 
-	/**
-	 * Starts receive queue worker
-	 */
-	public void startReceiverWorker() {
-		log.debug("startReceiverWorker - {}", sessionId);
-		// make sure the worker is available
-		if (receiveQueueWorkerJobName == null) {
-			try {
-				// start the receive queue worker
-				receiveQueueWorkerJobName = schedulingService.addScheduledJobAfterDelay(100, new ReceivedMessageWorkerJob(), 1000);
-				log.debug("Receive worker job name {} for client id {}", receiveQueueWorkerJobName, getId());
-			} catch (Exception e) {
-				log.error("Error creating receive worker job", e);
-			}
-		}
-	}
-
 	/** {@inheritDoc} */
 	@Override
 	public void close() {
 		super.close();
-		if (receiveQueueWorkerJobName != null) {
-			log.debug("Removing receive queue worker");
-			schedulingService.removeScheduledJob(receiveQueueWorkerJobName);
-			receiveQueueWorkerJobName = null;
-		}
 		if (ioSession != null) {
 			// accept no further incoming data
 			ioSession.suspendRead();
@@ -177,6 +139,13 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 		}
 	}
 
+	/** {@inheritDoc} */
+	@Override
+	public void handleMessageReceived(Object message) {
+		log.debug("handleMessageReceived - {}", sessionId);
+		scheduler.execute(new ReceivedMessageTask(ioSession, message));
+	}	
+	
 	/**
 	 * Return MINA I/O session.
 	 *
@@ -412,35 +381,28 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 		}
 	}
 
-	protected final class ReceivedMessageWorkerJob implements IScheduledJob {
+	protected final class ReceivedMessageTask implements Runnable {
 
-		/** {@inheritDoc} */
-		public void execute(ISchedulingService service) {
-			// ensure the job is not already running
-			if (recvWorkerRunning.compareAndSet(false, true)) {
-				log.trace("Receive queue size: {}", receiveQueue.size());
-				try {
-					// get the first message
-					Object recvMsg = receiveQueue.poll();
-					if (recvMsg != null) {
-						Red5.setConnectionLocal((RTMPConnection) ioSession.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY));
-						do {
-							// pass message to the handler
-							handler.messageReceived(recvMsg, ioSession);
-							// get the next message
-							recvMsg = receiveQueue.poll();
-						} while (recvMsg != null);
-					}
-				} catch (Exception e) {
-					log.error("Error processing receive queue", e);
-				} finally {
-					Red5.setConnectionLocal(null);
-					// reset running flag
-					recvWorkerRunning.compareAndSet(true, false);
-				}
-			}
+		private final IoSession ioSession;
+
+		private Object message;
+
+		ReceivedMessageTask(IoSession ioSession, Object message) {
+			this.ioSession = ioSession;
+			this.message = message;
 		}
 
+		public void run() {
+			try {
+				Red5.setConnectionLocal((RTMPConnection) ioSession.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY));
+				// pass message to the handler
+				handler.messageReceived(message, ioSession);
+			} catch (Exception e) {
+				log.error("Error processing receive queue", e);
+			} finally {
+				Red5.setConnectionLocal(null);
+			}
+		}
 	}
 
 }

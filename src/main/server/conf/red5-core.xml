@@ -20,6 +20,12 @@
 	</bean>
 	
 	<!-- RTMP -->
+    <bean id="rtmpScheduler" scope="prototype" class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler">
+        <property name="poolSize" value="${rtmp.scheduler.pool_size}" />  
+        <property name="waitForTasksToCompleteOnShutdown" value="false"/>
+        <property name="daemon" value="true"/>
+        <property name="threadNamePrefix" value="RTMPScheduler-"/>
+	</bean>        
 	        
     <!-- RTMP connection manager --> 
     <bean id="rtmpConnManager" class="org.red5.server.net.rtmp.RTMPConnManager" />
@@ -80,6 +86,7 @@
 	
 	<!-- RTMP Mina Connection -->
 	<bean id="rtmpMinaConnection" scope="prototype"	class="org.red5.server.net.rtmp.RTMPMinaConnection">
+        <property name="scheduler" ref="rtmpScheduler" />
 		<!-- Ping clients every X ms. Set to 0 to disable ghost detection code. -->
 		<property name="pingInterval" value="${rtmp.ping_interval}" />
 		<!-- Disconnect client after X ms of not responding. -->
@@ -117,6 +124,7 @@
 	
 	<!-- RTMPT Connection -->
 	<bean id="rtmptConnection" scope="prototype" class="org.red5.server.net.rtmpt.RTMPTConnection">
+        <property name="scheduler" ref="rtmpScheduler" />
 		<!-- Ping clients every X ms. Set to 0 to disable ghost detection code. -->
 		<property name="pingInterval" value="${rtmpt.ping_interval}" />
 		<!-- Disconnect client after X ms of not responding. -->

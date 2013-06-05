@@ -356,9 +356,19 @@
 			<url>http://repo1.maven.org/maven2</url>
 		</repository>
 		<repository>
-			<id>springsource-repo</id>
-			<name>SpringSource Repository</name>
+			<id>repository.springsource.release</id>
+			<name>SpringSource GA Repository</name>
 			<url>http://repo.springsource.org/release</url>
+		</repository>
+		<repository>
+			<id>repository.springsource.milestone</id>
+			<name>SpringSource Milestone Repository</name>
+			<url>http://repo.springsource.org/milestone</url>
+		</repository>
+		<repository>
+			<id>repository.springsource.snapshot</id>
+			<name>SpringSource Snapshot Repository</name>
+			<url>http://repo.springsource.org/snapshot</url>
 		</repository>
 		<repository>
 			<id>maven2-repository.dev.java.net</id>

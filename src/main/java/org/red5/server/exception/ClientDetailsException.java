@@ -25,10 +25,7 @@ package org.red5.server.exception;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class ClientDetailsException extends RuntimeException {
-
-	/**
-	 * 
-	 */
+ 
 	private static final long serialVersionUID = -1908769505547253205L;
 
 	/**
