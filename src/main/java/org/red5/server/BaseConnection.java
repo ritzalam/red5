@@ -138,6 +138,19 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	 * Used to protect mulit-threaded operations on write
 	 */
 	private final Semaphore writeLock = new Semaphore(1, true);
+	
+	// Support for stream ids
+	private ThreadLocal<Integer> streamLocal = new ThreadLocal<Integer>();
+
+	/** {@inheritDoc} */
+	public int getStreamId() {
+		return streamLocal.get().intValue();
+	}
+
+	/** {@inheritDoc} */
+	public void setStreamId(int id) {
+		streamLocal.set(id);
+	}	
 
 	/**
 	 * Creates a new persistent base connection

@@ -388,7 +388,6 @@ public class RemotingConnection implements IRemotingConnection {
 		if (name == null) {
 			return null;
 		}
-
 		// Synchronize so default value doesn't override other default value 
 		synchronized (session) {
 			Object result = session.getAttribute(name);
@@ -581,6 +580,15 @@ public class RemotingConnection implements IRemotingConnection {
 	/** {@inheritDoc} */
 	public void removeListener(IConnectionListener listener) {
 		this.connectionListeners.remove(listener);
+	}
+
+	public int getStreamId() {
+		notSupported();
+		return -1;
+	}
+
+	public void setStreamId(int id) {
+		notSupported();
 	}
 
 }

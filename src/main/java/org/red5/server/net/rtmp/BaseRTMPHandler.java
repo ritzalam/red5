@@ -56,29 +56,6 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 
 	private static Logger log = LoggerFactory.getLogger(BaseRTMPHandler.class);
 
-	// XXX: HACK HACK HACK to support stream ids
-	private static ThreadLocal<Integer> streamLocal = new ThreadLocal<Integer>();
-
-	/**
-	 * Getter for stream ID.
-	 * 
-	 * @return Stream ID
-	 */
-	// XXX: HACK HACK HACK to support stream ids
-	public static int getStreamId() {
-		return streamLocal.get().intValue();
-	}
-
-	/**
-	 * Setter for stream Id.
-	 * 
-	 * @param id
-	 *            Stream id
-	 */
-	private static void setStreamId(int id) {
-		streamLocal.set(id);
-	}
-
 	/** {@inheritDoc} */
 	public void connectionOpened(RTMPConnection conn) {
 		log.trace("connectionOpened - conn: {} state: {}", conn, conn.getState());
@@ -98,7 +75,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 				final IClientStream stream = conn.getStreamById(header.getStreamId());
 				log.trace("Message received, header: {}", header);
 				// XXX: HACK HACK HACK to support stream ids
-				BaseRTMPHandler.setStreamId(header.getStreamId());
+				conn.setStreamId(header.getStreamId());
 				// increase number of received messages
 				conn.messageReceived();
 				// set the source of the message

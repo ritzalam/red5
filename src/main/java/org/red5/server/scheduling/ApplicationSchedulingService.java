@@ -65,6 +65,16 @@ public class ApplicationSchedulingService extends QuartzSchedulingService {
 		servletContext.setAttribute(QUARTZ_FACTORY_KEY, factory);
 	}
 
+	/**
+	 * Getter for job name.
+	 *
+	 * @return  Job name
+	 */
+	@Override
+	public String getJobName() {
+		return String.format("%s_ScheduledJob_%d", applicationName, jobDetailCounter.getAndIncrement());
+	}	
+	
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		log.info("Application scheduler initializing...");
