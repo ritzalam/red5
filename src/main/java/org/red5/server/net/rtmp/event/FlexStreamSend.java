@@ -30,7 +30,11 @@ public class FlexStreamSend extends Notify {
 
 	private static final long serialVersionUID = -4226252245996614504L;
 
-	public FlexStreamSend() {}
+	public FlexStreamSend() {
+		super();
+		dataType = TYPE_FLEX_STREAM_SEND;
+	}
+
 	/**
 	 * Create new stream send object.
 	 * 
@@ -38,12 +42,7 @@ public class FlexStreamSend extends Notify {
 	 */
 	public FlexStreamSend(IoBuffer data) {
 		super(data);
-	}
-	
-	/** {@inheritDoc} */
-    @Override
-	public byte getDataType() {
-		return TYPE_FLEX_STREAM_SEND;
+		dataType = TYPE_FLEX_STREAM_SEND;
 	}
 
 }

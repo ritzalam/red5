@@ -126,9 +126,9 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	private volatile BitSet reservedStreams = new BitSet();
 
 	/**
-	 * Identifier for remote calls.
+	 * Transaction identifier for remote commands.
 	 */
-	private AtomicInteger invokeId = new AtomicInteger(1);
+	private AtomicInteger transactionId = new AtomicInteger(1);
 
 	/**
 	 * Hash map that stores pending calls and ids as pairs.
@@ -813,8 +813,8 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * 
 	 * @return Next invoke id for RPC
 	 */
-	public int getInvokeId() {
-		return invokeId.incrementAndGet();
+	public int getTransactionId() {
+		return transactionId.incrementAndGet();		
 	}
 
 	/**
@@ -832,9 +832,9 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		// We need to use Invoke for all calls to the client
 		Invoke invoke = new Invoke();
 		invoke.setCall(call);
-		invoke.setInvokeId(getInvokeId());
+		invoke.setTransactionId(getTransactionId());
 		if (call instanceof IPendingServiceCall) {
-			registerPendingCall(invoke.getInvokeId(), (IPendingServiceCall) call);
+			registerPendingCall(invoke.getTransactionId(), (IPendingServiceCall) call);
 		}
 		getChannel(channel).write(invoke);
 	}
@@ -1217,9 +1217,9 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 					long currentReadBytes = getReadBytes();
 					// get our last bytes read count
 					long previousReadBytes = lastBytesRead.get();
-					log.debug("Time now: {} current read count: {} last read count: {}", new Object[] { now, currentReadBytes, previousReadBytes });
+					log.trace("Time now: {} current read count: {} last read count: {}", new Object[] { now, currentReadBytes, previousReadBytes });
 					if (currentReadBytes > previousReadBytes) {
-						log.debug("Client is still alive, no ping needed");
+						log.trace("Client is still alive, no ping needed");
 						// client has sent data since last check and thus is not dead. No need to ping
 						if (lastBytesRead.compareAndSet(previousReadBytes, currentReadBytes)) {
 							// update the timestamp to match our update
@@ -1228,7 +1228,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 					} else if (getPendingMessages() > 0) {
 						// client may not have updated bytes yet, but may have received messages waiting, no need to drop them if processing hasn't
 						// caught up yet
-						log.debug("Reader is not idle, possible flood. Pending write messages: {}", getPendingMessages());
+						log.trace("Reader is not idle, possible flood. Pending write messages: {}", getPendingMessages());
 					} else {
 						// client didn't send response to ping command and didn't sent data for too long, disconnect
 						long lastPingTime = lastPingSent.get();

@@ -20,21 +20,20 @@ package org.red5.server.net.rtmpt.codec;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.service.IServiceCall;
+import org.red5.server.net.ICommand;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.codec.RTMPProtocolEncoder;
-import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.status.Status;
 
 /**
- * RTMPT protocol encoder. To be implemented.
+ * RTMPT protocol encoder.
  */
 public class RTMPTProtocolEncoder extends RTMPProtocolEncoder {
 
 	@Override
-	protected void encodeNotifyOrInvoke(IoBuffer out, Notify invoke, RTMP rtmp) {
-		// if we get an InsufficientBW message for the client, we'll reduce the
-		// base tolerance and set drop live to true
-		final IServiceCall call = invoke.getCall();
+	protected void encodeCommand(IoBuffer out, ICommand command, RTMP rtmp) {
+		// if we get an InsufficientBW message for the client, we'll reduce the base tolerance and set drop live to true
+		final IServiceCall call = command.getCall();
 		if ("onStatus".equals(call.getServiceMethodName()) && call.getArguments().length >= 1) {
 			Object arg0 = call.getArguments()[0];
 			if ("NetStream.Play.InsufficientBW".equals(((Status) arg0).getCode())) {
@@ -48,7 +47,7 @@ public class RTMPTProtocolEncoder extends RTMPProtocolEncoder {
 				setDropLiveFuture(true);
 			}
 		}
-		super.encodeNotifyOrInvoke(out, invoke, rtmp);
+		super.encodeCommand(out, command, rtmp);
 	}
-	
+
 }

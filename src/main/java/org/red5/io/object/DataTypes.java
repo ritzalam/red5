@@ -100,8 +100,7 @@ public class DataTypes {
 	public static final byte OPT_REFERENCE = 0x11; //17
 
 	// More datatypes can be added but they should be prefixed by the type
-	// If a codec return one of these datatypes its handled by a custom
-	// serializer
+	// If a codec returns one of these datatypes its handled by a custom serializer
 
 	/**
 	 * Custom datatype mock mask marker

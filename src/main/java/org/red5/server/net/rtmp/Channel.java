@@ -144,10 +144,9 @@ public class Channel {
 	public void sendStatus(Status status) {
 		if (connection != null) {
 			final boolean andReturn = !status.getCode().equals(StatusCodes.NS_DATA_START);
-			final Notify event;
+			final Invoke event = new Invoke();
 			if (andReturn) {
 				final PendingCall call = new PendingCall(null, CALL_ON_STATUS, new Object[] { status });
-				event = new Invoke();
 				if (status.getCode().equals(StatusCodes.NS_PLAY_START)) {
 					IScope scope = connection.getScope();
 					if (scope.getContext().getApplicationContext().containsBean(IRtmpSampleAccess.BEAN_NAME)) {
@@ -157,23 +156,18 @@ public class Channel {
 						if (videoAccess || audioAccess) {
 							final Call call2 = new Call(null, "|RtmpSampleAccess", null);
 							Notify notify = new Notify();
-							notify.setInvokeId(connection.getInvokeId());
 							notify.setCall(call2);
 							notify.setData(IoBuffer.wrap(new byte[] { 0x01, (byte) (audioAccess ? 0x01 : 0x00), 0x01, (byte) (videoAccess ? 0x01 : 0x00) }));
 							write(notify, connection.getStreamIdForChannel(id));
 						}
 					}
 				}
-				event.setInvokeId(connection.getInvokeId());
 				event.setCall(call);
 			} else {
 				final Call call = new Call(null, CALL_ON_STATUS, new Object[] { status });
-				event = new Notify();
-				event.setInvokeId(connection.getInvokeId());
 				event.setCall(call);
 			}
-			// We send directly to the corresponding stream as for some status codes, no stream has been created 
-			// and thus "getStreamByChannelId" will fail.
+			// send directly to the corresponding stream as for some status codes, no stream has been created  and thus "getStreamByChannelId" will fail
 			write(event, connection.getStreamIdForChannel(id));
 		}
 	}

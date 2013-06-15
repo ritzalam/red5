@@ -238,7 +238,9 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 * @return IoBuffer
 	 */
 	public Packet decodePacket(RTMP rtmp, IoBuffer in) {
-		log.debug("decodePacket - rtmp: {} buffer: {}", rtmp, in);
+		if (log.isTraceEnabled()) {
+			log.trace("decodePacket - rtmp: {} buffer: {}", rtmp, in);
+		}
 		final int remaining = in.remaining();
 		// We need at least one byte
 		if (remaining < 1) {
@@ -303,7 +305,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		}
 
 		if (remaining < headerLength) {
-			log.debug("Header too small (hlen: {}), buffering. remaining: {}", headerLength, remaining);
+			log.trace("Header too small (hlen: {}), buffering. remaining: {}", headerLength, remaining);
 			in.position(position);
 			rtmp.bufferDecoding(headerLength);
 			return null;
@@ -400,7 +402,9 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 * @return Decoded header
 	 */
 	public Header decodeHeader(IoBuffer in, Header lastHeader) {
-		log.debug("decodeHeader - lastHeader: {} buffer: {}", lastHeader, in);
+		if (log.isTraceEnabled()) {
+			log.trace("decodeHeader - lastHeader: {} buffer: {}", lastHeader, in);
+		}
 		byte headerByte = in.get();
 		int headerValue;
 		int byteCount = 1;
@@ -744,65 +748,20 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		return decodeNotify(in, null, rtmp);
 	}
 
-	public Notify decodeNotify(IoBuffer in, Header header, RTMP rtmp) {
-		return decodeNotifyOrInvoke(new Notify(), in, header, rtmp);
-	}
-
-	/** {@inheritDoc} */
-	public Invoke decodeInvoke(IoBuffer in, RTMP rtmp) {
-		return (Invoke) decodeNotifyOrInvoke(new Invoke(), in, null, rtmp);
-	}
-
 	/**
-	 * Checks if the passed action is a reserved stream method.
+	 * Decode a Notify.
 	 * 
-	 * @param action
-	 *            Action to check
-	 * @return <code>true</code> if passed action is a reserved stream method,
-	 *         <code>false</code> otherwise
-	 */
-	private boolean isStreamCommand(String action) {
-		switch (StreamAction.getEnum(action)) {
-			case CREATE_STREAM:
-			case DELETE_STREAM:
-			case RELEASE_STREAM:
-			case PUBLISH:
-			case PLAY:
-			case PLAY2:
-			case SEEK:
-			case PAUSE:
-			case PAUSE_RAW:
-			case CLOSE_STREAM:
-			case RECEIVE_VIDEO:
-			case RECEIVE_AUDIO:
-				return true;
-			default:
-				log.debug("Stream action {} is not a recognized command", action);
-				return false;
-		}
-	}
-
-	/**
-	 * Decodes notification event.
-	 * 
-	 * @param notify
-	 *            Notify event
 	 * @param in
-	 *            Byte buffer
 	 * @param header
-	 *            Header
 	 * @param rtmp
-	 *            RTMP protocol state
-	 * @return Notification event
+	 * @return decoded notify result
 	 */
-	@SuppressWarnings({ "unchecked" })
-	protected Notify decodeNotifyOrInvoke(Notify notify, IoBuffer in, Header header, RTMP rtmp) {
+	public Notify decodeNotify(IoBuffer in, Header header, RTMP rtmp) {
+		Notify notify = new Notify();
 		final Encoding encoding = rtmp.getEncoding();
-		// TODO: we should use different code depending on server or client mode
 		int start = in.position();
 		Input input;
-		// for response, the action string and invokeId is always encoded as AMF0
-		// we use the first byte to decide which encoding to use.
+		// for response, the action string and invokeId is always encoded as AMF0 we use the first byte to decide which encoding to use.
 		byte tmp = in.get();
 		in.position(start);
 		if (encoding == Encoding.AMF3 && tmp == AMF.TYPE_AMF3_OBJECT) {
@@ -811,29 +770,29 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		} else {
 			input = new org.red5.io.amf.Input(in);
 		}
+		// get the action
 		String action = Deserializer.deserialize(input, String.class);
-		log.info("Action {}", action);
+		if (log.isTraceEnabled()) {
+			log.trace("Action " + action);
+		}
 		//throw a runtime exception if there is no action
 		if (action == null) {
 			//TODO replace this with something better as time permits
 			throw new RuntimeException("Action was null");
 		}
-		if (log.isTraceEnabled()) {
-			log.trace("Action " + action);
-		}
 		//TODO Handle NetStream.send? Where and how?
-		if (!(notify instanceof Invoke) && rtmp != null && header != null && header.getStreamId() != 0 && !isStreamCommand(action)) {
+		if (rtmp != null && header != null && header.getStreamId() != 0 && !isStreamCommand(action)) {
 			// don't decode "NetStream.send" requests
 			in.position(start);
 			notify.setData(in.asReadOnlyBuffer());
 			return notify;
 		}
-
 		if (header == null || header.getStreamId() == 0) {
 			int invokeId = Deserializer.<Number> deserialize(input, Number.class).intValue();
-			notify.setInvokeId(invokeId);
+			if (invokeId != 0) {
+				throw new RuntimeException("Notify invoke / transaction id was non-zero");
+			}
 		}
-
 		// now go back to the actual encoding to decode parameters
 		if (encoding == Encoding.AMF3) {
 			input = new org.red5.io.amf3.Input(in);
@@ -841,32 +800,9 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		} else {
 			input = new org.red5.io.amf.Input(in);
 		}
-
-		Object[] params = new Object[] {};
-		if (in.hasRemaining()) {
-			List<Object> paramList = new ArrayList<Object>();
-			final Object obj = Deserializer.deserialize(input, Object.class);
-			if (obj instanceof Map) {
-				// Before the actual parameters we sometimes (connect) get a map
-				// of parameters, this is usually null, but if set should be
-				// passed to the connection object.
-				final Map<String, Object> connParams = (Map<String, Object>) obj;
-				notify.setConnectionParams(connParams);
-			} else if (obj != null) {
-				paramList.add(obj);
-			}
-			while (in.hasRemaining()) {
-				paramList.add(Deserializer.deserialize(input, Object.class));
-			}
-			params = paramList.toArray();
-			if (log.isDebugEnabled()) {
-				log.debug("Num params: {}", paramList.size());
-				for (int i = 0; i < params.length; i++) {
-					log.info(" > {}: {}", i, params[i]);
-				}
-			}
-		}
-
+		// get / set the parameters if there any
+		Object[] params = handleParameters(in, notify, input);
+		// determine service information
 		final int dotIndex = action.lastIndexOf('.');
 		String serviceName = (dotIndex == -1) ? null : action.substring(0, dotIndex);
 		//pull off the prefixes since java doesnt allow this on a method name
@@ -878,14 +814,61 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		if (serviceMethod.startsWith("@") || serviceMethod.startsWith("|")) {
 			serviceMethod = serviceMethod.substring(1);
 		}
-		if (notify instanceof Invoke) {
-			PendingCall call = new PendingCall(serviceName, serviceMethod, params);
-			((Invoke) notify).setCall(call);
-		} else {
-			Call call = new Call(serviceName, serviceMethod, params);
-			notify.setCall(call);
-		}
+		Call call = new Call(serviceName, serviceMethod, params);
+		notify.setCall(call);
 		return notify;
+	}
+
+	/** {@inheritDoc} */
+	public Invoke decodeInvoke(IoBuffer in, RTMP rtmp) {
+		Invoke invoke = new Invoke();
+		final Encoding encoding = rtmp.getEncoding();
+		int start = in.position();
+		Input input;
+		// for response, the action string and invokeId is always encoded as AMF0 we use the first byte to decide which encoding to use.
+		byte tmp = in.get();
+		in.position(start);
+		if (encoding == Encoding.AMF3 && tmp == AMF.TYPE_AMF3_OBJECT) {
+			input = new org.red5.io.amf3.Input(in);
+			((org.red5.io.amf3.Input) input).enforceAMF3();
+		} else {
+			input = new org.red5.io.amf.Input(in);
+		}
+		// get the action
+		String action = Deserializer.deserialize(input, String.class);
+		if (log.isTraceEnabled()) {
+			log.trace("Action " + action);
+		}
+		//throw a runtime exception if there is no action
+		if (action == null) {
+			//TODO replace this with something better as time permits
+			throw new RuntimeException("Action was null");
+		}
+		invoke.setTransactionId(Deserializer.<Number> deserialize(input, Number.class).intValue());
+		// now go back to the actual encoding to decode parameters
+		if (encoding == Encoding.AMF3) {
+			input = new org.red5.io.amf3.Input(in);
+			((org.red5.io.amf3.Input) input).enforceAMF3();
+		} else {
+			input = new org.red5.io.amf.Input(in);
+		}
+		// get / set the parameters if there any
+		Object[] params = handleParameters(in, invoke, input);
+		// determine service information
+		final int dotIndex = action.lastIndexOf('.');
+		String serviceName = (dotIndex == -1) ? null : action.substring(0, dotIndex);
+		//pull off the prefixes since java doesnt allow this on a method name
+		if (serviceName != null && (serviceName.startsWith("@") || serviceName.startsWith("|"))) {
+			serviceName = serviceName.substring(1);
+		}
+		String serviceMethod = (dotIndex == -1) ? action : action.substring(dotIndex + 1, action.length());
+		//pull off the prefixes since java doesnt allow this on a method name
+		if (serviceMethod.startsWith("@") || serviceMethod.startsWith("|")) {
+			serviceMethod = serviceMethod.substring(1);
+		}
+		PendingCall call = new PendingCall(serviceName, serviceMethod, params);
+		invoke.setCall(call);
+		return invoke;
 	}
 
 	/**
@@ -896,9 +879,11 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 */
 	public Ping decodePing(IoBuffer in) {
 		Ping ping = null;
-		// gets the raw data as hex without changing the data or pointer
-		String hexDump = in.getHexDump();
-		log.debug("Ping dump: {}", hexDump);
+		if (log.isTraceEnabled()) {
+			// gets the raw data as hex without changing the data or pointer
+			String hexDump = in.getHexDump();
+			log.trace("Ping dump: {}", hexDump);
+		}
 		// control type
 		short type = in.getShort();
 		switch (type) {
@@ -1036,9 +1021,9 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 
 		Input input = new org.red5.io.amf.Input(in);
 		String action = Deserializer.deserialize(input, String.class);
-		int invokeId = Deserializer.<Number> deserialize(input, Number.class).intValue();
+		int transactionId = Deserializer.<Number> deserialize(input, Number.class).intValue();
 		FlexMessage msg = new FlexMessage();
-		msg.setInvokeId(invokeId);
+		msg.setTransactionId(transactionId);
 		Object[] params = new Object[] {};
 		if (in.hasRemaining()) {
 			ArrayList<Object> paramList = new ArrayList<Object>();
@@ -1090,6 +1075,71 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 
 	public FlexStreamSend decodeFlexStreamSend(IoBuffer in) {
 		return new FlexStreamSend(in.asReadOnlyBuffer());
+	}
+
+	/**
+	 * Checks if the passed action is a reserved stream method.
+	 * 
+	 * @param action
+	 *            Action to check
+	 * @return <code>true</code> if passed action is a reserved stream method,
+	 *         <code>false</code> otherwise
+	 */
+	private boolean isStreamCommand(String action) {
+		switch (StreamAction.getEnum(action)) {
+			case CREATE_STREAM:
+			case DELETE_STREAM:
+			case RELEASE_STREAM:
+			case PUBLISH:
+			case PLAY:
+			case PLAY2:
+			case SEEK:
+			case PAUSE:
+			case PAUSE_RAW:
+			case CLOSE_STREAM:
+			case RECEIVE_VIDEO:
+			case RECEIVE_AUDIO:
+				return true;
+			default:
+				log.debug("Stream action {} is not a recognized command", action);
+				return false;
+		}
+	}
+
+	/**
+	 * Sets incoming connection parameters and / or returns encoded parameters for use in a call.
+	 * 
+	 * @param in
+	 * @param notify
+	 * @param input
+	 * @return parameters array
+	 */
+	private Object[] handleParameters(IoBuffer in, Notify notify, Input input) {
+		Object[] params = new Object[] {};
+		if (in.hasRemaining()) {
+			List<Object> paramList = new ArrayList<Object>();
+			final Object obj = Deserializer.deserialize(input, Object.class);
+			if (obj instanceof Map) {
+				// Before the actual parameters we sometimes (connect) get a map of parameters, this is usually null, but if set should be
+				// passed to the connection object.
+				@SuppressWarnings("unchecked")
+				final Map<String, Object> connParams = (Map<String, Object>) obj;
+				notify.setConnectionParams(connParams);
+			} else if (obj != null) {
+				paramList.add(obj);
+			}
+			while (in.hasRemaining()) {
+				paramList.add(Deserializer.deserialize(input, Object.class));
+			}
+			params = paramList.toArray();
+			if (log.isDebugEnabled()) {
+				log.debug("Num params: {}", paramList.size());
+				for (int i = 0; i < params.length; i++) {
+					log.info(" > {}: {}", i, params[i]);
+				}
+			}
+		}
+		return params;
 	}
 
 }

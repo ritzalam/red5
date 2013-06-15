@@ -1402,6 +1402,11 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				}
 			} catch (InterruptedException e) {
 				log.warn("Exception aquiring lock for scope set", e);
+				if (e.getMessage() == null) {
+					log.info("Lock acquire failed, check scope exists: {}", names.contains(((IBasicScope) scope).getName()));
+					// if we cannot acquire the lock assume its already been removed
+					removed = true;
+				}
 			} finally {
 				internalLock.release();
 			}

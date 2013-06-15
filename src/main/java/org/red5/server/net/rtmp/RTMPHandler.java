@@ -44,10 +44,10 @@ import org.red5.server.exception.ScopeNotFoundException;
 import org.red5.server.exception.ScopeShuttingDownException;
 import org.red5.server.messaging.IConsumer;
 import org.red5.server.messaging.OOBControlMessage;
+import org.red5.server.net.ICommand;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.event.ChunkSize;
 import org.red5.server.net.rtmp.event.Invoke;
-import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
 import org.red5.server.net.rtmp.event.SetBuffer;
 import org.red5.server.net.rtmp.event.StreamActionEvent;
@@ -86,7 +86,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 	 * Whether or not global scope connections are allowed.
 	 */
 	private boolean globalScopeConnectionAllowed;
-	
+
 	/**
 	 * Whether or not to dispatch stream actions to the current scope.
 	 */
@@ -140,9 +140,9 @@ public class RTMPHandler extends BaseRTMPHandler {
 		// set chunk size on the connection
 		RTMP state = conn.getState();
 		// set only the read chunk size since it came from the client
-	    state.setReadChunkSize(requestedChunkSize);
-	    //state.setWriteChunkSize(requestedChunkSize);
-	    // set on each of the streams
+		state.setReadChunkSize(requestedChunkSize);
+		//state.setWriteChunkSize(requestedChunkSize);
+		// set on each of the streams
 		for (IClientStream stream : conn.getStreams()) {
 			if (stream instanceof IClientBroadcastStream) {
 				IClientBroadcastStream bs = (IClientBroadcastStream) stream;
@@ -200,35 +200,99 @@ public class RTMPHandler extends BaseRTMPHandler {
 	private boolean invokeCall(RTMPConnection conn, IServiceCall call, Object service) {
 		final IScope scope = conn.getScope();
 		final IContext context = scope.getContext();
-		log.debug("Scope: {} Context: {}", scope, context);
-		log.debug("Service: {}", service);
+		if (log.isTraceEnabled()) {
+		log.trace("Scope: {} context: {} service: {}", scope, context, service);
+		}
 		return context.getServiceInvoker().invoke(call, service);
 	}
 
 	/** {@inheritDoc} */
 	@SuppressWarnings({ "unchecked" })
 	@Override
-	protected void onInvoke(RTMPConnection conn, Channel channel, Header source, Notify invoke) {
-		log.debug("{}", invoke);
-		// Get call
-		final IServiceCall call = invoke.getCall();
-		log.debug("call: {}", call);
-		// method name
+	protected void onCommand(RTMPConnection conn, Channel channel, Header source, ICommand command) {
+		log.debug("onCommand {}", command);
+		// get the call
+		final IServiceCall call = command.getCall();
+		log.trace("call: {}", call);
+		// get the method name
 		final String action = call.getServiceMethodName();
 		// If it's a callback for server remote call then pass it over to callbacks handler and return
 		if ("_result".equals(action) || "_error".equals(action)) {
-			handlePendingCallResult(conn, invoke);
+			handlePendingCallResult(conn, (Invoke) command);
 			return;
 		}
 		boolean disconnectOnReturn = false;
-		// If this is not a service call then handle connection...
-		if (call.getServiceName() == null) {
-			if (!conn.isConnected() && StreamAction.CONNECT.equals(action)) {
+		boolean connected = conn.isConnected();
+		if (connected) {
+			// If this is not a service call then handle connection...
+			if (call.getServiceName() == null) {
+				StreamAction streamAction = StreamAction.getEnum(action);
+				if (log.isDebugEnabled()) {
+					log.debug("Stream action: {}", streamAction.toString());
+				}
+				if (dispatchStreamActions) {
+					// pass the stream action event to the handler
+					try {
+						conn.getScope().getHandler().handleEvent(new StreamActionEvent(streamAction));
+					} catch (Exception ex) {
+						log.warn("Exception passing stream action: {} to the scope handler", streamAction, ex);
+					}
+				}
+				//if the "stream" action is not predefined a custom type will be returned
+				switch (streamAction) {
+					case DISCONNECT:
+						conn.close();
+						break;
+					case CREATE_STREAM:
+					case INIT_STREAM:
+					case CLOSE_STREAM:
+					case RELEASE_STREAM:
+					case DELETE_STREAM:
+					case PUBLISH:
+					case PLAY:
+					case PLAY2:
+					case SEEK:
+					case PAUSE:
+					case PAUSE_RAW:
+					case RECEIVE_VIDEO:
+					case RECEIVE_AUDIO:
+						IStreamService streamService = (IStreamService) ScopeUtils.getScopeService(conn.getScope(), IStreamService.class, StreamService.class);
+						Status status = null;
+						try {
+							log.debug("Invoking {} from {} with service: {}", new Object[] { call, conn, streamService });
+							if (invokeCall(conn, call, streamService)) {
+								log.debug("Stream service invoke {} success", action);
+							} else {
+								status = getStatus(NS_INVALID_ARGUMENT).asStatus();
+								status.setDescription(String.format("Failed to %s (stream id: %d)", action, source.getStreamId()));
+							}
+						} catch (Throwable err) {
+							log.error("Error while invoking {} on stream service. {}", action, err);
+							status = getStatus(NS_FAILED).asStatus();
+							status.setDescription(String.format("Error while invoking %s (stream id: %d)", action, source.getStreamId()));
+							status.setDetails(err.getMessage());
+						}
+						if (status != null) {
+							channel.sendStatus(status);
+						} else {
+							log.debug("Status for {} was null", action);
+						}
+						break;
+					default:
+						log.debug("Defaulting to invoke for: {}", action);
+						invokeCall(conn, call);
+				}
+			} else {
+				// handle service calls
+				invokeCall(conn, call);
+			}
+		} else {
+			if (StreamAction.CONNECT.equals(action)) {
 				// Handle connection
 				log.debug("connect");
 				// Get parameters passed from client to
 				// NetConnection#connection
-				final Map<String, Object> params = invoke.getConnectionParams();
+				final Map<String, Object> params = command.getConnectionParams();
 				// Get hostname
 				String host = getHostname((String) params.get("tcUrl"));
 				// app name as path, but without query string if there is one
@@ -242,8 +306,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 				// connection setup
 				conn.setup(host, path, params);
 				try {
-					// Lookup server scope when connected
-					// Use host and application name
+					// Lookup server scope when connected using host and application name
 					IGlobalScope global = server.lookupGlobal(host, path);
 					log.trace("Global lookup result: {}", global);
 					if (global != null) {
@@ -261,6 +324,63 @@ public class RTMPHandler extends BaseRTMPHandler {
 									pc.setResult(status);
 								}
 								disconnectOnReturn = true;
+							}
+							if (scope != null) {
+								if (log.isTraceEnabled()) {
+									log.trace("Connecting to: {}", scope);
+								} else {
+									log.debug("Connecting to: {}", scope.getName());
+								}
+								boolean okayToConnect;
+								try {
+									log.debug("Conn {}, scope {}, call {}", new Object[] { conn, scope, call });
+									log.debug("Call args {}", call.getArguments());
+									if (call.getArguments() != null) {
+										okayToConnect = conn.connect(scope, call.getArguments());
+									} else {
+										okayToConnect = conn.connect(scope);
+									}
+									if (okayToConnect) {
+										log.debug("Connected - {}", conn.getClient());
+										call.setStatus(Call.STATUS_SUCCESS_RESULT);
+										if (call instanceof IPendingServiceCall) {
+											IPendingServiceCall pc = (IPendingServiceCall) call;
+											//send fmsver and capabilities
+											StatusObject result = getStatus(NC_CONNECT_SUCCESS);
+											result.setAdditional("fmsVer", Red5.getFMSVersion());
+											result.setAdditional("capabilities", Integer.valueOf(31));
+											result.setAdditional("mode", Integer.valueOf(1));
+											result.setAdditional("data", Red5.getDataVersion());
+											pc.setResult(result);
+										}
+										// Measure initial roundtrip time after connecting
+										conn.ping(new Ping(Ping.STREAM_BEGIN, 0, -1));
+										disconnectOnReturn = false;
+									} else {
+										log.debug("Connect failed");
+										call.setStatus(Call.STATUS_ACCESS_DENIED);
+										if (call instanceof IPendingServiceCall) {
+											IPendingServiceCall pc = (IPendingServiceCall) call;
+											pc.setResult(getStatus(NC_CONNECT_REJECTED));
+										}
+										disconnectOnReturn = true;
+									}
+								} catch (ClientRejectedException rejected) {
+									log.debug("Connect rejected");
+									call.setStatus(Call.STATUS_ACCESS_DENIED);
+									if (call instanceof IPendingServiceCall) {
+										IPendingServiceCall pc = (IPendingServiceCall) call;
+										StatusObject status = getStatus(NC_CONNECT_REJECTED);
+										Object reason = rejected.getReason();
+										if (reason != null) {
+											status.setApplication(reason);
+											//should we set description?
+											status.setDescription(reason.toString());
+										}
+										pc.setResult(status);
+									}
+									disconnectOnReturn = true;
+								}
 							}
 						} catch (ScopeNotFoundException err) {
 							log.warn("Scope not found", err);
@@ -282,62 +402,6 @@ public class RTMPHandler extends BaseRTMPHandler {
 							}
 							log.info("Application at {} currently shutting down on {}", path, host);
 							disconnectOnReturn = true;
-						}
-						if (scope != null) {
-							if (log.isTraceEnabled()) {
-								log.trace("Connecting to: {}", scope);								
-							} else {
-								log.debug("Connecting to: {}", scope.getName());
-							}
-							boolean okayToConnect;
-							try {
-								log.debug("Conn {}, scope {}, call {}", new Object[] { conn, scope, call });
-								log.debug("Call args {}", call.getArguments());
-								if (call.getArguments() != null) {
-									okayToConnect = conn.connect(scope, call.getArguments());
-								} else {
-									okayToConnect = conn.connect(scope);
-								}
-								if (okayToConnect) {
-									log.debug("Connected - {}", conn.getClient());
-									call.setStatus(Call.STATUS_SUCCESS_RESULT);
-									if (call instanceof IPendingServiceCall) {
-										IPendingServiceCall pc = (IPendingServiceCall) call;
-										//send fmsver and capabilities
-										StatusObject result = getStatus(NC_CONNECT_SUCCESS);
-										result.setAdditional("fmsVer", Red5.getFMSVersion());
-										result.setAdditional("capabilities", Integer.valueOf(31));
-										result.setAdditional("mode", Integer.valueOf(1));
-										result.setAdditional("data", Red5.getDataVersion());
-										pc.setResult(result);
-									}
-									// Measure initial roundtrip time after connecting
-									conn.ping(new Ping(Ping.STREAM_BEGIN, 0, -1));
-								} else {
-									log.debug("Connect failed");
-									call.setStatus(Call.STATUS_ACCESS_DENIED);
-									if (call instanceof IPendingServiceCall) {
-										IPendingServiceCall pc = (IPendingServiceCall) call;
-										pc.setResult(getStatus(NC_CONNECT_REJECTED));
-									}
-									disconnectOnReturn = true;
-								}
-							} catch (ClientRejectedException rejected) {
-								log.debug("Connect rejected");
-								call.setStatus(Call.STATUS_ACCESS_DENIED);
-								if (call instanceof IPendingServiceCall) {
-									IPendingServiceCall pc = (IPendingServiceCall) call;
-									StatusObject status = getStatus(NC_CONNECT_REJECTED);
-									Object reason = rejected.getReason();
-									if (reason != null) {
-										status.setApplication(reason);
-										//should we set description?
-										status.setDescription(reason.toString());
-									}
-									pc.setResult(status);
-								}
-								disconnectOnReturn = true;
-							}
 						}
 					} else {
 						log.warn("Scope {} not found", path);
@@ -381,68 +445,12 @@ public class RTMPHandler extends BaseRTMPHandler {
 					conn.getState().setEncoding(Encoding.AMF3);
 				}
 			} else {
-				StreamAction streamAction = StreamAction.getEnum(action);
-				if (log.isDebugEnabled()) {
-					log.debug("Stream action: {}", streamAction.toString());
-				}
-				if (dispatchStreamActions) {
-					// pass the stream action event to the handler
-					try {
-						conn.getScope().getHandler().handleEvent(new StreamActionEvent(streamAction));
-					} catch (Exception ex) {
-						log.warn("Exception passing stream action: {} to the scope handler", streamAction, ex);
-					}
-				}
-				//if the "stream" action is not predefined a custom type will be returned
-				switch (streamAction) {
-					case DISCONNECT:
-						conn.close();
-						break;
-					case CREATE_STREAM:
-					case INIT_STREAM:
-					case CLOSE_STREAM:
-					case RELEASE_STREAM:
-					case DELETE_STREAM:
-					case PUBLISH:
-					case PLAY:
-					case PLAY2:
-					case SEEK:
-					case PAUSE:
-					case PAUSE_RAW:
-					case RECEIVE_VIDEO:
-					case RECEIVE_AUDIO:
-						IStreamService streamService = (IStreamService) ScopeUtils.getScopeService(conn.getScope(), IStreamService.class, StreamService.class);
-						Status status = null;
-						try {
-							log.debug("Invoking {} from {} with service: {}", new Object[] { call, conn, streamService });
-							if (!invokeCall(conn, call, streamService)) {
-								status = getStatus(NS_INVALID_ARGUMENT).asStatus();
-								status.setDescription(String.format("Failed to %s (stream id: %d)", action, source.getStreamId()));
-							}
-						} catch (Throwable err) {
-							log.error("Error while invoking {} on stream service. {}", action, err);
-							status = getStatus(NS_FAILED).asStatus();
-							status.setDescription(String.format("Error while invoking %s (stream id: %d)", action, source.getStreamId()));
-							status.setDetails(err.getMessage());
-						}
-						if (status != null) {
-							channel.sendStatus(status);
-						}
-						break;
-					default:
-						log.debug("Defaulting to invoke for: {}", action);
-						invokeCall(conn, call);
-				}
+				// not connected and attempting to send an invoke
+				log.warn("Not connected, closing connection");
+				conn.close();
 			}
-		} else if (conn.isConnected()) {
-			// Service calls, must be connected.
-			invokeCall(conn, call);
-		} else {
-			// Warn user attempts to call service without being connected
-			log.warn("Not connected, closing connection");
-			conn.close();
 		}
-		if (invoke instanceof Invoke) {
+		if (command instanceof Invoke) {
 			if ((source.getStreamId() != 0) && (call.getStatus() == Call.STATUS_SUCCESS_VOID || call.getStatus() == Call.STATUS_SUCCESS_NULL)) {
 				// This fixes a bug in the FP on Intel Macs.
 				log.debug("Method does not have return value, do not reply");
@@ -457,7 +465,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 					DeferredResult dr = (DeferredResult) result;
 					dr.setServiceCall(psc);
 					dr.setChannel(channel);
-					dr.setInvokeId(invoke.getInvokeId());
+					dr.setTransactionId(command.getTransactionId());
 					conn.registerDeferredResult(dr);
 					sendResult = false;
 				}
@@ -466,7 +474,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 				// The client expects a result for the method call.
 				Invoke reply = new Invoke();
 				reply.setCall(call);
-				reply.setInvokeId(invoke.getInvokeId());
+				reply.setTransactionId(command.getTransactionId());
 				channel.write(reply);
 				if (disconnectOnReturn) {
 					conn.close();
