@@ -75,11 +75,19 @@ public class PluginLauncher implements ApplicationContextAware, InitializingBean
 
 			log.debug("{} plugins to launch", plugins.length);
 			for (File plugin : plugins) {
-    			JarFile jar = new JarFile(plugin, false);
-    			Manifest manifest = jar.getManifest();
-    			if (manifest == null) {
-    				continue;
-    			}
+    			JarFile jar = null;
+    			Manifest manifest = null;
+				try {
+					jar = new JarFile(plugin, false);
+					manifest = jar.getManifest();
+				} catch (Exception e1) {
+					log.warn("Error loading plugin manifest: {}", plugin);
+				} finally {
+					jar.close();
+				}
+				if (manifest == null) {
+					continue;
+				}				
     			Attributes attributes = manifest.getMainAttributes();
     			if (attributes == null) {
     				continue;

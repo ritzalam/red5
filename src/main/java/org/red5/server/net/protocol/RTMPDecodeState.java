@@ -19,9 +19,9 @@
 package org.red5.server.net.protocol;
 
 /**
- * Represents current state of protocol.
+ * Represents current decode state of the protocol.
  */
-public class ProtocolState {
+public class RTMPDecodeState {
 
     /**
      * Decoding finished successfully state constant.

@@ -1589,6 +1589,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			this.position = position;
 		}
 
+		@SuppressWarnings("incomplete-switch")
 		public void run() {
 			log.trace("Seek: {}", position);
 			boolean startPullPushThread = false;

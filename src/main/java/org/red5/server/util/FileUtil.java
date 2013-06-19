@@ -340,9 +340,9 @@ public class FileUtil {
 
 		// make the war directory
 		log.debug("Making directory: {}", tmpDir.mkdirs());
-
+		ZipFile zf = null;
 		try {
-			ZipFile zf = new ZipFile(compressedFileName);
+			zf = new ZipFile(compressedFileName);
 			Enumeration<?> e = zf.entries();
 			while (e.hasMoreElements()) {
 				ZipEntry ze = (ZipEntry) e.nextElement();
@@ -378,8 +378,15 @@ public class FileUtil {
 			}
 			e = null;
 		} catch (IOException e) {
-			log.error("Errord unzipping", e);
+			log.error("Errored unzipping", e);
 			//log.warn("Exception {}", e);
+		} finally {
+			if (zf != null) {
+				try {
+					zf.close();
+				} catch (IOException e) {
+				}
+			}
 		}
 	}
 

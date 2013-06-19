@@ -38,6 +38,8 @@ import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.HandshakeFailedException;
 import org.red5.server.net.protocol.ProtocolException;
 import org.red5.server.net.protocol.ProtocolState;
+import org.red5.server.net.protocol.RTMPDecodeState;
+import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPUtils;
 import org.red5.server.net.rtmp.event.Abort;
 import org.red5.server.net.rtmp.event.Aggregate;
@@ -77,6 +79,16 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 
 	protected static Logger log = LoggerFactory.getLogger(RTMPProtocolDecoder.class);
 
+	// keeps track of the decode state
+	private ThreadLocal<RTMPDecodeState> decoderState = new ThreadLocal<RTMPDecodeState>() {
+
+		@Override
+		protected RTMPDecodeState initialValue() {
+			return new RTMPDecodeState();
+		}
+		
+	};
+	
 	/** Constructs a new RTMPProtocolDecoder. */
 	public RTMPProtocolDecoder() {
 	}
@@ -84,11 +96,10 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	/**
 	 * Decode all available objects in buffer.
 	 * 
-	 * @param state Stores state for the protocol
 	 * @param buffer IoBuffer of data to be decoded
 	 * @return a list of decoded objects, may be empty if nothing could be decoded
 	 */
-	public List<Object> decodeBuffer(ProtocolState state, IoBuffer buffer) {
+	public List<Object> decodeBuffer(IoBuffer buffer) {
 		final List<Object> result = new LinkedList<Object>();
 		try {
 			while (buffer.hasRemaining()) {
@@ -147,24 +158,25 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 * 
 	 * @param state Stores state for the protocol, ProtocolState is just a marker interface
 	 * @param in IoBuffer of data to be decoded
-	 * @return one of three possible values. null : the object could not be
-	 *         decoded, or some data was skipped, just continue. ProtocolState :
-	 *         the decoder was unable to decode the whole object, refer to the
-	 *         protocol state Object : something was decoded, continue
+	 * @return one of three possible values: 
+	 * 		 1. null : the object could not be decoded, or some data was skipped, just continue
+	 *       2. ProtocolState : the decoder was unable to decode the whole object, refer to the protocol state 
+	 *       3. Object : something was decoded, continue
 	 * @throws Exception on error
 	 */
-	public Object decode(ProtocolState state, IoBuffer in) throws ProtocolException {
+	public Object decode(RTMPDecodeState state, IoBuffer in) throws ProtocolException {
 		int start = in.position();
 		log.trace("Start: {}", start);
+		RTMPConnection conn = (RTMPConnection) Red5.getConnectionLocal();
 		try {
-			final RTMP rtmp = (RTMP) state;
-			byte rtmpState = rtmp.getState();
-			switch (rtmpState) {
+			final byte connectionState = conn.getStateCode();
+			switch (connectionState) {
 				case RTMP.STATE_CONNECTED:
-					return decodePacket(rtmp, in);
+					return decodePacket(state, in);
 				case RTMP.STATE_CONNECT:
+					return decodeHandshakeS1(state, in);
 				case RTMP.STATE_HANDSHAKE:
-					return decodeHandshake(rtmp, in);
+					return decodeHandshakeS2(state, in);
 				case RTMP.STATE_ERROR:
 				case RTMP.STATE_DISCONNECTING:
 				case RTMP.STATE_DISCONNECTED:
@@ -172,7 +184,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 					in.position(in.limit());
 					return null;
 				default:
-					throw new IllegalStateException("Invalid RTMP state: " + rtmpState);
+					throw new IllegalStateException("Invalid RTMP state: " + connectionState);
 			}
 		} catch (ProtocolException pe) {
 			// raise to caller unmodified
@@ -183,19 +195,17 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	}
 
 	/**
-	 * Decodes handshake message.
+	 * Decodes handshake message for step 1, RTMP.STATE_CONNECT.
 	 * 
-	 * @param rtmp RTMP protocol state
+	 * @param state protocol decode state
 	 * @param in IoBuffer
 	 * @return IoBuffer
 	 */
-	public IoBuffer decodeHandshake(RTMP rtmp, IoBuffer in) {
+	public IoBuffer decodeHandshakeS1(RTMPDecodeState state, IoBuffer in) {
+		// first step: client has connected and handshaking is not complete
 		log.debug("decodeHandshake - rtmp: {} buffer: {}", rtmp, in);
 		// number of byte remaining in the buffer
 		int remaining = in.remaining();
-		switch (rtmp.getState()) {
-		// first step: client has connected and handshaking is not complete
-			case RTMP.STATE_CONNECT:
 				log.debug("Connecting");
 				if (remaining < HANDSHAKE_SIZE + 1) {
 					log.debug("Handshake init too small, buffering. remaining: {}", remaining);
@@ -208,9 +218,21 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 					rtmp.setState(RTMP.STATE_HANDSHAKE);
 					return hs;
 				}
-				break;
-			// second step: all handshake data received, collecting handshake reply data
-			case RTMP.STATE_HANDSHAKE:
+		return null;
+	}	
+	
+	/**
+	 * Decodes handshake message for step 2, RTMP.STATE_HANDSHAKE.
+	 * 
+	 * @param state protocol decode state
+	 * @param in IoBuffer
+	 * @return IoBuffer
+	 */
+	public IoBuffer decodeHandshakeS2(RTMPDecodeState state, IoBuffer in) {
+		// second step: all handshake data received, collecting handshake reply data
+		log.debug("decodeHandshake - rtmp: {} buffer: {}", rtmp, in);
+		// number of byte remaining in the buffer
+		int remaining = in.remaining();
 				// TODO Paul: re-examine how remaining data is buffered between handshake reply and next message when using rtmpe
 				// connections sending partial tcp are getting dropped
 				log.debug("Handshake reply");
@@ -225,8 +247,6 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 					rtmp.setState(RTMP.STATE_CONNECTED);
 					rtmp.continueDecoding();
 				}
-				break;
-		}
 		return null;
 	}
 
@@ -235,9 +255,9 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 * 
 	 * @param rtmp RTMP protocol state
 	 * @param in IoBuffer
-	 * @return IoBuffer
+	 * @return Packet
 	 */
-	public Packet decodePacket(RTMP rtmp, IoBuffer in) {
+	public Packet decodePacket(RTMPDecodeState state, IoBuffer in) {
 		if (log.isTraceEnabled()) {
 			log.trace("decodePacket - rtmp: {} buffer: {}", rtmp, in);
 		}
@@ -350,7 +370,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		buf.flip();
 
 		try {
-			final IRTMPEvent message = decodeMessage(rtmp, packet.getHeader(), buf);
+			final IRTMPEvent message = decodeMessage(encoding, packet.getHeader(), buf);
 			message.setHeader(packet.getHeader());
 			// Unfortunately flash will, especially when resetting a video stream with a new key frame, sometime 
 			// send an earlier time stamp.  To avoid dropping it, we just give it the minimal increment since the 
@@ -508,12 +528,12 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	/**
 	 * Decodes RTMP message event.
 	 * 
-	 * @param rtmp RTMP protocol state
+	 * @param encoding RTMP protocol encoding
 	 * @param header RTMP header
 	 * @param in Input IoBuffer
 	 * @return RTMP event
 	 */
-	public IRTMPEvent decodeMessage(RTMP rtmp, Header header, IoBuffer in) {
+	public IRTMPEvent decodeMessage(Encoding encoding, Header header, IoBuffer in) {
 		IRTMPEvent message;
 		byte dataType = header.getDataType();
 		switch (dataType) {
@@ -524,13 +544,13 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				message = decodeAbort(in);
 				break;
 			case TYPE_INVOKE:
-				message = decodeInvoke(in, rtmp);
+				message = decodeInvoke(in, encoding);
 				break;
 			case TYPE_NOTIFY:
 				if (header.getStreamId() == 0) {
-					message = decodeNotify(in, header, rtmp);
+					message = decodeNotify(in, header, encoding);
 				} else {
-					message = decodeStreamMetadata(in, rtmp);
+					message = decodeStreamMetadata(in, encoding);
 				}
 				break;
 			case TYPE_PING:
@@ -548,10 +568,10 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				message.setSourceType(Constants.SOURCE_TYPE_LIVE);
 				break;
 			case TYPE_FLEX_SHARED_OBJECT: // represents an SO in an AMF3 container
-				message = decodeFlexSharedObject(in, rtmp);
+				message = decodeFlexSharedObject(in);
 				break;
 			case TYPE_SHARED_OBJECT:
-				message = decodeSharedObject(in, rtmp);
+				message = decodeSharedObject(in);
 				break;
 			case TYPE_SERVER_BANDWIDTH:
 				message = decodeServerBW(in);
@@ -560,7 +580,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				message = decodeClientBW(in);
 				break;
 			case TYPE_FLEX_MESSAGE:
-				message = decodeFlexMessage(in, rtmp);
+				message = decodeFlexMessage(in);
 				break;
 			case TYPE_FLEX_STREAM_SEND:
 				message = decodeFlexStreamSend(in);
@@ -619,7 +639,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	}
 
 	/** {@inheritDoc} */
-	public ISharedObjectMessage decodeFlexSharedObject(IoBuffer in, RTMP rtmp) {
+	public ISharedObjectMessage decodeFlexSharedObject(IoBuffer in) {
 		byte encoding = in.get();
 		Input input;
 		if (encoding == 0) {
@@ -643,7 +663,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	}
 
 	/** {@inheritDoc} */
-	public ISharedObjectMessage decodeSharedObject(IoBuffer in, RTMP rtmp) {
+	public ISharedObjectMessage decodeSharedObject(IoBuffer in) {
 		final Input input = new org.red5.io.amf.Input(in);
 		String name = input.getString();
 		// Read version of SO to modify
@@ -744,8 +764,8 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	}
 
 	/** {@inheritDoc} */
-	public Notify decodeNotify(IoBuffer in, RTMP rtmp) {
-		return decodeNotify(in, null, rtmp);
+	public Notify decodeNotify(IoBuffer in, Encoding encoding) {
+		return decodeNotify(in, null, encoding);
 	}
 
 	/**
@@ -753,12 +773,11 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 * 
 	 * @param in
 	 * @param header
-	 * @param rtmp
+	 * @param encoding
 	 * @return decoded notify result
 	 */
-	public Notify decodeNotify(IoBuffer in, Header header, RTMP rtmp) {
+	public Notify decodeNotify(IoBuffer in, Header header, Encoding encoding) {
 		Notify notify = new Notify();
-		final Encoding encoding = rtmp.getEncoding();
 		int start = in.position();
 		Input input;
 		// for response, the action string and invokeId is always encoded as AMF0 we use the first byte to decide which encoding to use.
@@ -781,7 +800,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 			throw new RuntimeException("Action was null");
 		}
 		//TODO Handle NetStream.send? Where and how?
-		if (rtmp != null && header != null && header.getStreamId() != 0 && !isStreamCommand(action)) {
+		if (header != null && header.getStreamId() != 0 && !isStreamCommand(action)) {
 			// don't decode "NetStream.send" requests
 			in.position(start);
 			notify.setData(in.asReadOnlyBuffer());
@@ -820,9 +839,8 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	}
 
 	/** {@inheritDoc} */
-	public Invoke decodeInvoke(IoBuffer in, RTMP rtmp) {
+	public Invoke decodeInvoke(IoBuffer in, Encoding encoding) {
 		Invoke invoke = new Invoke();
-		final Encoding encoding = rtmp.getEncoding();
 		int start = in.position();
 		Input input;
 		// for response, the action string and invokeId is always encoded as AMF0 we use the first byte to decide which encoding to use.
@@ -928,15 +946,15 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 * Decodes stream meta data, to include onMetaData, onCuePoint, and onFI.
 	 * 
 	 * @param in
-	 * @param rtmp
+	 * @param encoding
 	 * @return Notify
 	 */
 	@SuppressWarnings("unchecked")
-	public Notify decodeStreamMetadata(IoBuffer in, RTMP rtmp) {
+	public Notify decodeStreamMetadata(IoBuffer in, Encoding encoding) {
 		Input input = null;
 		//make a pre-emptive copy of the incoming buffer here to prevent issues that occur fairly often
 		IoBuffer copy = in.duplicate();
-		if (rtmp.getEncoding() == Encoding.AMF0) {
+		if (encoding == Encoding.AMF0) {
 			input = new org.red5.io.amf.Input(copy);
 		} else {
 			org.red5.io.amf3.Input.RefStorage refStorage = new org.red5.io.amf3.Input.RefStorage();
@@ -1008,10 +1026,9 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 * Decodes FlexMessage event.
 	 * 
 	 * @param in IoBuffer
-	 * @param rtmp RTMP protocol state
 	 * @return FlexMessage event
 	 */
-	public FlexMessage decodeFlexMessage(IoBuffer in, RTMP rtmp) {
+	public FlexMessage decodeFlexMessage(IoBuffer in) {
 		// TODO: Unknown byte, probably encoding as with Flex SOs?
 		byte flexByte = in.get();
 		log.trace("Flex byte: {}", flexByte);

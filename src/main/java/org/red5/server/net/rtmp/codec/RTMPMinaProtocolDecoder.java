@@ -26,7 +26,6 @@ import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoderAdapter;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 import org.red5.server.api.Red5;
-import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.message.Constants;
 import org.slf4j.Logger;
@@ -60,10 +59,8 @@ public class RTMPMinaProtocolDecoder extends ProtocolDecoderAdapter {
 			conn = (RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 			Red5.setConnectionLocal(conn);
 		}
-		// get our state
-		ProtocolState state = (ProtocolState) conn.getState();
 		// construct any objects from the decoded bugger
-		List<?> objects = decoder.decodeBuffer(state, buf);
+		List<?> objects = decoder.decodeBuffer(buf);
 		if (objects != null) {
 			for (Object object : objects) {
 				out.write(object);

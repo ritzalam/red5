@@ -491,6 +491,7 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	}	
 	
 	/** {@inheritDoc} */
+	@SuppressWarnings("incomplete-switch")
 	public void pause() {
 		switch (state) {
 			case PLAYING:
