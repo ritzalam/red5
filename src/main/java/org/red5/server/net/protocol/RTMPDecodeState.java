@@ -110,4 +110,12 @@ public class RTMPDecodeState {
 		return (decoderState != DECODER_BUFFER);
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "RTMPDecodeState [decoderState=" + decoderState + ", decoderBufferAmount=" + decoderBufferAmount + "]";
+	}
+
 }

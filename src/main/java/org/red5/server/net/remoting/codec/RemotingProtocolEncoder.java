@@ -34,7 +34,6 @@ import org.red5.server.api.Red5;
 import org.red5.server.api.remoting.IRemotingConnection;
 import org.red5.server.api.remoting.IRemotingHeader;
 import org.red5.server.exception.ClientDetailsException;
-import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.remoting.FlexMessagingService;
 import org.red5.server.net.remoting.message.RemotingCall;
 import org.red5.server.net.remoting.message.RemotingPacket;
@@ -54,12 +53,11 @@ public class RemotingProtocolEncoder {
 	/**
 	 * Encodes the given buffer.
 	 * 
-	 * @param state
 	 * @param message
 	 * @return buffer
 	 * @throws Exception
 	 */
-	public IoBuffer encode(ProtocolState state, Object message) throws Exception {
+	public IoBuffer encode(Object message) throws Exception {
 		RemotingPacket resp = (RemotingPacket) message;
 		IoBuffer buf = IoBuffer.allocate(1024);
 		buf.setAutoExpand(true);

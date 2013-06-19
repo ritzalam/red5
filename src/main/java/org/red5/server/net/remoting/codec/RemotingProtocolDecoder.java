@@ -30,7 +30,6 @@ import org.red5.io.amf.AMF;
 import org.red5.io.amf3.Input.RefStorage;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Input;
-import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.remoting.FlexMessagingService;
 import org.red5.server.net.remoting.message.RemotingCall;
 import org.red5.server.net.remoting.message.RemotingPacket;
@@ -44,15 +43,14 @@ public class RemotingProtocolDecoder {
 	/**
 	 * Decodes the given buffer.
 	 * 
-	 * @param state
 	 * @param buffer
 	 * @return a List of {@link RemotingPacket} objects.
 	 */
-	public List<Object> decodeBuffer(ProtocolState state, IoBuffer buffer) {
+	public List<Object> decodeBuffer(IoBuffer buffer) {
 		List<Object> list = new LinkedList<Object>();
 		Object packet = null;
 		try {
-			packet = decode(state, buffer);
+			packet = decode(buffer);
 		} catch (Exception e) {
 			log.error("Decoding error", e);
 			packet = null;
@@ -66,12 +64,11 @@ public class RemotingProtocolDecoder {
 	/**
 	 * Decodes the buffer and returns a remoting packet.
 	 * 
-	 * @param state
 	 * @param in
 	 * @return A {@link RemotingPacket}
 	 * @throws Exception
 	 */
-	public Object decode(ProtocolState state, IoBuffer in) throws Exception {
+	public Object decode(IoBuffer in) throws Exception {
 		Map<String, Object> headers = readHeaders(in);
 		List<RemotingCall> calls = decodeCalls(in);
 		return new RemotingPacket(headers, calls);
@@ -123,10 +120,8 @@ public class RemotingProtocolDecoder {
 		int count = in.getUnsignedShort();
 		log.debug("Calls: {}", count);
 		int limit = in.limit();
-
 		// Loop over all the body elements
 		for (int i = 0; i < count; i++) {
-
 			in.limit(limit);
 
 			String serviceString = org.red5.io.amf.Input.getString(in);

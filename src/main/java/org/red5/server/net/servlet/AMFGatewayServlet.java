@@ -102,8 +102,7 @@ public class AMFGatewayServlet extends HttpServlet {
 			//now try to look it up as an attribute
 			if (webAppCtx == null) {
 				log.debug("Webapp context was null, trying lookup as attr.");
-				webAppCtx = (WebApplicationContext) ctx
-						.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+				webAppCtx = (WebApplicationContext) ctx.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
 			}
 			//lookup the server and codec factory
 			if (webAppCtx != null) {
@@ -179,10 +178,10 @@ public class AMFGatewayServlet extends HttpServlet {
 			//fixed so that true is not returned for calls that have failed
 			boolean passed = handleRemotingPacket(req, context, scope, packet);
 			if (passed) {
-    			resp.setStatus(HttpServletResponse.SC_OK);
+				resp.setStatus(HttpServletResponse.SC_OK);
 			} else {
 				log.warn("At least one invocation failed to execute");
-    			resp.setStatus(HttpServletResponse.SC_EXPECTATION_FAILED);				
+				resp.setStatus(HttpServletResponse.SC_EXPECTATION_FAILED);
 			}
 			//send our response
 			resp.setContentType(APPLICATION_AMF);
@@ -216,7 +215,7 @@ public class AMFGatewayServlet extends HttpServlet {
 		IoBuffer reqBuffer = IoBuffer.allocate(req.getContentLength());
 		ServletUtils.copy(req.getInputStream(), reqBuffer.asOutputStream());
 		reqBuffer.flip();
-		RemotingPacket packet = (RemotingPacket) codecFactory.getRemotingDecoder().decode(null, reqBuffer);
+		RemotingPacket packet = (RemotingPacket) codecFactory.getRemotingDecoder().decode(reqBuffer);
 		String path = req.getContextPath();
 		if (path == null) {
 			path = "";
@@ -249,8 +248,7 @@ public class AMFGatewayServlet extends HttpServlet {
 	 *            Remoting packet
 	 * @return <code>true</code> on success
 	 */
-	protected boolean handleRemotingPacket(HttpServletRequest req, IContext context, IScope scope,
-			RemotingPacket message) {
+	protected boolean handleRemotingPacket(HttpServletRequest req, IContext context, IScope scope, RemotingPacket message) {
 		log.debug("Handling remoting packet");
 		boolean result = true;
 		final IServiceInvoker invoker = context.getServiceInvoker();
@@ -276,15 +274,15 @@ public class AMFGatewayServlet extends HttpServlet {
 	 */
 	protected void sendResponse(HttpServletResponse resp, RemotingPacket packet) throws Exception {
 		log.debug("Sending response");
-		IoBuffer respBuffer = codecFactory.getRemotingEncoder().encode(null, packet);
+		IoBuffer respBuffer = codecFactory.getRemotingEncoder().encode(packet);
 		if (respBuffer != null) {
-    		final ServletOutputStream out = resp.getOutputStream();
-    		resp.setContentLength(respBuffer.limit());
-    		ServletUtils.copy(respBuffer.asInputStream(), out);
-    		out.flush();
-    		out.close();
-    		respBuffer.free();
-    		respBuffer = null;
+			final ServletOutputStream out = resp.getOutputStream();
+			resp.setContentLength(respBuffer.limit());
+			ServletUtils.copy(respBuffer.asInputStream(), out);
+			out.flush();
+			out.close();
+			respBuffer.free();
+			respBuffer = null;
 		} else {
 			log.info("Response buffer was null after encoding");
 		}

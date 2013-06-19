@@ -24,33 +24,33 @@ import org.apache.mina.core.session.IoSession;
  * RTMP events handler
  */
 public interface IRTMPHandler {
-    /**
-     * Connection open event
-     * 
-     * @param conn          Connection
-     */
+	/**
+	 * Connection open event
+	 * 
+	 * @param conn          Connection
+	 */
 	public void connectionOpened(RTMPConnection conn);
 
-    /**
-     * Message received
-     * 
-     * @param message       Message
-     * @param session       Connected session
-     * @throws Exception    Exception
-     */
-	public void messageReceived(Object message, IoSession session) throws Exception;
+	/**
+	 * Message received
+	 * 
+	 * @param in       IoBuffer or Packet containing an RTMP message
+	 * @param session      Connected session
+	 * @throws Exception   Exception
+	 */
+	public void messageReceived(Object in, IoSession session) throws Exception;
 
-    /**
-     * Message sent
-     * @param conn          Connection
-     * @param message       Message
-     */
+	/**
+	 * Message sent
+	 * @param conn          Connection
+	 * @param message       Message
+	 */
 	public void messageSent(RTMPConnection conn, Object message);
 
-    /**
-     * Connection closed
-     * @param conn          Connection
-     */
+	/**
+	 * Connection closed
+	 * @param conn          Connection
+	 */
 	public void connectionClosed(RTMPConnection conn);
-	
+
 }

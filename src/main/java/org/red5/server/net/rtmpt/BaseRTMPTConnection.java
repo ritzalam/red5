@@ -191,7 +191,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 		log.trace("Current bytes read at decode: {}", read);
 		buffer.put(data);
 		buffer.flip();
-		return decoder.decodeBuffer(state, buffer);
+		return decoder.decodeBuffer(buffer);
 	}
 
 	/**
@@ -281,7 +281,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 		} else {
 			IoBuffer data = null;
 			try {
-				data = encoder.encodePacket(state, packet);
+				data = encoder.encodePacket(packet);
 				if (data != null) {
 					// add to pending
 					log.debug("Adding outgoing message packet");
@@ -370,7 +370,6 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 
 	public void setEncoder(RTMPProtocolEncoder encoder) {
 		this.encoder = (RTMPTProtocolEncoder) encoder;
-		this.encoder.setConnection(this);
 	}
 
 	/**

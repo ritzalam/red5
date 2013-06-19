@@ -93,6 +93,8 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 
 	protected int receiveBufferSize = 65536;
 
+	private int readerIdleTime = 2;
+	
 	private int trafficClass = 0x08 | 0x10;
 
 	private int backlog = 32;
@@ -169,6 +171,8 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 		sessionConf.setMaxReadBufferSize(receiveBufferSize);
 		// sets the interval (seconds) between each throughput calculation, the default value is 3 seconds
 		sessionConf.setThroughputCalculationInterval(thoughputCalcInterval);
+		// set the reader idle time (seconds)
+		sessionConf.setReaderIdleTime(readerIdleTime);
 		// to prevent setting of the traffic class we expect a value of -1
 		if (trafficClass == -1) {
 			log.info("Traffic class modification is disabled");
@@ -336,6 +340,13 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 
 	public void setMinaPollInterval(int minaPollInterval) {
 		this.minaPollInterval = minaPollInterval;
+	}
+
+	/**
+	 * @param readerIdleTime the readerIdleTime to set
+	 */
+	public void setReaderIdleTime(int readerIdleTime) {
+		this.readerIdleTime = readerIdleTime;
 	}
 
 	/**

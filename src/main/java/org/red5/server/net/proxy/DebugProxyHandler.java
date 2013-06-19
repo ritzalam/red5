@@ -99,7 +99,6 @@ public class DebugProxyHandler extends IoHandlerAdapter implements ResourceLoade
 	}
 
 	/** {@inheritDoc} */
-	@SuppressWarnings("resource")
 	@Override
 	public void sessionCreated(IoSession session) throws Exception {
 

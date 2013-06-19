@@ -24,7 +24,6 @@
         <property name="poolSize" value="${rtmp.scheduler.pool_size}" />  
         <property name="waitForTasksToCompleteOnShutdown" value="false"/>
         <property name="daemon" value="true"/>
-        <property name="threadNamePrefix" value="RTMPScheduler-"/>
 	</bean>        
 	        
     <!-- RTMP connection manager --> 

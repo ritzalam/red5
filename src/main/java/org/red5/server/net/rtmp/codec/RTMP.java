@@ -22,14 +22,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.red5.server.api.IConnection.Encoding;
-import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.message.Packet;
 
 /**
  * RTMP is the RTMP protocol state representation.
  */
-public class RTMP extends ProtocolState {
+public class RTMP {
 
 	public String[] states = { "connect", "handshake", "connected", "error", "disconnecting", "disconnected" };
 
@@ -121,13 +120,9 @@ public class RTMP extends ProtocolState {
 	 * @return channel info
 	 */
 	private ChannelInfo getChannelInfo(int channelId) {
-		ChannelInfo info = channels.get(channelId);
+		ChannelInfo info = channels.putIfAbsent(channelId, new ChannelInfo());
 		if (info == null) {
-			info = new ChannelInfo();
-			ChannelInfo prev = channels.putIfAbsent(channelId, info);
-			if (prev != null) {
-				info = prev;
-			}
+			info = channels.get(channelId);
 		}
 		return info;
 	}
@@ -360,6 +355,13 @@ public class RTMP extends ProtocolState {
 		getChannelInfo(channelId).setLiveTimestamp(mapping);
 	}
 
+	void clearLastTimestampMapping(int... channelIds) {
+		for (int channelId : channelIds) {
+			getChannelInfo(channelId).setLiveTimestamp(null);
+		}
+	}
+
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -372,7 +374,8 @@ public class RTMP extends ProtocolState {
 	/**
 	 * Class for mapping between clock time and stream time for live streams
 	 */
-	final static class LiveTimestampMapping {
+	final class LiveTimestampMapping {
+		
 		private final long clockStartTime;
 
 		private final long streamStartTime;
@@ -416,7 +419,7 @@ public class RTMP extends ProtocolState {
 	/**
 	 * Channel details
 	 */
-	private final static class ChannelInfo {
+	private final class ChannelInfo {
 		// read header
 		private Header readHeader;
 

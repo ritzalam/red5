@@ -144,8 +144,8 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	public void handleMessageReceived(Object message) {
 		log.trace("handleMessageReceived - {}", sessionId);
 		scheduler.execute(new ReceivedMessageTask(ioSession, message));
-	}	
-	
+	}
+
 	/**
 	 * Return MINA I/O session.
 	 *
@@ -393,13 +393,15 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 		}
 
 		public void run() {
+			// set connection to thread local
+			Red5.setConnectionLocal((RTMPConnection) ioSession.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY));
 			try {
-				Red5.setConnectionLocal((RTMPConnection) ioSession.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY));
 				// pass message to the handler
 				handler.messageReceived(message, ioSession);
 			} catch (Exception e) {
-				log.error("Error processing receive queue", e);
+				log.error("Error processing received message", e);
 			} finally {
+				// clear thread local
 				Red5.setConnectionLocal(null);
 			}
 		}

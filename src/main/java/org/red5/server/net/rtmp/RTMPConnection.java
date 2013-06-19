@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -215,8 +216,14 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	/**
 	 * Protocol state
 	 */
-	protected volatile RTMP state = new RTMP();
-
+	protected RTMP state = new RTMP();
+	
+	// protection for the decoder when using multiple threads per connection
+	private Semaphore decoderLock = new Semaphore(1, true);
+	
+	// protection for the encoder when using multiple threads per connection
+	private Semaphore encoderLock = new Semaphore(1, true);	
+	
 	/**
 	 * Scheduling service
 	 */
@@ -270,6 +277,20 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 
 	public void setStateCode(byte code) {
 		state.setState(code);
+	}
+
+	/**
+	 * @return the decoderLock
+	 */
+	public Semaphore getDecoderLock() {
+		return decoderLock;
+	}
+
+	/**
+	 * @return the decoderLock
+	 */
+	public Semaphore getEncoderLock() {
+		return encoderLock;
 	}
 
 	/** {@inheritDoc} */
@@ -484,8 +505,6 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		final Channel data = getChannel(channelId++);
 		final Channel video = getChannel(channelId++);
 		final Channel audio = getChannel(channelId++);
-		// final Channel unknown = getChannel(channelId++);
-		// final Channel ctrl = getChannel(channelId++);
 		return new OutputStream(video, audio, data);
 	}
 
@@ -970,7 +989,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	}
 
 	/**
-	 * Handle the incoming message. Override this method to handle incomming messages.
+	 * Handle the incoming message. Override this method to handle incoming messages.
 	 * 
 	 * @param message
 	 */
@@ -1107,6 +1126,8 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 */
 	public void setScheduler(ThreadPoolTaskScheduler scheduler) {
 		this.scheduler = scheduler;
+		// set the prefix
+		this.scheduler.setThreadNamePrefix(String.format("RTMPConnectionExecutor#%d", System.currentTimeMillis()));
 	}
 
 	/**
@@ -1225,10 +1246,14 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 							// update the timestamp to match our update
 							lastBytesReadTime = now;
 						}
+						// update last ping time to prevent overly active pinging
+						lastPingSent.set(now);
 					} else if (getPendingMessages() > 0) {
 						// client may not have updated bytes yet, but may have received messages waiting, no need to drop them if processing hasn't
 						// caught up yet
 						log.trace("Reader is not idle, possible flood. Pending write messages: {}", getPendingMessages());
+						// update last ping time to prevent overly active pinging
+						lastPingSent.set(now);
 					} else {
 						// client didn't send response to ping command and didn't sent data for too long, disconnect
 						long lastPingTime = lastPingSent.get();

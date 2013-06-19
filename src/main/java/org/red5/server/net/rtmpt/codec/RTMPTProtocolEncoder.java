@@ -21,7 +21,6 @@ package org.red5.server.net.rtmpt.codec;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.net.ICommand;
-import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.codec.RTMPProtocolEncoder;
 import org.red5.server.net.rtmp.status.Status;
 
@@ -31,7 +30,7 @@ import org.red5.server.net.rtmp.status.Status;
 public class RTMPTProtocolEncoder extends RTMPProtocolEncoder {
 
 	@Override
-	protected void encodeCommand(IoBuffer out, ICommand command, RTMP rtmp) {
+	protected void encodeCommand(IoBuffer out, ICommand command) {
 		// if we get an InsufficientBW message for the client, we'll reduce the base tolerance and set drop live to true
 		final IServiceCall call = command.getCall();
 		if ("onStatus".equals(call.getServiceMethodName()) && call.getArguments().length >= 1) {
@@ -47,7 +46,7 @@ public class RTMPTProtocolEncoder extends RTMPProtocolEncoder {
 				setDropLiveFuture(true);
 			}
 		}
-		super.encodeCommand(out, command, rtmp);
+		super.encodeCommand(out, command);
 	}
 
 }

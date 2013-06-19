@@ -19,12 +19,14 @@
 package org.red5.server.net.rtmp.codec;
 
 import java.util.LinkedList;
+import java.util.concurrent.Semaphore;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolEncoderAdapter;
 import org.apache.mina.filter.codec.ProtocolEncoderOutput;
+import org.red5.server.api.Red5;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,42 +44,58 @@ public class RTMPMinaProtocolEncoder extends ProtocolEncoderAdapter {
 
 	/** {@inheritDoc} */
 	public void encode(IoSession session, Object message, ProtocolEncoderOutput out) throws ProtocolCodecException {
-		// pass the connection to the encoder for its use; encoders are PER connection, they are not shared
+		// get the connection from the session
 		RTMPConnection conn = (RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
-		encoder.setConnection(conn);
-		// get our state
-		RTMP state = conn.getState();
-		try {
-			final IoBuffer buf = encoder.encode(state, message);
-			if (buf != null) {
-				int requestedWriteChunkSize = state.getWriteChunkSize();
-				log.debug("Requested chunk size: {} target chunk size: {}", requestedWriteChunkSize, targetChunkSize);
-				if (buf.remaining() <= targetChunkSize * 2) {
-					out.write(buf);
-				} else {
-					log.debug("Chunking output data");
-					LinkedList<IoBuffer> chunks = Chunker.chunk(buf, requestedWriteChunkSize, targetChunkSize);
-					for (IoBuffer chunk : chunks) {
-						out.write(chunk);
-					}
-					chunks.clear();
-					chunks = null;
-				}
-			} else {
-				log.trace("Response buffer was null after encoding");
+		if (conn != null) {
+			// look for and compare the connection local; set it from the session
+			if (!conn.equals((RTMPConnection) Red5.getConnectionLocal())) {
+				log.warn("Connection local didn't match session");
+				Red5.setConnectionLocal(conn);
 			}
-			//			WriteFuture future = out.flush();
-			//			if (future != null) {
-			//				future.addListener(new IoFutureListener<WriteFuture>() {
-			//					@Override
-			//					public void operationComplete(WriteFuture future) {
-			//						//log.debug("Buffer freed");
-			//						buf.free();
-			//					}
-			//				});
-			//			}
-		} catch (Exception ex) {
-			log.error("Exception during encode", ex);
+			final Semaphore lock = conn.getEncoderLock();
+			try {
+				// acquire the decoder lock
+				log.trace("Encoder lock acquiring.. {}", conn.getId());
+				lock.acquire();
+				log.trace("Encoder lock acquired {}", conn.getId());
+				// get the buffer
+				final IoBuffer buf = message instanceof IoBuffer ? (IoBuffer) message : encoder.encode(message);
+				if (buf != null) {
+					int requestedWriteChunkSize = conn.getState().getWriteChunkSize();
+					log.trace("Requested chunk size: {} target chunk size: {}", requestedWriteChunkSize, targetChunkSize);
+					if (buf.remaining() <= targetChunkSize * 2) {
+						log.trace("Writing output data");
+						out.write(buf);
+					} else {
+						LinkedList<IoBuffer> chunks = Chunker.chunk(buf, requestedWriteChunkSize, targetChunkSize);
+						log.trace("Writing output data in {} chunks", chunks.size());
+						for (IoBuffer chunk : chunks) {
+							out.write(chunk);
+						}
+						chunks.clear();
+						chunks = null;
+					}
+				} else {
+					log.trace("Response buffer was null after encoding");
+				}
+				//			WriteFuture future = out.flush();
+				//			if (future != null) {
+				//				future.addListener(new IoFutureListener<WriteFuture>() {
+				//					@Override
+				//					public void operationComplete(WriteFuture future) {
+				//						//log.debug("Buffer freed");
+				//						buf.free();
+				//					}
+				//				});
+				//			}
+			} catch (Exception ex) {
+				log.error("Exception during encode", ex);
+			} finally {
+				log.trace("Encoder lock releasing.. {}", conn.getId());
+				lock.release();
+			}
+		} else {
+			log.debug("Connection is no longer available for encoding, may have been closed already");
 		}
 	}
 

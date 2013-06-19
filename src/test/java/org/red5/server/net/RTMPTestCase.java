@@ -22,7 +22,6 @@ import junit.framework.Assert;
 import junit.framework.TestCase;
 
 import org.apache.mina.core.buffer.IoBuffer;
-import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.codec.RTMPProtocolDecoder;
 import org.red5.server.net.rtmp.codec.RTMPProtocolEncoder;
 import org.red5.server.net.rtmp.event.Invoke;
@@ -48,14 +47,13 @@ public class RTMPTestCase extends TestCase implements Constants {
 	}
 
 	public void testHeaders() {
-		RTMP rtmp = new RTMP();
 		Header header = new Header();
 		header.setChannelId((byte) 0x12);
 		header.setDataType(TYPE_INVOKE);
 		header.setStreamId(100);
 		header.setTimer(2);
 		header.setSize(320);
-		IoBuffer buf = encoder.encodeHeader(rtmp, header, null);
+		IoBuffer buf = encoder.encodeHeader(header, null);
 		buf.flip();
 		log.debug(buf.getHexDump());
 		Assert.assertNotNull(buf);

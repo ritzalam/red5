@@ -124,6 +124,9 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 
 	private static Logger log = LoggerFactory.getLogger(MP4Reader.class);
 
+	/** Audio packet prefix for the decoder frame */
+	public final static byte[] PREFIX_AUDIO_CONFIG_FRAME = new byte[] { (byte) 0xaf, (byte) 0 };	
+	
 	/** Audio packet prefix */
 	public final static byte[] PREFIX_AUDIO_FRAME = new byte[] { (byte) 0xaf, (byte) 0x01 };
 
@@ -1190,7 +1193,7 @@ public class MP4Reader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 				}
 				body = IoBuffer.allocate(audioDecoderBytes.length + 3);
 				body.setAutoExpand(true);
-				body.put(new byte[] { (byte) 0xaf, (byte) 0 }); //prefix
+				body.put(PREFIX_AUDIO_CONFIG_FRAME); //prefix
 				body.put(audioDecoderBytes);
 				body.put((byte) 0x06); //suffix
 				tag = new Tag(IoConstants.TYPE_AUDIO, timestamp, body.position(), null, 0);

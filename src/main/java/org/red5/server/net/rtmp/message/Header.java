@@ -66,12 +66,6 @@ public class Header implements Constants, Cloneable, Externalizable {
 	private int extendedTimestamp;
 
 	/**
-	 * Flash player occasionally sends garbage audio that as far as I can tell exists only to make folks who
-	 * don't know about it slowly get out-of-sync audio and video. We now detect that.
-	 */
-	private boolean isGarbage = false;
-
-	/**
 	 * Getter for channel id
 	 *
 	 * @return  Channel id
@@ -196,14 +190,6 @@ public class Header implements Constants, Cloneable, Externalizable {
 		return timerBase;
 	}
 
-	public void setIsGarbage(boolean isGarbage) {
-		this.isGarbage = isGarbage;
-	}
-
-	public boolean isGarbage() {
-		return isGarbage;
-	}
-
 	/** {@inheritDoc} */
 	@Override
 	public boolean equals(Object other) {
@@ -225,7 +211,6 @@ public class Header implements Constants, Cloneable, Externalizable {
 		header.setDataType(dataType);
 		header.setStreamId(streamId);
 		header.setExtendedTimestamp(extendedTimestamp);
-		header.setIsGarbage(isGarbage);
 		return header;
 	}
 
@@ -237,7 +222,6 @@ public class Header implements Constants, Cloneable, Externalizable {
 		timerBase = in.readInt();
 		timerDelta = in.readInt();
 		extendedTimestamp = in.readInt();
-		isGarbage = in.readBoolean();
 	}
 
 	public void writeExternal(ObjectOutput out) throws IOException {
@@ -248,7 +232,6 @@ public class Header implements Constants, Cloneable, Externalizable {
 		out.writeInt(timerBase);
 		out.writeInt(timerDelta);
 		out.writeInt(extendedTimestamp);
-		out.writeBoolean(isGarbage);
 	}
 
 	/* (non-Javadoc)
@@ -257,7 +240,7 @@ public class Header implements Constants, Cloneable, Externalizable {
 	@Override
 	public String toString() {
 		return "Header [channelId=" + channelId + ", dataType=" + dataType + ", timerBase=" + timerBase + ", timerDelta=" + timerDelta + ", size=" + size + ", streamId="
-				+ streamId + ", extendedTimestamp=" + extendedTimestamp + ", isGarbage=" + isGarbage + "]";
+				+ streamId + ", extendedTimestamp=" + extendedTimestamp + "]";
 	}
 
 }

@@ -35,105 +35,100 @@ import org.red5.server.so.ISharedObjectMessage;
  * Event decoder decodes event objects from incoming byte buffer.
  */
 public interface IEventDecoder {
-    /**
-     * Decodes event of Unknown type.
+	/**
+	 * Decodes event of Unknown type.
 	 *
-     * @param dataType               Data type
-     * @param in                     Byte buffer to decode
-     * @return                       Unknown event
-     */
+	 * @param dataType               Data type
+	 * @param in                     Byte buffer to decode
+	 * @return                       Unknown event
+	 */
 	public abstract Unknown decodeUnknown(byte dataType, IoBuffer in);
 
-    /**
-     * Decodes chunk size event.
+	/**
+	 * Decodes chunk size event.
 	 *
-     * @param in                     Byte buffer to decode
-     * @return                       ChunkSize event
-     */
+	 * @param in                     Byte buffer to decode
+	 * @return                       ChunkSize event
+	 */
 	public abstract ChunkSize decodeChunkSize(IoBuffer in);
 
-    /**
-     * Decodes shared object message event.
+	/**
+	 * Decodes shared object message event.
 	 *
-     * @param in                     Byte buffer to decode
-     * @param rtmp					 RTMP protocol state
-     * @return                       ISharedObjectMessage event
-     */
-	public abstract ISharedObjectMessage decodeSharedObject(IoBuffer in, RTMP rtmp);
+	 * @param in                     Byte buffer to decode
+	 * @return                       ISharedObjectMessage event
+	 */
+	public abstract ISharedObjectMessage decodeSharedObject(IoBuffer in);
 
-    /**
-     * Decodes shared object message event from AMF3 encoding.
+	/**
+	 * Decodes shared object message event from AMF3 encoding.
 	 *
-     * @param in                     Byte buffer to decode
-     * @param rtmp					 RTMP protocol state
-     * @return                       ISharedObjectMessage event
-     */
-	public abstract ISharedObjectMessage decodeFlexSharedObject(IoBuffer in, RTMP rtmp);
+	 * @param in                     Byte buffer to decode
+	 * @return                       ISharedObjectMessage event
+	 */
+	public abstract ISharedObjectMessage decodeFlexSharedObject(IoBuffer in);
 
-    /**
-     * Decodes notification event.
+	/**
+	 * Decodes notification event.
 	 *
-     * @param in                     Byte buffer to decode
-     * @param rtmp					 RTMP protocol state
-     * @return                       Notify event
-     */
-    public abstract Notify decodeNotify(IoBuffer in, RTMP rtmp);
+	 * @param in                     Byte buffer to decode
+	 * @return                       Notify event
+	 */
+	public abstract Notify decodeNotify(IoBuffer in);
 
-    /**
-     * Decodes invocation event.
+	/**
+	 * Decodes invocation event.
 	 *
-     * @param in                     Byte buffer to decode
-     * @param rtmp					 RTMP protocol state
-     * @return                       Invoke event
-     */
-    public abstract Invoke decodeInvoke(IoBuffer in, RTMP rtmp);
+	 * @param in                     Byte buffer to decode
+	 * @return                       Invoke event
+	 */
+	public abstract Invoke decodeInvoke(IoBuffer in);
 
-    /**
-     * Decodes ping event.
+	/**
+	 * Decodes ping event.
 	 *
-     * @param in                     Byte buffer to decode
-     * @return                       Ping event
-     */
-    public abstract Ping decodePing(IoBuffer in);
+	 * @param in                     Byte buffer to decode
+	 * @return                       Ping event
+	 */
+	public abstract Ping decodePing(IoBuffer in);
 
-    /**
-     * Decodes BytesRead event.
+	/**
+	 * Decodes BytesRead event.
 	 *
-     * @param in                     Byte buffer to decode
-     * @return                       BytesRead event
-     */
-    public abstract BytesRead decodeBytesRead(IoBuffer in);
+	 * @param in                     Byte buffer to decode
+	 * @return                       BytesRead event
+	 */
+	public abstract BytesRead decodeBytesRead(IoBuffer in);
 
 	/**
 	 * Decodes the aggregated data.
 	 * 
 	 * @param in                     Byte buffer to decode
-     * @return                       Aggregate event
+	 * @return                       Aggregate event
 	 */
 	public abstract Aggregate decodeAggregate(IoBuffer in);
-    
-    /**
-     * Decodes audio data event.
-	 *
-     * @param in                     Byte buffer to decode
-     * @return                       AudioData event
-     */
-    public abstract AudioData decodeAudioData(IoBuffer in);
 
-    /**
-     * Decodes video data event.
+	/**
+	 * Decodes audio data event.
 	 *
-     * @param in                     Byte buffer to decode
-     * @return                       VideoData event
-     */
-    public abstract VideoData decodeVideoData(IoBuffer in);
+	 * @param in                     Byte buffer to decode
+	 * @return                       AudioData event
+	 */
+	public abstract AudioData decodeAudioData(IoBuffer in);
 
-    /**
-     * Decodes Flex message event.
+	/**
+	 * Decodes video data event.
 	 *
-     * @param in                     Byte buffer to decode
-     * @param rtmp					 RTMP protocol state
-     * @return                       FlexMessage event
-     */
-    public abstract FlexMessage decodeFlexMessage(IoBuffer in, RTMP rtmp);
+	 * @param in                     Byte buffer to decode
+	 * @return                       VideoData event
+	 */
+	public abstract VideoData decodeVideoData(IoBuffer in);
+
+	/**
+	 * Decodes Flex message event.
+	 *
+	 * @param in                     Byte buffer to decode
+	 * @return                       FlexMessage event
+	 */
+	public abstract FlexMessage decodeFlexMessage(IoBuffer in);
 }
