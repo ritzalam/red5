@@ -81,8 +81,7 @@ public class RTMPTHandler extends RTMPHandler {
 			return "";
 		} else {
 			String host = parts[2];
-			// Strip out default port in case the client
-			// added the port explicitly.
+			// strip out default port if the client added it
 			if (host.endsWith(":80")) {
 				// Remove default port from connection string
 				return host.substring(0, host.length() - 3);
@@ -94,12 +93,11 @@ public class RTMPTHandler extends RTMPHandler {
 	/**
 	 * Handle raw buffer received
 	 * @param conn        RTMP connection
-	 * @param state       Protocol state
 	 * @param in          Byte buffer with input raw data
 	 */
-	private void rawBufferReceived(RTMPTConnection conn, RTMP state, IoBuffer in) {
+	private void rawBufferReceived(RTMPTConnection conn, IoBuffer in) {
 		log.debug("rawBufferRecieved: {}", in);
-		if (state.getState() != RTMP.STATE_HANDSHAKE) {
+		if (conn.getStateCode() != RTMP.STATE_HANDSHAKE) {
 			log.warn("Raw buffer after handshake, something odd going on");
 		}
 		log.debug("Writing handshake reply, handskake size: {}", in.remaining());
@@ -114,9 +112,7 @@ public class RTMPTHandler extends RTMPHandler {
 		log.debug("messageReceived");
 		if (in instanceof IoBuffer) {
 			RTMPTConnection conn = (RTMPTConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
-			RTMP state = conn.getState();
-			log.trace("state: {}", state);
-			rawBufferReceived(conn, state, (IoBuffer) in);
+			rawBufferReceived(conn, (IoBuffer) in);
 			((IoBuffer) in).free();
 			in = null;
 		} else {

@@ -22,7 +22,7 @@
 	<!-- RTMP -->
     <bean id="rtmpScheduler" scope="prototype" class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler">
         <property name="poolSize" value="${rtmp.scheduler.pool_size}" />  
-        <property name="waitForTasksToCompleteOnShutdown" value="false"/>
+        <property name="waitForTasksToCompleteOnShutdown" value="true"/>
         <property name="daemon" value="true"/>
 	</bean>        
 	        

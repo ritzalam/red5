@@ -58,9 +58,6 @@ import org.slf4j.LoggerFactory;
  */
 public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer {
 
-	/**
-	 * Logger
-	 */
 	private static Logger log = LoggerFactory.getLogger(FLVReader.class);
 
 	/**
@@ -322,8 +319,7 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 				amount = bufferSize;
 			}
 			log.debug("Buffering amount: {} buffer size: {}", amount, bufferSize);
-			// Read all remaining bytes if the requested amount reach the end
-			// of channel.
+			// Read all remaining bytes if the requested amount reach the end of channel
 			if (channelSize - channel.position() < amount) {
 				amount = channelSize - channel.position();
 			}
@@ -628,9 +624,10 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	/** {@inheritDoc}
 	 */
 	public void close() {
+		log.debug("Reader close: {}", file.getName());
 		try {
-			lock.acquire();
-			log.debug("Reader close: {}", file.getName());
+			// acquire both permits before we close
+			lock.acquire(2);
 			if (in != null) {
 				in.free();
 				in = null;
@@ -646,7 +643,7 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 		} catch (InterruptedException e) {
 			log.warn("Exception acquiring lock", e);
 		} finally {
-			lock.release();
+			lock.release(2);
 		}
 	}
 

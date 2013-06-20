@@ -941,7 +941,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 * @param message        RTMP message
 	 */
 	private void sendMessage(RTMPMessage messageIn) {
-		//copy patch from Andy Shaules
 		IRTMPEvent event;
 		IoBuffer dataReference;
 		switch (messageIn.getBody().getDataType()) {
@@ -974,14 +973,12 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			final long delta = System.currentTimeMillis() - playbackStart;
 			log.trace("clientBufferDetails: timestamp {} delta {} buffered {}", new Object[] { lastMessageTs, delta, lastMessageTs - delta });
 		}
-
 		// don't reset streamStartTS to 0 for live streams 
 		if ((streamStartTS == -1 && (ts > 0 || playDecision != 0)) || streamStartTS > ts) {
 			log.debug("sendMessage: resetting streamStartTS");
 			streamStartTS = ts;
 			messageOut.getBody().setTimestamp(0);
 		}
-
 		//relative timestamp adjustment for live streams
 		if (playDecision == 0 && streamStartTS > 0) {
 			//subtract the offset time of when the stream started playing for the client
@@ -992,7 +989,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 						ts });
 			}
 		}
-
 		if (streamStartTS > -1 && currentItem.getLength() >= 0) {
 			int duration = ts - streamStartTS;
 			if (duration - streamOffset >= currentItem.getLength()) {
@@ -1001,7 +997,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				return;
 			}
 		}
-
 		doPushMessage(messageOut);
 	}
 
