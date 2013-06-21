@@ -313,8 +313,9 @@ public class RTMPHandler extends BaseRTMPHandler {
 						final IContext context = global.getContext();
 						IScope scope = null;
 						try {
+							// TODO optimize this to use Scope instead of Context
 							scope = context.resolveScope(global, path);
-							//if global scope connection is not allowed, reject
+							// if global scope connection is not allowed, reject
 							if (scope.getDepth() < 1 && !globalScopeConnectionAllowed) {
 								call.setStatus(Call.STATUS_ACCESS_DENIED);
 								if (call instanceof IPendingServiceCall) {
