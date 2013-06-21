@@ -118,9 +118,8 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		log.trace("rawBufferRecieved: {}", in);
 		final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		RTMPHandshake handshake = (RTMPHandshake) session.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
-		RTMP rtmp = conn.getState();
 		if (handshake != null) {
-			if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
+			if (conn.getStateCode() != RTMP.STATE_HANDSHAKE) {
 				log.warn("Raw buffer after handshake, something odd going on");
 			}
 			log.debug("Handshake - server phase 1 - size: {}", in.remaining());
@@ -129,7 +128,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 				log.trace("Output: {}", out);
 				session.write(out);
 				//if we are connected and doing encryption, add the ciphers
-				if (rtmp.getState() == RTMP.STATE_CONNECTED) {
+				if (conn.getStateCode() == RTMP.STATE_CONNECTED) {
 					// remove handshake from session now that we are connected
 					// if we are using encryption then put the ciphers in the session
 					if (handshake.getHandshakeType() == RTMPConnection.RTMP_ENCRYPTED) {
@@ -141,7 +140,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 			}
 		} else {
 			log.warn("Handshake was not found for this connection: {}", conn);
-			log.debug("RTMP state: {} Session: {}", rtmp, session);
+			log.debug("Session: {}", session.getId());
 		}
 	}
 
@@ -167,13 +166,14 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 	/** {@inheritDoc} */
 	@Override
 	public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
-		log.warn("Exception caught on session: {}", session.getId(), cause);
-		if (cause instanceof WriteToClosedSessionException) {
+		log.warn("Exception caught on session: {}", session.getId(), cause.getCause());
+		cause.printStackTrace();
+		//if (cause instanceof WriteToClosedSessionException) {
 			if (session.containsAttribute(RTMPConnection.RTMP_CONNECTION_KEY)) {
 				log.debug("Forcing call to sessionClosed");
 				sessionClosed(session);
 			}
-		}
+		//}
 	}
 
 	/**
