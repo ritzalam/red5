@@ -192,7 +192,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 * Closes stream, unsubscribes provides, sends stoppage notifications and broadcast close notification.
 	 */
 	public void close() {
-		log.info("Received stream close for stream {}", publishedName);
+		log.info("Stream close: {}", publishedName);
 		if (closed) {
 			// already closed
 			return;
@@ -809,7 +809,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 * Starts stream, creates pipes, connects
 	 */
 	public void start() {
-		log.info("Stream start");
+		log.info("Stream start: {}", publishedName);
 		checkVideoCodec = true;
 		checkAudioCodec = true;
 		firstPacketTime = -1;
@@ -844,7 +844,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 
 	/** {@inheritDoc} */
 	public void stop() {
-		log.info("Stream stop");
+		log.info("Stream stop: {}", publishedName);
 		stopRecording();
 		close();
 	}

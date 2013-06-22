@@ -184,10 +184,9 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 				if (!map.containsKey(i))
 					break;
 			} catch (ClassCastException err) {
-				// Map has non-number keys.
+				// Map has non-number keys
 				break;
 			}
-
 			maxInt = i;
 		}
 		buf.putInt(maxInt + 1);

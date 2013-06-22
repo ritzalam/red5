@@ -99,7 +99,7 @@ public class Channel {
 		if (connection != null) {
 			final IClientStream stream = connection.getStreamByChannelId(id);
 			if (id > 3 && stream == null) {
-				log.warn("Non=existant stream id: {}, discarding message {}", id, event);
+				log.warn("Non-existant stream for channel id: {}, connection id: {} discarding: {}", id, connection.getId(), event);
 			} else {
 				final int streamId = (stream == null) ? 0 : stream.getStreamId();
 				write(event, streamId);

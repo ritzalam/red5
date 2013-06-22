@@ -381,26 +381,31 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			case 0:
 				//get source input without create
 				msgIn = providerService.getLiveProviderInput(thisScope, itemName, false);
-				//drop all frames up to the next keyframe
-				videoFrameDropper.reset(IFrameDropper.SEND_KEYFRAMES_CHECK);
-				if (msgIn instanceof IBroadcastScope) {
-					IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn).getClientBroadcastStream();
-					if (stream != null && stream.getCodecInfo() != null) {
-						IVideoStreamCodec videoCodec = stream.getCodecInfo().getVideoCodec();
-						if (videoCodec != null) {
-							if (withReset) {
-								sendReset();
-								sendResetStatus(item);
-								sendStartStatus(item);
+				if (msgIn == null) {
+					sendStreamNotFoundStatus(currentItem);
+					throw new StreamNotFoundException(itemName);
+				} else {
+					//drop all frames up to the next keyframe
+					videoFrameDropper.reset(IFrameDropper.SEND_KEYFRAMES_CHECK);
+					if (msgIn instanceof IBroadcastScope) {
+						IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn).getClientBroadcastStream();
+						if (stream != null && stream.getCodecInfo() != null) {
+							IVideoStreamCodec videoCodec = stream.getCodecInfo().getVideoCodec();
+							if (videoCodec != null) {
+								if (withReset) {
+									sendReset();
+									sendResetStatus(item);
+									sendStartStatus(item);
+								}
+								sendNotifications = false;
 							}
-							sendNotifications = false;
 						}
 					}
+					//Subscribe to stream (ClientBroadcastStream.onPipeConnectionEvent)
+					msgIn.subscribe(this, null);
+					//execute the processes to get Live playback setup
+					playLive();
 				}
-				//Subscribe to stream (ClientBroadcastStream.onPipeConnectionEvent)
-				msgIn.subscribe(this, null);
-				//execute the processes to get Live playback setup
-				playLive();
 				break;
 			case 2:
 				//get source input with create
@@ -767,7 +772,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				if (deferredStop != null) {
 					subscriberStream.cancelJob(deferredStop);
 					deferredStop = null;
-				}				
+				}
 			default:
 				throw new IllegalStateException(String.format("Cannot stop in current state: %s", subscriberStream.getState()));
 		}

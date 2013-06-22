@@ -101,6 +101,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 				// handle the times when a connection does not have a client yet (session id)
 				rtmpConnManager.removeConnection(id != -1 ? id : conn.getSessionId().hashCode());
 			}		
+			session.suspendWrite();
 		} else {
 			log.warn("Connection was null in session");
 		}
