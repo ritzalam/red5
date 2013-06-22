@@ -31,6 +31,7 @@ import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.service.Call;
 import org.red5.server.service.PendingCall;
+import org.red5.server.stream.IStreamData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,6 +101,7 @@ public class Channel {
 			final IClientStream stream = connection.getStreamByChannelId(id);
 			if (id > 3 && stream == null) {
 				log.warn("Non-existant stream for channel id: {}, connection id: {} discarding: {}", id, connection.getId(), event);
+				discard(event);
 			} else {
 				final int streamId = (stream == null) ? 0 : stream.getStreamId();
 				write(event, streamId);
@@ -136,6 +138,24 @@ public class Channel {
 		connection.write(packet);
 	}
 
+	/**
+	 * Discard an event routed to this channel.
+	 * 
+	 * @param event
+	 */
+	private void discard(IRTMPEvent event) {
+		if (event instanceof IStreamData<?>) {
+			log.debug("Discarding: {}", ((IStreamData<?>) event).toString());
+			IoBuffer data = ((IStreamData<?>) event).getData();
+			if (data != null) {
+				log.trace("Freeing discarded event data");
+				data.free();
+				data = null;
+			}
+		}
+		event.setHeader(null);
+	}	
+	
 	/**
 	 * Sends status notification.
 	 *

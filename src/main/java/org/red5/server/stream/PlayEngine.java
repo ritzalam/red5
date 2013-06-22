@@ -925,19 +925,23 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 */
 	private void doPushMessage(AbstractMessage message) {
 		log.trace("doPushMessage: {}", message.getMessageType());
-		try {
-			msgOut.pushMessage(message);
-			if (message instanceof RTMPMessage) {
-				IRTMPEvent body = ((RTMPMessage) message).getBody();
-				//update the last message sent's timestamp
-				lastMessageTs = body.getTimestamp();
-				IoBuffer streamData = null;
-				if (body instanceof IStreamData && (streamData = ((IStreamData<?>) body).getData()) != null) {
-					bytesSent.addAndGet(streamData.limit());
+		if (msgOut != null) {
+			try {
+				msgOut.pushMessage(message);
+				if (message instanceof RTMPMessage) {
+					IRTMPEvent body = ((RTMPMessage) message).getBody();
+					//update the last message sent's timestamp
+					lastMessageTs = body.getTimestamp();
+					IoBuffer streamData = null;
+					if (body instanceof IStreamData && (streamData = ((IStreamData<?>) body).getData()) != null) {
+						bytesSent.addAndGet(streamData.limit());
+					}
 				}
+			} catch (IOException err) {
+				log.error("Error while pushing message", err);
 			}
-		} catch (IOException err) {
-			log.error("Error while pushing message", err);
+		} else {
+			log.warn("Push message failed due to null output pipe");
 		}
 	}
 
