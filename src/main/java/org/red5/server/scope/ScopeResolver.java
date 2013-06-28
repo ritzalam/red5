@@ -25,6 +25,7 @@ import org.red5.server.api.scope.IGlobalScope;
 import org.red5.server.api.scope.IScope;
 import org.red5.server.api.scope.IScopeResolver;
 import org.red5.server.api.scope.ScopeType;
+import org.red5.server.exception.ScopeException;
 import org.red5.server.exception.ScopeNotFoundException;
 import org.red5.server.exception.ScopeShuttingDownException;
 import org.slf4j.Logger;
@@ -78,6 +79,9 @@ public class ScopeResolver implements IScopeResolver {
 	 */
 	public IScope resolveScope(IScope root, String path) {
 		log.debug("resolveScope - root: {} path: {}", root, path);
+		if (root == null) {
+			throw new ScopeException("Null root scope");
+		}
 		// start from root scope
 		IScope scope = root;
 		// if there's no path return root scope (e.i. root path scope)

@@ -192,7 +192,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 * Closes stream, unsubscribes provides, sends stoppage notifications and broadcast close notification.
 	 */
 	public void close() {
-		log.info("Stream close: {}", publishedName);
+		log.debug("Stream close: {}", publishedName);
 		if (closed) {
 			// already closed
 			return;
@@ -555,7 +555,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 			case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
-				log.info("Provider connect");
+				log.debug("Provider connect");
 				if (event.getProvider() == this && event.getSource() != connMsgOut && (event.getParamMap() == null || !event.getParamMap().containsKey("record"))) {
 					this.livePipe = (IPipe) event.getSource();
 					log.debug("Provider: {}", this.livePipe.getClass().getName());
@@ -565,7 +565,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 				}
 				break;
 			case PipeConnectionEvent.PROVIDER_DISCONNECT:
-				log.info("Provider disconnect");
+				log.debug("Provider disconnect");
 				if (log.isDebugEnabled() && this.livePipe != null) {
 					log.debug("Provider: {}", this.livePipe.getClass().getName());
 				}
@@ -574,7 +574,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 				}
 				break;
 			case PipeConnectionEvent.CONSUMER_CONNECT_PUSH:
-				log.info("Consumer connect");
+				log.debug("Consumer connect");
 				IPipe pipe = (IPipe) event.getSource();
 				if (log.isDebugEnabled() && pipe != null) {
 					log.debug("Consumer: {}", pipe.getClass().getName());
@@ -585,7 +585,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 				subscriberStats.increment();
 				break;
 			case PipeConnectionEvent.CONSUMER_DISCONNECT:
-				log.info("Consumer disconnect");
+				log.debug("Consumer disconnect");
 				log.debug("Consumer: {}", event.getSource().getClass().getName());
 				subscriberStats.decrement();
 				break;
@@ -622,7 +622,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			//IRecordingListener listener = (IRecordingListener) ScopeUtils.getScopeService(conn.getScope(), IRecordingListener.class, RecordingListener.class, false);
 			// create a recording listener
 			IRecordingListener listener = new RecordingListener();
-			log.info("Created: {}", listener);
+			log.debug("Created: {}", listener);
 			// initialize the listener
 			if (listener.init(conn, name, isAppend)) {
 				// get decoder info if it exists for the stream
@@ -677,7 +677,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 				log.warn("Recording listener failed to initialize for stream: {}", name);
 			}
 		} else {
-			log.info("Recording listener already exists for stream: {} auto record enabled: {}", name, automaticRecording);
+			log.debug("Recording listener already exists for stream: {} auto record enabled: {}", name, automaticRecording);
 		}
 	}
 
@@ -833,7 +833,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		sendStartNotifications(Red5.getConnectionLocal());
 		// force recording if set
 		if (automaticRecording) {
-			log.info("Starting automatic recording of {}", publishedName);
+			log.debug("Starting automatic recording of {}", publishedName);
 			try {
 				saveAs(publishedName, false);
 			} catch (Exception e) {
@@ -905,7 +905,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 				ObjectName oName = new ObjectName(String.format("org.red5.server:type=ClientBroadcastStream,scope=%s,publishedName=%s", getScope().getName(), publishedName));
 				mbs.registerMBean(new StandardMBean(this, ClientBroadcastStreamMXBean.class, true), oName);
 			} catch (InstanceAlreadyExistsException e) {
-				log.info("Instance already registered", e);
+				log.debug("Instance already registered", e);
 			} catch (Exception e) {
 				log.warn("Error on jmx registration", e);
 			}

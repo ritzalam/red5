@@ -25,9 +25,6 @@ import org.red5.server.api.scope.IScope;
  */
 public class ScopeNotFoundException extends RuntimeException {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -8512088658139018041L;
 
     /**

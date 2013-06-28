@@ -106,7 +106,7 @@ public class ConversionUtils {
 			return source;
 		}
 		if (BaseConnection.class.isAssignableFrom(source.getClass()) && !target.equals(IConnection.class)) {
-			log.warn("Conversion failure - source: {} target: {}", source.getClass(), target);
+			log.debug("Conversion failure - source: {} target: {}", source.getClass(), target);
 			throw new ConversionException("Source is not assignable and target is not equal to IConnection");
 		}
 		if (target.isInstance(source)) {

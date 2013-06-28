@@ -123,7 +123,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 		IoBuffer out = null;
 		final Header header = packet.getHeader();
 		final int channelId = header.getChannelId();
-		log.debug("Channel id: {}", channelId);
+		log.trace("Channel id: {}", channelId);
 		final IRTMPEvent message = packet.getMessage();
 		if (message instanceof ChunkSize) {
 			ChunkSize chunkSizeMsg = (ChunkSize) message;
@@ -231,7 +231,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 			// just get the current time ONCE per packet
 			long now = System.currentTimeMillis();
 			if (mapping == null || timestamp < mapping.getLastStreamTime()) {
-				log.debug("Resetting clock time ({}) to stream time ({})", now, timestamp);
+				log.trace("Resetting clock time ({}) to stream time ({})", now, timestamp);
 				// either first time through, or time stamps were reset
 				mapping = rtmp.new LiveTimestampMapping(now, timestamp);
 				rtmp.setLastTimestampMapping(channelId, mapping);
@@ -272,7 +272,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 
 			//TODO: if we are VOD do we "pause" the provider when we are consistently late?
 
-			log.debug("Packet timestamp: {}; tardiness: {}; now: {}; message clock time: {}, dropLiveFuture: {}", new Object[] { timestamp, tardiness, now, clockTimeOfMessage,
+			log.trace("Packet timestamp: {}; tardiness: {}; now: {}; message clock time: {}, dropLiveFuture: {}", new Object[] { timestamp, tardiness, now, clockTimeOfMessage,
 					dropLiveFuture });
 			//anything coming in less than the base will be allowed to pass, it will not be
 			//dropped or manipulated
@@ -280,7 +280,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 				//frame is below lowest bounds, let it go
 			} else if (tardiness > highestTolerance) {
 				//frame is really late, drop it no matter what type
-				log.debug("Dropping late message: {}", message);
+				log.trace("Dropping late message: {}", message);
 				//if we're working with video, indicate that we will need a key frame to proceed
 				if (isVideo) {
 					mapping.setKeyFrameNeeded(true);
@@ -292,23 +292,23 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 					VideoData video = (VideoData) message;
 					if (video.getFrameType() == FrameType.KEYFRAME) {
 						//if its a key frame the inter and disposible checks can be skipped
-						log.debug("Resuming stream with key frame; message: {}", message);
+						log.trace("Resuming stream with key frame; message: {}", message);
 						mapping.setKeyFrameNeeded(false);
 					} else if (tardiness >= baseTolerance && tardiness < midTolerance) {
 						//drop disposable frames
 						if (video.getFrameType() == FrameType.DISPOSABLE_INTERFRAME) {
-							log.debug("Dropping disposible frame; message: {}", message);
+							log.trace("Dropping disposible frame; message: {}", message);
 							drop = true;
 						}
 					} else if (tardiness >= midTolerance && tardiness <= highestTolerance) {
 						//drop inter-frames and disposable frames
-						log.debug("Dropping disposible or inter frame; message: {}", message);
+						log.trace("Dropping disposible or inter frame; message: {}", message);
 						drop = true;
 					}
 				}
 			}
 		}
-		log.debug("Message was{}dropped", (drop ? " " : " not "));
+		log.trace("Message was{}dropped", (drop ? " " : " not "));
 		return drop;
 	}
 
@@ -489,7 +489,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 										log.trace("Setting last stream time to: {}", timestamp);
 										mapping.setLastStreamTime(timestamp);
 									} else {
-										log.debug("No ts mapping for channel id: {}", channelId);
+										log.trace("No ts mapping for channel id: {}", channelId);
 									}
 								}
 							}

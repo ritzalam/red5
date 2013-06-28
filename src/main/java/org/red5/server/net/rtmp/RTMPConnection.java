@@ -217,13 +217,13 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * Protocol state
 	 */
 	protected RTMP state = new RTMP();
-	
+
 	// protection for the decoder when using multiple threads per connection
 	private Semaphore decoderLock = new Semaphore(1, true);
-	
+
 	// protection for the encoder when using multiple threads per connection
-	private Semaphore encoderLock = new Semaphore(1, true);	
-	
+	private Semaphore encoderLock = new Semaphore(1, true);
+
 	/**
 	 * Scheduling service
 	 */
@@ -309,7 +309,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	public int getTimer() {
 		return timer.incrementAndGet();
 	}
-	
+
 	/**
 	 * Opens the connection.
 	 */
@@ -349,14 +349,18 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * Starts measurement.
 	 */
 	public void startRoundTripMeasurement() {
-		if (pingInterval > 0) {
-			log.debug("startRoundTripMeasurement - {}", sessionId);
-			try {
-				scheduler.scheduleAtFixedRate(new KeepAliveTask(), pingInterval);
-				log.debug("Keep alive scheduled for client id {}", getId());
-			} catch (Exception e) {
-				log.error("Error creating keep alive job", e);
+		if (scheduler != null) {
+			if (pingInterval > 0) {
+				log.debug("startRoundTripMeasurement - {}", sessionId);
+				try {
+					scheduler.scheduleAtFixedRate(new KeepAliveTask(), pingInterval);
+					log.debug("Keep alive scheduled for client id {}", getId());
+				} catch (Exception e) {
+					log.error("Error creating keep alive job", e);
+				}
 			}
+		} else {
+			log.warn("startRoundTripMeasurement cannot be executed due to missing scheduler. This can happen if a connection drops before handshake is complete");
 		}
 	}
 
@@ -833,7 +837,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * @return Next invoke id for RPC
 	 */
 	public int getTransactionId() {
-		return transactionId.incrementAndGet();		
+		return transactionId.incrementAndGet();
 	}
 
 	/**
@@ -1282,7 +1286,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * Task that waits for a valid handshake and disconnects the client if none is received.
 	 */
 	private class WaitForHandshakeTask implements Runnable {
- 
+
 		public void run() {
 			try {
 				Thread.sleep(maxHandshakeTimeout);
@@ -1291,7 +1295,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 					// Client didn't send a valid handshake, disconnect
 					log.warn("Closing {}, with id {} due to long handshake", RTMPConnection.this, getId());
 					onInactive();
-				}				
+				}
 			} catch (InterruptedException e) {
 			}
 		}

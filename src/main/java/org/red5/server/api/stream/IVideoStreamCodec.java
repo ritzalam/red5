@@ -78,7 +78,7 @@ public interface IVideoStreamCodec {
 	 */
 	public final static class FrameData {
 
-		private IoBuffer frame;
+		private byte[] frame;
 
 		/**
 		 * Makes a copy of the incoming bytes and places them in an IoBuffer. No flip or rewind is performed on the source data.
@@ -87,19 +87,16 @@ public interface IVideoStreamCodec {
 		 */
 		public void setData(IoBuffer data) {
 			if (frame == null) {
-				frame = IoBuffer.allocate(data.limit());
+				frame = new byte[data.limit()];
 			} else {
-				frame.clear();
-				frame.free();
-				frame = IoBuffer.allocate(data.limit());
+				frame = null;
+				frame = new byte[data.limit()];
 			}
-			byte[] buf = new byte[frame.limit()];
-			data.get(buf);
-			frame.put(buf).flip();
+			data.get(frame);
 		}
 
 		public IoBuffer getFrame() {
-			return frame == null ? null : frame.asReadOnlyBuffer();
+			return frame == null ? null : IoBuffer.wrap(frame).asReadOnlyBuffer();
 		}
 
 	}

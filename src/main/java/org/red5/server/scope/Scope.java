@@ -1452,30 +1452,34 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		public IBasicScope getBasicScope(ScopeType type, String name) {
 			boolean skipTypeCheck = ScopeType.UNDEFINED.equals(type);
 			if (names.contains(name)) {
+				// use concurrent set for the get
+				CopyOnWriteArraySet<IBasicScope> scopes = new CopyOnWriteArraySet<IBasicScope>();
 				log.trace("Permits at getBasicScope: {} queued: {}", internalLock.availablePermits(), internalLock.hasQueuedThreads());
 				try {
 					internalLock.acquire();
-					log.debug("Child scopes (key set): {}", this.keySet());
-					if (skipTypeCheck) {
-						for (IBasicScope child : keySet()) {
-							if (name.equals(child.getName())) {
-								log.debug("Returning basic scope: {}", child);
-								return child;
-							}
-						}
-					} else {
-						for (IBasicScope child : keySet()) {
-							if (child.getType().equals(type) && name.equals(child.getName())) {
-								log.debug("Returning basic scope: {}", child);
-								return child;
-							}
-						}
-					}									
-				} catch (InterruptedException e) {
-					log.warn("Exception aquiring lock for scope set", e);
+					// copy into concurrent set
+					scopes.addAll(keySet());
+				} catch (Exception e) {
+					log.warn("Exception aquiring lock to copy scope set", e);
 				} finally {
 					internalLock.release();
 				}
+				log.debug("Child scopes (key set): {}", this.keySet());
+				if (skipTypeCheck) {
+					for (IBasicScope child : scopes) {
+						if (name.equals(child.getName())) {
+							log.debug("Returning basic scope: {}", child);
+							return child;
+						}
+					}
+				} else {
+					for (IBasicScope child : scopes) {
+						if (child.getType().equals(type) && name.equals(child.getName())) {
+							log.debug("Returning basic scope: {}", child);
+							return child;
+						}
+					}
+				}									
 			}
 			return null;
 		}

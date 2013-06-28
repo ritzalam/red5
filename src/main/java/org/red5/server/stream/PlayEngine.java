@@ -402,9 +402,14 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 						}
 					}
 					//Subscribe to stream (ClientBroadcastStream.onPipeConnectionEvent)
-					msgIn.subscribe(this, null);
-					//execute the processes to get Live playback setup
-					playLive();
+					if (msgIn != null) {
+						msgIn.subscribe(this, null);
+						//execute the processes to get Live playback setup
+						playLive();
+					} else {
+						sendStreamNotFoundStatus(currentItem);
+						throw new StreamNotFoundException(itemName);
+					}
 				}
 				break;
 			case 2:
