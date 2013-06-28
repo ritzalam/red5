@@ -1215,10 +1215,10 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	public String toString() {
 		if (log.isDebugEnabled()) {
 			String id = getClient() != null ? getClient().getId() : null;
-			return String.format("%1$s %2$s:%3$s client: %4$s session: %5$s", new Object[] { getClass().getSimpleName(), getRemoteAddress(), getRemotePort(), id, sessionId });
+			return String.format("%1$s %2$s:%3$s client: %4$s session: %5$s state: %s", new Object[] { getClass().getSimpleName(), getRemoteAddress(), getRemotePort(), id, sessionId, getState().states[getStateCode()] });
 		} else {
-			Object[] args = new Object[] { getClass().getSimpleName(), getRemoteAddress(), getRemotePort(), getHost(), getReadBytes(), getWrittenBytes() };
-			return String.format("%1$s from %2$s:%3$s to %4$s (in: %5$s out: %6$s)", args);
+			Object[] args = new Object[] { getClass().getSimpleName(), getRemoteAddress(), getRemotePort(), getHost(), getReadBytes(), getWrittenBytes(), getState().states[getStateCode()] };
+			return String.format("%1$s from %2$s:%3$s to %4$s (in: %5$s out: %6$s) state: %s", args);
 		}
 	}
 
@@ -1292,6 +1292,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 				Thread.sleep(maxHandshakeTimeout);
 				// check for connected state before disconnecting
 				if (state.getState() != RTMP.STATE_CONNECTED) {
+					
 					// Client didn't send a valid handshake, disconnect
 					log.warn("Closing {}, with id {} due to long handshake", RTMPConnection.this, getId());
 					onInactive();

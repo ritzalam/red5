@@ -160,7 +160,7 @@ public class RTMPMinaProtocolEncoder extends ProtocolEncoderAdapter {
 					length += getDataSize(basicHeader) + chunkSize;
 					pos += length;
 				}
-				log.debug("Length: {} remaining: {} pos+len: {} limit: {}", new Object[] { length, message.remaining(), (message.position() + length), limit });
+				log.trace("Length: {} remaining: {} pos+len: {} limit: {}", new Object[] { length, message.remaining(), (message.position() + length), limit });
 				if (length > message.remaining()) {
 					length = message.remaining();
 				}
