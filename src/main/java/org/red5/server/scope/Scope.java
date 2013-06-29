@@ -22,6 +22,7 @@ import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -1460,11 +1461,14 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 					// copy into concurrent set
 					scopes.addAll(keySet());
 				} catch (Exception e) {
-					log.warn("Exception aquiring lock to copy scope set", e);
+					log.warn("Exception acquiring lock to get scope - name: {} type: {}", name, type, e);
+					if (log.isDebugEnabled()) {
+						log.debug("Current names: {}", Arrays.toString(names.toArray()));
+						log.debug("Child scopes (key set): {}", this.keySet());
+					}
 				} finally {
 					internalLock.release();
 				}
-				log.debug("Child scopes (key set): {}", this.keySet());
 				if (skipTypeCheck) {
 					for (IBasicScope child : scopes) {
 						if (name.equals(child.getName())) {

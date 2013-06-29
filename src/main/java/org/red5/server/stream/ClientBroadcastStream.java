@@ -194,7 +194,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	public void close() {
 		log.debug("Stream close: {}", publishedName);
 		if (closed) {
-			// already closed
+			log.debug("{} already closed", publishedName);
 			return;
 		}
 		closed = true;
