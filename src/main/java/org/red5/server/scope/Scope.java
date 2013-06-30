@@ -1454,12 +1454,12 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			boolean skipTypeCheck = ScopeType.UNDEFINED.equals(type);
 			if (names.contains(name)) {
 				// use concurrent set for the get
-				IBasicScope[] scopes = new IBasicScope[0];
+				IBasicScope[] scopes = new IBasicScope[names.size()];
 				log.trace("Permits at getBasicScope: {} queued: {}", internalLock.availablePermits(), internalLock.hasQueuedThreads());
 				try {
 					internalLock.acquire();
 					// copy into concurrent set
-					scopes = (IBasicScope[]) keySet().toArray();
+					scopes = (IBasicScope[]) keySet().toArray(scopes);
 				} catch (Exception e) {
 					log.warn("Exception acquiring lock to get scope - name: {} type: {}", name, type, e);
 					if (log.isDebugEnabled()) {
