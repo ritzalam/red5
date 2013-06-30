@@ -143,7 +143,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	@Override
 	public void handleMessageReceived(Object message) {
 		log.trace("handleMessageReceived - {}", sessionId);
-		scheduler.execute(new ReceivedMessageTask(ioSession, message));
+		executor.execute(new ReceivedMessageTask(ioSession, message));
 	}
 
 	/**

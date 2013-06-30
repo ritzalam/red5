@@ -1,6 +1,7 @@
 package org.red5.server.net.rtmp;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.net.InetSocketAddress;
 
@@ -18,11 +19,8 @@ import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
-import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory;
-import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
-import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.service.Call;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
@@ -206,15 +204,6 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 				}
 			}
 		};
-
-		protected void onInvoke(RTMPConnection conn, Channel channel, Header header, Notify notify, RTMP rtmp) {
-			super.onInvoke(conn, channel, header, notify, rtmp);
-			/*
-			System.out.println("onInvoke, header = " + header.toString());
-			System.out.println("onInvoke, notify = " + notify.toString());
-			System.out.println("onInvoke, rtmp = " + rtmp.toString());
-			*/
-		}
 
 		/**
 		 * @return the audioCounter

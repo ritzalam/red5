@@ -73,6 +73,7 @@ import org.red5.server.stream.StreamService;
 import org.red5.server.util.ScopeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
@@ -228,6 +229,11 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * Scheduling service
 	 */
 	protected ThreadPoolTaskScheduler scheduler;
+
+	/**		
+	 * Thread pool for message handling.		
+	 */
+	protected ThreadPoolTaskExecutor executor;
 
 	/**
 	 * Keep-alive worker flag
@@ -705,6 +711,9 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		}
 		// clear thread local reference
 		Red5.setConnectionLocal(null);
+		if (executor != null) {
+			executor.shutdown();
+		}
 	}
 
 	/**
@@ -1141,6 +1150,14 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		return scheduler;
 	}
 
+	public ThreadPoolTaskExecutor getExecutor() {
+		return executor;
+	}
+
+	public void setExecutor(ThreadPoolTaskExecutor executor) {
+		this.executor = executor;
+	}
+
 	/**
 	 * Registers deferred result.
 	 * 
@@ -1215,10 +1232,12 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	public String toString() {
 		if (log.isDebugEnabled()) {
 			String id = getClient() != null ? getClient().getId() : null;
-			return String.format("%1$s %2$s:%3$s client: %4$s session: %5$s state: %s", new Object[] { getClass().getSimpleName(), getRemoteAddress(), getRemotePort(), id, sessionId, getState().states[getStateCode()] });
+			return String.format("%1$s %2$s:%3$s client: %4$s session: %5$s state: %6$s", new Object[] { getClass().getSimpleName(), getRemoteAddress(), getRemotePort(), id,
+					sessionId, getState().states[getStateCode()] });
 		} else {
-			Object[] args = new Object[] { getClass().getSimpleName(), getRemoteAddress(), getRemotePort(), getHost(), getReadBytes(), getWrittenBytes(), getState().states[getStateCode()] };
-			return String.format("%1$s from %2$s:%3$s to %4$s (in: %5$s out: %6$s) state: %s", args);
+			Object[] args = new Object[] { getClass().getSimpleName(), getRemoteAddress(), getRemotePort(), getHost(), getReadBytes(), getWrittenBytes(),
+					getState().states[getStateCode()] };
+			return String.format("%1$s from %2$s:%3$s to %4$s (in: %5$s out: %6$s) state: %7$s", args);
 		}
 	}
 
@@ -1292,7 +1311,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 				Thread.sleep(maxHandshakeTimeout);
 				// check for connected state before disconnecting
 				if (state.getState() != RTMP.STATE_CONNECTED) {
-					
+
 					// Client didn't send a valid handshake, disconnect
 					log.warn("Closing {}, with id {} due to long handshake", RTMPConnection.this, getId());
 					onInactive();

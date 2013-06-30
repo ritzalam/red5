@@ -201,7 +201,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 		final IScope scope = conn.getScope();
 		final IContext context = scope.getContext();
 		if (log.isTraceEnabled()) {
-		log.trace("Scope: {} context: {} service: {}", scope, context, service);
+			log.trace("Scope: {} context: {} service: {}", scope, context, service);
 		}
 		return context.getServiceInvoker().invoke(call, service);
 	}
@@ -578,14 +578,23 @@ public class RTMPHandler extends BaseRTMPHandler {
 				}
 			}
 			ISharedObject so = sharedObjectService.getSharedObject(scope, name);
-			if (so.isPersistent() == persistent) {
-				so.dispatchEvent(message);
+			if (so != null) {
+				if (so.isPersistent() == persistent) {
+					so.dispatchEvent(message);
+				} else {
+					log.warn("Shared object persistence mismatch - current: {} incoming: {}", so.isPersistent(), persistent);
+					// reset the object so we can re-use it
+					message.reset();
+					// add the error event
+					message.addEvent(new SharedObjectEvent(ISharedObjectEvent.Type.CLIENT_STATUS, "error", SO_PERSISTENCE_MISMATCH));
+					conn.getChannel(3).write(message);
+				}
 			} else {
-				log.warn("Shared object persistence mismatch - current: {} incoming: {}", so.isPersistent(), persistent);
+				log.warn("Shared object lookup returned null for {} in {}", name, scope.getName());
 				// reset the object so we can re-use it
 				message.reset();
 				// add the error event
-				message.addEvent(new SharedObjectEvent(ISharedObjectEvent.Type.CLIENT_STATUS, "error", SO_PERSISTENCE_MISMATCH));
+				message.addEvent(new SharedObjectEvent(ISharedObjectEvent.Type.CLIENT_STATUS, "error", NC_CALL_FAILED));
 				conn.getChannel(3).write(message);
 			}
 		} else {

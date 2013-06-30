@@ -78,7 +78,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	protected static Logger log = LoggerFactory.getLogger(RTMPProtocolDecoder.class);
 
 	// keeps track of the decode state
-	private ThreadLocal<RTMPDecodeState> decoderState = new ThreadLocal<RTMPDecodeState>() {
+	protected ThreadLocal<RTMPDecodeState> decoderState = new ThreadLocal<RTMPDecodeState>() {
 
 		@Override
 		protected RTMPDecodeState initialValue() {

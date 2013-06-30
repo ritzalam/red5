@@ -508,88 +508,92 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		subscriberStream.setState(StreamState.PLAYING);
 		streamOffset = 0;
 		streamStartTS = -1;
-		//get the stream so that we can grab any metadata and decoder configs
-		IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn).getClientBroadcastStream();
-		//prevent an NPE when a play list is created and then immediately flushed
-		if (stream != null) {
-			Notify metaData = stream.getMetaData();
-			//check for metadata to send
-			if (metaData != null) {
-				log.debug("Metadata is available");
-				RTMPMessage metaMsg = RTMPMessage.build(metaData, 0);
-				try {
-					msgOut.pushMessage(metaMsg);
-				} catch (IOException e) {
-					log.warn("Error sending metadata", e);
+		if (msgIn != null) {
+			// get the stream so that we can grab any metadata and decoder configs
+			IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn).getClientBroadcastStream();
+			// prevent an NPE when a play list is created and then immediately flushed
+			if (stream != null) {
+				Notify metaData = stream.getMetaData();
+				//check for metadata to send
+				if (metaData != null) {
+					log.debug("Metadata is available");
+					RTMPMessage metaMsg = RTMPMessage.build(metaData, 0);
+					try {
+						msgOut.pushMessage(metaMsg);
+					} catch (IOException e) {
+						log.warn("Error sending metadata", e);
+					}
+				} else {
+					log.debug("No metadata available");
 				}
-			} else {
-				log.debug("No metadata available");
-			}
 
-			IStreamCodecInfo codecInfo = stream.getCodecInfo();
-			log.debug("Codec info: {}", codecInfo);
-			if (codecInfo instanceof StreamCodecInfo) {
-				StreamCodecInfo info = (StreamCodecInfo) codecInfo;
-				IVideoStreamCodec videoCodec = info.getVideoCodec();
-				log.debug("Video codec: {}", videoCodec);
-				if (videoCodec != null) {
-					//check for decoder configuration to send
-					IoBuffer config = videoCodec.getDecoderConfiguration();
-					if (config != null) {
-						log.debug("Decoder configuration is available for {}", videoCodec.getName());
-						//log.debug("Dump:\n{}", Hex.encodeHex(config.array()));
-						VideoData conf = new VideoData(config.asReadOnlyBuffer());
-						log.trace("Configuration ts: {}", conf.getTimestamp());
-						RTMPMessage confMsg = RTMPMessage.build(conf);
-						try {
-							log.debug("Pushing decoder configuration");
-							msgOut.pushMessage(confMsg);
-						} finally {
-							conf.release();
+				IStreamCodecInfo codecInfo = stream.getCodecInfo();
+				log.debug("Codec info: {}", codecInfo);
+				if (codecInfo instanceof StreamCodecInfo) {
+					StreamCodecInfo info = (StreamCodecInfo) codecInfo;
+					IVideoStreamCodec videoCodec = info.getVideoCodec();
+					log.debug("Video codec: {}", videoCodec);
+					if (videoCodec != null) {
+						//check for decoder configuration to send
+						IoBuffer config = videoCodec.getDecoderConfiguration();
+						if (config != null) {
+							log.debug("Decoder configuration is available for {}", videoCodec.getName());
+							//log.debug("Dump:\n{}", Hex.encodeHex(config.array()));
+							VideoData conf = new VideoData(config.asReadOnlyBuffer());
+							log.trace("Configuration ts: {}", conf.getTimestamp());
+							RTMPMessage confMsg = RTMPMessage.build(conf);
+							try {
+								log.debug("Pushing decoder configuration");
+								msgOut.pushMessage(confMsg);
+							} finally {
+								conf.release();
+							}
 						}
-					}
-					//check for a keyframe to send
-					IoBuffer keyFrame = videoCodec.getKeyframe();
-					if (keyFrame != null) {
-						log.debug("Keyframe is available");
-						VideoData video = new VideoData(keyFrame.asReadOnlyBuffer());
-						log.trace("Keyframe ts: {}", video.getTimestamp());
-						//log.debug("Dump:\n{}", Hex.encodeHex(keyFrame.array()));
-						RTMPMessage videoMsg = RTMPMessage.build(video);
-						try {
-							log.debug("Pushing keyframe");
-							msgOut.pushMessage(videoMsg);
-						} finally {
-							video.release();
+						//check for a keyframe to send
+						IoBuffer keyFrame = videoCodec.getKeyframe();
+						if (keyFrame != null) {
+							log.debug("Keyframe is available");
+							VideoData video = new VideoData(keyFrame.asReadOnlyBuffer());
+							log.trace("Keyframe ts: {}", video.getTimestamp());
+							//log.debug("Dump:\n{}", Hex.encodeHex(keyFrame.array()));
+							RTMPMessage videoMsg = RTMPMessage.build(video);
+							try {
+								log.debug("Pushing keyframe");
+								msgOut.pushMessage(videoMsg);
+							} finally {
+								video.release();
+							}
 						}
+					} else {
+						log.debug("Could not initialize stream output, videoCodec is null");
 					}
-				} else {
-					log.debug("Could not initialize stream output, videoCodec is null.");
+					// SplitmediaLabs - begin AAC fix
+					IAudioStreamCodec audioCodec = info.getAudioCodec();
+					log.debug("Audio codec: {}", audioCodec);
+					if (audioCodec != null) {
+						//check for decoder configuration to send
+						IoBuffer config = audioCodec.getDecoderConfiguration();
+						if (config != null) {
+							log.debug("Decoder configuration is available for {}", audioCodec.getName());
+							//log.debug("Dump:\n{}", Hex.encodeHex(config.array()));
+							AudioData conf = new AudioData(config.asReadOnlyBuffer());
+							log.trace("Configuration ts: {}", conf.getTimestamp());
+							RTMPMessage confMsg = RTMPMessage.build(conf);
+							try {
+								log.debug("Pushing decoder configuration");
+								msgOut.pushMessage(confMsg);
+							} finally {
+								conf.release();
+							}
+						}
+					} else {
+						log.debug("No decoder configuration available, audioCodec is null");
+					}
 				}
-				// SplitmediaLabs - begin AAC fix
-				IAudioStreamCodec audioCodec = info.getAudioCodec();
-				log.debug("Audio codec: {}", audioCodec);
-				if (audioCodec != null) {
-					//check for decoder configuration to send
-					IoBuffer config = audioCodec.getDecoderConfiguration();
-					if (config != null) {
-						log.debug("Decoder configuration is available for {}", audioCodec.getName());
-						//log.debug("Dump:\n{}", Hex.encodeHex(config.array()));
-						AudioData conf = new AudioData(config.asReadOnlyBuffer());
-						log.trace("Configuration ts: {}", conf.getTimestamp());
-						RTMPMessage confMsg = RTMPMessage.build(conf);
-						try {
-							log.debug("Pushing decoder configuration");
-							msgOut.pushMessage(confMsg);
-						} finally {
-							conf.release();
-						}
-					}
-				} else {
-					log.debug("No decoder configuration available, audioCodec is null.");
-				}
-			}
-		}
+			}			
+		} else {
+			throw new IOException("Message input pipe is null");
+		}		
 	}
 
 	/**
@@ -800,7 +804,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			clearWaitJobs();
 			releasePendingMessage();
 			lastMessageTs = 0;
-			sendClearPing();
+			// XXX is clear ping required?
+			//sendClearPing();
 		} else {
 			log.debug("Stream is already in closed state");
 		}
