@@ -220,10 +220,10 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	protected RTMP state = new RTMP();
 
 	// protection for the decoder when using multiple threads per connection
-	private Semaphore decoderLock = new Semaphore(1, true);
+	protected Semaphore decoderLock = new Semaphore(1, true);
 
 	// protection for the encoder when using multiple threads per connection
-	private Semaphore encoderLock = new Semaphore(1, true);
+	protected Semaphore encoderLock = new Semaphore(1, true);
 
 	/**
 	 * Scheduling service
@@ -659,10 +659,9 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	@Override
 	public void close() {
 		log.debug("close: {}", sessionId);
-		if (scheduler != null) {
-			log.debug("Shutting down scheduler");
-			scheduler.shutdown();
-			scheduler = null;
+		// update our state
+		if (state != null) {
+			state.setState(RTMP.STATE_DISCONNECTING);
 		}
 		Red5.setConnectionLocal(this);
 		IStreamService streamService = (IStreamService) ScopeUtils.getScopeService(scope, IStreamService.class, StreamService.class);
@@ -711,9 +710,18 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		}
 		// clear thread local reference
 		Red5.setConnectionLocal(null);
+		if (scheduler != null) {
+			log.debug("Shutting down scheduler");
+			scheduler.shutdown();
+			scheduler = null;
+		}
 		if (executor != null) {
+			log.debug("Shutting down executor");
 			executor.shutdown();
 		}
+		// drain permits
+		decoderLock.drainPermits();
+		encoderLock.drainPermits();
 	}
 
 	/**

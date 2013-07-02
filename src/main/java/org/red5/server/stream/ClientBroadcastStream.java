@@ -772,7 +772,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			if (source instanceof IConnection) {
 				IScope scope = ((IConnection) source).getScope();
 				if (scope.hasHandler()) {
-					Object handler = scope.getHandler();
+					final Object handler = scope.getHandler();
 					if (handler instanceof IStreamAwareScopeHandler) {
 						if (recordingListener != null && recordingListener.get().isRecording()) {
 							// callback for record start

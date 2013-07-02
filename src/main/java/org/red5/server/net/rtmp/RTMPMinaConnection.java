@@ -24,7 +24,10 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -44,6 +47,7 @@ import org.red5.server.net.rtmp.message.Packet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * Represents an RTMP connection using Mina.
@@ -117,10 +121,6 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 		if (ioSession != null) {
 			// accept no further incoming data
 			ioSession.suspendRead();
-			// update our state
-			if (state != null) {
-				state.setState(RTMP.STATE_DISCONNECTING);
-			}
 			// close now, no flushing, no waiting
 			final CloseFuture future = ioSession.close(true);
 			IoFutureListener<CloseFuture> listener = new IoFutureListener<CloseFuture>() {
@@ -143,7 +143,11 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	@Override
 	public void handleMessageReceived(Object message) {
 		log.trace("handleMessageReceived - {}", sessionId);
-		executor.execute(new ReceivedMessageTask(ioSession, message));
+		try {
+			executor.execute(new ReceivedMessageTask(ioSession, message));
+		} catch (RejectedExecutionException e) {
+			log.warn("Incoming message handling failed; connection closed? {}", closed, e);
+		}
 	}
 
 	/**
@@ -197,6 +201,24 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 		this.limitType = limitType;
 	}
 
+	@Override
+	public void setExecutor(ThreadPoolTaskExecutor executor) {
+		this.executor = executor;
+		this.executor.setRejectedExecutionHandler(new RejectedExecutionHandler(){
+
+			@Override
+			public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+				log.debug("Execution rejected");
+				// ensure the connection is not closing and if it is drop the runnable
+				if (closed || state.getState() != RTMP.STATE_CONNECTED) {
+					log.debug("Dropping runnable due to disconnection, session id: {}", sessionId);
+				}
+				log.debug("Lock permits - decode: {} encode: {}", decoderLock.availablePermits(), encoderLock.availablePermits());
+			}
+			
+		});
+	}	
+	
 	/**
 	 * @return the bandwidthDetection
 	 */

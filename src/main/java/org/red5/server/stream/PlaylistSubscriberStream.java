@@ -280,15 +280,17 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 
 	/** {@inheritDoc} */
 	public void close() {
-		engine.close();
-		onChange(StreamState.CLOSED);
-		items.clear();
-		// clear jobs
-		if (schedulingService != null && !jobs.isEmpty()) {
-			for (String jobName : jobs) {
-				schedulingService.removeScheduledJob(jobName);
-			}
-			jobs.clear();
+		if (engine != null) {
+    		engine.close();
+    		onChange(StreamState.CLOSED);
+    		items.clear();
+    		// clear jobs
+    		if (schedulingService != null && !jobs.isEmpty()) {
+    			for (String jobName : jobs) {
+    				schedulingService.removeScheduledJob(jobName);
+    			}
+    			jobs.clear();
+    		}
 		}
 	}
 

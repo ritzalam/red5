@@ -278,7 +278,11 @@ public class FLVWriter implements ITagWriter {
 					}
 				} else {
 					tag.getBody().mark();
-					String metaType = Input.getString(tag.getBody());
+					// get input data
+					Input metadata = new Input(tag.getBody());
+					// initialize type so that readString knows what to do
+					metadata.readDataType();
+					String metaType = metadata.readString(String.class);
 					log.debug("Metadata tag type: {}", metaType);
 					tag.getBody().reset();
 					if (!"onCuePoint".equals(metaType)) {
