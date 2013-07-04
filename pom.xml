@@ -13,7 +13,7 @@
 	<organization>
 		<name>Red5</name>
 		<url>https://code.google.com/p/red5</url>
-	</organization>	
+	</organization>
 	<licenses>
 		<license>
 			<name>Apache 2</name>
@@ -364,16 +364,16 @@
 			<name>MP4Parser Releases</name>
 			<url>https://oss.sonatype.org/content/repositories/comgooglecodemp4parser-137</url>
 		</repository>
-        <repository>
-            <id>sonatype-snapshots</id>
-            <name>Sonatype Snapshots</name>
-            <url>http://oss.sonatype.org/content/repositories/snapshots</url>
-        </repository>
-        <repository>
-            <id>sonatype-releases</id>
-            <name>Sonatype Releases</name>
-            <url>http://oss.sonatype.org/content/repositories/releases</url>
-        </repository>
+		<repository>
+			<id>sonatype-snapshots</id>
+			<name>Sonatype Snapshots</name>
+			<url>http://oss.sonatype.org/content/repositories/snapshots</url>
+		</repository>
+		<repository>
+			<id>sonatype-releases</id>
+			<name>Sonatype Releases</name>
+			<url>http://oss.sonatype.org/content/repositories/releases</url>
+		</repository>
 		<repository>
 			<id>jboss-public-repository-group</id>
 			<name>JBoss Public Maven Repository Group</name>
@@ -419,10 +419,11 @@
 	</dependencyManagement>
 	<dependencies>
 		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>2.5</version>
-			<scope>compile</scope>
+			<groupId>org.jboss.spec.javax.servlet</groupId>
+			<artifactId>jboss-servlet-api_3.0_spec</artifactId>
+			<version>1.0.2.Final</version><!--$NO-MVN-MAN-VER$ -->
+			<type>jar</type>
+			<scope>import</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
@@ -482,63 +483,22 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-<!-- 		
-        <dependency>
-            <groupId>org.apache.mina</groupId>
-            <artifactId>mina-core</artifactId>
-            <version>2.0.4</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/lib/mina-core-2.0.4.jar</systemPath>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.mina</groupId>
-            <artifactId>mina-integration-beans</artifactId>
-            <version>2.0.4</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/lib/mina-integration-beans-2.0.4.jar</systemPath>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.mina</groupId>
-            <artifactId>mina-integration-jmx</artifactId>
-            <version>2.0.4</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/lib/mina-integration-jmx-2.0.4.jar</systemPath>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.mina</groupId>
-                    <artifactId>mina-integration-ognl</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency> 
-		
-        <dependency>
-            <groupId>org.apache.mina</groupId>
-            <artifactId>mina-core</artifactId>
-            <version>2.0.8-SNAPSHOT</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/lib/mina-core-2.0.8-SNAPSHOT.jar</systemPath>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.mina</groupId>
-            <artifactId>mina-integration-beans</artifactId>
-            <version>2.0.8-SNAPSHOT</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/lib/mina-integration-beans-2.0.8-SNAPSHOT.jar</systemPath>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.mina</groupId>
-            <artifactId>mina-integration-jmx</artifactId>
-            <version>2.0.8-SNAPSHOT</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/lib/mina-integration-jmx-2.0.8-SNAPSHOT.jar</systemPath>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.mina</groupId>
-                    <artifactId>mina-integration-ognl</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency> 
---> 
+		<!-- <dependency> <groupId>org.apache.mina</groupId> <artifactId>mina-core</artifactId> 
+			<version>2.0.4</version> <scope>system</scope> <systemPath>${basedir}/lib/mina-core-2.0.4.jar</systemPath> 
+			</dependency> <dependency> <groupId>org.apache.mina</groupId> <artifactId>mina-integration-beans</artifactId> 
+			<version>2.0.4</version> <scope>system</scope> <systemPath>${basedir}/lib/mina-integration-beans-2.0.4.jar</systemPath> 
+			</dependency> <dependency> <groupId>org.apache.mina</groupId> <artifactId>mina-integration-jmx</artifactId> 
+			<version>2.0.4</version> <scope>system</scope> <systemPath>${basedir}/lib/mina-integration-jmx-2.0.4.jar</systemPath> 
+			<exclusions> <exclusion> <groupId>org.apache.mina</groupId> <artifactId>mina-integration-ognl</artifactId> 
+			</exclusion> </exclusions> </dependency> <dependency> <groupId>org.apache.mina</groupId> 
+			<artifactId>mina-core</artifactId> <version>2.0.8-SNAPSHOT</version> <scope>system</scope> 
+			<systemPath>${basedir}/lib/mina-core-2.0.8-SNAPSHOT.jar</systemPath> </dependency> 
+			<dependency> <groupId>org.apache.mina</groupId> <artifactId>mina-integration-beans</artifactId> 
+			<version>2.0.8-SNAPSHOT</version> <scope>system</scope> <systemPath>${basedir}/lib/mina-integration-beans-2.0.8-SNAPSHOT.jar</systemPath> 
+			</dependency> <dependency> <groupId>org.apache.mina</groupId> <artifactId>mina-integration-jmx</artifactId> 
+			<version>2.0.8-SNAPSHOT</version> <scope>system</scope> <systemPath>${basedir}/lib/mina-integration-jmx-2.0.8-SNAPSHOT.jar</systemPath> 
+			<exclusions> <exclusion> <groupId>org.apache.mina</groupId> <artifactId>mina-integration-ognl</artifactId> 
+			</exclusion> </exclusions> </dependency> -->
 		<dependency>
 			<groupId>commons-beanutils</groupId>
 			<artifactId>commons-beanutils</artifactId>
@@ -616,28 +576,28 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-aop</artifactId>
-            <version>${spring.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-asm</artifactId>
-            <version>${spring.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>        
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aop</artifactId>
+			<version>${spring.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-asm</artifactId>
+			<version>${spring.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-beans</artifactId>
@@ -682,17 +642,17 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-expression</artifactId>
-            <version>${spring.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>		
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-expression</artifactId>
+			<version>${spring.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
@@ -727,9 +687,9 @@
 			<version>2.2.2</version>
 		</dependency>
 		<dependency>
-		    <groupId>org.quartz-scheduler</groupId>
-		    <artifactId>quartz</artifactId>
-		    <version>2.1.6</version>
+			<groupId>org.quartz-scheduler</groupId>
+			<artifactId>quartz</artifactId>
+			<version>2.1.6</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -776,37 +736,31 @@
 			<artifactId>jruby</artifactId>
 			<version>1.6.8</version>
 		</dependency>
-        <dependency>
-            <groupId>com.googlecode.mp4parser</groupId>
-            <artifactId>isoparser</artifactId>
-            <version>1.0-RC-19-SNAPSHOT</version>
-<!-- 
-            <scope>system</scope>
-            <systemPath>${basedir}/lib/isoparser-1.0-RC-19-SNAPSHOT.jar</systemPath>
- -->
-        </dependency>
-        <dependency>
-            <groupId>org.red5</groupId>
-            <artifactId>red5-client</artifactId>
-            <version>${red5-client.version}</version>
-            <type>jar</type>
-            <scope>test</scope>
-<!-- 
-            <scope>system</scope>
-            <systemPath>${basedir}/lib/red5-client-1.0.2-SNAPSHOT.jar</systemPath>
- -->           
-            <exclusions>
-                <exclusion>
-                    <groupId>org.red5</groupId>
-                    <artifactId>red5-server</artifactId>
-                </exclusion>
-            </exclusions> 
-        </dependency>       
-        <dependency>
-            <groupId>aopalliance</groupId>
-            <artifactId>aopalliance</artifactId>
-            <version>1.0</version>
-            <scope>compile</scope>
-        </dependency>       
+		<dependency>
+			<groupId>com.googlecode.mp4parser</groupId>
+			<artifactId>isoparser</artifactId>
+			<version>1.0-RC-19-SNAPSHOT</version>
+			<!-- <scope>system</scope> <systemPath>${basedir}/lib/isoparser-1.0-RC-19-SNAPSHOT.jar</systemPath> -->
+		</dependency>
+		<dependency>
+			<groupId>org.red5</groupId>
+			<artifactId>red5-client</artifactId>
+			<version>${red5-client.version}</version>
+			<type>jar</type>
+			<scope>test</scope>
+			<!-- <scope>system</scope> <systemPath>${basedir}/lib/red5-client-1.0.2-SNAPSHOT.jar</systemPath> -->
+			<exclusions>
+				<exclusion>
+					<groupId>org.red5</groupId>
+					<artifactId>red5-server</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>aopalliance</groupId>
+			<artifactId>aopalliance</artifactId>
+			<version>1.0</version>
+			<scope>compile</scope>
+		</dependency>
 	</dependencies>
 </project>

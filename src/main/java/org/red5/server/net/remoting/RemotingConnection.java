@@ -400,7 +400,6 @@ public class RemotingConnection implements IRemotingConnection {
 	}
 
 	/** {@inheritDoc} */
-	@SuppressWarnings("unchecked")
 	public Set<String> getAttributeNames() {
 		final Set<String> result = new HashSet<String>();
 		// Synchronize to prevent parallel modifications
@@ -414,7 +413,6 @@ public class RemotingConnection implements IRemotingConnection {
 	}
 
 	/** {@inheritDoc} */
-	@SuppressWarnings("unchecked")
 	public Map<String, Object> getAttributes() {
 		final Map<String, Object> result = new HashMap<String, Object>();
 		// Synchronize to prevent parallel modifications
@@ -452,7 +450,6 @@ public class RemotingConnection implements IRemotingConnection {
 	}
 
 	/** {@inheritDoc} */
-	@SuppressWarnings("unchecked")
 	public void removeAttributes() {
 		// synchronize to prevent parallel modifications
 		synchronized (session) {

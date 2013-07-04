@@ -33,6 +33,13 @@
 			<includes>
 				<include>*.jar</include>
 			</includes>
+            <excludes>
+                <exclude>jboss-servlet-api_3.0_spec-1.0.2.Final.jar</exclude>
+                <exclude>antlr-2.7.7.jar</exclude>
+                <exclude>hamcrest-core-1.1.jar</exclude>
+                <exclude>junit-4.10.jar</exclude>
+                <exclude>groboutils-core-5.jar</exclude>
+            </excludes>
 		</fileSet>
 		<fileSet>
 			<directory>${project.build.directory}/dependency</directory>
@@ -40,6 +47,13 @@
 			<includes>
 				<include>*.jar</include>
 			</includes>
+			<excludes>
+			    <exclude>jboss-servlet-api_3.0_spec-1.0.2.Final.jar</exclude>
+                <exclude>antlr-2.7.7.jar</exclude>
+                <exclude>hamcrest-core-1.1.jar</exclude>
+                <exclude>junit-4.10.jar</exclude>
+                <exclude>groboutils-core-5.jar</exclude>
+			</excludes>
 		</fileSet>
 		<fileSet>
 			<directory>${project.basedir}/src/main/server</directory>
