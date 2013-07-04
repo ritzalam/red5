@@ -10,6 +10,10 @@
 	<version>1.0.2-SNAPSHOT</version>
 	<url>https://code.google.com/p/red5/</url>
 	<inceptionYear>2005</inceptionYear>
+	<organization>
+		<name>Red5</name>
+		<url>https://code.google.com/p/red5</url>
+	</organization>	
 	<licenses>
 		<license>
 			<name>Apache 2</name>
@@ -50,14 +54,10 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<red5-client.version>1.0.2-SNAPSHOT</red5-client.version>
 		<spring.version>3.1.1.RELEASE</spring.version>
-		<slf4j.version>1.7.2</slf4j.version>
+		<slf4j.version>1.7.5</slf4j.version>
 		<mina.version>2.0.7</mina.version>
-		<logback.version>1.0.9</logback.version>
+		<logback.version>1.0.13</logback.version>
 		<junit.version>4.10</junit.version>
-		<cargo.host>localhost</cargo.host>
-		<cargo.port>25888</cargo.port>
-		<cargo.wait>false</cargo.wait>
-		<tomcat.version>6.0.29</tomcat.version>
 	</properties>
 	<scm>
 		<connection>scm:svn:http://red5.googlecode.com/svn/java/server/trunk</connection>
@@ -268,26 +268,6 @@
 							<head>To do:</head>
 						</tag>
 					</tags>
-				</configuration>
-			</plugin>
-			<plugin>
-				<!-- http://tomcat.apache.org/maven-plugin-2.0-SNAPSHOT/index.html -->
-				<groupId>org.apache.tomcat.maven</groupId>
-				<artifactId>tomcat6-maven-plugin</artifactId>
-				<!-- or if you want to use tomcat 7.x <artifactId>tomcat7-maven-plugin</artifactId> -->
-				<version>2.0-SNAPSHOT</version>
-				<configuration>
-					<!-- http port -->
-					<port>9090</port>
-					<!-- application path always starts with / -->
-					<path>/</path>
-					<!-- if you want to use test dependencies rather than only runtime -->
-					<useTestClasspath>false</useTestClasspath>
-					<!-- optionnal if you want to add some extra directories in the class 
-						loader -->
-					<additionalClasspathDirs>
-						<additionalClasspathDir></additionalClasspathDir>
-					</additionalClasspathDirs>
 				</configuration>
 			</plugin>
 			<plugin>
