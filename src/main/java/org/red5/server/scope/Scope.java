@@ -29,11 +29,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.Semaphore;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -159,7 +157,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * Lock for critical sections, to prevent concurrent modification. 
 	 * A "fairness" policy is used wherein the longest waiting thread will be granted access before others.
 	 */
-	protected Semaphore lock = new Semaphore(1, true);
+	//protected Semaphore lock = new Semaphore(1, true);
 
 	/**
 	 * Registered service handlers for this scope. The map is created on-demand
@@ -209,16 +207,16 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		log.debug("Add child: {}", scope);
 		boolean added = false;
 		if (scope.isValid()) {
-			log.trace("Permits at addChild: {} queued: {}", lock.availablePermits(), lock.hasQueuedThreads());
+			//log.trace("Permits at addChild: {} queued: {}", lock.availablePermits(), lock.hasQueuedThreads());
 			boolean acquired = false;
 			try {
-				acquired = lock.tryAcquire();
+				//acquired = lock.tryAcquire();
 				// if we couldn't acquire and no threads are queued, continue on; otherwise block
-				if (!acquired && lock.hasQueuedThreads()) {
+				//if (!acquired && lock.hasQueuedThreads()) {
 					// block
-					lock.acquire();
-					acquired = true;
-				}
+					//lock.acquire();
+					//acquired = true;
+				//}
 				if (!children.contains(scope)) {
 					log.debug("Adding child scope: {} to {}", scope, this);
 					added = children.add(scope);
@@ -228,9 +226,9 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			} catch (Exception e) {
 				log.warn("Exception aquiring lock for add subscope", e);
 			} finally {
-				if (acquired) {
-					lock.release();
-				}
+				//if (acquired) {
+				//	lock.release();
+				//}
 			}
 		} else {
 			log.warn("Invalid scope rejected: {}", scope);
@@ -1118,9 +1116,9 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				log.debug("Scope {} has no handler", this);
 				handler = parent.getHandler();
 			}
-			log.trace("Permits at start: {} queued: {}", lock.availablePermits(), lock.hasQueuedThreads());
+			//log.trace("Permits at start: {} queued: {}", lock.availablePermits(), lock.hasQueuedThreads());
 			try {
-				lock.acquire();
+				//lock.acquire();
 				// if we dont have a handler of our own dont try to start it
 				if (handler != null) {
 					result = handler.start(this);
@@ -1132,7 +1130,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			} catch (Throwable e) {
 				log.error("Could not start scope {} {}", this, e);
 			} finally {
-				lock.release();
+				//lock.release();
 				// post notification
 				((Server) getServer()).notifyScopeCreated(this);
 			}
@@ -1148,13 +1146,13 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		log.debug("stop: {}", name);
 		if (enabled && running && handler != null) {
 			try {
-				lock.acquire();
+				//lock.acquire();
 				// if we dont have a handler of our own dont try to stop it
 				handler.stop(this);
 			} catch (Throwable e) {
 				log.error("Could not stop scope {}", this, e);
 			} finally {
-				lock.release();
+				//lock.release();
 				// post notification
 				((Server) getServer()).notifyScopeRemoved(this);
 			}
@@ -1309,9 +1307,10 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		return true;
 	}
 
-	private final class ConcurrentScopeSet extends WeakHashMap<org.red5.server.api.scope.IBasicScope, Boolean> {
+	//private final class ConcurrentScopeSet extends WeakHashMap<org.red5.server.api.scope.IBasicScope, Boolean> {
+	private final class ConcurrentScopeSet extends ConcurrentHashMap<org.red5.server.api.scope.IBasicScope, Boolean> {
 
-		private Semaphore internalLock = new Semaphore(1, true);
+		//private ReentrantReadWriteLock internalLock = new ReentrantReadWriteLock();
 
 		private Set<String> names = new HashSet<String>();
 
@@ -1320,6 +1319,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		}
 
 		public boolean add(IBasicScope scope) {
+			//log.trace("add - Hold counts - read: {} write: {} queued: {}", internalLock.getReadHoldCount(), internalLock.getWriteHoldCount(), internalLock.hasQueuedThreads());			
 			boolean added = false;
 			// check #1
 			if (!keySet().contains(scope)) {
@@ -1336,7 +1336,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 					log.debug("No handler found for {}", this);
 				}
 				try {
-					internalLock.acquire();
+					//internalLock.writeLock().lock();
 					// check #2 for entry
 					if (!keySet().contains(scope)) {
 						// add the entry
@@ -1351,10 +1351,10 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 					} else {
 						log.debug("Subscope already exists");
 					}
-				} catch (InterruptedException e) {
+				} catch (Exception e) {
 					log.warn("Exception aquiring lock for scope set", e);
 				} finally {
-					internalLock.release();
+					//internalLock.writeLock().unlock();
 				}
 				if (added && scope instanceof Scope) {
 					// cast it
@@ -1373,6 +1373,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		@Override
 		public Boolean remove(Object scope) {
 			log.debug("Remove child scope: {}", scope);
+			//log.trace("remove - Hold counts - read: {} write: {} queued: {}", internalLock.getReadHoldCount(), internalLock.getWriteHoldCount(), internalLock.hasQueuedThreads());			
 			if (hasHandler()) {
 				IScopeHandler hdlr = getHandler();
 				log.debug("Removing child scope: {}", (((IBasicScope) scope).getName()));
@@ -1388,7 +1389,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			}
 			boolean removed = false;
 			try {
-				internalLock.acquire();
+				//internalLock.writeLock().lock();
 				if (keySet().contains(scope)) {
 					// remove the entry, ensure removed value is equal to the given object
 					removed = super.remove(scope).equals(Boolean.TRUE);
@@ -1401,7 +1402,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				} else {
 					log.debug("Subscope was not removed, it was not found");
 				}
-			} catch (InterruptedException e) {
+			} catch (Exception e) {
 				log.warn("Exception aquiring lock for scope set", e);
 				if (e.getMessage() == null) {
 					log.info("Lock acquire failed, check scope exists: {}", names.contains(((IBasicScope) scope).getName()));
@@ -1409,7 +1410,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 					removed = true;
 				}
 			} finally {
-				internalLock.release();
+				//internalLock.writeLock().unlock();
 			}
 			return removed;
 		}
@@ -1455,9 +1456,9 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			if (names.contains(name)) {
 				// use concurrent set for the get
 				IBasicScope[] scopes = new IBasicScope[names.size()];
-				log.trace("Permits at getBasicScope: {} queued: {}", internalLock.availablePermits(), internalLock.hasQueuedThreads());
+				//log.trace("Hold counts - read: {} write: {} queued: {}", internalLock.getReadHoldCount(), internalLock.getWriteHoldCount(), internalLock.hasQueuedThreads());
 				try {
-					internalLock.acquire();
+					//internalLock.readLock().lock();
 					// copy into concurrent set
 					scopes = (IBasicScope[]) keySet().toArray(scopes);
 				} catch (Exception e) {
@@ -1467,7 +1468,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 						log.debug("Child scopes (key set): {}", this.keySet());
 					}
 				} finally {
-					internalLock.release();
+					//internalLock.readLock().lock();
 				}
 				if (skipTypeCheck) {
 					for (IBasicScope child : scopes) {
@@ -1483,7 +1484,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 							return child;
 						}
 					}
-				}									
+				}
 			}
 			return null;
 		}

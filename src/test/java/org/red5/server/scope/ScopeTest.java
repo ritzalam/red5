@@ -105,11 +105,11 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		Server server = (Server) applicationContext.getBean("red5.server");
 		server.addListener(new IScopeListener() {
 			public void notifyScopeCreated(IScope scope) {
-				System.out.println("Scope created: " + scope.getName());
+				log.debug("Scope created: {}", scope);
 			}
 
 			public void notifyScopeRemoved(IScope scope) {
-				System.out.println("Scope removed: " + scope.getName());
+				log.debug("Scope removed: {}", scope);
 			}
 		});
 		appScope = (WebScope) applicationContext.getBean("web.scope");

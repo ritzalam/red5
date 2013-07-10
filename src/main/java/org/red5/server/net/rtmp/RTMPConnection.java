@@ -21,13 +21,16 @@ package org.red5.server.net.rtmp;
 import java.beans.ConstructorProperties;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -320,6 +323,10 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * Opens the connection.
 	 */
 	public void open() {
+		if (log.isTraceEnabled()) {
+			// dump memory stats
+			log.trace("Memory at open - free: {}K total: {}K", Runtime.getRuntime().freeMemory() / 1024, Runtime.getRuntime().totalMemory() / 1024);
+		}
 		startWaitForHandshake();
 	}
 
@@ -712,16 +719,35 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		Red5.setConnectionLocal(null);
 		if (scheduler != null) {
 			log.debug("Shutting down scheduler");
-			scheduler.shutdown();
+			ScheduledExecutorService exe = scheduler.getScheduledExecutor();
+			List<Runnable> runables = exe.shutdownNow();
+			log.debug("Scheduler - shutdown: {} queued: {}", exe.isShutdown(), runables.size());
+			try {
+				scheduler.shutdown();
+			} catch (Exception e) {
+				log.warn("Exception during scheduler shutdown", e);
+			}
 			scheduler = null;
 		}
 		if (executor != null) {
 			log.debug("Shutting down executor");
-			executor.shutdown();
+			ThreadPoolExecutor exe = executor.getThreadPoolExecutor();
+			List<Runnable> runables = exe.shutdownNow();
+			log.debug("Executor - shutdown: {} queued: {}", exe.isShutdown(), runables.size());
+			try {
+				executor.shutdown();
+			} catch (Exception e) {
+				log.warn("Exception during executor shutdown", e);
+			}
+			executor = null;
 		}
 		// drain permits
 		decoderLock.drainPermits();
 		encoderLock.drainPermits();
+		if (log.isTraceEnabled()) {
+			// dump memory stats
+			log.trace("Memory at close - free: {}K total: {}K", Runtime.getRuntime().freeMemory() / 1024, Runtime.getRuntime().totalMemory() / 1024);
+		}
 	}
 
 	/**

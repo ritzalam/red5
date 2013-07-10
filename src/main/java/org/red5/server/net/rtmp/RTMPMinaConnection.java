@@ -28,6 +28,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -64,12 +65,12 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	/**
 	 * MINA I/O session, connection between two end points
 	 */
-	private volatile IoSession ioSession;
+	private IoSession ioSession;
 
 	/**
 	 * MBean object name used for de/registration purposes.
 	 */
-	private volatile ObjectName oName;
+	private ObjectName oName;
 
 	protected int defaultServerBandwidth = 10000000;
 
@@ -81,11 +82,6 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	@ConstructorProperties(value = { "persistent" })
 	public RTMPMinaConnection() {
 		super(PERSISTENT);
-	}
-
-	@Override
-	public void open() {
-		super.open();
 	}
 
 	@SuppressWarnings("cast")
@@ -204,7 +200,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	@Override
 	public void setExecutor(ThreadPoolTaskExecutor executor) {
 		this.executor = executor;
-		this.executor.setRejectedExecutionHandler(new RejectedExecutionHandler(){
+		this.executor.setRejectedExecutionHandler(new RejectedExecutionHandler() {
 
 			@Override
 			public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
@@ -215,10 +211,10 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 				}
 				log.debug("Lock permits - decode: {} encode: {}", decoderLock.availablePermits(), encoderLock.availablePermits());
 			}
-			
+
 		});
-	}	
-	
+	}
+
 	/**
 	 * @return the bandwidthDetection
 	 */
@@ -323,8 +319,15 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 			final Semaphore lock = getLock();
 			log.trace("Write lock wait count: {}", lock.getQueueLength());
 			while (!closed && !ioSession.isWriteSuspended()) {
+				boolean acquired = false;
 				try {
-					lock.acquire();
+					acquired = lock.tryAcquire(10, TimeUnit.MILLISECONDS);
+					if (acquired) {
+						log.trace("Writing message");
+						writingMessage(out);
+						ioSession.write(out);
+						break;
+					}
 				} catch (InterruptedException e) {
 					log.warn("Interrupted while waiting for write lock", e);
 					String exMsg = e.getMessage();
@@ -333,15 +336,10 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 						log.debug("Exception writing to connection: {}", this);
 						break;
 					}
-					continue;
-				}
-				try {
-					log.trace("Writing message");
-					writingMessage(out);
-					ioSession.write(out);
-					break;
 				} finally {
-					lock.release();
+					if (acquired) {
+						lock.release();
+					}
 				}
 			}
 		}
@@ -353,18 +351,20 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 		if (ioSession != null) {
 			final Semaphore lock = getLock();
 			while (!closed && !ioSession.isWriteSuspended()) {
+				boolean acquired = false;
 				try {
-					lock.acquire();
+					acquired = lock.tryAcquire(10, TimeUnit.MILLISECONDS);
+					if (acquired) {
+						log.trace("Writing raw message");
+						ioSession.write(out);
+						break;
+					}
 				} catch (InterruptedException e) {
 					log.warn("Interrupted while waiting for write lock", e);
-					continue;
-				}
-				try {
-					log.trace("Writing raw message");
-					ioSession.write(out);
-					break;
 				} finally {
-					lock.release();
+					if (acquired) {
+						lock.release();
+					}
 				}
 			}
 		}
