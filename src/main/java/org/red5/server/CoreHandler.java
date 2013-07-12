@@ -87,16 +87,8 @@ public class CoreHandler implements IScopeHandler, CoreHandlerMXBean {
 			IClientRegistry clientRegistry = connectionScope.getContext().getClientRegistry();
 			log.debug("Client registry: {}", (clientRegistry == null ? "is null" : "not null"));
 			if (clientRegistry != null) {
-				IClient client = null;
-				if (conn.getClient() != null) {
-					// this is an existing connection that is being moved to another scope server-side
-					client = conn.getClient();
-				} else if (clientRegistry.hasClient(id)) {
-					// use session id as client id; this is required for remoting
-					client = clientRegistry.lookupClient(id);
-				} else {
-					// add any rtmp connections to the manager
-					RTMPConnManager connManager = RTMPConnManager.getInstance();
+				IClient client = conn.getClient();
+				if (client == null && !clientRegistry.hasClient(id)) {
 					if (conn instanceof RTMPTConnection) {
 						log.debug("Creating new client for RTMPT connection");
 						// create a new client using the session id as the client's id
@@ -104,17 +96,27 @@ public class CoreHandler implements IScopeHandler, CoreHandlerMXBean {
 						clientRegistry.addClient(client);
 						// set the client on the connection
 						conn.setClient(client);					
-						// add the connection
-						connManager.setConnection((RTMPTConnection) conn);
 					} else if (conn instanceof RTMPConnection) {
 						log.debug("Creating new client for RTMP connection");
 						// this is a new connection, create a new client to hold it
 						client = clientRegistry.newClient(params);
 						// set the client on the connection
 						conn.setClient(client);
-						// add the connection
-						connManager.setConnection((RTMPConnection) conn);
 					} 
+				} else {
+					// use session id as client id; this is required for remoting
+					client = clientRegistry.lookupClient(id);
+					// set the client on the connection
+					conn.setClient(client);	
+				}
+				// add any rtmp connections to the manager
+				RTMPConnManager connManager = RTMPConnManager.getInstance();
+				if (conn instanceof RTMPTConnection) {
+					connManager.setConnection((RTMPTConnection) conn);
+				} else if (conn instanceof RTMPConnection) {
+					connManager.setConnection((RTMPConnection) conn);
+				} else {
+					log.warn("Connection was not added to manager: {}", conn);
 				}
 				// assign connection to client
 				conn.initialize(client);

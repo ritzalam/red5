@@ -116,13 +116,17 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 		super.close();
 		if (ioSession != null) {
 			// accept no further incoming data
-			ioSession.suspendRead();
+			//ioSession.suspendRead();
 			// close now, no flushing, no waiting
-			final CloseFuture future = ioSession.close(true);
+			final CloseFuture future = ioSession.close(false);
 			IoFutureListener<CloseFuture> listener = new IoFutureListener<CloseFuture>() {
 				public void operationComplete(CloseFuture future) {
 					if (future.isClosed()) {
 						log.debug("Connection is closed");
+						RTMPMinaConnection conn = (RTMPMinaConnection) ioSession.removeAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
+						if (conn != null) {
+							handler.connectionClosed(conn);
+						}
 					} else {
 						log.debug("Connection is not yet closed");
 					}
@@ -130,9 +134,9 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 				}
 			};
 			future.addListener(listener);
-			//de-register with JMX
-			unregisterJMX();
 		}
+		//de-register with JMX
+		unregisterJMX();
 	}
 
 	/** {@inheritDoc} */
@@ -292,14 +296,14 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 		if (ioSession != null) {
 			log.debug("Connection idle - read: {} write: {}", ioSession.isReaderIdle(), ioSession.isWriterIdle());
 			return super.isIdle() && ioSession.isBothIdle();
-		} 
+		}
 		return super.isIdle();
-	}	
-	
+	}
+
 	/** {@inheritDoc} */
 	@Override
 	protected void onInactive() {
-		this.close();
+		close();
 	}
 
 	/**
@@ -320,6 +324,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 		remoteAddresses.add(remoteAddress);
 		remoteAddresses = Collections.unmodifiableList(remoteAddresses);
 		this.ioSession = protocolSession;
+		log.trace("setIoSession conn: {}", this);
 	}
 
 	/** {@inheritDoc} */
@@ -327,8 +332,8 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	public void write(Packet out) {
 		if (ioSession != null) {
 			final Semaphore lock = getLock();
-			log.trace("Write lock wait count: {}", lock.getQueueLength());
-			while (!closed && !ioSession.isWriteSuspended()) {
+			log.trace("Write lock wait count: {} closed: {}", lock.getQueueLength(), closed);
+			while (!closed) {
 				boolean acquired = false;
 				try {
 					acquired = lock.tryAcquire(10, TimeUnit.MILLISECONDS);
@@ -360,7 +365,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	public void writeRaw(IoBuffer out) {
 		if (ioSession != null) {
 			final Semaphore lock = getLock();
-			while (!closed && !ioSession.isWriteSuspended()) {
+			while (!closed) {
 				boolean acquired = false;
 				try {
 					acquired = lock.tryAcquire(10, TimeUnit.MILLISECONDS);

@@ -63,6 +63,14 @@ public interface IConnectionManager<T> {
 	T removeConnection(int clientId);
 
 	/**
+	 * Removes a connection by the given sessionId.
+	 * 
+	 * @param sessionId
+	 * @return connection that was removed
+	 */
+	T removeConnection(String sessionId);
+
+	/**
 	 * Removes all the connections from the set.
 	 * @return connections
 	 */	

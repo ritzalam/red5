@@ -120,9 +120,16 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	/** {@inheritDoc} */
 	@Override
 	public void close() {
-		log.debug("close - state: {}", state.getState());
-		// defer actual closing so we can send back pending messages to the client
 		closing = true;
+		log.trace("Clearing pending messages (in: {} and out: {})", pendingInMessages.size(), pendingOutMessages.size());
+		pendingInMessages.clear();
+		pendingOutMessages.clear();
+		// clean up buffer
+		if (buffer != null) {
+			buffer.free();
+			buffer = null;
+		}
+		super.close();
 	}
 
 	/**
@@ -134,37 +141,26 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 		return closing;
 	}
 
-	/**
-	 * Real close
-	 */
-	public void realClose() {
-		log.debug("realClose - isClosing: {}", isClosing());
-		if (isClosing()) {
-			state.setState(RTMP.STATE_DISCONNECTED);
-			log.trace("Clearing pending messages (in: {} and out: {})", pendingInMessages.size(), pendingOutMessages.size());
-			pendingInMessages.clear();
-			pendingOutMessages.clear();
-			// clean up buffer
-			if (buffer != null) {
-				buffer.free();
-				buffer = null;
-			}
-			super.close();
-		}
-	}
-
 	/** {@inheritDoc} */
 	@Override
 	public long getReadBytes() {
 		return readBytes.get();
 	}
 
+	public void updateReadBytes(int read) {
+		readBytes.addAndGet(read);
+	}
+	
 	/** {@inheritDoc} */
 	@Override
 	public long getWrittenBytes() {
 		return writtenBytes.get();
 	}
 
+	public void updateWrittenBytes(int wrote) {
+		writtenBytes.addAndGet(wrote);
+	}	
+	
 	/** {@inheritDoc} */
 	@Override
 	public long getPendingMessages() {
@@ -188,8 +184,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 			// connection is being closed, don't decode any new packets
 			return Collections.EMPTY_LIST;
 		}
-		long read = readBytes.addAndGet(data.limit());
-		log.trace("Current bytes read at decode: {}", read);
+		log.trace("Current bytes read at decode: {}", data.limit());
 		buffer.put(data);
 		buffer.flip();
 		return decoder.decodeBuffer(buffer);
@@ -361,9 +356,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 			sendList.clear();
 			result.flip();
 			// send byte length
-			int sendSize = result.limit();
-			log.debug("Send size: {}", sendSize);
-			writtenBytes.addAndGet(sendSize);
+			log.debug("Send size: {}", result.limit());
 		}
 		return result;
 	}

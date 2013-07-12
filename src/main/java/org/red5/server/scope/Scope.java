@@ -208,7 +208,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		boolean added = false;
 		if (scope.isValid()) {
 			//log.trace("Permits at addChild: {} queued: {}", lock.availablePermits(), lock.hasQueuedThreads());
-			boolean acquired = false;
+			//boolean acquired = false;
 			try {
 				//acquired = lock.tryAcquire();
 				// if we couldn't acquire and no threads are queued, continue on; otherwise block

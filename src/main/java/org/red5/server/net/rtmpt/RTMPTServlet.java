@@ -154,23 +154,25 @@ public class RTMPTServlet extends HttpServlet {
 	/**
 	 * Return raw data to the client.
 	 * 
-	 * @param client RTMP connection
+	 * @param conn RTMP connection
 	 * @param buffer Raw data as byte buffer
 	 * @param resp Servlet response
 	 * @throws IOException I/O exception
 	 */
-	protected void returnMessage(RTMPTConnection client, IoBuffer buffer, HttpServletResponse resp) throws IOException {
+	protected void returnMessage(RTMPTConnection conn, IoBuffer buffer, HttpServletResponse resp) throws IOException {
 		log.trace("returnMessage {}", buffer);
 		resp.setStatus(HttpServletResponse.SC_OK);
 		resp.setHeader("Connection", "Keep-Alive");
 		resp.setHeader("Cache-Control", "no-cache");
 		resp.setContentType(CONTENT_TYPE);
-		resp.setContentLength(buffer.limit() + 1);
-		byte pollingDelay = client.getPollingDelay();
+		int contentLength = buffer.limit() + 1;
+		resp.setContentLength(contentLength);
+		byte pollingDelay = conn.getPollingDelay();
 		log.debug("Sending {} bytes; polling delay: {}", buffer.limit(), pollingDelay);
 		ServletOutputStream output = resp.getOutputStream();
 		output.write(pollingDelay);
 		ServletUtils.copy(buffer.asInputStream(), output);
+		conn.updateWrittenBytes(contentLength);
 		buffer.free();
 		buffer = null;
 	}
@@ -208,25 +210,25 @@ public class RTMPTServlet extends HttpServlet {
 	/**
 	 * Send pending messages to client.
 	 * 
-	 * @param client RTMP connection
+	 * @param conn RTMP connection
 	 * @param resp Servlet response
 	 */
-	protected void returnPendingMessages(RTMPTConnection client, HttpServletResponse resp) {
-		log.debug("returnPendingMessages {}", client);
+	protected void returnPendingMessages(RTMPTConnection conn, HttpServletResponse resp) {
+		log.debug("returnPendingMessages {}", conn);
 		// grab any pending outgoing data
-		IoBuffer data = client.getPendingMessages(targetResponseSize);
+		IoBuffer data = conn.getPendingMessages(targetResponseSize);
 		if (data != null) {
 			try {
-				returnMessage(client, data, resp);
+				returnMessage(conn, data, resp);
 			} catch (Exception ex) {
 				// using "Exception" is meant to catch any exception that would occur when doing a write
 				// this can be an IOException or a container specific one like ClientAbortException from catalina
 				log.warn("Exception returning outgoing data", ex);
-				client.realClose();
+				conn.close();
 			}
 		} else {
 			log.debug("No messages to send");
-			if (client.isClosing()) {
+			if (conn.isClosing()) {
 				log.debug("Client is closing, send close notification");
 				try {
 					// tell client to close connection
@@ -236,7 +238,7 @@ public class RTMPTServlet extends HttpServlet {
 				}
 			} else {
 				try {
-					returnMessage(client.getPollingDelay(), resp);
+					returnMessage(conn.getPollingDelay(), resp);
 				} catch (IOException ex) {
 					log.warn("Exception returning outgoing data - polling delay", ex);
 				}
@@ -269,6 +271,7 @@ public class RTMPTServlet extends HttpServlet {
 			conn.setEncoder(handler.getCodecFactory().getRTMPEncoder());
 			handler.connectionOpened(conn);
 			conn.dataReceived();
+			conn.updateReadBytes(req.getContentLength());
 			// set thread local reference
 			Red5.setConnectionLocal(conn);
 			if (conn.getId() != 0) {
@@ -301,10 +304,8 @@ public class RTMPTServlet extends HttpServlet {
 		RTMPTConnection connection = getConnection();
 		if (connection != null) {
 			log.debug("Pending messges on close: {}", connection.getPendingMessages());
-			handler.connectionClosed(connection);
 			returnMessage((byte) 0, resp);
 			connection.close();
-			connection.realClose();
 		} else {
 			handleBadRequest(String.format("Close: unknown client session: %d", requestInfo.get().getSessionId()), resp);
 		}
@@ -319,8 +320,8 @@ public class RTMPTServlet extends HttpServlet {
 	 */
 	protected void handleSend(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		log.debug("handleSend");
-		final RTMPTConnection connection = getConnection();
-		if (connection != null) {
+		final RTMPTConnection conn = getConnection();
+		if (conn != null) {
 			// put the received data in a ByteBuffer
 			int length = req.getContentLength();
 			log.trace("Request content length: {}", length);
@@ -328,16 +329,16 @@ public class RTMPTServlet extends HttpServlet {
 			ServletUtils.copy(req.getInputStream(), data.asOutputStream());
 			data.flip();
 			// decode the objects in the data
-			final List<?> messages = connection.decode(data);
+			final List<?> messages = conn.decode(data);
 			// clear the buffer
 			data.free();
 			// messages are either of IoBuffer or Packet type
 			// handshaking uses IoBuffer and everything else should be Packet
-			connection.read(messages);
-
-			connection.dataReceived();
+			conn.read(messages);
+			conn.dataReceived();
+			conn.updateReadBytes(req.getContentLength());
 			// return pending messages
-			returnPendingMessages(connection, resp);
+			returnPendingMessages(conn, resp);
 		} else {
 			handleBadRequest(String.format("Send: unknown client session: %s", requestInfo.get().getSessionId()), resp);
 		}
@@ -355,12 +356,12 @@ public class RTMPTServlet extends HttpServlet {
 		// skip sent data
 		skipData(req);
 		// get associated connection
-		RTMPTConnection connection = getConnection();
-		if (connection != null) {
-			connection.dataReceived();
-
+		RTMPTConnection conn = getConnection();
+		if (conn != null) {
+			conn.dataReceived();
+			conn.updateReadBytes(req.getContentLength());
 			// return pending
-			returnPendingMessages(connection, resp);
+			returnPendingMessages(conn, resp);
 		} else {
 			handleBadRequest(String.format("Idle: unknown client session: %s", requestInfo.get().getSessionId()), resp);
 		}
@@ -472,15 +473,6 @@ public class RTMPTServlet extends HttpServlet {
 	}
 
 	/**
-	 * A connection has been closed that was created by this servlet.
-	 * 
-	 * @param conn
-	 */
-	protected void notifyClosed(RTMPTConnection conn) {
-		rtmpConnManager.removeConnection(conn.getId());
-	}
-
-	/**
 	 * Returns a connection based on the current client session id.
 	 * 
 	 * @return RTMPTConnection
@@ -500,7 +492,7 @@ public class RTMPTServlet extends HttpServlet {
 	protected void removeConnection(String sessionId) {
 		RTMPTConnection conn = (RTMPTConnection) rtmpConnManager.getConnectionBySessionId(sessionId);
 		if (conn != null) {
-			rtmpConnManager.removeConnection(conn.getId());
+			rtmpConnManager.removeConnection(conn.getSessionId());
 		} else {
 			log.warn("Remove failed, null connection for session id: {}", sessionId);
 		}

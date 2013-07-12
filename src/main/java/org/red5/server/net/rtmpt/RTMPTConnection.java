@@ -18,8 +18,8 @@
 
 package org.red5.server.net.rtmpt;
 
-import java.lang.ref.WeakReference;
 import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -76,14 +76,13 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	private RTMPTServlet servlet;
 
 	/**
-	 * Interval to check if user is still connected (milliseconds)
-	 * */
-	private final Integer connectionCheckInterval = 5000;
-
-	/**
 	 * Timestamp of last data received on the connection
 	 */
 	private long tsLastDataReceived = 0;
+
+	private AtomicLong lastBytesRead = new AtomicLong(0);
+
+	private AtomicLong lastBytesWritten = new AtomicLong(0);
 
 	/** Constructs a new RTMPTConnection */
 	RTMPTConnection() {
@@ -102,45 +101,72 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	}
 
 	/** {@inheritDoc} */
-	public void realClose() {
-		log.debug("realClose connection id: {}", getId());
+	@Override
+	protected void onInactive() {
+		close();
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public void close() {
+		log.debug("close {} state: {}", getSessionId(), state.states[state.getState()]);
 		// ensure closing flag is set
 		if (!isClosing()) {
-			close();
-		}
-		// inform super that we need to close
-		super.realClose();
-		// inform the servlet
-		if (servlet != null) {
-			servlet.notifyClosed(this);
-			servlet = null;
+			super.close();
+			if (servlet != null) {
+				servlet = null;
+			}
+			if (handler != null) {
+				handler.connectionClosed(this);
+			}
 		}
 	}
 
 	/** {@inheritDoc} */
 	@Override
-	protected void onInactive() {
-		log.debug("Inactive connection id: {}, closing", getId());
-		if (servlet != null) {
-			servlet.notifyClosed(this);
+	public boolean isIdle() {
+		boolean inActivityExceeded = false;
+		long lastTS = getLastDataReceived();
+		long now = System.currentTimeMillis();
+		long tsDelta = now - lastTS;
+		if (lastTS > 0 && tsDelta > maxInactivity) {
+			inActivityExceeded = true;
 		}
-		if (handler != null) {
-			handler.connectionClosed(this);
-		}
-		close();
-		realClose();
+		return inActivityExceeded || (isReaderIdle() && isWriterIdle());
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public boolean isReaderIdle() {
-		return pendingInMessages.isEmpty();
+		// get the current bytes read on the connection
+		long currentBytes = getReadBytes();
+		// get our last bytes read
+		long previousBytes = lastBytesRead.get();
+		if (currentBytes > previousBytes) {
+			log.trace("Client (read) is not idle");
+			// client has sent data since last check and thus is not dead. No need to ping
+			if (lastBytesRead.compareAndSet(previousBytes, currentBytes)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public boolean isWriterIdle() {
-		return pendingOutMessages.isEmpty();
+		// get the current bytes written on the connection
+		long currentBytes = getWrittenBytes();
+		// get our last bytes written
+		long previousBytes = lastBytesWritten.get();
+		if (currentBytes > previousBytes) {
+			log.trace("Client (write) is not idle");
+			// server has sent data since last check
+			if (lastBytesWritten.compareAndSet(previousBytes, currentBytes)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public void setRemoteAddress(String remoteAddress) {
@@ -157,8 +183,6 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 		super.setScheduler(scheduler);
 		// outgoing queue processor
 		scheduler.scheduleAtFixedRate(new ProcessTask(this), 250);
-		// alive check
-		scheduler.scheduleAtFixedRate(new CheckInactivityTask(new WeakReference<RTMPTConnection>(this)), connectionCheckInterval);
 	}
 
 	/**
@@ -224,7 +248,7 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 
 	/**
 	 * Register timestamp that data was received
-	 * */
+	 */
 	public void dataReceived() {
 		tsLastDataReceived = System.currentTimeMillis();
 	}
@@ -234,42 +258,6 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	 * */
 	public Long getLastDataReceived() {
 		return tsLastDataReceived;
-	}
-
-	/**
-	 * Task that keeps connection alive and disconnects if client is dead (RTMPT)
-	 */
-	private class CheckInactivityTask implements Runnable {
-		
-		private final WeakReference<RTMPTConnection> conn;
-
-		public CheckInactivityTask(WeakReference<RTMPTConnection> conn) {
-			this.conn = conn;
-		}
-
-		public void run() {
-			// ensure the job is not already running
-			if (running.compareAndSet(false, true)) {
-				try {
-					log.debug("RTMPT check inactivity running.");
-					RTMPTConnection connection = conn.get();
-					if (connection != null) {
-						long lastTS = connection.getLastDataReceived();
-						long now = System.currentTimeMillis();
-						long tsDelta = now - lastTS;
-						if (lastTS > 0 && tsDelta > maxInactivity) {
-							log.info("RTMPT client diconnected due to inactivity of {} ms", tsDelta);
-							onInactive();
-						}
-					}
-				} catch (Exception e) {
-					log.error("Error executing keepalive code: " + e.getMessage(), e);
-				} finally {
-					// reset running flag
-					running.compareAndSet(true, false);
-				}
-			}
-		}
 	}
 
 	/**

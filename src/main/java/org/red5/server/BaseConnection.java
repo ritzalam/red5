@@ -547,13 +547,13 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	@Override
 	public int hashCode() {
 		final int prime = 31;
-		int result = 1;
-		if (host != null) {
-			result = prime * result + host.hashCode();
-		}
-		if (remoteAddress != null) {
-			result = prime * result + remoteAddress.hashCode();
-		}
+		int result = prime * sessionId.hashCode();
+//		if (host != null) {
+//			result = prime * result + host.hashCode();
+//		}
+//		if (remoteAddress != null) {
+//			result = prime * result + remoteAddress.hashCode();
+//		}
 		return result;
 	}
 

@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.management.JMX;
 import javax.management.ObjectName;
@@ -47,8 +48,10 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection>, Appl
 
 	private static final Logger log = LoggerFactory.getLogger(RTMPConnManager.class);
 
-	private ConcurrentMap<Integer, RTMPConnection> connMap = new ConcurrentHashMap<Integer, RTMPConnection>();
+	private ConcurrentMap<String, RTMPConnection> connMap = new ConcurrentHashMap<String, RTMPConnection>();
 
+	private AtomicInteger conns = new AtomicInteger();
+	
 	private static ApplicationContext applicationContext;
 
 	private boolean debug;
@@ -68,11 +71,16 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection>, Appl
 			try {
 				// create connection
 				conn = createConnectionInstance(connCls);
+				// add to local map
+				connMap.put(conn.getSessionId(), conn);
+				log.trace("Connections: {}", conns.incrementAndGet());
 				// set the scheduler
 				if (applicationContext.containsBean("rtmpScheduler") && conn.getScheduler() == null) {
 					conn.setScheduler((ThreadPoolTaskScheduler) applicationContext.getBean("rtmpScheduler"));
 				}
 				log.trace("Connection created: {}", conn);
+				// start the wait for handshake
+				conn.startWaitForHandshake();
 			} catch (Exception ex) {
 				log.warn("Exception creating connection", ex);
 			}
@@ -93,10 +101,8 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection>, Appl
 			id = conn.getSessionId().hashCode();
 		}
 		log.debug("Connection id: {} session id hash: {}", conn.getId(), conn.getSessionId().hashCode());
-		// add to local map
-		connMap.put(id, conn);
 		if (debug) {
-			log.info("Connection count: {}", connMap.size());
+			log.info("Connection count (map): {}", connMap.size());
 			try {
 				RTMPMinaTransportMXBean proxy = JMX.newMXBeanProxy(ManagementFactory.getPlatformMBeanServer(), new ObjectName("org.red5.server:type=RTMPMinaTransport"),
 						RTMPMinaTransportMXBean.class, true);
@@ -117,7 +123,12 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection>, Appl
 	 */
 	public RTMPConnection getConnection(int clientId) {
 		log.debug("Getting connection by client id: {}", clientId);
-		return connMap.get(clientId);
+		for (RTMPConnection conn : connMap.values()) {
+			if (conn.getId() == clientId) {
+				return connMap.get(conn.getSessionId());
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -128,29 +139,40 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection>, Appl
 	 */
 	public RTMPConnection getConnectionBySessionId(String sessionId) {
 		log.debug("Getting connection by session id: {}", sessionId);
-		if (connMap.containsKey(sessionId.hashCode())) {
-			return connMap.get(sessionId.hashCode());
-		}
-		for (RTMPConnection conn : connMap.values()) {
-			if (sessionId.equals(conn.getSessionId())) {
-				return conn;
-			}
+		if (connMap.containsKey(sessionId)) {
+			return connMap.get(sessionId);
 		}
 		return null;
 	}
 
-	/**
-	 * Removes a connection by the given clientId.
-	 * 
-	 * @param clientId
-	 * @return connection that was removed
-	 */
+	/** {@inheritDoc} */
 	public RTMPConnection removeConnection(int clientId) {
 		log.debug("Removing connection with id: {}", clientId);
-		// remove the conn
-		return connMap.remove(clientId);
+		// remove from map
+		for (RTMPConnection conn : connMap.values()) {
+			if (conn.getId() == clientId) {			
+				// remove the conn
+				return removeConnection(conn.getSessionId());
+			}
+		}		
+		log.warn("Connection was not removed by id: {}", clientId);
+		return null;
 	}
 
+	/** {@inheritDoc} */
+	public RTMPConnection removeConnection(String sessionId) {
+		log.debug("Removing connection with session id: {}", sessionId);
+		if (log.isTraceEnabled()) {
+			log.trace("Connections ({}) at pre-remove: {}", connMap.size(), connMap.values());
+		}
+		// remove from map
+		RTMPConnection conn = connMap.remove(sessionId);
+		if (conn != null) {
+			log.trace("Connections: {}", conns.decrementAndGet());	
+		}
+		return conn;
+	}	
+	
 	/**
 	 * Returns all the current connections. It doesn't remove anything.
 	 * 
