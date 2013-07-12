@@ -288,6 +288,16 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 
 	/** {@inheritDoc} */
 	@Override
+	public boolean isIdle() {
+		if (ioSession != null) {
+			log.debug("Connection idle - read: {} write: {}", ioSession.isReaderIdle(), ioSession.isWriterIdle());
+			return super.isIdle() && ioSession.isBothIdle();
+		} 
+		return super.isIdle();
+	}	
+	
+	/** {@inheritDoc} */
+	@Override
 	protected void onInactive() {
 		this.close();
 	}

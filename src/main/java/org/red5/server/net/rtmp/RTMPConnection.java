@@ -508,8 +508,20 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	}
 
 	/**
-	 * Creates output stream object from stream id. Output stream consists of
-	 * audio, data and video channels.
+	 * Returns whether or not the connection has been idle for a maximum period.
+	 * 
+	 * @return true if max idle period has been exceeded, false otherwise
+	 */
+	public boolean isIdle() {
+		long lastPingTime = lastPingSent.get();
+		long lastPongTime = lastPongReceived.get();
+		boolean idle = (lastPongTime > 0 && (lastPingTime - lastPongTime > maxInactivity));
+		log.trace("Connection {} idle", idle ? "is" : "is not");
+		return idle;
+	}
+	
+	/**
+	 * Creates output stream object from stream id. Output stream consists of audio, data and video channels.
 	 * 
 	 * @see org.red5.server.stream.OutputStream
 	 * 
@@ -1289,41 +1301,51 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 			if (running.compareAndSet(false, true)) {
 				log.trace("Running keep-alive");
 				try {
-					// get now
-					long now = System.currentTimeMillis();
-					// get the current bytes read count on the connection
-					long currentReadBytes = getReadBytes();
-					// get our last bytes read count
-					long previousReadBytes = lastBytesRead.get();
-					log.trace("Time now: {} current read count: {} last read count: {}", new Object[] { now, currentReadBytes, previousReadBytes });
-					if (currentReadBytes > previousReadBytes) {
-						log.trace("Client is still alive, no ping needed");
-						// client has sent data since last check and thus is not dead. No need to ping
-						if (lastBytesRead.compareAndSet(previousReadBytes, currentReadBytes)) {
-							// update the timestamp to match our update
-							lastBytesReadTime = now;
+					// first check connected
+					if (isConnected()) {
+						// get now
+						long now = System.currentTimeMillis();
+						// get the current bytes read count on the connection
+						long currentReadBytes = getReadBytes();
+						// get our last bytes read count
+						long previousReadBytes = lastBytesRead.get();
+						log.trace("Time now: {} current read count: {} last read count: {}", new Object[] { now, currentReadBytes, previousReadBytes });
+						if (currentReadBytes > previousReadBytes) {
+							log.trace("Client is still alive, no ping needed");
+							// client has sent data since last check and thus is not dead. No need to ping
+							if (lastBytesRead.compareAndSet(previousReadBytes, currentReadBytes)) {
+								// update the timestamp to match our update
+								lastBytesReadTime = now;
+							}
+							// check idle
+							if (isIdle()) {
+								onInactive();
+							}
+							// update last ping time to prevent overly active pinging
+							lastPingSent.set(now);
+						} else if (getPendingMessages() > 0) {
+							// client may not have updated bytes yet, but may have received messages waiting, no need to drop them if processing hasn't
+							// caught up yet
+							log.trace("Reader is not idle, possible flood. Pending write messages: {}", getPendingMessages());
+							// update last ping time to prevent overly active pinging
+							lastPingSent.set(now);
+						} else {
+							// client didn't send response to ping command and didn't sent data for too long, disconnect
+							long lastPingTime = lastPingSent.get();
+							long lastPongTime = lastPongReceived.get();
+							if (lastPongTime > 0 && (lastPingTime - lastPongTime > maxInactivity) && !(now - lastBytesReadTime < maxInactivity)) {
+								log.warn("Closing {}, with id {}, due to too much inactivity ({} ms), last ping sent {} ms ago", new Object[] { RTMPConnection.this, getId(),
+										(lastPingTime - lastPongTime), (now - lastPingTime) });
+								// the following line deals with a very common support request
+								log.warn("This often happens if YOUR Red5 application generated an exception on start-up. Check earlier in the log for that exception first!");
+								onInactive();
+							}
+							// send ping command to client to trigger sending of data
+							ping();
 						}
-						// update last ping time to prevent overly active pinging
-						lastPingSent.set(now);
-					} else if (getPendingMessages() > 0) {
-						// client may not have updated bytes yet, but may have received messages waiting, no need to drop them if processing hasn't
-						// caught up yet
-						log.trace("Reader is not idle, possible flood. Pending write messages: {}", getPendingMessages());
-						// update last ping time to prevent overly active pinging
-						lastPingSent.set(now);
 					} else {
-						// client didn't send response to ping command and didn't sent data for too long, disconnect
-						long lastPingTime = lastPingSent.get();
-						long lastPongTime = lastPongReceived.get();
-						if (lastPongTime > 0 && (lastPingTime - lastPongTime > maxInactivity) && !(now - lastBytesReadTime < maxInactivity)) {
-							log.warn("Closing {}, with id {}, due to too much inactivity ({} ms), last ping sent {} ms ago", new Object[] { RTMPConnection.this, getId(),
-									(lastPingTime - lastPongTime), (now - lastPingTime) });
-							// the following line deals with a very common support request
-							log.warn("This often happens if YOUR Red5 application generated an exception on start-up. Check earlier in the log for that exception first!");
-							onInactive();
-						}
-						// send ping command to client to trigger sending of data
-						ping();
+						log.debug("No longer connected, clean up connection. Connection state: {}", state.states[state.getState()]);
+						onInactive();
 					}
 				} catch (Exception e) {
 					log.error("Error executing keepalive code: " + e.getMessage(), e);
@@ -1345,7 +1367,6 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 				Thread.sleep(maxHandshakeTimeout);
 				// check for connected state before disconnecting
 				if (state.getState() != RTMP.STATE_CONNECTED) {
-
 					// Client didn't send a valid handshake, disconnect
 					log.warn("Closing {}, with id {} due to long handshake", RTMPConnection.this, getId());
 					onInactive();
