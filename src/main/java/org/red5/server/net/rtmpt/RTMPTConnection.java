@@ -96,7 +96,7 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	 */
 	protected IoSession getSession() {
 		IoSession session = new DummySession();
-		session.setAttribute(RTMPConnection.RTMP_CONNECTION_KEY, this);
+		session.setAttribute(RTMPConnection.RTMP_SESSION_ID, getSessionId());
 		return session;
 	}
 

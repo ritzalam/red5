@@ -27,6 +27,7 @@ import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoderAdapter;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 import org.red5.server.api.Red5;
+import org.red5.server.net.rtmp.RTMPConnManager;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.message.Constants;
 import org.slf4j.Logger;
@@ -53,7 +54,9 @@ public class RTMPMinaProtocolDecoder extends ProtocolDecoderAdapter {
 		buf.put(in);
 		buf.flip();
 		// get the connection from the session
-		RTMPConnection conn = (RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
+		String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
+		log.trace("Session id: {}", sessionId);
+		RTMPConnection conn = (RTMPConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);		
 		if (!conn.equals((RTMPConnection) Red5.getConnectionLocal())) {
 			log.debug("Connection local didn't match session");
 			Red5.setConnectionLocal(conn);

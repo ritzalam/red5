@@ -23,7 +23,6 @@ import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
-import org.red5.server.net.IConnectionManager;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmpe.RTMPEIoFilter;
 import org.slf4j.Logger;
@@ -43,8 +42,6 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 
 	protected ProtocolCodecFactory codecFactory;
 
-	protected IConnectionManager<RTMPConnection> rtmpConnManager;
-
 	/** {@inheritDoc} */
 	@Override
 	public void sessionCreated(IoSession session) throws Exception {
@@ -55,11 +52,12 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		session.getFilterChain().addLast("protocolFilter", new ProtocolCodecFilter(codecFactory));
 		// create a connection
 		RTMPMinaConnection conn = createRTMPMinaConnection();
+		// add session to the connection
 		conn.setIoSession(session);
 		// add the handler
 		conn.setHandler(handler);
-		// add the connection
-		session.setAttribute(RTMPConnection.RTMP_CONNECTION_KEY, conn);
+		// add the connections session id for look up using the connection manager
+		session.setAttribute(RTMPConnection.RTMP_SESSION_ID, conn.getSessionId());
 		// add the in-bound handshake
 		session.setAttribute(RTMPConnection.RTMP_HANDSHAKE, new InboundHandshake());
 	}
@@ -68,7 +66,10 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 	@Override
 	public void sessionOpened(IoSession session) throws Exception {
 		log.info("Session opened: {}", session.getId());
-		handler.connectionOpened((RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY));
+		String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
+		log.trace("Session id: {}", sessionId);
+		RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
+		handler.connectionOpened(conn);
 	}
 
 	/** {@inheritDoc} */
@@ -78,7 +79,9 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		if (log.isTraceEnabled()) {
 			log.trace("Session attributes: {}", session.getAttributeKeys());
 		}
-		RTMPMinaConnection conn = (RTMPMinaConnection) session.removeAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
+		String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
+		log.trace("Session id: {}", sessionId);
+		RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
 		if (conn != null) {
 			// fire-off closed event
 			handler.connectionClosed(conn);
@@ -107,7 +110,9 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 	 */
 	protected void rawBufferRecieved(IoBuffer in, IoSession session) {
 		log.trace("rawBufferRecieved: {}", in);
-		final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
+		String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
+		log.trace("Session id: {}", sessionId);
+		RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);		
 		RTMPHandshake handshake = (RTMPHandshake) session.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
 		if (handshake != null) {
 			if (conn.getStateCode() != RTMP.STATE_HANDSHAKE) {
@@ -142,7 +147,10 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		if (message instanceof IoBuffer) {
 			rawBufferRecieved((IoBuffer) message, session);
 		} else {
-			((RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY)).handleMessageReceived(message);
+			String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
+			log.trace("Session id: {}", sessionId);
+			RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);			
+			conn.handleMessageReceived(message);
 		}
 	}
 
@@ -150,21 +158,20 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 	@Override
 	public void messageSent(IoSession session, Object message) throws Exception {
 		log.trace("messageSent");
-		final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
+		String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
+		log.trace("Session id: {}", sessionId);
+		RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
 		handler.messageSent(conn, message);
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
-		log.warn("Exception caught on session: {}", session.getId(), cause.getCause());
-		cause.printStackTrace();
-		//if (cause instanceof WriteToClosedSessionException) {
-		if (session.containsAttribute(RTMPConnection.RTMP_CONNECTION_KEY)) {
+		log.warn("Exception caught on session: {}", session.getId(), cause.getCause());		
+		if (session.containsAttribute(RTMPConnection.RTMP_SESSION_ID)) {
 			log.debug("Forcing call to sessionClosed");
 			sessionClosed(session);
 		}
-		//}
 	}
 
 	/**
@@ -183,15 +190,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		this.codecFactory = codecFactory;
 	}
 
-	public void setRtmpConnManager(IConnectionManager<RTMPConnection> rtmpConnManager) {
-		this.rtmpConnManager = rtmpConnManager;
-	}
-
-	protected IConnectionManager<RTMPConnection> getRtmpConnManager() {
-		return rtmpConnManager;
-	}
-
 	protected RTMPMinaConnection createRTMPMinaConnection() {
-		return (RTMPMinaConnection) rtmpConnManager.createConnection(RTMPMinaConnection.class);
+		return (RTMPMinaConnection) RTMPConnManager.getInstance().createConnection(RTMPMinaConnection.class);
 	}
 }

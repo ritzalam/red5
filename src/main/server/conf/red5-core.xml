@@ -53,7 +53,6 @@
 	<bean id="rtmpMinaIoHandler" class="org.red5.server.net.rtmp.RTMPMinaIoHandler">
 		<property name="handler" ref="rtmpHandler" />
         <property name="codecFactory" ref="rtmpCodecFactory" />
-		<property name="rtmpConnManager" ref="rtmpConnManager" />
 	</bean>
 	
 	<!-- RTMP Mina Transport -->

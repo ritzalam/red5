@@ -123,7 +123,8 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 				public void operationComplete(CloseFuture future) {
 					if (future.isClosed()) {
 						log.debug("Connection is closed");
-						RTMPMinaConnection conn = (RTMPMinaConnection) ioSession.removeAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
+						log.trace("Session id - local: {} session: {}", sessionId, (String) ioSession.removeAttribute(RTMPConnection.RTMP_SESSION_ID));
+						RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
 						if (conn != null) {
 							handler.connectionClosed(conn);
 						}
@@ -208,12 +209,12 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 
 			@Override
 			public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-				log.debug("Execution rejected");
-				// ensure the connection is not closing and if it is drop the runnable
-				if (closed || state.getState() != RTMP.STATE_CONNECTED) {
-					log.debug("Dropping runnable due to disconnection, session id: {}", sessionId);
-				}
+				log.debug("Execution rejected on {} - {}", getSessionId(), state.states[getStateCode()]);
 				log.debug("Lock permits - decode: {} encode: {}", decoderLock.availablePermits(), encoderLock.availablePermits());
+				// ensure the connection is not closing and if it is drop the runnable
+				if (state.getState() == RTMP.STATE_CONNECTED) {
+					onInactive();
+				}
 			}
 
 		});
@@ -436,8 +437,10 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 		}
 
 		public void run() {
+			log.trace("Session id - local: {} session: {}", sessionId, (String) ioSession.getAttribute(RTMPConnection.RTMP_SESSION_ID));
+			RTMPConnection conn = (RTMPConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);			
 			// set connection to thread local
-			Red5.setConnectionLocal((RTMPConnection) ioSession.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY));
+			Red5.setConnectionLocal(conn);
 			try {
 				// pass message to the handler
 				handler.messageReceived(message, ioSession);

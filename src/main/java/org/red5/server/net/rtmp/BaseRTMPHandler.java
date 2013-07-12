@@ -65,7 +65,9 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 
 	/** {@inheritDoc} */
 	public void messageReceived(Object in, IoSession session) throws Exception {
-		RTMPConnection conn = (RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
+		String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
+		log.trace("Session id: {}", sessionId);
+		RTMPConnection conn = (RTMPConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
 		if (conn != null) {
 			IRTMPEvent message = null;
 			try {

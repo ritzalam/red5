@@ -87,7 +87,9 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 
 	private static Logger log = LoggerFactory.getLogger(RTMPConnection.class);
 
-	public static final String RTMP_CONNECTION_KEY = "rtmp.conn";
+	//public static final String RTMP_CONNECTION_KEY = "rtmp.conn";
+
+	public static final String RTMP_SESSION_ID = "rtmp.sessionid";
 
 	public static final String RTMP_HANDSHAKE = "rtmp.handshake";
 
@@ -1346,8 +1348,10 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 						log.debug("No longer connected, clean up connection. Connection state: {}", state.states[state.getState()]);
 						onInactive();
 					}
+				} catch (InterruptedException e) {
+					log.warn("Keep alive was interrupted for {}", getSessionId() + " - " + state.states[getStateCode()], e);
 				} catch (Exception e) {
-					log.error("Error executing keepalive code: " + e.getMessage(), e);
+					log.warn("Exception in keepalive for {}", getSessionId(), e);
 				} finally {
 					// reset running flag
 					running.compareAndSet(true, false);

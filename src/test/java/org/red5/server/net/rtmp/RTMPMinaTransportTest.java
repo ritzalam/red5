@@ -59,12 +59,6 @@ public class RTMPMinaTransportTest extends AbstractJUnit4SpringContextTests {
 			codecFactory.afterPropertiesSet();
 			ioHandler.setCodecFactory(codecFactory);
 		}
-		if (ioHandler.rtmpConnManager == null) {
-			RTMPConnManager rtmpConnManager = applicationContext.getBean(RTMPConnManager.class);
-			//RTMPConnManager rtmpConnManager = new RTMPConnManager();
-			//rtmpConnManager.setApplicationContext(applicationContext);
-			ioHandler.setRtmpConnManager(rtmpConnManager);
-		}
 		mina.setBacklog(128);
 		mina.setEnableDefaultAcceptor(false);
 		mina.setEnableMinaMonitor(false);
