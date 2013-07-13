@@ -39,9 +39,6 @@ import org.slf4j.LoggerFactory;
  */
 public class RTMPTHandler extends RTMPHandler {
 
-	/**
-	 * Logger
-	 */
 	private static final Logger log = LoggerFactory.getLogger(RTMPTHandler.class);
 
 	/**

@@ -80,23 +80,27 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 			log.trace("Session attributes: {}", session.getAttributeKeys());
 		}
 		String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
-		log.trace("Session id: {}", sessionId);
-		RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
-		if (conn != null) {
-			// fire-off closed event
-			handler.connectionClosed(conn);
-			// clear any session attributes we may have previously set
-			// TODO: verify this cleanup code is necessary. The session is over and will be garbage collected surely?
-			if (session.containsAttribute(RTMPConnection.RTMP_HANDSHAKE)) {
-				session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
+		if (sessionId != null) {
+			log.trace("Session id: {}", sessionId);
+			RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
+			if (conn != null) {
+				// fire-off closed event
+				handler.connectionClosed(conn);
+				// clear any session attributes we may have previously set
+				// TODO: verify this cleanup code is necessary. The session is over and will be garbage collected surely?
+				if (session.containsAttribute(RTMPConnection.RTMP_HANDSHAKE)) {
+					session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
+				}
+				if (session.containsAttribute(RTMPConnection.RTMPE_CIPHER_IN)) {
+					session.removeAttribute(RTMPConnection.RTMPE_CIPHER_IN);
+					session.removeAttribute(RTMPConnection.RTMPE_CIPHER_OUT);
+				}
+				//session.suspendWrite();
+			} else {
+				log.warn("Connection was null in session");
 			}
-			if (session.containsAttribute(RTMPConnection.RTMPE_CIPHER_IN)) {
-				session.removeAttribute(RTMPConnection.RTMPE_CIPHER_IN);
-				session.removeAttribute(RTMPConnection.RTMPE_CIPHER_OUT);
-			}
-			//session.suspendWrite();
 		} else {
-			log.warn("Connection was null in session");
+			log.debug("Connections session id was null in session, may already be closed");
 		}
 	}
 
@@ -112,7 +116,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		log.trace("rawBufferRecieved: {}", in);
 		String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
 		log.trace("Session id: {}", sessionId);
-		RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);		
+		RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
 		RTMPHandshake handshake = (RTMPHandshake) session.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
 		if (handshake != null) {
 			if (conn.getStateCode() != RTMP.STATE_HANDSHAKE) {
@@ -149,7 +153,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		} else {
 			String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
 			log.trace("Session id: {}", sessionId);
-			RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);			
+			RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
 			conn.handleMessageReceived(message);
 		}
 	}
@@ -167,7 +171,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 	/** {@inheritDoc} */
 	@Override
 	public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
-		log.warn("Exception caught on session: {}", session.getId(), cause.getCause());		
+		log.warn("Exception caught on session: {}", session.getId(), cause.getCause());
 		if (session.containsAttribute(RTMPConnection.RTMP_SESSION_ID)) {
 			log.debug("Forcing call to sessionClosed");
 			sessionClosed(session);

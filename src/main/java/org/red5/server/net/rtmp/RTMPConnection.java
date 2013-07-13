@@ -520,7 +520,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		log.trace("Connection {} idle", idle ? "is" : "is not");
 		return idle;
 	}
-	
+
 	/**
 	 * Creates output stream object from stream id. Output stream consists of audio, data and video channels.
 	 * 
@@ -738,27 +738,37 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		}
 		if (scheduler != null) {
 			log.debug("Shutting down scheduler");
-			ScheduledExecutorService exe = scheduler.getScheduledExecutor();
-			List<Runnable> runables = exe.shutdownNow();
-			log.debug("Scheduler - shutdown: {} queued: {}", exe.isShutdown(), runables.size());
 			try {
+				ScheduledExecutorService exe = scheduler.getScheduledExecutor();
+				List<Runnable> runables = exe.shutdownNow();
+				log.debug("Scheduler - shutdown: {} queued: {}", exe.isShutdown(), runables.size());
 				scheduler.shutdown();
+				scheduler = null;
+			} catch (NullPointerException e) {
+				// this can happen in a multithreaded env, where close has been called from more than one spot
+				if (log.isDebugEnabled()) {
+					log.warn("Exception during scheduler shutdown", e);
+				}
 			} catch (Exception e) {
 				log.warn("Exception during scheduler shutdown", e);
 			}
-			scheduler = null;
 		}
 		if (executor != null) {
 			log.debug("Shutting down executor");
-			ThreadPoolExecutor exe = executor.getThreadPoolExecutor();
-			List<Runnable> runables = exe.shutdownNow();
-			log.debug("Executor - shutdown: {} queued: {}", exe.isShutdown(), runables.size());
 			try {
+				ThreadPoolExecutor exe = executor.getThreadPoolExecutor();
+				List<Runnable> runables = exe.shutdownNow();
+				log.debug("Executor - shutdown: {} queued: {}", exe.isShutdown(), runables.size());
 				executor.shutdown();
+				executor = null;
+			} catch (NullPointerException e) {
+				// this can happen in a multithreaded env, where close has been called from more than one spot
+				if (log.isDebugEnabled()) {
+					log.warn("Exception during executor shutdown", e);
+				}
 			} catch (Exception e) {
 				log.warn("Exception during executor shutdown", e);
 			}
-			executor = null;
 		}
 		// drain permits
 		decoderLock.drainPermits();
@@ -1337,8 +1347,8 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 							long lastPingTime = lastPingSent.get();
 							long lastPongTime = lastPongReceived.get();
 							if (lastPongTime > 0 && (lastPingTime - lastPongTime > maxInactivity) && !(now - lastBytesReadTime < maxInactivity)) {
-								log.warn("Closing {}, due to too much inactivity ({} ms), last ping sent {} ms ago", new Object[] { getSessionId(),
-										(lastPingTime - lastPongTime), (now - lastPingTime) });
+								log.warn("Closing {}, due to too much inactivity ({} ms), last ping sent {} ms ago", new Object[] { getSessionId(), (lastPingTime - lastPongTime),
+										(now - lastPingTime) });
 								// the following line deals with a very common support request
 								log.warn("This often happens if YOUR Red5 application generated an exception on start-up. Check earlier in the log for that exception first!");
 								onInactive();
