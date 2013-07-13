@@ -57,8 +57,11 @@ public class RTMPMinaProtocolDecoder extends ProtocolDecoderAdapter {
 		String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
 		log.trace("Session id: {}", sessionId);
 		RTMPConnection conn = (RTMPConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);		
-		if (!conn.equals((RTMPConnection) Red5.getConnectionLocal())) {
-			log.debug("Connection local didn't match session");
+		RTMPConnection connLocal = (RTMPConnection) Red5.getConnectionLocal();
+		if (connLocal == null || !conn.equals(connLocal)) {
+			if (log.isDebugEnabled() && connLocal != null) {
+				log.debug("Connection local didn't match session");
+			}
 			Red5.setConnectionLocal(conn);
 		}
 		final Semaphore lock = conn.getDecoderLock();

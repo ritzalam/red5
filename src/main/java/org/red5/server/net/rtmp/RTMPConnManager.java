@@ -48,16 +48,21 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection>, Appl
 
 	private static final Logger log = LoggerFactory.getLogger(RTMPConnManager.class);
 
-	private ConcurrentMap<String, RTMPConnection> connMap = new ConcurrentHashMap<String, RTMPConnection>();
-
-	private AtomicInteger conns = new AtomicInteger();
-	
 	private static ApplicationContext applicationContext;
 
-	private boolean debug;
+	protected ConcurrentMap<String, RTMPConnection> connMap = new ConcurrentHashMap<String, RTMPConnection>();
+
+	protected AtomicInteger conns = new AtomicInteger();
+
+	protected static IConnectionManager<RTMPConnection> instance;
+
+	protected boolean debug;
 
 	public static RTMPConnManager getInstance() {
-		return applicationContext.getBean(RTMPConnManager.class);
+		if (instance == null) {
+			instance = applicationContext.getBean(RTMPConnManager.class);
+		}
+		return (RTMPConnManager) instance;
 	}
 
 	/**
@@ -150,11 +155,11 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection>, Appl
 		log.debug("Removing connection with id: {}", clientId);
 		// remove from map
 		for (RTMPConnection conn : connMap.values()) {
-			if (conn.getId() == clientId) {			
+			if (conn.getId() == clientId) {
 				// remove the conn
 				return removeConnection(conn.getSessionId());
 			}
-		}		
+		}
 		log.warn("Connection was not removed by id: {}", clientId);
 		return null;
 	}
@@ -168,11 +173,11 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection>, Appl
 		// remove from map
 		RTMPConnection conn = connMap.remove(sessionId);
 		if (conn != null) {
-			log.trace("Connections: {}", conns.decrementAndGet());	
+			log.trace("Connections: {}", conns.decrementAndGet());
 		}
 		return conn;
-	}	
-	
+	}
+
 	/**
 	 * Returns all the current connections. It doesn't remove anything.
 	 * 
