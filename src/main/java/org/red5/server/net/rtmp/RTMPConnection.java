@@ -287,6 +287,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	}
 
 	public void setStateCode(byte code) {
+		log.trace("setStateCode: {} - {}", code, state.states[code]);
 		state.setState(code);
 	}
 
@@ -1314,57 +1315,60 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		private volatile long lastBytesReadTime = 0;
 
 		public void run() {
-			// ensure the job is not already running
-			if (running.compareAndSet(false, true)) {
-				log.trace("Running keep-alive for {}", getSessionId());
-				try {
-					// first check connected
-					if (isConnected()) {
-						// get now
-						long now = System.currentTimeMillis();
-						// get the current bytes read count on the connection
-						long currentReadBytes = getReadBytes();
-						// get our last bytes read count
-						long previousReadBytes = lastBytesRead.get();
-						log.trace("Time now: {} current read count: {} last read count: {}", new Object[] { now, currentReadBytes, previousReadBytes });
-						if (currentReadBytes > previousReadBytes) {
-							log.trace("Client is still alive, no ping needed");
-							// client has sent data since last check and thus is not dead. No need to ping
-							if (lastBytesRead.compareAndSet(previousReadBytes, currentReadBytes)) {
-								// update the timestamp to match our update
-								lastBytesReadTime = now;
-							}
-							// check idle
-							if (isIdle()) {
-								onInactive();
+			// we dont ping until in connected state
+			if (state.getState() == RTMP.STATE_CONNECTED) {
+				// ensure the job is not already running
+				if (running.compareAndSet(false, true)) {
+					log.trace("Running keep-alive for {}", getSessionId());
+					try {
+						// first check connected
+						if (isConnected()) {
+							// get now
+							long now = System.currentTimeMillis();
+							// get the current bytes read count on the connection
+							long currentReadBytes = getReadBytes();
+							// get our last bytes read count
+							long previousReadBytes = lastBytesRead.get();
+							log.trace("Time now: {} current read count: {} last read count: {}", new Object[] { now, currentReadBytes, previousReadBytes });
+							if (currentReadBytes > previousReadBytes) {
+								log.trace("Client is still alive, no ping needed");
+								// client has sent data since last check and thus is not dead. No need to ping
+								if (lastBytesRead.compareAndSet(previousReadBytes, currentReadBytes)) {
+									// update the timestamp to match our update
+									lastBytesReadTime = now;
+								}
+								// check idle
+								if (isIdle()) {
+									onInactive();
+								}
+							} else {
+								// send ping command to client to trigger sending of data
+								ping();
+								// sleep for 1 second
+								Thread.sleep(1000L);
+								// client didn't send response to ping command and didn't sent data for too long, disconnect
+								long lastPingTime = lastPingSent.get();
+								long lastPongTime = lastPongReceived.get();
+								if (lastPongTime > 0 && (lastPingTime - lastPongTime > maxInactivity) && !(now - lastBytesReadTime < maxInactivity)) {
+									log.warn("Closing {}, due to too much inactivity ({} ms), last ping sent {} ms ago", new Object[] { getSessionId(),
+											(lastPingTime - lastPongTime), (now - lastPingTime) });
+									// the following line deals with a very common support request
+									log.warn("This often happens if YOUR Red5 application generated an exception on start-up. Check earlier in the log for that exception first!");
+									onInactive();
+								}
 							}
 						} else {
-							// send ping command to client to trigger sending of data
-							ping();
-							// sleep for 1 second
-							Thread.sleep(1000L);
-							// client didn't send response to ping command and didn't sent data for too long, disconnect
-							long lastPingTime = lastPingSent.get();
-							long lastPongTime = lastPongReceived.get();
-							if (lastPongTime > 0 && (lastPingTime - lastPongTime > maxInactivity) && !(now - lastBytesReadTime < maxInactivity)) {
-								log.warn("Closing {}, due to too much inactivity ({} ms), last ping sent {} ms ago", new Object[] { getSessionId(), (lastPingTime - lastPongTime),
-										(now - lastPingTime) });
-								// the following line deals with a very common support request
-								log.warn("This often happens if YOUR Red5 application generated an exception on start-up. Check earlier in the log for that exception first!");
-								onInactive();
-							}
+							log.debug("No longer connected, clean up connection. Connection state: {}", state.states[state.getState()]);
+							onInactive();
 						}
-					} else {
-						log.debug("No longer connected, clean up connection. Connection state: {}", state.states[state.getState()]);
-						onInactive();
+					} catch (InterruptedException e) {
+						log.warn("Keep alive was interrupted for {}", getSessionId() + " - " + state.states[getStateCode()], e);
+					} catch (Exception e) {
+						log.warn("Exception in keepalive for {}", getSessionId(), e);
+					} finally {
+						// reset running flag
+						running.compareAndSet(true, false);
 					}
-				} catch (InterruptedException e) {
-					log.warn("Keep alive was interrupted for {}", getSessionId() + " - " + state.states[getStateCode()], e);
-				} catch (Exception e) {
-					log.warn("Exception in keepalive for {}", getSessionId(), e);
-				} finally {
-					// reset running flag
-					running.compareAndSet(true, false);
 				}
 			}
 		}
@@ -1376,12 +1380,13 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	private class WaitForHandshakeTask implements Runnable {
 
 		public void run() {
+			log.trace("Running handshake-wait for {}", getSessionId());
 			try {
 				Thread.sleep(maxHandshakeTimeout);
 				// check for connected state before disconnecting
 				if (state.getState() != RTMP.STATE_CONNECTED) {
 					// Client didn't send a valid handshake, disconnect
-					log.warn("Closing {}, with id {} due to long handshake", RTMPConnection.this, getId());
+					log.warn("Closing {}, due to long handshake. State: {}", getSessionId(), state.states[getStateCode()]);
 					onInactive();
 				}
 			} catch (InterruptedException e) {

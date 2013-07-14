@@ -163,9 +163,10 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 * @throws Exception on error
 	 */
 	public Object decode(RTMPDecodeState state, IoBuffer in) throws ProtocolException {
-		int start = in.position();
-		log.trace("Start: {}", start);
 		RTMPConnection conn = (RTMPConnection) Red5.getConnectionLocal();
+		if (log.isDebugEnabled()) {
+			log.debug("Decoding for {}", conn);
+		}
 		try {
 			final byte connectionState = conn.getStateCode();
 			switch (connectionState) {
@@ -201,10 +202,11 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 */
 	public IoBuffer decodeHandshakeS1(RTMPDecodeState state, IoBuffer in) {
 		// first step: client has connected and handshaking is not complete
-		log.debug("decodeHandshake - state: {} buffer: {}", state, in);
+		if (log.isDebugEnabled()) {
+			log.debug("decodeHandshake - state: {} buffer: {}", state, in);
+		}
 		// number of byte remaining in the buffer
 		int remaining = in.remaining();
-		log.debug("Connecting");
 		if (remaining < HANDSHAKE_SIZE + 1) {
 			log.debug("Handshake init too small, buffering. remaining: {}", remaining);
 			state.bufferDecoding(HANDSHAKE_SIZE + 1);
@@ -356,7 +358,6 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 			state.continueDecoding();
 			return null;
 		}
-		// dheck workaround for SN-19 to find cause for BufferOverflowException
 		if (buf.position() > header.getSize()) {
 			log.warn("Packet size expanded from {} to {} ({})", new Object[] { (header.getSize()), buf.position(), header });
 		}
