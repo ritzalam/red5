@@ -60,7 +60,11 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection>, Appl
 
 	public static RTMPConnManager getInstance() {
 		if (instance == null) {
-			instance = applicationContext.getBean(RTMPConnManager.class);
+			if (applicationContext != null && applicationContext.containsBean("rtmpConnManager")) {
+				instance = (RTMPConnManager) applicationContext.getBean("rtmpConnManager");
+			} else {
+				instance = new RTMPConnManager();
+			}
 		}
 		return (RTMPConnManager) instance;
 	}
