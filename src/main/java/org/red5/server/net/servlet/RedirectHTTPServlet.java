@@ -33,17 +33,13 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class RedirectHTTPServlet extends HttpServlet {
 
-	/**
-	 * Serialization UID
-	 */
 	private static final long serialVersionUID = -3543614516289102090L;
 
 	/**
 	 * Redirect to HTTP port.
 	 */
 	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
+	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		String host = System.getProperty("http.host");
 		String port = System.getProperty("http.port");
 		if ("0.0.0.0".equals(host)) {
@@ -57,5 +53,5 @@ public class RedirectHTTPServlet extends HttpServlet {
 		resp.getWriter().write(message);
 		resp.flushBuffer();
 	}
-	
+
 }
