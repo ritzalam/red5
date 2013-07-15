@@ -23,6 +23,7 @@ import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
+import org.apache.mina.transport.socket.nio.NioSession;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmpe.RTMPEIoFilter;
 import org.slf4j.Logger;
@@ -101,6 +102,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 			}
 		} else {
 			log.debug("Connections session id was null in session, may already be closed");
+			forceClose(session);
 		}
 	}
 
@@ -175,6 +177,23 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		if (session.containsAttribute(RTMPConnection.RTMP_SESSION_ID)) {
 			log.debug("Forcing call to sessionClosed");
 			sessionClosed(session);
+		} else {
+			forceClose(session);
+		}
+	}
+
+	/**
+	 * Force the NioSession to be released and cleaned up.
+	 * 
+	 * @param session
+	 */
+	private void forceClose(IoSession session) {
+		log.debug("Forcing close on session: {}", session.getId());
+		if (session instanceof NioSession) {
+			NioSession nio = (NioSession) session;
+			nio.getProcessor().remove(nio);
+		} else {
+			log.debug("Session was not of NioSession type: {}", session.getClass().getName());
 		}
 	}
 

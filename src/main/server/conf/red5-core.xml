@@ -78,6 +78,7 @@
         <property name="trafficClass" value="${rtmp.traffic_class}" />
         <property name="backlog" value="${rtmp.backlog}" />
         <property name="tcpNoDelay" value="${rtmp.tcp_nodelay}" />
+        <property name="keepAlive" value="${rtmp.tcp_keepalive}" />
         <property name="thoughputCalcInterval" value="${rtmp.thoughput_calc_interval}" />
         <property name="enableDefaultAcceptor" value="${rtmp.default_acceptor}" />
         <!-- Pool settings are used when the default acceptor is disabled -->

@@ -80,7 +80,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 	protected IoServiceStatistics stats;
 
 	protected boolean enableMinaLogFilter;
-	
+
 	protected boolean enableMinaMonitor;
 
 	protected int minaPollInterval = 1000;
@@ -94,7 +94,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 	protected int receiveBufferSize = 65536;
 
 	private int readerIdleTime = 2;
-	
+
 	private int trafficClass = 0x08 | 0x10;
 
 	private int backlog = 32;
@@ -111,6 +111,8 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 	private int maxPoolSize = Runtime.getRuntime().availableProcessors() + 1;
 
 	private int maxProcessorPoolSize = 16;
+	
+	private boolean keepAlive;
 
 	private void initIOHandler() {
 		if (ioHandler == null) {
@@ -126,8 +128,8 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 			// dont pool for heap buffers
 			IoBuffer.setAllocator(new SimpleBufferAllocator());
 		}
-		log.info("RTMP Mina Transport Settings");
-		log.info("I/O Threads: {}", ioThreads);
+		log.info("RTMP Mina Transport Settings\nAcceptor style: {} I/O threads: {}\nTCP no-delay: {} keep-alive: {}", new Object[] {
+				(enableDefaultAcceptor ? "default" : "blocking-queue"), ioThreads, tcpNoDelay, keepAlive });
 		// use the defaults
 		if (enableDefaultAcceptor) {
 			//constructs an acceptor using default parameters, and given number of NioProcessor for multithreading I/O operations.
@@ -144,15 +146,15 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 		if (enableMinaLogFilter) {
 			DefaultIoFilterChainBuilder chain = acceptor.getFilterChain();
 			LoggingFilter logFilter = new LoggingFilter(RTMPMinaTransport.class);
-//			logFilter.setExceptionCaughtLogLevel(LogLevel.TRACE);
-//			logFilter.setMessageReceivedLogLevel(LogLevel.TRACE);
-//			logFilter.setMessageSentLogLevel(LogLevel.TRACE);
-//			logFilter.setSessionClosedLogLevel(LogLevel.TRACE);
-//			logFilter.setSessionCreatedLogLevel(LogLevel.TRACE);
-//			logFilter.setSessionIdleLogLevel(LogLevel.TRACE);
-//			logFilter.setSessionOpenedLogLevel(LogLevel.TRACE);
+			//			logFilter.setExceptionCaughtLogLevel(LogLevel.TRACE);
+			//			logFilter.setMessageReceivedLogLevel(LogLevel.TRACE);
+			//			logFilter.setMessageSentLogLevel(LogLevel.TRACE);
+			//			logFilter.setSessionClosedLogLevel(LogLevel.TRACE);
+			//			logFilter.setSessionCreatedLogLevel(LogLevel.TRACE);
+			//			logFilter.setSessionIdleLogLevel(LogLevel.TRACE);
+			//			logFilter.setSessionOpenedLogLevel(LogLevel.TRACE);
 			chain.addLast("logger", logFilter);
-		}		
+		}
 		// close sessions when the acceptor is stopped
 		acceptor.setCloseOnDeactivation(true);
 		// set acceptor props
@@ -163,7 +165,6 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 		SocketSessionConfig sessionConf = acceptor.getSessionConfig();
 		// reuse the addresses
 		sessionConf.setReuseAddress(true);
-		log.info("TCP No Delay: {}", tcpNoDelay);
 		sessionConf.setTcpNoDelay(tcpNoDelay);
 		sessionConf.setSendBufferSize(sendBufferSize);
 		// 
@@ -173,6 +174,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 		sessionConf.setThroughputCalculationInterval(thoughputCalcInterval);
 		// set the reader idle time (seconds)
 		sessionConf.setReaderIdleTime(readerIdleTime);
+		sessionConf.setKeepAlive(keepAlive);
 		// to prevent setting of the traffic class we expect a value of -1
 		if (trafficClass == -1) {
 			log.info("Traffic class modification is disabled");
@@ -185,8 +187,8 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 			sessionConf.setTrafficClass(trafficClass);
 		}
 		// get info
-		log.info("Settings - send buffer size: {} recv buffer size: {} so linger: {} traffic class: {}",
-				new Object[] { sessionConf.getSendBufferSize(), sessionConf.getReceiveBufferSize(), sessionConf.getSoLinger(), sessionConf.getTrafficClass() });
+		log.info("Send buffer size: {} recv buffer size: {} so linger: {} traffic class: {}", new Object[] { sessionConf.getSendBufferSize(), sessionConf.getReceiveBufferSize(),
+				sessionConf.getSoLinger(), sessionConf.getTrafficClass() });
 		// set reuse address on the socket acceptor as well
 		acceptor.setReuseAddress(true);
 		String addrStr = addresses.toString();
@@ -313,6 +315,13 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 		this.tcpNoDelay = tcpNoDelay;
 	}
 
+	/**
+	 * @param keepAlive the keepAlive to set
+	 */
+	public void setKeepAlive(boolean keepAlive) {
+		this.keepAlive = keepAlive;
+	}
+
 	public void setUseHeapBuffers(boolean useHeapBuffers) {
 		this.useHeapBuffers = useHeapBuffers;
 	}
@@ -369,7 +378,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMXBean {
 		addressAndPorts.deleteCharAt(addressAndPorts.length() - 1);
 		return addressAndPorts.toString();
 	}
-	
+
 	/**
 	 * Returns the current statistics as a json formatted string.
 	 * 

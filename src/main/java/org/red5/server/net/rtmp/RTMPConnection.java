@@ -518,7 +518,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		long lastPingTime = lastPingSent.get();
 		long lastPongTime = lastPongReceived.get();
 		boolean idle = (lastPongTime > 0 && (lastPingTime - lastPongTime > maxInactivity));
-		log.trace("Connection {} idle", idle ? "is" : "is not");
+		log.trace("Connection {} {} idle", getSessionId(), (idle ? "is" : "is not"));
 		return idle;
 	}
 
@@ -1159,7 +1159,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	public void pingReceived(Ping pong) {
 		long now = System.currentTimeMillis();
 		long previousReceived = (int) (lastPingSent.get() & 0xffffffff);
-		log.debug("Pong from client id {} at {} with value {}, previous received at {}", new Object[] { getId(), now, pong.getValue2(), previousReceived });
+		log.debug("Pong from {} at {} with value {}, previous received at {}", new Object[] { getSessionId(), now, pong.getValue2(), previousReceived });
 		if (pong.getValue2() == previousReceived) {
 			lastPingTime.set((int) (now & 0xffffffff) - pong.getValue2());
 		}

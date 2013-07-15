@@ -99,17 +99,6 @@ public class RTMPSMinaIoHandler extends RTMPMinaIoHandler {
 		super.sessionOpened(session);
 	}
 
-	/** {@inheritDoc} */
-	@Override
-	public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
-		log.warn("Exception caught {}", cause.getMessage());
-		if (log.isDebugEnabled()) {
-			log.error("Exception detail", cause);
-		}
-		//if there are any errors using ssl, kill the session
-		session.close(true);
-	}
-
 	/**
 	 * Returns a KeyStore.
 	 * @return KeyStore
