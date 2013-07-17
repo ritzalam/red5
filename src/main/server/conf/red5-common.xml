@@ -31,7 +31,7 @@
     <bean class="org.springframework.jmx.support.ConnectorServerFactoryBean" depends-on="rmiRegistry">
         <property name="objectName" value="org.red5.server:name=rmi" />
         <property name="serviceUrl"
-            value="service:jmx:rmi://${jmx.rmi.host}/jndi/rmi://${jmx.rmi.host}:${jmx.rmi.port}/red5" />
+            value="service:jmx:rmi://${jmx.rmi.host}:${jmx.rmi.sport}/jndi/rmi://${jmx.rmi.host}:${jmx.rmi.port}/red5" />
         <property name="environment">
             <!-- the following is only valid when the sun jmx implementation is used -->
             <map>
