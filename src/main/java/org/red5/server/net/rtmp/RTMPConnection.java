@@ -51,6 +51,7 @@ import org.red5.server.api.stream.ISingleItemSubscriberStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamService;
 import org.red5.server.exception.ClientRejectedException;
+import org.red5.server.net.protocol.RTMPDecodeState;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.ClientBW;
@@ -86,8 +87,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 public abstract class RTMPConnection extends BaseConnection implements IStreamCapableConnection, IServiceCapableConnection {
 
 	private static Logger log = LoggerFactory.getLogger(RTMPConnection.class);
-
-	//public static final String RTMP_CONNECTION_KEY = "rtmp.conn";
 
 	public static final String RTMP_SESSION_ID = "rtmp.sessionid";
 
@@ -230,6 +229,16 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	// protection for the encoder when using multiple threads per connection
 	protected Semaphore encoderLock = new Semaphore(1, true);
 
+	// keeps track of the decode state
+	protected ThreadLocal<RTMPDecodeState> decoderState = new ThreadLocal<RTMPDecodeState>() {
+
+		@Override
+		protected RTMPDecodeState initialValue() {
+			return new RTMPDecodeState(sessionId);
+		}
+
+	};
+	
 	/**
 	 * Scheduling service
 	 */
@@ -305,6 +314,13 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		return encoderLock;
 	}
 
+	/**
+	 * @return the decoderState
+	 */
+	public RTMPDecodeState getDecoderState() {
+		return decoderState.get();
+	}
+
 	/** {@inheritDoc} */
 	public void setBandwidth(int mbits) {
 		// tell the flash player how fast we want data and how fast we shall send it
@@ -326,6 +342,8 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * Opens the connection.
 	 */
 	public void open() {
+		// add the session id to the prefix
+		executor.setThreadNamePrefix(String.format("RTMPExecutor#%s-", sessionId));
 		if (log.isTraceEnabled()) {
 			// dump memory stats
 			log.trace("Memory at open - free: {}K total: {}K", Runtime.getRuntime().freeMemory() / 1024, Runtime.getRuntime().totalMemory() / 1024);
@@ -369,7 +387,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 				log.debug("startRoundTripMeasurement - {}", sessionId);
 				try {
 					scheduler.scheduleAtFixedRate(new KeepAliveTask(), pingInterval);
-					log.debug("Keep alive scheduled for client id {}", getId());
+					log.debug("Keep alive scheduled for: {}", sessionId);
 				} catch (Exception e) {
 					log.error("Error creating keep alive job", e);
 				}

@@ -25,9 +25,7 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.management.MBeanServer;
@@ -38,7 +36,6 @@ import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.future.CloseFuture;
 import org.apache.mina.core.future.IoFutureListener;
 import org.apache.mina.core.session.IoSession;
-import org.red5.server.api.Red5;
 import org.red5.server.api.scope.IScope;
 import org.red5.server.jmx.mxbeans.RTMPMinaConnectionMXBean;
 import org.red5.server.net.rtmp.codec.RTMP;
@@ -145,9 +142,17 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	public void handleMessageReceived(Object message) {
 		log.trace("handleMessageReceived - {}", sessionId);
 		try {
-			executor.execute(new ReceivedMessageTask(ioSession, message));
+			executor.execute(new ReceivedMessageTask(sessionId, message, handler));
 		} catch (RejectedExecutionException e) {
-			log.warn("Incoming message handling failed; connection closed? {}", closed, e);
+			log.warn("Incoming message handling failed", e);
+			if (log.isDebugEnabled()) {
+				log.debug("Execution rejected on {} - {}", getSessionId(), state.states[getStateCode()]);
+				log.debug("Lock permits - decode: {} encode: {}", decoderLock.availablePermits(), encoderLock.availablePermits());
+			}
+			// ensure the connection is not closing and if it is drop the runnable
+			if (state.getState() == RTMP.STATE_CONNECTED) {
+				onInactive();
+			}
 		}
 	}
 
@@ -205,19 +210,6 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	@Override
 	public void setExecutor(ThreadPoolTaskExecutor executor) {
 		this.executor = executor;
-		this.executor.setRejectedExecutionHandler(new RejectedExecutionHandler() {
-
-			@Override
-			public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-				log.debug("Execution rejected on {} - {}", getSessionId(), state.states[getStateCode()]);
-				log.debug("Lock permits - decode: {} encode: {}", decoderLock.availablePermits(), encoderLock.availablePermits());
-				// ensure the connection is not closing and if it is drop the runnable
-				if (state.getState() == RTMP.STATE_CONNECTED) {
-					onInactive();
-				}
-			}
-
-		});
 	}
 
 	/**
@@ -345,10 +337,10 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 						break;
 					}
 				} catch (InterruptedException e) {
-					log.warn("Interrupted while waiting for write lock", e);
+					log.warn("Interrupted while waiting for write lock. State: {}", state.states[state.getState()], e);
 					String exMsg = e.getMessage();
 					// if the exception cause is null break out of here to prevent looping until closed
-					if (exMsg == null || "null".equals(exMsg)) {
+					if (exMsg == null || exMsg.indexOf("null") >= 0) {
 						log.debug("Exception writing to connection: {}", this);
 						break;
 					}
@@ -376,7 +368,13 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 						break;
 					}
 				} catch (InterruptedException e) {
-					log.warn("Interrupted while waiting for write lock", e);
+					log.warn("Interrupted while waiting for write lock (writeRaw). State: {}", state.states[state.getState()], e);
+					String exMsg = e.getMessage();
+					// if the exception cause is null break out of here to prevent looping until closed
+					if (exMsg == null || exMsg.indexOf("null") >= 0) {
+						log.debug("Exception writing to connection: {}", this);
+						break;
+					}
 				} finally {
 					if (acquired) {
 						lock.release();
@@ -422,34 +420,6 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 				log.warn("Exception unregistering: {}", oName, e);
 			}
 			oName = null;
-		}
-	}
-
-	protected final class ReceivedMessageTask implements Runnable {
-
-		private final IoSession ioSession;
-
-		private Object message;
-
-		ReceivedMessageTask(IoSession ioSession, Object message) {
-			this.ioSession = ioSession;
-			this.message = message;
-		}
-
-		public void run() {
-			log.trace("Session id - local: {} session: {}", sessionId, (String) ioSession.getAttribute(RTMPConnection.RTMP_SESSION_ID));
-			RTMPConnection conn = (RTMPConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);			
-			// set connection to thread local
-			Red5.setConnectionLocal(conn);
-			try {
-				// pass message to the handler
-				handler.messageReceived(message, ioSession);
-			} catch (Exception e) {
-				log.error("Error processing received message", e);
-			} finally {
-				// clear thread local
-				Red5.setConnectionLocal(null);
-			}
 		}
 	}
 

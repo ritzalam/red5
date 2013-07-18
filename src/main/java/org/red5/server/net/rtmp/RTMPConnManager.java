@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.management.JMX;
 import javax.management.ObjectName;
 
+import org.red5.server.api.Red5;
 import org.red5.server.jmx.mxbeans.RTMPMinaTransportMXBean;
 import org.red5.server.net.IConnectionManager;
 import org.red5.server.net.rtmpt.RTMPTConnection;
@@ -150,6 +151,11 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection>, Appl
 		log.debug("Getting connection by session id: {}", sessionId);
 		if (connMap.containsKey(sessionId)) {
 			return connMap.get(sessionId);
+		} else {
+			log.warn("Connection not found for {}", sessionId);
+			if (log.isTraceEnabled()) {
+				log.trace("Connections ({}) {}", connMap.size(), connMap.values());
+			}
 		}
 		return null;
 	}
@@ -178,6 +184,7 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection>, Appl
 		RTMPConnection conn = connMap.remove(sessionId);
 		if (conn != null) {
 			log.trace("Connections: {}", conns.decrementAndGet());
+			Red5.setConnectionLocal(null);
 		}
 		return conn;
 	}

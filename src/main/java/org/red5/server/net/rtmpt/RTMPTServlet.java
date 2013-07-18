@@ -32,7 +32,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.Red5;
-import org.red5.server.net.IConnectionManager;
 import org.red5.server.net.rtmp.RTMPConnManager;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.servlet.ServletUtils;
@@ -76,8 +75,6 @@ public class RTMPTServlet extends HttpServlet {
 	 * Reference to RTMPT handler;
 	 */
 	private static RTMPTHandler handler;
-
-	private static IConnectionManager<RTMPTConnection> rtmpConnManager;
 
 	/**
 	 * Response sent for ident2 requests. If this is null a 404 will be returned
@@ -258,7 +255,7 @@ public class RTMPTServlet extends HttpServlet {
 		// skip sent data
 		skipData(req);
 		// TODO: should we evaluate the pathinfo?
-		RTMPTConnection conn = (RTMPTConnection) rtmpConnManager.createConnection(RTMPTConnection.class);
+		RTMPTConnection conn = (RTMPTConnection) RTMPConnManager.getInstance().createConnection(RTMPTConnection.class);
 		if (conn != null) {
 			// set properties
 			conn.setServlet(this);
@@ -334,9 +331,11 @@ public class RTMPTServlet extends HttpServlet {
 			data.free();
 			// messages are either of IoBuffer or Packet type
 			// handshaking uses IoBuffer and everything else should be Packet
-			conn.read(messages);
+			for (Object message : messages) {
+				conn.handleMessageReceived(message);
+			}
 			conn.dataReceived();
-			conn.updateReadBytes(req.getContentLength());
+			conn.updateReadBytes(length);
 			// return pending messages
 			returnPendingMessages(conn, resp);
 		} else {
@@ -459,14 +458,12 @@ public class RTMPTServlet extends HttpServlet {
 	/** {@inheritDoc} */
 	@Override
 	public void destroy() {
-		if (rtmpConnManager != null) {
-			// Cleanup connections
-			Collection<RTMPTConnection> conns = rtmpConnManager.removeConnections();
-			for (RTMPConnection conn : conns) {
-				if (conn instanceof RTMPTConnection) {
-					log.debug("Connection scope on destroy: {}", conn.getScope());
-					conn.close();
-				}
+		// Cleanup connections
+		Collection<RTMPConnection> conns = RTMPConnManager.getInstance().removeConnections();
+		for (RTMPConnection conn : conns) {
+			if (conn instanceof RTMPTConnection) {
+				log.debug("Connection scope on destroy: {}", conn.getScope());
+				conn.close();
 			}
 		}
 		super.destroy();
@@ -479,7 +476,7 @@ public class RTMPTServlet extends HttpServlet {
 	 */
 	protected RTMPTConnection getConnection() {
 		String sessionId = requestInfo.get().getSessionId();
-		RTMPTConnection conn = (RTMPTConnection) rtmpConnManager.getConnectionBySessionId(sessionId);
+		RTMPTConnection conn = (RTMPTConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
 		if (conn != null) {
 			// clear thread local reference
 			Red5.setConnectionLocal(conn);
@@ -490,16 +487,12 @@ public class RTMPTServlet extends HttpServlet {
 	}
 
 	protected void removeConnection(String sessionId) {
-		RTMPTConnection conn = (RTMPTConnection) rtmpConnManager.getConnectionBySessionId(sessionId);
+		RTMPTConnection conn = (RTMPTConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
 		if (conn != null) {
-			rtmpConnManager.removeConnection(conn.getSessionId());
+			RTMPConnManager.getInstance().removeConnection(conn.getSessionId());
 		} else {
 			log.warn("Remove failed, null connection for session id: {}", sessionId);
 		}
-	}
-
-	public void setRtmpConnManager(IConnectionManager<RTMPTConnection> rtmpConnManager) {
-		RTMPTServlet.rtmpConnManager = rtmpConnManager;
 	}
 
 	/**

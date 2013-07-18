@@ -18,7 +18,6 @@
 
 package org.red5.server.net.rtmp;
 
-import org.apache.mina.core.session.IoSession;
 
 /**
  * RTMP events handler
@@ -35,10 +34,9 @@ public interface IRTMPHandler {
 	 * Message received
 	 * 
 	 * @param in       IoBuffer or Packet containing an RTMP message
-	 * @param session      Connected session
 	 * @throws Exception   Exception
 	 */
-	public void messageReceived(Object in, IoSession session) throws Exception;
+	public void messageReceived(Object in) throws Exception;
 
 	/**
 	 * Message sent

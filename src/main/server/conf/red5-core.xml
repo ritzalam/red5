@@ -32,7 +32,6 @@
 	  <property name="queueCapacity" value="4" /> 
 	  <property name="waitForTasksToCompleteOnShutdown" value="true"/>
 	  <property name="daemon" value="true"/>
-	  <property name="threadNamePrefix" value="RTMPMessageExecutor-"/>
 	</bean>     
     
     <!-- RTMP connection manager --> 
@@ -124,7 +123,6 @@
 	<!-- Use injection to store RTMPT handler in servlet -->
 	<bean id="rtmptServlet"	class="org.red5.server.net.rtmpt.RTMPTServlet">
 		<property name="handler" ref="rtmptHandler" />
-		<property name="rtmpConnManager" ref="rtmpConnManager" />
 		<!-- Increasing this value results in better stream performance, but also increases the latency -->
 		<property name="targetResponseSize" value="${rtmpt.target_reponse_size}" />
 		<!-- Response for /fcs/ident2 requests -->
@@ -135,7 +133,10 @@
 	
 	<!-- RTMPT Connection -->
 	<bean id="rtmptConnection" scope="prototype" class="org.red5.server.net.rtmpt.RTMPTConnection">
+        <!-- Executor for scheduled tasks -->
         <property name="scheduler" ref="rtmpScheduler" />
+        <!-- Executor for incoming messages -->
+        <property name="executor" ref="messageExecutor" />        
 		<!-- Ping clients every X ms. Set to 0 to disable ghost detection code. -->
 		<property name="pingInterval" value="${rtmpt.ping_interval}" />
 		<!-- Disconnect client after X ms of not responding. -->

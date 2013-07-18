@@ -23,6 +23,11 @@ package org.red5.server.net.protocol;
  */
 public class RTMPDecodeState {
 
+	/**
+	 * Session id to which this decoding state belongs.
+	 */
+	public String sessionId;
+	
     /**
      * Decoding finished successfully state constant.
      */
@@ -48,6 +53,10 @@ public class RTMPDecodeState {
      */
     private byte decoderState = DECODER_OK;
 	
+	public RTMPDecodeState(String sessionId) {
+		this.sessionId = sessionId;
+	}
+
 	/**
 	 * Returns current buffer amount.
 	 *
@@ -110,12 +119,26 @@ public class RTMPDecodeState {
 		return (decoderState != DECODER_BUFFER);
 	}
 
+	/**
+	 * @return the sessionId
+	 */
+	public String getSessionId() {
+		return sessionId;
+	}
+
+	/**
+	 * @param sessionId the sessionId to set
+	 */
+	public void setSessionId(String sessionId) {
+		this.sessionId = sessionId;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
-		return "RTMPDecodeState [decoderState=" + decoderState + ", decoderBufferAmount=" + decoderBufferAmount + "]";
+		return "RTMPDecodeState [sessionId=" + sessionId + ", decoderState=" + decoderState + ", decoderBufferAmount=" + decoderBufferAmount + "]";
 	}
 
 }

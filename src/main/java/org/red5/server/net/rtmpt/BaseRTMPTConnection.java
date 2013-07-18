@@ -80,11 +80,6 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	private volatile IoBuffer buffer;
 
 	/**
-	 * List of pending incoming messages
-	 */
-	protected volatile LinkedBlockingQueue<Object> pendingInMessages = new LinkedBlockingQueue<Object>();
-
-	/**
 	 * List of pending outgoing messages
 	 */
 	protected volatile LinkedBlockingQueue<PendingData> pendingOutMessages = new LinkedBlockingQueue<PendingData>();
@@ -121,8 +116,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	@Override
 	public void close() {
 		closing = true;
-		log.trace("Clearing pending messages (in: {} and out: {})", pendingInMessages.size(), pendingOutMessages.size());
-		pendingInMessages.clear();
+		log.trace("Clearing pending messages out: {}", pendingOutMessages.size());
 		pendingOutMessages.clear();
 		// clean up buffer
 		if (buffer != null) {
@@ -189,79 +183,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 		buffer.flip();
 		return decoder.decodeBuffer(buffer);
 	}
-
-	/**
-	 * Receive a collection of RTMP messages.
-	 * 
-	 * @param messages
-	 */
-	public void read(final List<?> messages) {
-		log.debug("read - messages: {}", messages.size());
-		for (Object message : messages) {
-			if (message instanceof Packet) {
-				read((Packet) message);
-			} else {
-				read((IoBuffer) message);
-			}
-		}
-	}
-
-	/**
-	 * Receive RTMP IoBuffer from the connection.
-	 *
-	 * @param ioBuffer the I/O buffer to receive
-	 */
-	public void read(final IoBuffer ioBuffer) {
-		log.debug("read - ioBuffer: {}", ioBuffer);
-		if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
-			// connection is being closed, don't receive any new packets
-			log.debug("No read completed due to connection disconnecting");
-		} else {
-			// add to pending
-			log.debug("Adding incoming message ioBuffer");
-			try {
-				int attempt = 0;
-				while (!pendingInMessages.offer(ioBuffer, maxQueueOfferTime, TimeUnit.MILLISECONDS)) {
-					log.trace("IoBuffer was not added to in queue");
-					attempt++;
-					if (attempt >= maxQueueOfferAttempts) {
-						break;
-					}
-				}
-			} catch (InterruptedException ex) {
-				log.warn("Offering io buffer to in queue failed", ex);
-			}
-		}
-	}
-
-	/**
-	 * Receive RTMP packet from the connection.
-	 *
-	 * @param packet the packet to receive
-	 */
-	public void read(final Packet packet) {
-		log.debug("read - packet: {}", packet);
-		if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
-			// connection is being closed, don't receive any new packets
-			log.debug("No read completed due to connection disconnecting");
-		} else {
-			// add to pending
-			log.debug("Adding incoming message packet");
-			try {
-				int attempt = 0;
-				while (!pendingInMessages.offer(packet, maxQueueOfferTime, TimeUnit.MILLISECONDS)) {
-					log.trace("Packet was not added to in queue");
-					attempt++;
-					if (attempt >= maxQueueOfferAttempts) {
-						break;
-					}
-				}
-			} catch (InterruptedException ex) {
-				log.warn("Offering packet to in queue failed", ex);
-			}
-		}
-	}
-
+	
 	/**
 	 * Send RTMP packet down the connection.
 	 *
@@ -278,6 +200,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 			IoBuffer data = null;
 			try {
 				// set the connection local before attempting to encode
+				log.debug("Local: {} this: {}", Red5.getConnectionLocal(), this);
 				Red5.setConnectionLocal(this);
 				// encode the data
 				data = encoder.encodePacket(packet);
@@ -440,6 +363,6 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 			return 0;
 		}
 
-	}
+	}	
 
 }

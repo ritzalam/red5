@@ -22,7 +22,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.mina.core.buffer.IoBuffer;
-import org.apache.mina.core.session.IoSession;
+import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
@@ -64,10 +64,9 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 	}
 
 	/** {@inheritDoc} */
-	public void messageReceived(Object in, IoSession session) throws Exception {
-		String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
-		log.trace("Session id: {}", sessionId);
-		RTMPConnection conn = (RTMPConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
+	public void messageReceived(Object in) throws Exception {
+		RTMPConnection conn = (RTMPConnection) Red5.getConnectionLocal();
+		log.trace("Connection: {}", conn);
 		if (conn != null) {
 			IRTMPEvent message = null;
 			try {
@@ -158,8 +157,6 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 			if (message != null) {
 				message.release();
 			}
-		} else {
-			log.info("Connection was null in session - connected: {} closing: {}", session.isConnected(), session.isClosing());
 		}
 	}
 

@@ -19,9 +19,8 @@
 package org.red5.server.net.rtmpt;
 
 import org.apache.mina.core.buffer.IoBuffer;
-import org.apache.mina.core.session.IoSession;
+import org.red5.server.api.Red5;
 import org.red5.server.net.rtmp.InboundHandshake;
-import org.red5.server.net.rtmp.RTMPConnManager;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPHandler;
 import org.red5.server.net.rtmp.RTMPHandshake;
@@ -106,19 +105,16 @@ public class RTMPTHandler extends RTMPHandler {
 
 	/** {@inheritDoc} */
 	@Override
-	public void messageReceived(Object in, IoSession session) throws Exception {
+	public void messageReceived(Object in) throws Exception {
 		log.debug("messageReceived");
 		if (in instanceof IoBuffer) {
-			String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
-			log.trace("Session id: {}", sessionId);
-			RTMPTConnection conn = (RTMPTConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);			
-			if (conn != null) {
-				rawBufferReceived(conn, (IoBuffer) in);
-			}
+			RTMPTConnection conn = (RTMPTConnection) Red5.getConnectionLocal();	
+			log.trace("Connection: {}", conn);
+			rawBufferReceived(conn, (IoBuffer) in);
 			((IoBuffer) in).free();
 			in = null;
 		} else {
-			super.messageReceived(in, session);
+			super.messageReceived(in);
 		}
 	}
 }

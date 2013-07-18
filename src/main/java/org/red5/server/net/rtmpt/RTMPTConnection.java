@@ -18,7 +18,7 @@
 
 package org.red5.server.net.rtmpt;
 
-import java.util.LinkedList;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,8 +27,9 @@ import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.DummySession;
 import org.apache.mina.core.session.IoSession;
 import org.red5.logging.Red5LoggerFactory;
-import org.red5.server.api.Red5;
 import org.red5.server.net.rtmp.RTMPConnection;
+import org.red5.server.net.rtmp.ReceivedMessageTask;
+import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.servlet.ServletUtils;
 import org.slf4j.Logger;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -84,20 +85,19 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 
 	private AtomicLong lastBytesWritten = new AtomicLong(0);
 
+	private IoSession ioSession;
+	
 	/** Constructs a new RTMPTConnection */
 	RTMPTConnection() {
 		super(POLLING);
+		// create a DummySession for the HTTP-based connection to allow our Mina based system happy
+		ioSession = new DummySession();
+		ioSession.setAttribute(RTMPConnection.RTMP_SESSION_ID, sessionId);
 	}
 
-	/**
-	 * Creates a DummySession for this HTTP-based connection to allow our Mina based system happy.
-	 * 
-	 * @return session
-	 */
+	/** {@inheritDoc} */
 	protected IoSession getSession() {
-		IoSession session = new DummySession();
-		session.setAttribute(RTMPConnection.RTMP_SESSION_ID, getSessionId());
-		return session;
+		return ioSession;
 	}
 
 	/** {@inheritDoc} */
@@ -121,6 +121,25 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 			}
 		}
 	}
+
+	/** {@inheritDoc} */
+	@Override
+	public void handleMessageReceived(Object message) {
+		log.trace("handleMessageReceived - {}", sessionId);
+		try {
+			executor.execute(new ReceivedMessageTask(sessionId, message, handler, this));
+		} catch (RejectedExecutionException e) {
+			log.warn("Incoming message handling failed", e);
+			if (log.isDebugEnabled()) {
+				log.debug("Execution rejected on {} - {}", getSessionId(), state.states[getStateCode()]);
+				log.debug("Lock permits - decode: {} encode: {}", decoderLock.availablePermits(), encoderLock.availablePermits());
+			}
+			// ensure the connection is not closing and if it is drop the runnable
+			if (state.getState() == RTMP.STATE_CONNECTED) {
+				onInactive();
+			}
+		}
+	}		
 
 	/** {@inheritDoc} */
 	@Override
@@ -181,8 +200,6 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	@Override
 	public void setScheduler(ThreadPoolTaskScheduler scheduler) {
 		super.setScheduler(scheduler);
-		// outgoing queue processor
-		scheduler.scheduleAtFixedRate(new ProcessTask(this), 250);
 	}
 
 	/**
@@ -226,7 +243,7 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	 */
 	@Override
 	public IoBuffer getPendingMessages(int targetSize) {
-		log.debug("Pending messages (in: {} out: {})", pendingInMessages.size(), pendingOutMessages.size());
+		log.debug("Pending messages out: {}", pendingOutMessages.size());
 		if (!pendingOutMessages.isEmpty()) {
 			pollingDelay = INITIAL_POLLING_DELAY;
 			noPendingMessages = 0;
@@ -258,62 +275,6 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	 * */
 	public Long getLastDataReceived() {
 		return tsLastDataReceived;
-	}
-
-	/**
-	 * Processes queued incoming messages.
-	 */
-	private class ProcessTask implements Runnable {
-
-		private final RTMPTConnection conn;
-
-		ProcessTask(RTMPTConnection conn) {
-			this.conn = conn;
-		}
-
-		public void run() {
-			if (!pendingInMessages.isEmpty()) {
-				// ensure the job is not already running
-				if (running.compareAndSet(false, true)) {
-					try {
-						int available = pendingInMessages.size();
-						log.debug("process - available: {}", available);
-						// set connection local
-						Red5.setConnectionLocal(conn);
-						// get the session
-						IoSession session = getSession();
-						// grab some of the incoming data
-						LinkedList<Object> sliceList = new LinkedList<Object>();
-						int sliceSize = pendingInMessages.drainTo(sliceList, Math.min(maxInMessagesPerProcess, available));
-						log.debug("processing: {}", sliceSize);
-						// handle the messages
-						for (Object message : sliceList) {
-							try {
-								handler.messageReceived(message, session);
-							} catch (Exception e) {
-								log.error("Could not process received message", e);
-							}
-							// exit execution of the parent connection is closing
-							if (isClosing()) {
-								break;
-							}
-						}
-						// unset connection local
-						Red5.setConnectionLocal(null);
-					} catch (Exception e) {
-						log.error("Error processing message: " + e.getMessage(), e);
-					} finally {
-						// reset run state
-						running.set(false);
-					}
-				} else {
-					log.trace("Process already running");
-				}
-			} else {
-				log.trace("No incoming messages to process");
-			}
-		}
-
 	}
 
 }

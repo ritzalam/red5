@@ -77,16 +77,6 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 
 	protected static Logger log = LoggerFactory.getLogger(RTMPProtocolDecoder.class);
 
-	// keeps track of the decode state
-	protected ThreadLocal<RTMPDecodeState> decoderState = new ThreadLocal<RTMPDecodeState>() {
-
-		@Override
-		protected RTMPDecodeState initialValue() {
-			return new RTMPDecodeState();
-		}
-
-	};
-
 	/** Constructs a new RTMPProtocolDecoder. */
 	public RTMPProtocolDecoder() {
 	}
@@ -103,47 +93,56 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		// get the connection
 		RTMPConnection conn = (RTMPConnection) Red5.getConnectionLocal();
 		if (conn != null) {
+			log.trace("Decoding for connection - session id: {}", conn.getSessionId());
 			try {
 				// instance list to hold results
 				result = new LinkedList<Object>();
 				// get the local decode state
-				RTMPDecodeState state = decoderState.get();
+				RTMPDecodeState state = conn.getDecoderState();
+				log.trace("{}", state);
+				if (!conn.getSessionId().equals(state.getSessionId())) {
+					log.warn("Session decode overlap: {} != {}", conn.getSessionId(), state.getSessionId());
+				}
 				while (buffer.hasRemaining()) {
 					final int remaining = buffer.remaining();
 					if (state.canStartDecoding(remaining)) {
+						log.trace("Can start decoding");
 						state.startDecoding();
 					} else {
+						log.trace("Cannot start decoding");
 						break;
 					}
 					final Object decodedObject = decode(state, buffer);
 					if (state.hasDecodedObject()) {
+						log.trace("Has decoded object");
 						if (decodedObject != null) {
 							result.add(decodedObject);
 						}
 					} else if (state.canContinueDecoding()) {
+						log.trace("Can continue decoding");
 						continue;
 					} else {
+						log.trace("Cannot continue decoding");
 						break;
 					}
 				}
 			} catch (HandshakeFailedException hfe) {
+				// close the connection
+				log.warn("Closing connection because decoding failed during handshake: {}", conn, hfe);
 				// clear buffer if something is wrong in protocol decoding
 				buffer.clear();
-				// close the connection
-				log.warn("Closing connection because decoding failed during handshake: {}", conn);
+				// close connection because we can't parse data from it
 				conn.close();
 			} catch (Exception ex) {
 				// catch any non-handshake exception in the decoding
-				log.error("Error decoding", ex);
+				// close the connection
+				log.warn("Closing connection because decoding failed: {}", conn, ex);
 				// clear the buffer to eliminate memory leaks when we can't parse protocol
 				buffer.clear();
-				// close the connection
-				log.warn("Closing connection because decoding failed: {}", conn);
 				// close connection because we can't parse data from it
 				conn.close();
 			} finally {
 				buffer.compact();
-				//decoderState.remove();
 			}
 		} else {
 			log.error("Decoding buffer failed, no current connection!?");

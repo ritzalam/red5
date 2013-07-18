@@ -67,9 +67,9 @@ public class RTMPMinaProtocolDecoder extends ProtocolDecoderAdapter {
 		final Semaphore lock = conn.getDecoderLock();
 		try {
 			// acquire the decoder lock
-			log.trace("Decoder lock acquiring.. {}", conn.getId());
+			log.trace("Decoder lock acquiring.. {}", conn.getSessionId());
 			lock.acquire();
-			log.trace("Decoder lock acquired {}", conn.getId());
+			log.trace("Decoder lock acquired {}", conn.getSessionId());
 			// construct any objects from the decoded bugger
 			List<?> objects = decoder.decodeBuffer(buf);
 			if (objects != null) {
@@ -80,7 +80,7 @@ public class RTMPMinaProtocolDecoder extends ProtocolDecoderAdapter {
 		} catch (Exception e) {
 			log.error("Error during decode", e);
 		} finally {
-			log.trace("Decoder lock releasing.. {}", conn.getId());
+			log.trace("Decoder lock releasing.. {}", conn.getSessionId());
 			lock.release();
 		}
 	}

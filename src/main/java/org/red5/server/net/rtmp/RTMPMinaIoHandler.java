@@ -99,6 +99,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 				//session.suspendWrite();
 			} else {
 				log.warn("Connection was null in session");
+				forceClose(session);
 			}
 		} else {
 			log.debug("Connections session id was null in session, may already be closed");
@@ -191,6 +192,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		log.debug("Forcing close on session: {}", session.getId());
 		if (session instanceof NioSession) {
 			NioSession nio = (NioSession) session;
+			log.trace("Removing session from processor");
 			nio.getProcessor().remove(nio);
 		} else {
 			log.debug("Session was not of NioSession type: {}", session.getClass().getName());

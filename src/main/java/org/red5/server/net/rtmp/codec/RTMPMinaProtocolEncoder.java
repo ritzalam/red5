@@ -58,9 +58,9 @@ public class RTMPMinaProtocolEncoder extends ProtocolEncoderAdapter {
 			final Semaphore lock = conn.getEncoderLock();
 			try {
 				// acquire the decoder lock
-				log.trace("Encoder lock acquiring.. {}", conn.getId());
+				log.trace("Encoder lock acquiring.. {}", conn.getSessionId());
 				lock.acquire();
-				log.trace("Encoder lock acquired {}", conn.getId());
+				log.trace("Encoder lock acquired {}", conn.getSessionId());
 				// get the buffer
 				final IoBuffer buf = message instanceof IoBuffer ? (IoBuffer) message : encoder.encode(message);
 				if (buf != null) {
@@ -94,7 +94,7 @@ public class RTMPMinaProtocolEncoder extends ProtocolEncoderAdapter {
 			} catch (Exception ex) {
 				log.error("Exception during encode", ex);
 			} finally {
-				log.trace("Encoder lock releasing.. {}", conn.getId());
+				log.trace("Encoder lock releasing.. {}", conn.getSessionId());
 				lock.release();
 			}
 		} else {
