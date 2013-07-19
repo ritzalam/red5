@@ -234,7 +234,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 
 		@Override
 		protected RTMPDecodeState initialValue() {
-			return new RTMPDecodeState(sessionId);
+			return new RTMPDecodeState(getSessionId());
 		}
 
 	};
@@ -1315,7 +1315,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		if (log.isDebugEnabled()) {
 			String id = getClient() != null ? getClient().getId() : null;
 			return String.format("%1$s %2$s:%3$s client: %4$s session: %5$s state: %6$s", new Object[] { getClass().getSimpleName(), getRemoteAddress(), getRemotePort(), id,
-					sessionId, getState().states[getStateCode()] });
+					getSessionId(), getState().states[getStateCode()] });
 		} else {
 			Object[] args = new Object[] { getClass().getSimpleName(), getRemoteAddress(), getRemotePort(), getHost(), getReadBytes(), getWrittenBytes(),
 					getState().states[getStateCode()] };
