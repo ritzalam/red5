@@ -22,7 +22,6 @@ import org.red5.server.api.IClient;
 import org.red5.server.api.IClientRegistry;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IContext;
-import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.scope.IBasicScope;
 import org.red5.server.api.scope.IScope;
@@ -78,7 +77,7 @@ public class CoreHandler implements IScopeHandler, CoreHandlerMXBean {
 		String id = conn.getSessionId();
 		log.trace("Session id: {}", id);
 		// Use client registry from scope the client connected to
-		IScope connectionScope = Red5.getConnectionLocal().getScope();
+		IScope connectionScope = conn.getScope();
 		log.debug("Connection scope: {}", (connectionScope == null ? "is null" : "not null"));
 		// when the scope is null bad things seem to happen, if a null scope is OK then
 		// this block will need to be removed - Paul
@@ -88,24 +87,27 @@ public class CoreHandler implements IScopeHandler, CoreHandlerMXBean {
 			log.debug("Client registry: {}", (clientRegistry == null ? "is null" : "not null"));
 			if (clientRegistry != null) {
 				IClient client = conn.getClient();
-				if (client == null && !clientRegistry.hasClient(id)) {
-					if (conn instanceof RTMPTConnection) {
-						log.debug("Creating new client for RTMPT connection");
-						// create a new client using the session id as the client's id
-						client = new Client(id, (ClientRegistry) clientRegistry);
-						clientRegistry.addClient(client);
-						// set the client on the connection
-						conn.setClient(client);					
-					} else if (conn instanceof RTMPConnection) {
-						log.debug("Creating new client for RTMP connection");
-						// this is a new connection, create a new client to hold it
-						client = clientRegistry.newClient(params);
-						// set the client on the connection
-						conn.setClient(client);
-					} 
+				if (client == null) {
+					if (!clientRegistry.hasClient(id)) {
+    					if (conn instanceof RTMPTConnection) {
+    						log.debug("Creating new client for RTMPT connection");
+    						// create a new client using the session id as the client's id
+    						client = new Client(id, (ClientRegistry) clientRegistry);
+    						clientRegistry.addClient(client);
+    						// set the client on the connection
+    						conn.setClient(client);					
+    					} else if (conn instanceof RTMPConnection) {
+    						log.debug("Creating new client for RTMP connection");
+    						// this is a new connection, create a new client to hold it
+    						client = clientRegistry.newClient(params);
+    						// set the client on the connection
+    						conn.setClient(client);
+    					} 
+					} else {
+						client = clientRegistry.lookupClient(id);
+						conn.setClient(client);							
+					}
 				} else {
-					// use session id as client id; this is required for remoting
-					client = clientRegistry.lookupClient(id);
 					// set the client on the connection
 					conn.setClient(client);	
 				}

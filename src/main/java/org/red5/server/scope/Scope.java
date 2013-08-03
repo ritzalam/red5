@@ -22,11 +22,9 @@ import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -207,28 +205,15 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		log.debug("Add child: {}", scope);
 		boolean added = false;
 		if (scope.isValid()) {
-			//log.trace("Permits at addChild: {} queued: {}", lock.availablePermits(), lock.hasQueuedThreads());
-			//boolean acquired = false;
 			try {
-				//acquired = lock.tryAcquire();
-				// if we couldn't acquire and no threads are queued, continue on; otherwise block
-				//if (!acquired && lock.hasQueuedThreads()) {
-					// block
-					//lock.acquire();
-					//acquired = true;
-				//}
-				if (!children.contains(scope)) {
+				if (!children.containsKey(scope)) {
 					log.debug("Adding child scope: {} to {}", scope, this);
 					added = children.add(scope);
 				} else {
 					log.warn("Child scope already exists");
 				}
 			} catch (Exception e) {
-				log.warn("Exception aquiring lock for add subscope", e);
-			} finally {
-				//if (acquired) {
-				//	lock.release();
-				//}
+				log.warn("Exception on add subscope", e);
 			}
 		} else {
 			log.warn("Invalid scope rejected: {}", scope);
@@ -268,44 +253,48 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 */
 	public boolean connect(IConnection conn, Object[] params) {
 		log.debug("Connect - scope: {} connection: {}", this, conn);
-		if (hasParent() && !parent.connect(conn, params)) {
-			log.debug("Connection to parent failed");
-			return false;
-		}
-		if (hasHandler() && !getHandler().connect(conn, this, params)) {
-			log.debug("Connection to handler failed");
-			return false;
-		}
-		if (!conn.isConnected()) {
-			log.debug("Connection is not connected");
-			// timeout while connecting client
-			return false;
-		}
-		final IClient client = conn.getClient();
-		// we would not get this far if there is no handler
-		if (hasHandler() && !getHandler().join(client, this)) {
-			return false;
-		}
-		// checking the connection again? why?
-		if (!conn.isConnected()) {
-			// timeout while connecting client
-			return false;
-		}
-		// add the client and event listener
-		if (clients.add(client) && addEventListener(conn)) {
-			log.debug("Added client");
-			// increment conn stats
-			connectionStats.increment();
-			// get connected scope
-			IScope connScope = conn.getScope();
-			log.trace("Connection scope: {}", connScope);
-			if (this.equals(connScope)) {
-				final IServer server = getServer();
-				if (server instanceof Server) {
-					((Server) server).notifyConnected(conn);
-				}
+		if (enabled) {
+			if (hasParent() && !parent.connect(conn, params)) {
+				log.debug("Connection to parent failed");
+				return false;
 			}
-			return true;
+			if (hasHandler() && !getHandler().connect(conn, this, params)) {
+				log.debug("Connection to handler failed");
+				return false;
+			}
+			if (!conn.isConnected()) {
+				log.debug("Connection is not connected");
+				// timeout while connecting client
+				return false;
+			}
+			final IClient client = conn.getClient();
+			// we would not get this far if there is no handler
+			if (hasHandler() && !getHandler().join(client, this)) {
+				return false;
+			}
+			// checking the connection again? why?
+			if (!conn.isConnected()) {
+				// timeout while connecting client
+				return false;
+			}
+			// add the client and event listener
+			if (clients.add(client) && addEventListener(conn)) {
+				log.debug("Added client");
+				// increment conn stats
+				connectionStats.increment();
+				// get connected scope
+				IScope connScope = conn.getScope();
+				log.trace("Connection scope: {}", connScope);
+				if (this.equals(connScope)) {
+					final IServer server = getServer();
+					if (server instanceof Server) {
+						((Server) server).notifyConnected(conn);
+					}
+				}
+				return true;
+			}
+		} else {
+			log.debug("Connection failed, scope is disabled");
 		}
 		return false;
 	}
@@ -319,7 +308,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	public boolean createChildScope(String name) {
 		// quick lookup by name
 		log.debug("createChildScope: {}", name);
-		if (children.getNames().contains(name)) {
+		if (children.hasName(name)) {
 			log.debug("Scope: {} already exists, children: {}", name, children.getNames());
 		} else {
 			return addChildScope(new Builder(this, ScopeType.ROOM, name, false).build());
@@ -340,15 +329,12 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			getHandler().stop(this);
 		}
 		// kill all child scopes
-		List<IBasicScope> childScopes = new ArrayList<IBasicScope>();
-		childScopes.addAll(children.keySet());
-		for (IBasicScope child : childScopes) {
+		for (IBasicScope child : children.keySet()) {
 			removeChildScope(child);
 			if (child instanceof Scope) {
 				((Scope) child).uninit();
 			}
 		}
-		childScopes.clear();
 	}
 
 	/**
@@ -489,9 +475,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	public Set<String> getBasicScopeNames(ScopeType type) {
 		if (type != null) {
 			Set<String> names = new HashSet<String>();
-			List<IBasicScope> childScopes = new ArrayList<IBasicScope>();
-			childScopes.addAll(children.keySet());
-			for (IBasicScope child : childScopes) {
+			for (IBasicScope child : children.keySet()) {
 				if (child.getType().equals(type)) {
 					names.add(child.getName());
 				}
@@ -836,7 +820,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 */
 	public boolean hasChildScope(String name) {
 		log.debug("Has child scope? {} in {}", name, this);
-		return children.getNames().contains(name);
+		return children.hasName(name);
 	}
 
 	/**
@@ -913,14 +897,12 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 */
 	public void uninit() {
 		log.debug("Un-init scope");
-		List<IBasicScope> childScopes = new ArrayList<IBasicScope>();
-		childScopes.addAll(children.keySet());
-		for (IBasicScope child : childScopes) {
+		setEnabled(false);
+		for (IBasicScope child : children.keySet()) {
 			if (child instanceof Scope) {
 				((Scope) child).uninit();
 			}
 		}
-		childScopes.clear();
 		stop();
 		if (hasParent()) {
 			if (parent.hasChildScope(name)) {
@@ -981,10 +963,12 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 */
 	public void removeChildScope(IBasicScope scope) {
 		log.debug("removeChildScope: {}", scope);
-		// remove from parent
-		children.remove(scope);
-		if (scope instanceof Scope) {
-			unregisterJMX();
+		if (children.containsKey(scope)) {
+			// remove from parent
+			children.remove(scope);
+			if (scope instanceof Scope) {
+				unregisterJMX();
+			}
 		}
 	}
 
@@ -993,9 +977,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 */
 	public void removeChildren() {
 		log.trace("removeChildren of {}", name);
-		List<IBasicScope> childScopes = new ArrayList<IBasicScope>();
-		childScopes.addAll(children.keySet());
-		for (IBasicScope child : childScopes) {
+		for (IBasicScope child : children.keySet()) {
 			removeChildScope(child);
 		}
 	}
@@ -1116,9 +1098,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				log.debug("Scope {} has no handler", this);
 				handler = parent.getHandler();
 			}
-			//log.trace("Permits at start: {} queued: {}", lock.availablePermits(), lock.hasQueuedThreads());
 			try {
-				//lock.acquire();
 				// if we dont have a handler of our own dont try to start it
 				if (handler != null) {
 					result = handler.start(this);
@@ -1130,7 +1110,6 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			} catch (Throwable e) {
 				log.error("Could not start scope {} {}", this, e);
 			} finally {
-				//lock.release();
 				// post notification
 				((Server) getServer()).notifyScopeCreated(this);
 			}
@@ -1146,13 +1125,11 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		log.debug("stop: {}", name);
 		if (enabled && running && handler != null) {
 			try {
-				//lock.acquire();
 				// if we dont have a handler of our own dont try to stop it
 				handler.stop(this);
 			} catch (Throwable e) {
 				log.error("Could not stop scope {}", this, e);
 			} finally {
-				//lock.release();
 				// post notification
 				((Server) getServer()).notifyScopeRemoved(this);
 			}
@@ -1216,9 +1193,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			}
 			log.trace("Handler: {}", handler);
 			log.trace("Child count: {}", children.size());
-			List<IBasicScope> childScopes = new ArrayList<IBasicScope>();
-			childScopes.addAll(children.keySet());
-			for (IBasicScope child : childScopes) {
+			for (IBasicScope child : children.keySet()) {
 				log.trace("Child: {}", child);
 			}
 		}
@@ -1307,12 +1282,9 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		return true;
 	}
 
-	//private final class ConcurrentScopeSet extends WeakHashMap<org.red5.server.api.scope.IBasicScope, Boolean> {
 	private final class ConcurrentScopeSet extends ConcurrentHashMap<org.red5.server.api.scope.IBasicScope, Boolean> {
 
-		//private ReentrantReadWriteLock internalLock = new ReentrantReadWriteLock();
-
-		private Set<String> names = new HashSet<String>();
+		private static final long serialVersionUID = -6702012956307490749L;
 
 		ConcurrentScopeSet() {
 			super(3, 0.9f);
@@ -1322,7 +1294,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			//log.trace("add - Hold counts - read: {} write: {} queued: {}", internalLock.getReadHoldCount(), internalLock.getWriteHoldCount(), internalLock.hasQueuedThreads());			
 			boolean added = false;
 			// check #1
-			if (!keySet().contains(scope)) {
+			if (!containsKey(scope)) {
 				log.debug("Adding child scope: {} to {}", (((IBasicScope) scope).getName()), this);
 				if (hasHandler()) {
 					// get the handler for the scope to which we are adding this new scope 
@@ -1336,14 +1308,12 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 					log.debug("No handler found for {}", this);
 				}
 				try {
-					//internalLock.writeLock().lock();
 					// check #2 for entry
-					if (!keySet().contains(scope)) {
+					if (!containsKey(scope)) {
 						// add the entry
 						// expected return from put is null; indicating this scope didn't already exist
 						added = (super.put(scope, Boolean.TRUE) == null);
 						if (added) {
-							names.add(scope.getName());
 							subscopeStats.increment();
 						} else {
 							log.debug("Subscope was not added");
@@ -1352,9 +1322,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 						log.debug("Subscope already exists");
 					}
 				} catch (Exception e) {
-					log.warn("Exception aquiring lock for scope set", e);
-				} finally {
-					//internalLock.writeLock().unlock();
+					log.warn("Exception on add", e);
 				}
 				if (added && scope instanceof Scope) {
 					// cast it
@@ -1389,12 +1357,10 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			}
 			boolean removed = false;
 			try {
-				//internalLock.writeLock().lock();
-				if (keySet().contains(scope)) {
+				if (containsKey(scope)) {
 					// remove the entry, ensure removed value is equal to the given object
 					removed = super.remove(scope).equals(Boolean.TRUE);
 					if (removed) {
-						names.remove(((IBasicScope) scope).getName());
 						subscopeStats.decrement();
 					} else {
 						log.debug("Subscope was not removed");
@@ -1403,14 +1369,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 					log.debug("Subscope was not removed, it was not found");
 				}
 			} catch (Exception e) {
-				log.warn("Exception aquiring lock for scope set", e);
-				if (e.getMessage() == null) {
-					log.info("Lock acquire failed, check scope exists: {}", names.contains(((IBasicScope) scope).getName()));
-					// if we cannot acquire the lock assume its already been removed
-					removed = true;
-				}
-			} finally {
-				//internalLock.writeLock().unlock();
+				log.warn("Exception on remove", e);
 			}
 			return removed;
 		}
@@ -1426,22 +1385,30 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		}
 
 		/**
-		 * Returns the number of child scopes.
-		 * 
-		 * @return size
-		 */
-		@Override
-		public int size() {
-			return super.size();
-		}
-
-		/**
 		 * Returns the scope names.
 		 * 
 		 * @return names
 		 */
 		public Set<String> getNames() {
+			Set<String> names = new HashSet<String>();
+			for (IBasicScope child : keySet()) {
+				names.add(child.getName());
+			}
 			return names;
+		}
+
+		/**
+		 * Returns whether or not a named scope exists.
+		 * 
+		 * @return true if a matching scope is found, false otherwise
+		 */
+		public boolean hasName(String name) {
+			for (IBasicScope child : keySet()) {
+				if (name.equals(child.getName())) {
+					return true;
+				}
+			}
+			return false;
 		}
 
 		/**
@@ -1453,36 +1420,18 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		 */
 		public IBasicScope getBasicScope(ScopeType type, String name) {
 			boolean skipTypeCheck = ScopeType.UNDEFINED.equals(type);
-			if (names.contains(name)) {
-				// use concurrent set for the get
-				IBasicScope[] scopes = new IBasicScope[names.size()];
-				//log.trace("Hold counts - read: {} write: {} queued: {}", internalLock.getReadHoldCount(), internalLock.getWriteHoldCount(), internalLock.hasQueuedThreads());
-				try {
-					//internalLock.readLock().lock();
-					// copy into concurrent set
-					scopes = (IBasicScope[]) keySet().toArray(scopes);
-				} catch (Exception e) {
-					log.warn("Exception acquiring lock to get scope - name: {} type: {}", name, type, e);
-					if (log.isDebugEnabled()) {
-						log.debug("Current names: {}", Arrays.toString(names.toArray()));
-						log.debug("Child scopes (key set): {}", this.keySet());
+			if (skipTypeCheck) {
+				for (IBasicScope child : keySet()) {
+					if (name.equals(child.getName())) {
+						log.debug("Returning basic scope: {}", child);
+						return child;
 					}
-				} finally {
-					//internalLock.readLock().lock();
 				}
-				if (skipTypeCheck) {
-					for (IBasicScope child : scopes) {
-						if (name.equals(child.getName())) {
-							log.debug("Returning basic scope: {}", child);
-							return child;
-						}
-					}
-				} else {
-					for (IBasicScope child : scopes) {
-						if (child.getType().equals(type) && name.equals(child.getName())) {
-							log.debug("Returning basic scope: {}", child);
-							return child;
-						}
+			} else {
+				for (IBasicScope child : keySet()) {
+					if (child.getType().equals(type) && name.equals(child.getName())) {
+						log.debug("Returning basic scope: {}", child);
+						return child;
 					}
 				}
 			}

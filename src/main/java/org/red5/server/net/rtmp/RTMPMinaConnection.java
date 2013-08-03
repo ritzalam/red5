@@ -325,8 +325,8 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	public void write(Packet out) {
 		if (ioSession != null) {
 			final Semaphore lock = getLock();
-			log.trace("Write lock wait count: {} closed: {}", lock.getQueueLength(), closed);
-			while (!closed) {
+			log.trace("Write lock wait count: {} closed: {}", lock.getQueueLength(), isClosed());
+			while (!isClosed()) {
 				boolean acquired = false;
 				try {
 					acquired = lock.tryAcquire(10, TimeUnit.MILLISECONDS);
@@ -358,7 +358,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	public void writeRaw(IoBuffer out) {
 		if (ioSession != null) {
 			final Semaphore lock = getLock();
-			while (!closed) {
+			while (!isClosed()) {
 				boolean acquired = false;
 				try {
 					acquired = lock.tryAcquire(10, TimeUnit.MILLISECONDS);

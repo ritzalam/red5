@@ -127,7 +127,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	/**
 	 * Is the connection closed?
 	 */
-	protected volatile boolean closed;
+	private volatile boolean closed;
 
 	/**
 	 * Listeners
@@ -138,7 +138,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	 * Used to protect mulit-threaded operations on write
 	 */
 	private final Semaphore writeLock = new Semaphore(1, true);
-	
+
 	// Support for stream ids
 	private ThreadLocal<Integer> streamLocal = new ThreadLocal<Integer>();
 
@@ -150,7 +150,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	/** {@inheritDoc} */
 	public void setStreamId(int id) {
 		streamLocal.set(id);
-	}	
+	}
 
 	/**
 	 * Creates a new persistent base connection
@@ -383,22 +383,26 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 			log.error("Error while unregistering basic scopes", err);
 		}
 		// disconnect
-		try {
-			scope.disconnect(this);
-		} catch (Exception err) {
-			log.error("Error while disconnecting from scope: {}. {}", scope, err);
+		if (scope != null) {
+			try {
+				scope.disconnect(this);
+			} catch (Exception err) {
+				log.error("Error while disconnecting from scope: {}. {}", scope, err);
+			}
+			scope = null;
 		}
 		// unregister client
 		if (client != null && client instanceof Client) {
 			((Client) client).unregister(this);
 		}
 		// alert our listeners
-		for (IConnectionListener listener : connectionListeners) {
-			listener.notifyDisconnected(this);
+		if (connectionListeners != null) {
+			for (IConnectionListener listener : connectionListeners) {
+				listener.notifyDisconnected(this);
+			}
+			connectionListeners.clear();
+			connectionListeners = null;
 		}
-		connectionListeners.clear();
-		connectionListeners = null;
-		scope = null;
 	}
 
 	/**
@@ -519,6 +523,15 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	}
 
 	/**
+	 * Returns whether or not a connection is closed.
+	 * 
+	 * @return true if closed
+	 */
+	public boolean isClosed() {
+		return closed;
+	}
+
+	/**
 	 * Count of outgoing messages not yet written.
 	 * 
 	 * @return pending messages
@@ -548,12 +561,12 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	public int hashCode() {
 		final int prime = 31;
 		int result = prime * sessionId.hashCode();
-//		if (host != null) {
-//			result = prime * result + host.hashCode();
-//		}
-//		if (remoteAddress != null) {
-//			result = prime * result + remoteAddress.hashCode();
-//		}
+		//		if (host != null) {
+		//			result = prime * result + host.hashCode();
+		//		}
+		//		if (remoteAddress != null) {
+		//			result = prime * result + remoteAddress.hashCode();
+		//		}
 		return result;
 	}
 

@@ -459,7 +459,7 @@ public class RTMPTServlet extends HttpServlet {
 	@Override
 	public void destroy() {
 		// Cleanup connections
-		Collection<RTMPConnection> conns = RTMPConnManager.getInstance().removeConnections();
+		Collection<RTMPConnection> conns = RTMPConnManager.getInstance().getAllConnections();
 		for (RTMPConnection conn : conns) {
 			if (conn instanceof RTMPTConnection) {
 				log.debug("Connection scope on destroy: {}", conn.getScope());

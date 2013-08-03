@@ -245,7 +245,7 @@ public class TestConnection extends BaseConnection implements IServiceCapableCon
 	 */
 	@Override
 	public String toString() {
-		return "TestConnection [remoteAddress=" + remoteAddress + ", client=" + client + ", scope=" + scope + ", closed=" + closed + "]";
+		return "TestConnection [remoteAddress=" + remoteAddress + ", client=" + client + ", scope=" + scope + ", closed=" + isClosed() + "]";
 	}
 	
 }

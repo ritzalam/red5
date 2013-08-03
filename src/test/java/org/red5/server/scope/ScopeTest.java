@@ -619,7 +619,7 @@ public class ScopeTest extends AbstractJUnit4SpringContextTests {
 		 */
 		@Override
 		public String toString() {
-			return "TestStreamConnection [path=" + path + ", sessionId=" + sessionId + ", client=" + client + ", scope=" + scope + ", closed=" + closed + "]";
+			return "TestStreamConnection [path=" + path + ", sessionId=" + sessionId + ", client=" + client + ", scope=" + scope + ", closed=" + isClosed() + "]";
 		}
 
 	}

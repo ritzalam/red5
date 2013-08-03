@@ -194,9 +194,21 @@ public class RTMPConnManager implements IConnectionManager<RTMPConnection>, Appl
 	 * 
 	 * @return list of connections
 	 */
+	public Collection<RTMPConnection> getAllConnections() {
+		ArrayList<RTMPConnection> list = new ArrayList<RTMPConnection>(connMap.size());
+		list.addAll(connMap.values());
+		return list;
+	}
+
+	/**
+	 * Removes all the current connections and returns them in a list.
+	 * 
+	 * @return list of connections
+	 */
 	public Collection<RTMPConnection> removeConnections() {
 		ArrayList<RTMPConnection> list = new ArrayList<RTMPConnection>(connMap.size());
 		list.addAll(connMap.values());
+		connMap.clear();
 		return list;
 	}
 
