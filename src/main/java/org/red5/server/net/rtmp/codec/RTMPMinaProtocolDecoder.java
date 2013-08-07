@@ -58,7 +58,7 @@ public class RTMPMinaProtocolDecoder extends ProtocolDecoderAdapter {
 		log.trace("Session id: {}", sessionId);
 		RTMPConnection conn = (RTMPConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);		
 		RTMPConnection connLocal = (RTMPConnection) Red5.getConnectionLocal();
-		if (connLocal == null || !conn.equals(connLocal)) {
+		if (connLocal == null || !conn.getSessionId().equals(connLocal.getSessionId())) {
 			if (log.isDebugEnabled() && connLocal != null) {
 				log.debug("Connection local didn't match session");
 			}
