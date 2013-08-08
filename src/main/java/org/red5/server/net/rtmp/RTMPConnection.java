@@ -619,13 +619,12 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	}
 
 	public void addClientStream(IClientStream stream) {
-		int streamId = stream.getStreamId();
-		if (reservedStreams.get(streamId - 1)) {
-			return;
+		int streamIndex = stream.getStreamId() - 1;
+		if (!reservedStreams.get(streamIndex)) {
+			reservedStreams.set(streamIndex);
+			streams.put(streamIndex, stream);
+			usedStreams.incrementAndGet();
 		}
-		reservedStreams.set(streamId - 1);
-		streams.put(streamId - 1, stream);
-		usedStreams.incrementAndGet();
 	}
 
 	public void removeClientStream(int streamId) {
@@ -1270,43 +1269,6 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 */
 	public void setMaxHandshakeTimeout(int maxHandshakeTimeout) {
 		this.maxHandshakeTimeout = maxHandshakeTimeout;
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		if (client != null) {
-			result += prime * client.hashCode();
-		}
-		return result;
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		if (!super.equals(obj)) {
-			return false;
-		}
-		RTMPConnection other = (RTMPConnection) obj;
-		if (client != null && other.getClient() != null) {
-			return client.equals(other.getClient());
-		}
-		return true;
 	}
 
 	/** {@inheritDoc} */

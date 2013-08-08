@@ -585,11 +585,15 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 			return false;
 		}
 		BaseConnection other = (BaseConnection) obj;
-		if (host != null && !host.equals(other.getHost())) {
-			return false;
-		}
-		if (remoteAddress != null && !remoteAddress.equals(other.getRemoteAddress())) {
-			return false;
+		if (sessionId != null) {
+			return sessionId.equals(other.getSessionId());
+		} else {
+			if (host != null && !host.equals(other.getHost())) {
+				return false;
+			}
+			if (remoteAddress != null && !remoteAddress.equals(other.getRemoteAddress())) {
+				return false;
+			}
 		}
 		return true;
 	}

@@ -181,7 +181,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 		log.trace("Current bytes read at decode: {}", data.limit());
 		buffer.put(data);
 		buffer.flip();
-		return decoder.decodeBuffer(buffer);
+		return decoder.decodeBuffer(this, buffer);
 	}
 	
 	/**

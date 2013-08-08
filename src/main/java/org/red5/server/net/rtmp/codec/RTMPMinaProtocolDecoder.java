@@ -56,14 +56,17 @@ public class RTMPMinaProtocolDecoder extends ProtocolDecoderAdapter {
 		// get the connection from the session
 		String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
 		log.trace("Session id: {}", sessionId);
+		// connection verification routine
 		RTMPConnection conn = (RTMPConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);		
 		RTMPConnection connLocal = (RTMPConnection) Red5.getConnectionLocal();
 		if (connLocal == null || !conn.getSessionId().equals(connLocal.getSessionId())) {
 			if (log.isDebugEnabled() && connLocal != null) {
 				log.debug("Connection local didn't match session");
 			}
-			Red5.setConnectionLocal(conn);
 		}
+		// set the connection to local if its referred to by this session
+		Red5.setConnectionLocal(conn);
+		// get the connections decoder lock
 		final Semaphore lock = conn.getDecoderLock();
 		try {
 			// acquire the decoder lock
@@ -71,7 +74,7 @@ public class RTMPMinaProtocolDecoder extends ProtocolDecoderAdapter {
 			lock.acquire();
 			log.trace("Decoder lock acquired {}", conn.getSessionId());
 			// construct any objects from the decoded bugger
-			List<?> objects = decoder.decodeBuffer(buf);
+			List<?> objects = decoder.decodeBuffer(conn, buf);
 			if (objects != null) {
 				for (Object object : objects) {
 					out.write(object);
@@ -82,6 +85,8 @@ public class RTMPMinaProtocolDecoder extends ProtocolDecoderAdapter {
 		} finally {
 			log.trace("Decoder lock releasing.. {}", conn.getSessionId());
 			lock.release();
+			// clear local
+			Red5.setConnectionLocal(null);
 		}
 	}
 

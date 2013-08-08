@@ -84,14 +84,13 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	/**
 	 * Decode all available objects in buffer.
 	 * 
+	 * @param conn RTMP connection
 	 * @param buffer IoBuffer of data to be decoded
 	 * @return a list of decoded objects, may be empty if nothing could be decoded
 	 */
-	public List<Object> decodeBuffer(IoBuffer buffer) {
+	public List<Object> decodeBuffer(RTMPConnection conn, IoBuffer buffer) {
 		// decoded results
 		List<Object> result = null;
-		// get the connection
-		RTMPConnection conn = (RTMPConnection) Red5.getConnectionLocal();
 		if (conn != null) {
 			log.trace("Decoding for connection - session id: {}", conn.getSessionId());
 			try {
@@ -112,7 +111,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 						log.trace("Cannot start decoding");
 						break;
 					}
-					final Object decodedObject = decode(state, buffer);
+					final Object decodedObject = decode(conn, state, buffer);
 					if (state.hasDecodedObject()) {
 						log.trace("Has decoded object");
 						if (decodedObject != null) {
@@ -151,8 +150,9 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	}
 
 	/**
-	 * Decodes the buffer data
+	 * Decodes the buffer data.
 	 * 
+	 * @param conn RTMP connection
 	 * @param state Stores state for the protocol, ProtocolState is just a marker interface
 	 * @param in IoBuffer of data to be decoded
 	 * @return one of three possible values: 
@@ -161,8 +161,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 *       3. Object : something was decoded, continue
 	 * @throws Exception on error
 	 */
-	public Object decode(RTMPDecodeState state, IoBuffer in) throws ProtocolException {
-		RTMPConnection conn = (RTMPConnection) Red5.getConnectionLocal();
+	public Object decode(RTMPConnection conn, RTMPDecodeState state, IoBuffer in) throws ProtocolException {
 		if (log.isDebugEnabled()) {
 			log.debug("Decoding for {}", conn);
 		}
@@ -170,11 +169,11 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 			final byte connectionState = conn.getStateCode();
 			switch (connectionState) {
 				case RTMP.STATE_CONNECTED:
-					return decodePacket(state, in);
+					return decodePacket(conn, state, in);
 				case RTMP.STATE_CONNECT:
-					return decodeHandshakeS1(state, in);
+					return decodeHandshakeS1(conn, state, in);
 				case RTMP.STATE_HANDSHAKE:
-					return decodeHandshakeS2(state, in);
+					return decodeHandshakeS2(conn, state, in);
 				case RTMP.STATE_ERROR:
 				case RTMP.STATE_DISCONNECTING:
 				case RTMP.STATE_DISCONNECTED:
@@ -199,7 +198,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 * @param in IoBuffer
 	 * @return IoBuffer
 	 */
-	public IoBuffer decodeHandshakeS1(RTMPDecodeState state, IoBuffer in) {
+	public IoBuffer decodeHandshakeS1(RTMPConnection conn, RTMPDecodeState state, IoBuffer in) {
 		// first step: client has connected and handshaking is not complete
 		if (log.isDebugEnabled()) {
 			log.debug("decodeHandshake - state: {} buffer: {}", state, in);
@@ -214,7 +213,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 			in.get(); // skip the header byte
 			BufferUtils.put(hs, in, HANDSHAKE_SIZE);
 			hs.flip();
-			((RTMPConnection) Red5.getConnectionLocal()).setStateCode(RTMP.STATE_HANDSHAKE);
+			conn.setStateCode(RTMP.STATE_HANDSHAKE);
 			return hs;
 		}
 		return null;
@@ -227,7 +226,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 * @param in IoBuffer
 	 * @return IoBuffer
 	 */
-	public IoBuffer decodeHandshakeS2(RTMPDecodeState state, IoBuffer in) {
+	public IoBuffer decodeHandshakeS2(RTMPConnection conn, RTMPDecodeState state, IoBuffer in) {
 		// second step: all handshake data received, collecting handshake reply data
 		log.debug("decodeHandshake - state: {} buffer: {}", state, in);
 		// number of byte remaining in the buffer
@@ -243,7 +242,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 			state.bufferDecoding(HANDSHAKE_SIZE);
 		} else {
 			in.skip(HANDSHAKE_SIZE);
-			((RTMPConnection) Red5.getConnectionLocal()).setStateCode(RTMP.STATE_CONNECTED);
+			conn.setStateCode(RTMP.STATE_CONNECTED);
 			state.continueDecoding();
 		}
 		return null;
@@ -256,7 +255,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 * @param in IoBuffer
 	 * @return Packet
 	 */
-	public Packet decodePacket(RTMPDecodeState state, IoBuffer in) {
+	public Packet decodePacket(RTMPConnection conn, RTMPDecodeState state, IoBuffer in) {
 		if (log.isTraceEnabled()) {
 			log.trace("decodePacket - state: {} buffer: {}", state, in);
 		}
@@ -297,7 +296,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		if (channelId < 0) {
 			throw new ProtocolException("Bad channel id: " + channelId);
 		}
-		RTMP rtmp = ((RTMPConnection) Red5.getConnectionLocal()).getState();
+		RTMP rtmp = conn.getState();
 		// Get the header size and length
 		byte headerSize = RTMPUtils.decodeHeaderSize(headerValue, byteCount);
 		int headerLength = RTMPUtils.getHeaderLength(headerSize);
@@ -362,7 +361,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		}
 		buf.flip();
 		try {
-			final IRTMPEvent message = decodeMessage(packet.getHeader(), buf);
+			final IRTMPEvent message = decodeMessage(conn, packet.getHeader(), buf);
 			message.setHeader(packet.getHeader());
 			// Unfortunately flash will, especially when resetting a video stream with a new key frame, sometime 
 			// send an earlier time stamp.  To avoid dropping it, we just give it the minimal increment since the 
@@ -507,11 +506,12 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	/**
 	 * Decodes RTMP message event.
 	 * 
+	 * @param conn RTMP connection
 	 * @param header RTMP header
 	 * @param in Input IoBuffer
 	 * @return RTMP event
 	 */
-	public IRTMPEvent decodeMessage(Header header, IoBuffer in) {
+	public IRTMPEvent decodeMessage(RTMPConnection conn, Header header, IoBuffer in) {
 		IRTMPEvent message;
 		byte dataType = header.getDataType();
 		switch (dataType) {
@@ -522,11 +522,11 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				message = decodeAbort(in);
 				break;
 			case TYPE_INVOKE:
-				message = decodeInvoke(in);
+				message = decodeInvoke(conn.getEncoding(), in);
 				break;
 			case TYPE_NOTIFY:
 				if (header.getStreamId() == 0) {
-					message = decodeNotify(in, header);
+					message = decodeNotify(conn.getEncoding(), in, header);
 				} else {
 					message = decodeStreamMetadata(in);
 				}
@@ -742,19 +742,19 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	}
 
 	/** {@inheritDoc} */
-	public Notify decodeNotify(IoBuffer in) {
-		return decodeNotify(in, null);
+	public Notify decodeNotify(Encoding encoding, IoBuffer in) {
+		return decodeNotify(encoding, in, null);
 	}
 
 	/**
 	 * Decode a Notify.
 	 * 
+	 * @param encoding 
 	 * @param in
 	 * @param header
 	 * @return decoded notify result
 	 */
-	public Notify decodeNotify(IoBuffer in, Header header) {
-		Encoding encoding = Red5.getConnectionLocal().getEncoding();
+	public Notify decodeNotify(Encoding encoding, IoBuffer in, Header header) {
 		Notify notify = new Notify();
 		int start = in.position();
 		Input input;
@@ -818,8 +818,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	}
 
 	/** {@inheritDoc} */
-	public Invoke decodeInvoke(IoBuffer in) {
-		Encoding encoding = Red5.getConnectionLocal().getEncoding();
+	public Invoke decodeInvoke(Encoding encoding, IoBuffer in) {
 		Invoke invoke = new Invoke();
 		int start = in.position();
 		Input input;

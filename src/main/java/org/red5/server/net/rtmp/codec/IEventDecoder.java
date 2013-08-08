@@ -19,6 +19,7 @@
 package org.red5.server.net.rtmp.codec;
 
 import org.apache.mina.core.buffer.IoBuffer;
+import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.net.rtmp.event.Aggregate;
 import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.BytesRead;
@@ -35,9 +36,10 @@ import org.red5.server.so.ISharedObjectMessage;
  * Event decoder decodes event objects from incoming byte buffer.
  */
 public interface IEventDecoder {
+	
 	/**
 	 * Decodes event of Unknown type.
-	 *
+	 * 
 	 * @param dataType               Data type
 	 * @param in                     Byte buffer to decode
 	 * @return                       Unknown event
@@ -46,7 +48,7 @@ public interface IEventDecoder {
 
 	/**
 	 * Decodes chunk size event.
-	 *
+	 * 
 	 * @param in                     Byte buffer to decode
 	 * @return                       ChunkSize event
 	 */
@@ -54,7 +56,7 @@ public interface IEventDecoder {
 
 	/**
 	 * Decodes shared object message event.
-	 *
+	 * 
 	 * @param in                     Byte buffer to decode
 	 * @return                       ISharedObjectMessage event
 	 */
@@ -62,31 +64,33 @@ public interface IEventDecoder {
 
 	/**
 	 * Decodes shared object message event from AMF3 encoding.
-	 *
+	 * 
 	 * @param in                     Byte buffer to decode
 	 * @return                       ISharedObjectMessage event
 	 */
 	public abstract ISharedObjectMessage decodeFlexSharedObject(IoBuffer in);
 
 	/**
-	 * Decodes notification event.
-	 *
-	 * @param in                     Byte buffer to decode
-	 * @return                       Notify event
+	 * Decode a Notify.
+	 * 
+	 * @param encoding 
+	 * @param in
+	 * @return decoded notify result
 	 */
-	public abstract Notify decodeNotify(IoBuffer in);
+	public abstract Notify decodeNotify(Encoding encoding, IoBuffer in);
 
 	/**
 	 * Decodes invocation event.
-	 *
+	 * 
+	 * @param encoding 
 	 * @param in                     Byte buffer to decode
 	 * @return                       Invoke event
 	 */
-	public abstract Invoke decodeInvoke(IoBuffer in);
+	public abstract Invoke decodeInvoke(Encoding encoding, IoBuffer in);
 
 	/**
 	 * Decodes ping event.
-	 *
+	 * 
 	 * @param in                     Byte buffer to decode
 	 * @return                       Ping event
 	 */
@@ -94,7 +98,7 @@ public interface IEventDecoder {
 
 	/**
 	 * Decodes BytesRead event.
-	 *
+	 * 
 	 * @param in                     Byte buffer to decode
 	 * @return                       BytesRead event
 	 */
@@ -110,7 +114,7 @@ public interface IEventDecoder {
 
 	/**
 	 * Decodes audio data event.
-	 *
+	 * 
 	 * @param in                     Byte buffer to decode
 	 * @return                       AudioData event
 	 */
@@ -118,7 +122,7 @@ public interface IEventDecoder {
 
 	/**
 	 * Decodes video data event.
-	 *
+	 * 
 	 * @param in                     Byte buffer to decode
 	 * @return                       VideoData event
 	 */
@@ -126,9 +130,10 @@ public interface IEventDecoder {
 
 	/**
 	 * Decodes Flex message event.
-	 *
+	 * 
 	 * @param in                     Byte buffer to decode
 	 * @return                       FlexMessage event
 	 */
 	public abstract FlexMessage decodeFlexMessage(IoBuffer in);
+	
 }
