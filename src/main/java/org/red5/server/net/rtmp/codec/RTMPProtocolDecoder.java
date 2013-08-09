@@ -163,7 +163,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 */
 	public Object decode(RTMPConnection conn, RTMPDecodeState state, IoBuffer in) throws ProtocolException {
 		if (log.isDebugEnabled()) {
-			log.debug("Decoding for {}", conn);
+			log.debug("Decoding for {}", conn.getSessionId());
 		}
 		try {
 			final byte connectionState = conn.getStateCode();
@@ -194,6 +194,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	/**
 	 * Decodes handshake message for step 1, RTMP.STATE_CONNECT.
 	 * 
+	 * @param conn Connection
 	 * @param state protocol decode state
 	 * @param in IoBuffer
 	 * @return IoBuffer
@@ -222,6 +223,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	/**
 	 * Decodes handshake message for step 2, RTMP.STATE_HANDSHAKE.
 	 * 
+	 * @param conn Connection
 	 * @param state protocol decode state
 	 * @param in IoBuffer
 	 * @return IoBuffer
@@ -249,8 +251,9 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	}
 
 	/**
-	 * Decodes packet.
+	 * Decodes an IoBuffer into a Packet.
 	 * 
+	 * @param conn Connection
 	 * @param rtmp RTMP protocol state
 	 * @param in IoBuffer
 	 * @return Packet

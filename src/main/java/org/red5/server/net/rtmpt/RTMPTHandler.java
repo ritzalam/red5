@@ -18,13 +18,7 @@
 
 package org.red5.server.net.rtmpt;
 
-import org.apache.mina.core.buffer.IoBuffer;
-import org.red5.server.api.Red5;
-import org.red5.server.net.rtmp.InboundHandshake;
-import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPHandler;
-import org.red5.server.net.rtmp.RTMPHandshake;
-import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmpt.codec.RTMPTCodecFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,34 +81,4 @@ public class RTMPTHandler extends RTMPHandler {
 		}
 	}
 
-	/**
-	 * Handle raw buffer received
-	 * @param conn        RTMP connection
-	 * @param in          Byte buffer with input raw data
-	 */
-	private void rawBufferReceived(RTMPTConnection conn, IoBuffer in) {
-		log.debug("rawBufferRecieved: {}", in);
-		if (conn.getStateCode() != RTMP.STATE_HANDSHAKE) {
-			log.warn("Raw buffer after handshake, something odd going on");
-		}
-		log.debug("Writing handshake reply, handskake size: {}", in.remaining());
-		RTMPHandshake shake = new InboundHandshake();
-		shake.setHandshakeType(RTMPConnection.RTMP_NON_ENCRYPTED);
-		conn.writeRaw(shake.doHandshake(in));
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public void messageReceived(Object in) throws Exception {
-		log.debug("messageReceived");
-		if (in instanceof IoBuffer) {
-			RTMPTConnection conn = (RTMPTConnection) Red5.getConnectionLocal();	
-			log.trace("Connection: {}", conn);
-			rawBufferReceived(conn, (IoBuffer) in);
-			((IoBuffer) in).free();
-			in = null;
-		} else {
-			super.messageReceived(in);
-		}
-	}
 }

@@ -1087,7 +1087,7 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * 
 	 * @param message
 	 */
-	public void handleMessageReceived(Object message) {
+	public void handleMessageReceived(Packet message) {
 		log.debug("handleMessageReceived - {}", sessionId);
 	}
 

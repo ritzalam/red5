@@ -138,7 +138,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 
 	/** {@inheritDoc} */
 	@Override
-	public void handleMessageReceived(Object message) {
+	public void handleMessageReceived(Packet message) {
 		log.trace("handleMessageReceived - {}", sessionId);
 		try {
 			executor.execute(new ReceivedMessageTask(sessionId, message, handler));

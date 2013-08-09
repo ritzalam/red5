@@ -27,6 +27,7 @@ import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.transport.socket.nio.NioSession;
 import org.red5.server.net.rtmp.codec.RTMP;
+import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.net.rtmpe.RTMPEIoFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -155,7 +156,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 			log.trace("Session id: {}", sessionId);
 			RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
 			if (conn != null) {
-				conn.handleMessageReceived(message);
+				conn.handleMessageReceived((Packet) message);
 			} else {
 				log.warn("Connection was not found for {}", sessionId);
 				forceClose(session);
@@ -169,7 +170,9 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		String sessionId = (String) session.getAttribute(RTMPConnection.RTMP_SESSION_ID);
 		log.trace("Message sent on session: {} id: {}", session.getId(), sessionId);
 		RTMPMinaConnection conn = (RTMPMinaConnection) RTMPConnManager.getInstance().getConnectionBySessionId(sessionId);
-		handler.messageSent(conn, message);
+		if (message instanceof Packet) {
+			handler.messageSent(conn, (Packet) message);
+		}
 	}
 
 	/** {@inheritDoc} */
@@ -185,6 +188,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 	 * @param session
 	 */
 	private void forceClose(IoSession session) {
+		log.warn("Force close - session: {}", session.getId());
 		if (session.containsAttribute("FORCED_CLOSE")) {
 			log.warn("Close already forced on this session: {}", session.getId());
 		} else {

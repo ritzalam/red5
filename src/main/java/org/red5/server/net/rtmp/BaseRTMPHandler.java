@@ -21,8 +21,6 @@ package org.red5.server.net.rtmp;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.mina.core.buffer.IoBuffer;
-import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
@@ -64,13 +62,11 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 	}
 
 	/** {@inheritDoc} */
-	public void messageReceived(Object in) throws Exception {
-		RTMPConnection conn = (RTMPConnection) Red5.getConnectionLocal();
-		log.trace("Connection: {}", conn);
+	public void messageReceived(RTMPConnection conn, Packet packet) throws Exception {
+		log.trace("Connection: {}", conn.getSessionId());
 		if (conn != null) {
 			IRTMPEvent message = null;
 			try {
-				final Packet packet = (Packet) in;
 				message = packet.getMessage();
 				final Header header = packet.getHeader();
 				final int streamId = header.getStreamId();
@@ -161,17 +157,15 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 	}
 
 	/** {@inheritDoc} */
-	public void messageSent(RTMPConnection conn, Object message) {
+	public void messageSent(RTMPConnection conn, Packet packet) {
 		log.trace("Message sent");
-		if (message instanceof IoBuffer) {
-			return;
-		}
 		// increase number of sent messages
-		conn.messageSent((Packet) message);
+		conn.messageSent(packet);
 	}
 
 	/** {@inheritDoc} */
 	public void connectionClosed(RTMPConnection conn) {
+		log.debug("connectionClosed: {}", conn.getSessionId());
 		if (conn.getStateCode() != RTMP.STATE_DISCONNECTED) {
 			// inform any callbacks for pending calls that the connection is closed
 			conn.sendPendingServiceCallsCloseError();

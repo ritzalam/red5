@@ -18,7 +18,6 @@
 
 package org.red5.server.net.rtmpt;
 
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,9 +26,12 @@ import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.DummySession;
 import org.apache.mina.core.session.IoSession;
 import org.red5.logging.Red5LoggerFactory;
+import org.red5.server.net.rtmp.InboundHandshake;
 import org.red5.server.net.rtmp.RTMPConnection;
+import org.red5.server.net.rtmp.RTMPHandshake;
 import org.red5.server.net.rtmp.ReceivedMessageTask;
 import org.red5.server.net.rtmp.codec.RTMP;
+import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.net.servlet.ServletUtils;
 import org.slf4j.Logger;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -122,13 +124,26 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 		}
 	}
 
+	/**
+	 * Received message object router.
+	 * 
+	 * @param message an IoBuffer or Packet
+	 */
+	public void handleMessageReceived(Object message) {
+		if (message instanceof Packet) {
+			handleMessageReceived((Packet) message);
+		} else {
+			handleMessageReceived((IoBuffer) message);			
+		}
+	}	
+	
 	/** {@inheritDoc} */
 	@Override
-	public void handleMessageReceived(Object message) {
+	public void handleMessageReceived(Packet message) {
 		log.trace("handleMessageReceived - {}", sessionId);
 		try {
 			executor.execute(new ReceivedMessageTask(sessionId, message, handler, this));
-		} catch (RejectedExecutionException e) {
+		} catch (Exception e) {
 			log.warn("Incoming message handling failed", e);
 			if (log.isDebugEnabled()) {
 				log.debug("Execution rejected on {} - {}", getSessionId(), state.states[getStateCode()]);
@@ -140,6 +155,25 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 			}
 		}
 	}		
+	
+	/**
+	 * Handle raw buffer receiving event.
+	 *
+	 * @param message Data buffer
+	 */
+	public void handleMessageReceived(IoBuffer message) {
+		log.trace("handleMessageReceived (raw buffer) - {}", sessionId);
+		if (getStateCode() != RTMP.STATE_HANDSHAKE) {
+			log.warn("Raw buffer after handshake, something odd going on");
+		}
+		log.debug("Writing handshake reply, handskake size: {}", message.remaining());
+		RTMPHandshake shake = new InboundHandshake();
+		shake.setHandshakeType(RTMPConnection.RTMP_NON_ENCRYPTED);
+		writeRaw(shake.doHandshake(message));
+		// clean up
+		((IoBuffer) message).free();
+		message = null;
+	}
 
 	/** {@inheritDoc} */
 	@Override

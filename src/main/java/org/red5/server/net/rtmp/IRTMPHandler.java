@@ -18,36 +18,41 @@
 
 package org.red5.server.net.rtmp;
 
+import org.red5.server.net.rtmp.message.Packet;
 
 /**
  * RTMP events handler
  */
 public interface IRTMPHandler {
+
 	/**
-	 * Connection open event
+	 * Connection open event.
 	 * 
-	 * @param conn          Connection
+	 * @param conn Connection
 	 */
 	public void connectionOpened(RTMPConnection conn);
 
 	/**
-	 * Message received
+	 * Message received.
 	 * 
-	 * @param in       IoBuffer or Packet containing an RTMP message
-	 * @throws Exception   Exception
+	 * @param conn Connection 
+	 * @param in IoBuffer or Packet containing an RTMP message
+	 * @throws Exception   
 	 */
-	public void messageReceived(Object in) throws Exception;
+	public void messageReceived(RTMPConnection conn, Packet packet) throws Exception;
 
 	/**
-	 * Message sent
-	 * @param conn          Connection
-	 * @param message       Message
+	 * Message sent.
+	 * 
+	 * @param conn Connection
+	 * @param message Message
 	 */
-	public void messageSent(RTMPConnection conn, Object message);
+	public void messageSent(RTMPConnection conn, Packet packet);
 
 	/**
-	 * Connection closed
-	 * @param conn          Connection
+	 * Connection closed.
+	 * 
+	 * @param conn Connection
 	 */
 	public void connectionClosed(RTMPConnection conn);
 
