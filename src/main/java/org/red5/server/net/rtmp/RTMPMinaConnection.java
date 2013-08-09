@@ -24,7 +24,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -143,8 +142,8 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 		log.trace("handleMessageReceived - {}", sessionId);
 		try {
 			executor.execute(new ReceivedMessageTask(sessionId, message, handler));
-		} catch (RejectedExecutionException e) {
-			log.warn("Incoming message handling failed", e);
+		} catch (Exception e) {
+			log.warn("Incoming message handling failed on {}", getSessionId(), e);
 			if (log.isDebugEnabled()) {
 				log.debug("Execution rejected on {} - {}", getSessionId(), state.states[getStateCode()]);
 				log.debug("Lock permits - decode: {} encode: {}", decoderLock.availablePermits(), encoderLock.availablePermits());

@@ -19,6 +19,7 @@
 package org.red5.server.net.rtmp;
 
 import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.future.CloseFuture;
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.core.write.WriteRequestQueue;
@@ -185,7 +186,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 	 */
 	private void forceClose(IoSession session) {
 		if (session.containsAttribute("FORCED_CLOSE")) {
-			log.debug("Close already forced on this session: {}", session.getId());
+			log.warn("Close already forced on this session: {}", session.getId());
 		} else {
 			// set flag
 			session.setAttribute("FORCED_CLOSE", Boolean.TRUE);
@@ -199,13 +200,20 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 				log.debug("Clearing write queue");
 				writeQueue.clear(session);
 			}
+			// force close the session
+			CloseFuture future = session.close(true);
+			// wait until the connection is closed
+			log.debug("Awaiting close on {}", sessionId);
+			future.awaitUninterruptibly();
+			// now connection should be closed
+			log.debug("Closed on {}: {}", sessionId, future.isClosed());
 			if (session instanceof NioSession) {
 				NioSession nio = (NioSession) session;
 				log.trace("Removing session from processor");
 				nio.getProcessor().remove(nio);
 			} else {
 				log.debug("Session was not of NioSession type: {}", session.getClass().getName());
-			}			
+			}
 		}
 	}
 
